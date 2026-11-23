@@ -378,7 +378,7 @@ Missing German text stays blank rather than silently borrowing English prose.
 
 Contact details, salary amounts and currency, availability dates, weekly hours,
 work permissions, search area and board settings are shared outside the tabs.
-Application and fit briefs select the matching profile language alongside the CV.
+Application briefs select the matching profile language alongside the CV.
 German briefs use German drafting and LaTeX instructions; JSON keys and history
 IDs retain the same machine-readable format in both languages. Connected companion
 saves and syncs preserve both language versions.

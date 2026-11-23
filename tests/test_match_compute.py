@@ -950,6 +950,7 @@ class MigrationSchemaTests(unittest.TestCase):
         ])
 
     def test_migration_0043_drops_ai_assessment_tables_and_recreates_on_downgrade(self):
+        from sqlalchemy.dialects import postgresql
         from hiring_scraper.app import models
 
         migration = importlib.import_module(
@@ -970,11 +971,18 @@ class MigrationSchemaTests(unittest.TestCase):
         for table_name in dropped_tables:
             self.assertNotIn(table_name, models.Base.metadata.tables)
 
+        pg_dialect = postgresql.dialect()
+
+        def compile_sql(stmt):
+            if isinstance(stmt, str):
+                return stmt
+            return str(stmt.compile(dialect=pg_dialect, compile_kwargs={'literal_binds': True}))
+
         executed = []
         created_tables = []
         created_indexes = []
         fake_bind = SimpleNamespace(dialect=SimpleNamespace(name='postgresql'))
-        with patch.object(migration.op, 'execute', side_effect=lambda sql: executed.append(sql)), \
+        with patch.object(migration.op, 'execute', side_effect=lambda sql: executed.append(compile_sql(sql))), \
              patch.object(migration.op, 'create_table', side_effect=lambda name, *cols: created_tables.append(name)), \
              patch.object(migration.op, 'create_index', side_effect=lambda name, tbl, cols: created_indexes.append((name, tbl))), \
              patch.object(migration.op, 'get_bind', return_value=fake_bind):
@@ -984,7 +992,17 @@ class MigrationSchemaTests(unittest.TestCase):
             migration.downgrade()
             downgrade_sql = list(executed)
 
-        self.assertEqual(upgrade_sql, [f'DROP TABLE IF EXISTS {name}' for name in dropped_tables])
+        self.assertEqual(
+            upgrade_sql[:len(dropped_tables)],
+            [f'DROP TABLE IF EXISTS {name}' for name in dropped_tables],
+        )
+        invalidation_sql = upgrade_sql[len(dropped_tables):]
+        self.assertEqual(invalidation_sql, [
+            'DELETE FROM profile_match_progress',
+            'DELETE FROM profile_job_matches',
+            "DELETE FROM job_applications WHERE job_applications.status = 'new' AND job_applications.auto_created IS true",
+            'UPDATE user_profiles SET match_index_version=NULL, presentation_refresh_pending=false',
+        ])
         self.assertEqual(created_tables, [
             'profile_llm_scores',
             'ai_matching_calls',
@@ -999,6 +1017,11 @@ class MigrationSchemaTests(unittest.TestCase):
             ('ix_ai_matching_tasks_available_at', 'ai_matching_tasks'),
         ])
         self.assertTrue(any('GRANT SELECT, INSERT, UPDATE, DELETE ON ' in sql and 'TO hiring_app' in sql for sql in downgrade_sql))
+        # Downgrade must be a no-op for profile_job_matches, job_applications,
+        # profile_match_progress, and user_profiles rows.
+        for sql in downgrade_sql:
+            for preserved in ('profile_job_matches', 'job_applications', 'profile_match_progress', 'user_profiles'):
+                self.assertNotIn(preserved, sql)
 
 
 class ReviewFixTests(unittest.TestCase):

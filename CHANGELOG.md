@@ -14,30 +14,21 @@ no historical releases have been reconstructed.
 
 - Today's focus on Journey: up to three roles to act on now (prepared documents first, then Interested, then best match) with a "3 a day" progress indicator. Ready documents open directly in review.
 - Persist PostgreSQL application preparation jobs and checkpoints across worker restarts. Migration `0040_application_preparation` adds the queue. Existing drafts stay on the private runtime volume.
-- Continuously assess all active in-scope jobs through a durable parallel AI queue, with subscription pause/resume, independent persistent retries, recovered claims, and worker heartbeat diagnostics. Migration `0039_durable_ai_matching_queue` is required; `RADIUS_MATCH_AI_CONCURRENCY` defaults to 25. Shortlist, employer, local-score, and application call caps no longer restrict AI coverage.
-- Keep existing eligible Journey entries when AI lowers their score below the new-entry minimum, and sort them by the updated judgment before pagination.
-- Select the server-wide AI matching model in Settings → AI matching status. Migration `0038_ai_matching_model_setting` persists the choice across API and worker restarts; changing models refreshes matching without resetting usage budgets.
-- Explain job scores with weighted task dimensions, evidence ceilings, requirement quotes and separate eligibility checks.
-- Bound automatic AI matching to a stable shortlist and durable rolling call budget. Migration `0036_ai_matching_budget` adds call accounting and selected-pool status tables; apply migrations before starting updated workers.
-- Queue fresh AI assessments across profiles from the AI matching status page.
-- Only send eligible jobs with a local base score strictly over 35/100 for AI assessment.
-- Add an AI matching status page with queue counts, recent assessment activity, and subscription pause diagnostics.
 - A private application-generation benchmark runner and provenance-checked comparison of independent fit and checklist scores against frozen baselines.
-- Shared, source-checked requirement evidence for matching and application drafting, separate fit/completeness breakdowns, and an independent final content review that blocks unsupported claims.
+- Source-checked requirement evidence for application drafting, separate completeness checks, and an independent final content review that blocks unsupported claims.
 - Automatically prepare documents for each profile's 25 highest-ranked New applications when subscription usage permits.
 - A guided application preparation flow with progress, a faster draft-only mode, instance and per-application model selection, and mobile-friendly revision comparison.
 - A fictional bilingual CV and portrait fixture for application testing.
 - Resumable application preparation with a backend-saved ChatGPT connection, automatically generated CV and cover letter, prompt-based document revisions, and human confirmation before extension autofill.
 - Saved profile photos reused in English and German CV previews, PDF exports and source + photo ZIPs, with per-application exclusion and temporary replacements.
-- Subscription-backed Luna profile ranking with cached authoritative assessments, functional-experience dimensions, a verified five-hour usage guard at 50%, and migration `0035_profile_llm_scores`.
 - Local content-based profile matching across skills, summaries, work descriptions and career evidence, allowing unfamiliar job titles to surface in Journey with explained overlap and existing qualification checks.
 - Local multilingual semantic profile matching with cached section embeddings, background CPU inference, explained possible leads for unfamiliar wording, and migration `0034_profile_semantics`.
 - Optional PNG CV photos, restricted-template PDF rendering, and source + photo ZIP downloads for custom templates.
 - Language-specific example cover letters in profile content, used as structure and voice references in application briefs.
-- Independent German and English profile content tabs, shared contact and factual preferences, and German application, fit-assessment, CV-formatting and LaTeX prompts in Radius and the browser companion.
+- Independent German and English profile content tabs, shared contact and factual preferences, and German application, CV-formatting and LaTeX prompts in Radius and the browser companion.
 - English and German LaTeX base CVs with marked work and study history extraction, starter templates, and automatic application-language selection. New CV uploads require `.tex`; PostgreSQL deployments apply migration `0031_cv_languages` during startup.
 - Current-job application preparation in the extension: fill details first, open ChatGPT with a copied brief, import results, and download validated LaTeX/PDF documents while Radius syncs in the background.
-- Reusable career evidence, writing samples, goals and working preferences, with a separate ChatGPT job-fit brief.
+- Reusable career evidence, writing samples, goals and working preferences for application briefs.
 - LaTeX CV uploads and Canvas source return links, with editable `.tex` and LuaLaTeX PDF downloads for application documents.
 - Agentur für Arbeit scheduled scans in the current and upcoming search lists, with Germany ranked-check cadence, due, overdue, and unscheduled counts.
 - Open, Closed, and All posting filters, retained closure dates, and a Closed Journey outcome.
@@ -68,8 +59,8 @@ no historical releases have been reconstructed.
 
 ### Changed
 
-- Publish profile matches, AI assessments and Journey changes with a version check instead of exclusive profile locks. Publishers no longer block each other, and a profile edit in progress defers background publication instead of timing it out. Migration `0041_profile_source_version` is required before starting updated workers.
-- Write paths declare job, feed, company, profile, assessment and vector changes explicitly instead of relying on database flush listeners. Undeclared changes are logged as errors.
+- Publish profile matches and Journey changes with a version check instead of exclusive profile locks. Publishers no longer block each other, and a profile edit in progress defers background publication instead of timing it out. Migration `0041_profile_source_version` is required before starting updated workers.
+- Write paths declare job, feed, company, profile and vector changes explicitly instead of relying on database flush listeners. Undeclared changes are logged as errors.
 - Rank static matches by documented duties when the posting and profile contain enough work evidence. Show which duties match directly, which experience transfers, and which duties need verification.
 - Run Compose migrations once per deployment and restart each worker independently of the API. Deploy the Compose file and its matching app image together.
 - Jobs missing from a successful complete source scan close immediately. In Journey, Waiting for reply and Automated application move to Rejected; Accepted and Rejected stay unchanged, and other stages move to Closed. Failed or partial scans preserve existing jobs, and reappearing postings reopen without resetting Journey outcomes.
@@ -81,7 +72,7 @@ no historical releases have been reconstructed.
 
 ### Removed
 
-- AI job-fit assessment removed; ranking is local-only (rules matcher + local semantic evidence). Migration `0043_drop_ai_assessment` drops the AI assessment tables.
+- AI job-fit assessment (ranking queue, status page, score overlay, and standalone ChatGPT fit brief) removed; ranking is local-only (rules matcher + local semantic evidence). Migration `0043_drop_ai_assessment` drops the AI assessment tables and invalidates legacy derived match state for local rebuild while preserving user-set Journey stages.
 - **Breaking:** remove SQLite support. Radius, local development and the test suite require PostgreSQL with PostGIS and pgvector; use `compose.dev.yaml` or `scripts/dev/postgres-sandbox.sh`.
 - Remove the proof-of-concept crawl runner (`python -m hiring_scraper`) and the research experiments, captures and reports from the repository. They remain available in Git history.
 
@@ -89,25 +80,21 @@ no historical releases have been reconstructed.
 
 - Prevent a deadlock between editing a managed feed and a concurrent crawl of the same feed.
 - Match jobs saved from the browser companion like crawled jobs, so they appear in Journey with a score.
-- Upgrade populated databases through migration `0033` again, keep a Journey stage saved while duplicates are being consolidated, and allow deleting a profile with saved AI assessments.
+- Upgrade populated databases through migration `0033` again and keep a Journey stage saved while duplicates are being consolidated.
 - Create the `hiring_app` role in the development migration script, build the browser-test database from the checkout instead of pulling it from GHCR, and refuse to run tests against databases not named `hiring_test*` or `radius_test*`.
 - Stop the profile matching worker from scanning every active job for missing vectors every two seconds. Edited and new postings get vectors right away; the rest of the inventory is checked in small windows.
 - Stop the semantic search worker from rescanning the whole job inventory on every idle poll, which caused statement timeouts on large databases. Once the backfill for the current model completes, only queued changes are indexed.
 - Stop feed, discovery and enrichment writes from locking profile rows, and make profile locks compatible with foreign-key inserts. This removes the `user_profiles` lock timeouts between workers. A changed job is now rematched on its own instead of forcing a full profile rebuild.
 - Retry feed and discovery persistence after short database contention instead of discarding the fetched results and crawling the source again. Expected contention is logged as one warning line instead of an error traceback.
-- Commit AI matching queue reconciliation in chunks so assessment claims no longer wait behind one inventory-wide transaction.
 - Restore semantic job search on PostgreSQL, which failed with an undefined model revision after the search workload was separated from the API.
-- Run AI queue reconciliation separately from inference scheduling so large inventories cannot stall dispatch or worker heartbeats; increase default parallel assessments from four to 25.
 - Recover CV and cover-letter formatting without discarding valid documents: correct only rejected edits, retain safe wording when correction fails, normalize simple letter formatting, and provide clearer preparation feedback.
-- Keep AI assessments and local semantic matching progressing during profile index backfills and index failures. Prepare shortlists while subscription checks pause inference, and log safe pause reasons and assessment error types.
 - Keep expired ChatGPT sign-ins in a waiting state until runtime cleanup releases the connection, so an immediate sign-in retry can proceed.
 - Separate Journey vacancy identity unions from the short search-generation commit fence, defer busy background pages before row locks, and batch unchanged identity checks. Deploy with a coordinated application/worker restart so old and new identity writers do not overlap.
 - Queue production Journey updates transactionally, commit restartable 100-job profile backfill pages, and keep saved Journey pages usable while matching catches up. Migration `0037_journey_match_progress` adds durable queue and progress state.
-- Show an accessible score graphic on job details, separate task evidence from desired titles, and require exact saved-source citations for AI dimension scores. Existing assessments refresh under the new scoring version.
+- Show an accessible score graphic on job details and separate task evidence from desired titles.
 - Match documented core duties across job titles while preserving academic scope, formal qualifications, language requirements and source-backed evidence.
-- Review saved Journey roles even when their derived match index is missing, and report pending index rebuilds in AI matching status.
-- Remove the built-in 50% AI quota threshold, handle plain-text application save failures, and give multi-pass CV preparation a larger review budget.
-- Sort Journey by current fit scores while matching rebuilds and refresh saved pages as AI assessments arrive.
+- Handle plain-text application save failures and give multi-pass CV preparation a larger review budget.
+- Sort Journey by stored match scores while matching rebuilds, keeping rank and displayed cards consistent.
 - Allow application startup with native Codex temporary helper symlinks without following their targets during private-volume ownership repair.
 - Ground tailored application examples in supplied role evidence, avoid inferred employer duties for title-only postings, and provide original CV macro budgets during drafting and review.
 - Keep saved applications available when a match rebuild conflicts with an inventory update.

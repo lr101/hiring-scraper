@@ -6,7 +6,7 @@ import type { LatexDocuments } from './applicationLatex'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import PDFPreview from './PDFPreview'
 import type { Profile } from './profile'
-import { applicationDocumentFilename, applicationPostingURL, applicationStartLink, readApplicationReturnInput, assertFinishedText, assertCoverLetterText, buildApplicationPrompt, buildFitAssessmentPrompt, readApplicationReturn, documentHTML, documentPlainText, documentSections, parseApplicationPackage, parseApplicationResponse, parseTemplateChanges } from './applicationHandoff'
+import { applicationDocumentFilename, applicationPostingURL, applicationStartLink, readApplicationReturnInput, assertFinishedText, assertCoverLetterText, buildApplicationPrompt, readApplicationReturn, documentHTML, documentPlainText, documentSections, parseApplicationPackage, parseApplicationResponse, parseTemplateChanges } from './applicationHandoff'
 import type { ApplicationDocuments, ApplicationPackage, HandoffJob, TemplateParagraph } from './applicationHandoff'
 import { formStorageKey, readApplicationForm } from './applicationForm'
 import type { FormAnswers } from './applicationForm'
@@ -82,7 +82,6 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const [loading, setLoading] = useState(true)
   const [step, setStep] = useState<'handoff' | 'response' | 'edit'>('handoff')
   const [language, setLanguage] = useState('the language of the job posting')
-  const [briefType, setBriefType] = useState<'application' | 'fit'>('application')
   const [documentLayout, setDocumentLayout] = useState<'original' | 'latex'>('latex')
   const [latexDocuments, setLatexDocuments] = useState<LatexDocuments>()
   const [notes, setNotes] = useState('')
@@ -186,9 +185,8 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const applicationLanguage = selectCVLanguage(language, job.description ?? '') === 'de' ? 'German' : 'English'
   const returnURL = new URL(applicationStartLink(job.id, profile.id), location.origin).href
   const draftKey = `radius:application-draft:v1:${job.id}:${profile.id}`
-  const prompt = useMemo(() => briefType === 'fit' ? buildFitAssessmentPrompt({ job, profile, language: applicationLanguage, cvText })
-    : buildApplicationPrompt({ job, profile, language: applicationLanguage, cvText, notes, templateParagraphs: template?.paragraphs,
-      handoff: { ...context, return_url: returnURL }, form }), [briefType, job, profile, applicationLanguage, cvText, notes, template, context, returnURL, form])
+  const prompt = useMemo(() => buildApplicationPrompt({ job, profile, language: applicationLanguage, cvText, notes, templateParagraphs: template?.paragraphs,
+      handoff: { ...context, return_url: returnURL }, form }), [job, profile, applicationLanguage, cvText, notes, template, context, returnURL, form])
   useEffect(() => {
     if (loading || !cvText || restored.current) return
     restored.current = true
@@ -487,7 +485,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     const target = openChatGPT ? window.open(CHATGPT, '_blank') : null
     if (target) target.opener = null
     try {
-      if (briefType === 'application') setStep('response')
+      setStep('response')
       if (await copying) {
         if (openChatGPT && !target) setManual(true)
         setNotice(target || !openChatGPT ? 'Brief copied. Paste it in ChatGPT and send.' : 'Brief copied. Use Open ChatGPT to continue.')
@@ -736,8 +734,6 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
           <div className="application-cv-ready"><span aria-hidden="true">✓</span><div><small>Base CV</small><strong>{profile.cv?.languages?.[applicationLanguage === 'German' ? 'de' : 'en']?.filename ?? profile.cv?.filename}</strong></div><a href={editHref}>Change CV</a></div>
           <p className="finish-help"><a href={editHref.replace('#profile-cv', '#profile-personalization')}>Edit career evidence and writing voice</a></p>
           {form && <p className="finish-help">This application step’s questions and answer limits are included in your brief.</p>}
-          <label>Brief type<select disabled={generating} aria-label="Brief type" value={briefType} onChange={event => { setBriefType(event.target.value as 'application' | 'fit'); setNotice(''); setError('') }}><option value="application">Prepare application documents</option><option value="fit">Assess job fit</option></select></label>
-          {briefType === 'fit' && <><p className="finish-help">Compare this role with your experience in ChatGPT.</p><button disabled={loading || !cvText || busy || !draftReady || generating} onClick={() => void start()}>{loading ? 'Reading CV…' : 'Assess fit in ChatGPT'}</button>{manual && <a className="page-link" href={CHATGPT} target="_blank" rel="noreferrer">Open ChatGPT</a>}</>}
           {(generationJob?.state === 'failed' || generationJob?.state === 'cancelled') && <button disabled={loading || !cvText || busy || !draftReady || generating} onClick={() => void prepareDirect(false)}>Start with current options</button>}
           <p className="finish-help"><a href="/settings">Manage ChatGPT connection and default model</a></p>
           <label>Preparation speed<select disabled={generating} value={preparationMode} onChange={event => setPreparationMode(event.target.value as 'full' | 'fast')}><option value="full">Full: draft, review and revise</option><option value="fast">Fast: draft only</option></select></label>

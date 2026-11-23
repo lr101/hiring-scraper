@@ -260,6 +260,24 @@ class CodexRuntimeTests(unittest.TestCase):
             with self.assertRaises(HTTPException) as raised:runtime.start_login()
         self.assertEqual(raised.exception.status_code,503)
 
+    def test_inference_concurrency_defaults_to_25_and_honors_overrides_with_legacy_fallback(self):
+        runtime = self.module()
+        clean = {k: v for k, v in os.environ.items()
+                 if k not in {'RADIUS_APPLICATION_AI_CONCURRENCY', 'RADIUS_CODEX_CONCURRENCY', 'RADIUS_MATCH_AI_CONCURRENCY'}}
+        with patch.dict(os.environ, clean, clear=True):
+            self.assertEqual(runtime.inference_concurrency(), 25)
+        with patch.dict(os.environ, {**clean, 'RADIUS_MATCH_AI_CONCURRENCY': '12'}, clear=True):
+            self.assertEqual(runtime.inference_concurrency(), 12)
+        with patch.dict(os.environ, {**clean, 'RADIUS_MATCH_AI_CONCURRENCY': '12', 'RADIUS_CODEX_CONCURRENCY': '7'}, clear=True):
+            self.assertEqual(runtime.inference_concurrency(), 7)
+        with patch.dict(os.environ, {**clean, 'RADIUS_MATCH_AI_CONCURRENCY': '12', 'RADIUS_CODEX_CONCURRENCY': '7',
+                                     'RADIUS_APPLICATION_AI_CONCURRENCY': '9'}, clear=True):
+            self.assertEqual(runtime.inference_concurrency(), 9)
+        with patch.dict(os.environ, {**clean, 'RADIUS_APPLICATION_AI_CONCURRENCY': '0'}, clear=True):
+            self.assertEqual(runtime.inference_concurrency(), 1)
+        with patch.dict(os.environ, {**clean, 'RADIUS_APPLICATION_AI_CONCURRENCY': 'not-a-number'}, clear=True):
+            self.assertEqual(runtime.inference_concurrency(), 25)
+
     def test_native_runtime_cannot_advertise_shell_files_browser_or_agent_tools(self):
         native = shutil.which('codex')
         if not native: self.skipTest('Pinned Codex binary is not installed')

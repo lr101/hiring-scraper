@@ -123,9 +123,11 @@ Several processes write to the same PostgreSQL database. Keep these rules when a
   in ONE consistent SQL statement (`load_stored_match_snapshots`) for only the displayed `(profile_id, job_id)` pairs,
   loading vectors only on fallback. Indexed search treats a missing `profile_job_matches` row as an
   authoritative `profile_conflict` only when the profile index is current and the job is not dirty, and recomputes via
-  `compute_match` otherwise. Journey keeps rank and card score consistent: stale/dirty rows with a faithful stored
-  explanation render the same ranked stored card flagged `'refreshing': True` (with `matching_pending = True`);
-  missing/legacy rows recompute on the displayed page and keep the displayed order aligned with the rendered scores.
+  `compute_match` otherwise. Journey keeps rank and card score consistent, local-only: stale/dirty rows with a faithful
+  stored explanation render the same ranked stored card flagged `'refreshing': True` (with `matching_pending = True`);
+  rows without a faithful stored explanation keep their stored rank order — rendering a neutral `'refreshing': True`
+  card from the stored rank (or no score card when unranked) instead of recomputing or re-sorting on the displayed page,
+  while the profile match worker supplies the local explanation.
 - **Profiles are versioned, not locked by publishers.** Profile edits bump
   `user_profiles.source_version` (through `source_changes`). Publishers of per-profile data
   record the versions when they start, compute without locks, then call

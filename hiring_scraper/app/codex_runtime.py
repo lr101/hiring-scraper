@@ -84,11 +84,19 @@ def _lock(root, *, shared=False):
         os.close(descriptor)
 
 
+_DEFAULT_INFERENCE_CONCURRENCY = 25
+
+
 def inference_concurrency():
-    try:
-        return max(1, int(os.getenv('RADIUS_CODEX_CONCURRENCY', '4')))
-    except ValueError:
-        return 4
+    for name in ('RADIUS_APPLICATION_AI_CONCURRENCY', 'RADIUS_CODEX_CONCURRENCY', 'RADIUS_MATCH_AI_CONCURRENCY'):
+        raw = os.getenv(name)
+        if raw is None or not raw.strip():
+            continue
+        try:
+            return max(1, int(raw))
+        except ValueError:
+            return _DEFAULT_INFERENCE_CONCURRENCY
+    return _DEFAULT_INFERENCE_CONCURRENCY
 
 
 @contextmanager

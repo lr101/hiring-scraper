@@ -18,9 +18,41 @@ _DROP_TABLES = (
 )
 
 
+_profile_match_progress = sa.table('profile_match_progress')
+_profile_job_matches = sa.table('profile_job_matches')
+_job_applications = sa.table(
+    'job_applications',
+    sa.column('status', sa.String),
+    sa.column('auto_created', sa.Boolean),
+)
+_user_profiles = sa.table(
+    'user_profiles',
+    sa.column('match_index_version', sa.String),
+    sa.column('presentation_refresh_pending', sa.Boolean),
+)
+
+
 def upgrade():
     for table in _DROP_TABLES:
         op.execute(f'DROP TABLE IF EXISTS {table}')
+    # Invalidate legacy derived match state so the profile match worker rebuilds
+    # locally without serving AI-derived scores/explanations during backfill.
+    # Mirrors job_search.clear_profile_match_scores: preserves all user-set
+    # Journey stages and user-created 'new' rows. Downgrade is a no-op for rows.
+    op.execute(sa.delete(_profile_match_progress))
+    op.execute(sa.delete(_profile_job_matches))
+    op.execute(
+        sa.delete(_job_applications).where(
+            _job_applications.c.status == 'new',
+            _job_applications.c.auto_created.is_(True),
+        )
+    )
+    op.execute(
+        sa.update(_user_profiles).values(
+            match_index_version=None,
+            presentation_refresh_pending=False,
+        )
+    )
 
 
 def downgrade():
