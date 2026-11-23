@@ -92,6 +92,11 @@ def matching_config_change_action(
     return True, True
 
 
+def config_version_effort(version: str) -> str:
+    """Reasoning-effort component of a ``MatchingConfig.version`` (process-local env)."""
+    return version.rsplit(':', 1)[-1]
+
+
 def _upsert_observed_config(session, version: str, now=None) -> None:
     timestamp = utcnow() if now is None else now
     insert = dialect_insert(session)
@@ -114,9 +119,10 @@ def set_matching_model(model):
         insert = dialect_insert(session)
         session.execute(insert(AIMatchingSetting).values(id=1, model=model, updated_at=now)
             .on_conflict_do_update(index_elements=['id'], set_={'model': model, 'updated_at': now}))
-        _upsert_observed_config(session, MatchingConfig(model, EFFORT).version, now=now)
-        # Local-only jobs keep valid derived scores. Queue rematching only for
-        # jobs with saved AI assessments so they fall back cleanly to local scores.
+        # The worker owns ai_matching_observed_config: this process's environment
+        # (effort) may be older than the worker's, so it must not record its own
+        # view. Only queue rematching for jobs with saved AI assessments so they
+        # fall back cleanly to local scores; same-effort workers adopt the model.
         source_changes.matching_model_changed(session)
         session.commit()
     return {'model': model, 'available_models': list(AVAILABLE_MODELS), 'reasoning_effort': EFFORT}

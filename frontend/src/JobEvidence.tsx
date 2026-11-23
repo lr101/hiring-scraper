@@ -21,7 +21,7 @@ export type ProfileMatch = {
       status: 'supported' | 'transferable' | 'missing' | 'unknown'; explanation: string
       job_source: string; job_quote: string; evidence_quote: string; evidence_source: string }[]
   } | null
-  fit_tier?: 'recommended' | 'possible' | 'unlikely'; requirement_gaps?: string[]
+  fit_tier?: 'recommended' | 'possible' | 'unlikely'; requirement_gaps?: string[]; refreshing?: boolean
   score: number; eligible: boolean; uncertain: boolean; label: string
   custom_skill_evidence?: { name: string; evidence: string; source: string }[]
   local_context?: {

@@ -17,6 +17,20 @@ try {
   assert.match(render('local'), /Local estimate/)
   assert.match(render(undefined), /Local estimate/)
   assert.match(render('llm'), /75\/100 fit/)
+  const refreshing = renderToStaticMarkup(React.createElement(JobFeedCard, {
+    job: { id: 1, title: 'Engineer', company_name: 'Example', location_text: null,
+      profile_match: { score: 99, matched_skills: [], refreshing: true } },
+    href: '/jobs/1', profileId: 3, onAction() {},
+  }))
+  assert.match(refreshing, /Updating match…/)
+  assert.match(refreshing, /99\/100 fit/)
+  assert.match(refreshing, /match-recommended/)
+  assert.doesNotMatch(refreshing, /Local estimate|AI assessed|None identified yet/)
+  const noMatch = renderToStaticMarkup(React.createElement(JobFeedCard, {
+    job: { id: 2, title: 'Engineer', company_name: 'Example', location_text: null, profile_match: null },
+    href: '/jobs/2', profileId: 3, onAction() {},
+  }))
+  assert.doesNotMatch(noMatch, /Updating match…|fit<\/span>/)
   const { default: JobEvidence } = await server.ssrLoadModule('/src/JobEvidence.tsx')
   const evidence = review => renderToStaticMarkup(React.createElement(JobEvidence, {
     enrichment: { skills: [], languages: [], warnings: [], seniority: null, experience_years: null },

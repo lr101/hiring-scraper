@@ -27,7 +27,7 @@ type JobCardData = {
   first_seen_at?: string | null
   application?: Application | null
   enrichment?: Pick<Enrichment, 'languages' | 'experience_years'>
-  profile_match?: Pick<ProfileMatch, 'matched_skills' | 'score' | 'fit_tier' | 'score_source'>
+  profile_match?: Pick<ProfileMatch, 'matched_skills' | 'score' | 'fit_tier' | 'score_source' | 'refreshing'>
 }
 
 function formatDate(value?: string | null) {
@@ -72,7 +72,8 @@ function JobFeedCard({
   const languageRequirements = job.enrichment?.languages.map(language =>
     `${language.value}${languageRequirementLabel(language)}`,
   ).join(' · ')
-  const matchTier = job.profile_match?.fit_tier ?? (job.profile_match && job.profile_match.score < 30
+  const matchRefreshing = job.profile_match?.refreshing === true
+  const matchTier = (matchRefreshing ? undefined : job.profile_match?.fit_tier) ?? (job.profile_match && job.profile_match.score < 30
     ? 'unlikely' : job.profile_match && job.profile_match.score >= 65 ? 'recommended' : 'possible')
   const lastUpdated = updatedAt ?? job.application?.updated_at ?? job.last_seen_at ?? job.first_seen_at
 
@@ -92,7 +93,8 @@ function JobFeedCard({
           aria-label={`${job.profile_match.score} out of 100 fit index${matchTier === 'recommended' ? ', strong' : matchTier === 'unlikely' ? ', low' : ', possible'}`}>
           {job.profile_match.score}/100 fit
         </span>}
-        {job.profile_match && <span className="application-ai-match-tag">{job.profile_match.score_source === 'llm' ? 'AI assessed' : 'Local estimate'}</span>}
+        {job.profile_match && <span className="application-ai-match-tag">{matchRefreshing
+          ? 'Updating match…' : job.profile_match.score_source === 'llm' ? 'AI assessed' : 'Local estimate'}</span>}
         {profileName && <span className="application-card-profile-name">{profileName}</span>}
       </div>
     </header>
@@ -102,7 +104,7 @@ function JobFeedCard({
     </div>
     <JobOverviewTags job={job} />
     {showStartApplication && <a className="job-prepare-link" href={applicationStartLink(job.id, profileId)}>Start application <span aria-hidden="true">↗</span></a>}
-    {profileId !== undefined && <p className="application-matching-skills"><strong>Matching skills:</strong> {matchingSkills.length ? matchingSkills.join(' · ') : 'None identified yet'}</p>}
+    {profileId !== undefined && <p className="application-matching-skills"><strong>Matching skills:</strong> {matchingSkills.length ? matchingSkills.join(' · ') : matchRefreshing ? 'Updating…' : 'None identified yet'}</p>}
     {languageRequirements && <p className="application-language-requirements"><strong>Language requirements:</strong> {languageRequirements}</p>}
     {nextMoves.length > 0 && profileId !== undefined && <div className="application-quick-moves" aria-label="Move this application to its next state">
       <span className="application-quick-moves-label">Next move</span>

@@ -26,13 +26,14 @@ from hiring_scraper.app.match_compute import (
 )
 from hiring_scraper.app.models import (
     ProfileIndexChanged, hold_profiles,
-    AIMatchingObservedConfig, Company, Job, JobApplication, JobFeed, JobLocation, JobSearchState, MatchDirtyJob,
+    AIMatchingObservedConfig, AIMatchingSetting, Company, Job, JobApplication, JobFeed, JobLocation, JobSearchState, MatchDirtyJob,
     MatchSemanticDocument, ProfileLLMScore, ProfileMatchProgress, ProfileJobMatch, UserProfile, utcnow,
     reserve_job_source_rows,
 )
 from hiring_scraper.matching import VERSION, match_job
 from hiring_scraper.app.profile_llm import (
-    load_matching_documents as load_semantic_documents, matching_config, profile_data,
+    _upsert_observed_config, config_version_effort, load_matching_documents as load_semantic_documents,
+    matching_config, profile_data,
 )
 from hiring_scraper.semantic_matching import VERSION as SEMANTIC_VERSION
 from hiring_scraper.app.requirement_evidence import SCORING_VERSION as REQUIREMENT_SCORING_VERSION
@@ -136,6 +137,10 @@ def refresh_profile_match_indexes_once() -> bool:
         profiles = session.scalars(select(UserProfile).order_by(UserProfile.id)).all()
         progress = {row.profile_id: row for row in session.scalars(select(ProfileMatchProgress))}
         stale = [p for p in profiles if profile_match_index_stale(p)]
+        pending = [p for p in profiles if p.presentation_refresh_pending and not profile_match_index_stale(p)]
+        if pending:
+            # Self-heal a flag set against an index that has since become current.
+            return _apply_pending_presentation_refresh(session, pending[0])
         if not stale:
             return False
         # Unstarted profiles first, then least recently advanced. No profile can
@@ -172,6 +177,9 @@ def refresh_profile_match_indexes_once() -> bool:
         state.advanced_at = utcnow()
         if len(ids) < _MATCH_WORK_PAGE_SIZE or state.cursor >= state.high_water:
             locked.match_index_version = version
+            # SessionLocal disables autoflush: persist the version first, or the
+            # snapshot queries below still see the old index and defer every row.
+            session.flush()
             if locked.presentation_refresh_pending:
                 # A threshold/unknown-policy edit arrived mid-backfill: pages committed
                 # before it still hold the old presentation. Re-evaluate New rows now,
@@ -184,16 +192,43 @@ def refresh_profile_match_indexes_once() -> bool:
         return True
 
 
+def _apply_pending_presentation_refresh(session: Session, profile: UserProfile) -> bool:
+    expected_source = {profile.id: profile.source_version}
+    hold_profiles(session, expected_source, wait=False, exclusive=True)
+    locked = session.get(UserProfile, profile.id, populate_existing=True)
+    if locked is None or not locked.presentation_refresh_pending:
+        session.rollback()
+        return False
+    # reevaluate_profile_new_applications defers again if the index went stale.
+    reevaluate_profile_new_applications(session, locked)
+    session.commit()
+    return True
+
+
 def matching_config_matches_observed(session: Session) -> bool:
     """True unless this worker's effective AI config differs from the recorded one.
 
-    During a rolling restart an old worker (old model/effort) may still run after a
-    new worker recorded the change. It must not publish or acknowledge dirty
-    revisions with its own config; a current worker will process them.
+    The observation is owned by workers (recorded at start); API processes never
+    write it. During a rolling restart an old worker (different reasoning effort)
+    may still run after a new worker recorded its config. It must not publish or
+    acknowledge dirty revisions with its own config; a current worker will.
+
+    A *model* change saved through the API is shared by every worker (it lives in
+    ``ai_matching_settings``), so a same-effort worker adopts it here instead of
+    waiting for a restart: the API already queued the AI-scored jobs, and
+    acknowledgements are revision-exact, so work computed before the save stays queued.
     """
     observed = session.scalar(select(AIMatchingObservedConfig.version)
         .where(AIMatchingObservedConfig.id == 1).execution_options(populate_existing=True))
-    return observed is None or observed == matching_config(session).version
+    effective = matching_config(session)
+    if observed is None or observed == effective.version:
+        return True
+    if config_version_effort(observed) != effective.effort:
+        return False
+    if session.scalar(select(AIMatchingSetting.id).where(AIMatchingSetting.id == 1)) is None:
+        return False  # Model comes from this process's environment: a different worker's config.
+    _upsert_observed_config(session, effective.version)
+    return True
 
 
 def refresh_dirty_job_matches_once(session_factory=None) -> bool:
@@ -724,6 +759,10 @@ def reevaluate_profile_new_applications(
     to rematching instead of trusting or retracting them.
     """
     expected_index_version = _profile_index_version(profile)
+    # The caller holds the profile row lock. Read the committed index state under
+    # it: a backfill page may have published the index after this profile was loaded.
+    session.flush()
+    session.refresh(profile, ['match_index_version'])
     if profile.match_index_version != expected_index_version:
         # Backfill in progress: pages committed before this edit keep the old
         # presentation. Remember it; the worker re-evaluates once the index is current.

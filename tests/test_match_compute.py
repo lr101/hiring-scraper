@@ -997,7 +997,7 @@ class CheaperInvalidationTests(unittest.TestCase):
         self.assertEqual(session.info.get(source_changes._DECLARED), {('job', 10), ('job', 20), ('job', 30)})
         self.assertTrue(all('profile_llm_scores' in sql for sql in executed_queries))
 
-    def test_set_matching_model_persists_observed_config_and_avoids_profile_rebuild(self):
+    def test_set_matching_model_leaves_observed_config_to_the_worker_and_avoids_profile_rebuild(self):
         from hiring_scraper.app import source_changes
 
         executed_sql = []
@@ -1033,7 +1033,8 @@ class CheaperInvalidationTests(unittest.TestCase):
         mock_changed.assert_called_once_with(fake_session)
         self.assertTrue(any('pg_advisory_xact_lock(85793011, 9)' in sql for sql in executed_sql))
         self.assertTrue(any('ai_matching_settings' in sql for sql in executed_sql))
-        self.assertTrue(any('ai_matching_observed_config' in sql for sql in executed_sql))
+        # Worker-owned: an API process with an older effort env must not overwrite it.
+        self.assertFalse(any('ai_matching_observed_config' in sql for sql in executed_sql))
 
     def test_reconcile_matching_config_change_detects_env_change_without_locking_setting(self):
         from hiring_scraper.app import source_changes
@@ -1214,6 +1215,12 @@ class CheaperInvalidationTests(unittest.TestCase):
                 return list(self._rows)
 
         class FakeSession:
+            def flush(self):
+                pass
+
+            def refresh(self, instance, attribute_names=None):
+                pass
+
             def execute(self, stmt):
                 sql = str(stmt)
                 if sql.startswith('DELETE'):
@@ -1449,6 +1456,35 @@ class ReviewFixTests(unittest.TestCase):
             self.assertFalse(job_search.matching_config_matches_observed(session))
 
 
+    def test_api_model_save_never_blocks_a_current_worker(self):
+        from unittest.mock import MagicMock
+        from hiring_scraper.app import job_search
+
+        # Worker recorded gpt-6-luna:high; an API save then switches the shared model.
+        session = MagicMock()
+        effective = profile_llm.MatchingConfig('gpt-6.1-sol', 'high')
+        observed = profile_llm.MatchingConfig('gpt-6-luna', 'high').version
+        scalars = iter([observed, 1])  # observed row, saved setting id
+        session.scalar.side_effect = lambda *_: next(scalars)
+        with patch.object(job_search, 'matching_config', return_value=effective), \
+             patch.object(job_search, '_upsert_observed_config') as upsert:
+            self.assertTrue(job_search.matching_config_matches_observed(session))
+        upsert.assert_called_once_with(session, effective.version)
+        # Without a saved model the difference is another worker's environment: skip.
+        scalars = iter([observed, None])
+        with patch.object(job_search, 'matching_config', return_value=effective), \
+             patch.object(job_search, '_upsert_observed_config') as upsert:
+            self.assertFalse(job_search.matching_config_matches_observed(session))
+        upsert.assert_not_called()
+        # A different effort (old worker) never rewrites the observation.
+        old_worker = profile_llm.MatchingConfig('gpt-6-luna', 'low')
+        scalars = iter([observed])
+        with patch.object(job_search, 'matching_config', return_value=old_worker), \
+             patch.object(job_search, '_upsert_observed_config') as upsert:
+            self.assertFalse(job_search.matching_config_matches_observed(session))
+        upsert.assert_not_called()
+
+
 @unittest.skipUnless(os.environ.get('TEST_POSTGRES_URL'), 'Requires PostgreSQL with pgvector (TEST_POSTGRES_URL)')
 class MatchComputePostgresIntegrationTests(unittest.TestCase):
     """End-to-end DB tests exercising stored explanations, presentation edits, and model switches."""
@@ -1640,22 +1676,28 @@ class MatchComputePostgresIntegrationTests(unittest.TestCase):
             self.assertNotIn('refreshing', by_job_post[job1_id])
 
 
-    def test_presentation_edit_during_backfill_is_applied_when_backfill_completes(self):
-        from sqlalchemy import select
-        from hiring_scraper.app import job_search, models, profiles
+    # Production sessions (SessionLocal) disable autoflush and expiry on commit.
+    # Mirror that so stale ORM instances and unflushed in-memory writes behave as in prod.
+    def _prod_session(self):
+        from sqlalchemy.orm import sessionmaker
+        return sessionmaker(bind=self.engine, autoflush=False, expire_on_commit=False)
 
-        def request(threshold):
-            return profiles.ProfileRequest(
-                name='Developer', skills=['Python', 'SQL', 'Docker'], desired_roles=['Software developer'],
-                summary='Built Python services, maintained SQL databases, and deployed Docker containers.',
-                experience_years=4, language_levels={'English': 'C1', 'German': 'B2'},
-                work_styles=['remote', 'hybrid'], employment_types=['full_time'],
-                search_area={'city': 'Karlsruhe', 'latitude': 49.0069, 'longitude': 8.4037,
-                             'radius_km': 35, 'country_code': 'DE'},
-                matching_defaults={'min_match_score': threshold, 'include_unknown': True})
+    @staticmethod
+    def _threshold_request(threshold):
+        from hiring_scraper.app import profiles
+        return profiles.ProfileRequest(
+            name='Developer', skills=['Python', 'SQL', 'Docker'], desired_roles=['Software developer'],
+            summary='Built Python services, maintained SQL databases, and deployed Docker containers.',
+            experience_years=4, language_levels={'English': 'C1', 'German': 'B2'},
+            work_styles=['remote', 'hybrid'], employment_types=['full_time'],
+            search_area={'city': 'Karlsruhe', 'latitude': 49.0069, 'longitude': 8.4037,
+                         'radius_km': 35, 'country_code': 'DE'},
+            matching_defaults={'min_match_score': threshold, 'include_unknown': True})
 
-        with self.factory() as session:
-            profile_id = profiles.create_profile(request(0), session)['id']
+    def _seed_backfill_profile(self, factory):
+        from hiring_scraper.app import models, profiles
+        with factory() as session:
+            profile_id = profiles.create_profile(self._threshold_request(0), session)['id']
             company = models.Company(source='test', source_id='bf', name='Example GmbH', country_code='DE')
             feed = models.JobFeed(company=company, provider='html_jobs', feed_url='https://example.de/bf', status='parsed')
             location = dict(label='Karlsruhe, Germany', latitude=49.0069, longitude=8.4037,
@@ -1668,30 +1710,91 @@ class MatchComputePostgresIntegrationTests(unittest.TestCase):
                 for index, title in enumerate(('Platform Specialist', 'Platform Specialist Two'), start=1)]
             session.add(company)
             session.commit()
-            first_id, second_id = jobs[0].id, jobs[1].id
+            return profile_id, jobs[0].id, jobs[1].id
 
-        def new_row(session, job_id):
+    def _new_row(self, factory, profile_id, job_id):
+        from sqlalchemy import select
+        from hiring_scraper.app import models
+        with factory() as session:
             return session.scalar(select(models.JobApplication).where(
                 models.JobApplication.profile_id == profile_id, models.JobApplication.job_id == job_id))
 
-        with patch.object(job_search, 'SessionLocal', self.factory), \
+    def test_presentation_edit_during_backfill_is_applied_when_backfill_completes(self):
+        from hiring_scraper.app import job_search, models, profiles
+
+        factory = self._prod_session()
+        profile_id, first_id, second_id = self._seed_backfill_profile(factory)
+        with patch.object(job_search, 'SessionLocal', factory), \
              patch.object(job_search, '_MATCH_WORK_PAGE_SIZE', 1):
             self.assertTrue(job_search.refresh_profile_match_indexes_once())  # page 1 (job 1)
-            with self.factory() as session:
+            with factory() as session:
                 self.assertIsNone(session.get(models.UserProfile, profile_id).match_index_version)
-                self.assertIsNotNone(new_row(session, first_id))
                 self.assertLess(session.get(models.ProfileJobMatch, (profile_id, first_id)).match_score, 99)
+            self.assertIsNotNone(self._new_row(factory, profile_id, first_id))
+            with factory() as session:
                 # Threshold edit mid-backfill: remembered, checkpoint and page-1 row untouched.
-                profiles.update_profile(profile_id, request(99), session)
+                profiles.update_profile(profile_id, self._threshold_request(99), session)
+            with factory() as session:
                 self.assertTrue(session.get(models.UserProfile, profile_id).presentation_refresh_pending)
-                self.assertIsNotNone(new_row(session, first_id))
-            self.assertTrue(job_search.refresh_profile_match_indexes_once())  # page 2 completes
-        with self.factory() as session:
+            self.assertIsNotNone(self._new_row(factory, profile_id, first_id))
+            # Page 2 completes the index; with autoflush off the version must be
+            # flushed before re-evaluating or every row would be deferred.
+            self.assertTrue(job_search.refresh_profile_match_indexes_once())
+        with factory() as session:
             profile = session.get(models.UserProfile, profile_id)
             self.assertIsNotNone(profile.match_index_version)
             self.assertFalse(profile.presentation_refresh_pending)
-            self.assertIsNone(new_row(session, first_id))
-            self.assertIsNone(new_row(session, second_id))
+        self.assertIsNone(self._new_row(factory, profile_id, first_id))
+        self.assertIsNone(self._new_row(factory, profile_id, second_id))
+
+    def test_threshold_edit_with_stale_profile_instance_after_backfill_applies_immediately(self):
+        from hiring_scraper.app import job_search, models, profiles
+
+        factory = self._prod_session()
+        profile_id, first_id, second_id = self._seed_backfill_profile(factory)
+        with patch.object(job_search, 'SessionLocal', factory), \
+             patch.object(job_search, '_MATCH_WORK_PAGE_SIZE', 1):
+            self.assertTrue(job_search.refresh_profile_match_indexes_once())  # page 1
+            with factory() as request_session:
+                # The request loads the profile while the index is still building...
+                stale = profiles.require_profile(profile_id, request_session)
+                self.assertIsNone(stale.match_index_version)
+                # ...the last backfill page commits before its write lock is taken...
+                self.assertTrue(job_search.refresh_profile_match_indexes_once())
+                self.assertIsNone(stale.match_index_version)  # still stale in the ORM
+                # ...so the edit must decide on the locked, current row, not its stale copy.
+                profiles.update_profile(profile_id, self._threshold_request(99), request_session)
+        with factory() as session:
+            profile = session.get(models.UserProfile, profile_id)
+            self.assertIsNotNone(profile.match_index_version)
+            self.assertFalse(profile.presentation_refresh_pending)
+        self.assertIsNone(self._new_row(factory, profile_id, first_id))
+        self.assertIsNone(self._new_row(factory, profile_id, second_id))
+
+    def test_worker_applies_stuck_presentation_flag_on_current_index(self):
+        from copy import deepcopy
+        from hiring_scraper.app import job_search, models
+
+        factory = self._prod_session()
+        profile_id, first_id, second_id = self._seed_backfill_profile(factory)
+        with patch.object(job_search, 'SessionLocal', factory), \
+             patch.object(job_search, '_MATCH_WORK_PAGE_SIZE', 1):
+            while job_search.refresh_profile_match_indexes_once():
+                pass
+            self.assertIsNotNone(self._new_row(factory, profile_id, first_id))
+            with factory() as session:
+                profile = session.get(models.UserProfile, profile_id)
+                self.assertIsNotNone(profile.match_index_version)
+                preferences = deepcopy(profile.preferences)
+                preferences['matching_defaults']['min_match_score'] = 99
+                profile.preferences = preferences
+                profile.presentation_refresh_pending = True  # as left by the old race
+                session.commit()
+            self.assertTrue(job_search.refresh_profile_match_indexes_once())
+        with factory() as session:
+            self.assertFalse(session.get(models.UserProfile, profile_id).presentation_refresh_pending)
+        self.assertIsNone(self._new_row(factory, profile_id, first_id))
+        self.assertIsNone(self._new_row(factory, profile_id, second_id))
 
 
 if __name__ == '__main__':
