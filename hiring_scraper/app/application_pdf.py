@@ -322,7 +322,53 @@ def _reading_order_check(model: CvDocument | LetterDocument, text: str) -> dict:
     return _check('reading_order', 'passed', 'Document units appear in reading order.')
 
 
-def _text_checks(kind: str, model: CvDocument | LetterDocument, text: str, pages: int) -> list[dict]:
+def _orphan_entry_breaks(model: CvDocument, page_texts: list[str]) -> list[str]:
+    """Return entry ids that split mid-entry across pages with <= 4 bullets total or < 3 bullets on the first page."""
+    if len(page_texts) < 2:
+        return []
+    page_runs = [_squash(page) for page in page_texts]
+    broken: list[str] = []
+    for section in model.sections:
+        for entry in section.entries:
+            visible = [u for u in entry.units if not u.hidden]
+            if not visible:
+                continue
+            bullet_pages: list[int] = []
+            min_page = 0
+            for unit in visible:
+                run = _squash(unit_full_text(unit))
+                probe = run[:40]
+                if not probe:
+                    continue
+                found: int | None = None
+                for idx in range(min_page, len(page_runs)):
+                    if probe in page_runs[idx]:
+                        found = idx
+                        break
+                if found is None:
+                    for idx, page_run in enumerate(page_runs):
+                        if probe in page_run:
+                            found = idx
+                            break
+                if found is not None:
+                    bullet_pages.append(found)
+                    min_page = found
+            if len(set(bullet_pages)) > 1:
+                first_page = bullet_pages[0]
+                on_first = sum(1 for p in bullet_pages if p == first_page)
+                if len(visible) <= 4 or on_first < 3:
+                    broken.append(entry.id)
+    return broken
+
+
+def _text_checks(
+    kind: str,
+    model: CvDocument | LetterDocument,
+    text: str,
+    pages: int,
+    *,
+    page_texts: list[str] | None = None,
+) -> list[dict]:
     checks: list[dict] = []
     limit = PAGE_LIMITS[kind]
     squashed = _squash(text)
@@ -330,7 +376,7 @@ def _text_checks(kind: str, model: CvDocument | LetterDocument, text: str, pages
                          f'{pages} page(s); limit {limit}.'))
     checks.append(_check('text_extractable', 'passed' if squashed else 'failed',
                          f'{len(text)} characters extracted.'))
-    broken = text.count('�') + text.count('(cid:')
+    broken = text.count('\ufffd') + text.count('(cid:')
     checks.append(_check('glyphs', 'passed' if not broken else 'failed', f'{broken} unmapped glyph(s).'))
     checks.append(_reading_order_check(model, text))
     source = cv_text(model) if isinstance(model, CvDocument) else letter_text(model)
@@ -347,6 +393,10 @@ def _text_checks(kind: str, model: CvDocument | LetterDocument, text: str, pages
         checks.append(_check('contacts_present', 'passed' if not missing else 'failed',
                              f'{len(contacts) - len(missing)} of {len(contacts)} contacts present'
                              + (f' (missing: {", ".join(missing)}).' if missing else '.')))
+        orphan_breaks = _orphan_entry_breaks(model, page_texts or [])
+        checks.append(_check('entry_pagination', 'passed' if not orphan_breaks else 'failed',
+                             'Entries break cleanly across pages.'
+                             if not orphan_breaks else f'{len(orphan_breaks)} entry split with orphan bullets.'))
     else:
         name = model.sender.name
     checks.append(_check('name_present', 'passed' if _squash(name) in squashed else 'failed',
@@ -431,13 +481,15 @@ def render_document(
         raise RenderFailed('pdf_unreadable', 'The rendered PDF could not be read.') from None
     limit = PAGE_LIMITS[kind]
     exceeded = pages > limit
-    checks = _text_checks(kind, model, text, pages)
+    checks = _text_checks(kind, model, text, pages, page_texts=page_texts)
     if exceeded or telemetry.get('overflow_px', 0) > 0:
         checks.append(_check('overflow', 'warning',
                              f'{telemetry.get("overflow_px", 0)} px beyond page {limit}; '
                              f'{len(telemetry.get("beyond_limit_units", []))} unit(s) past the limit.'))
     telemetry['pages'] = pages
     telemetry['page_fill_ratios'] = page_fill_ratios
+    if isinstance(model, CvDocument):
+        telemetry['orphan_entry_breaks'] = _orphan_entry_breaks(model, page_texts)
     # Chromium can move blocks between pages to honor CSS break rules. Only report
     # a split when the extracted unit crosses an actual PDF page boundary.
     page_runs = [_squash(page) for page in page_texts]

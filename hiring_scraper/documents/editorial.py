@@ -5,7 +5,16 @@ import re
 from collections import Counter
 from collections.abc import Iterable
 
-from hiring_scraper.documents.schema import MAX_UNIT_TEXT, CvDocument, DocumentLanguage, Entry, Unit, walk_units
+from hiring_scraper.documents.schema import (
+    MAX_UNIT_TEXT,
+    CvDocument,
+    DocumentLanguage,
+    Entry,
+    LetterDocument,
+    Section,
+    Unit,
+    walk_units,
+)
 from hiring_scraper.documents.text import unit_full_text
 
 FIRST_PERSON = re.compile(r"\b(?:I|ich)\b", re.IGNORECASE)

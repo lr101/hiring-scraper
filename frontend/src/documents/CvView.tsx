@@ -365,7 +365,13 @@ export function CvView({
     >
       {overlay}
       <div ref={contentRef} className="doc-page-content">
-        <div className="doc-cv-header-wrap">
+        <div
+          className={
+            showPhoto
+              ? 'doc-cv-header-wrap doc-cv-header-wrap--with-photo'
+              : 'doc-cv-header-wrap'
+          }
+        >
           {showPhoto ? (
             <img
               className="doc-cv-photo"
@@ -373,52 +379,54 @@ export function CvView({
               alt={doc.header.name}
             />
           ) : null}
-          <header className="doc-cv-header">
-            <h1 className="doc-cv-name">{doc.header.name}</h1>
-            {showHeadline ? (
-              <div
-                className="doc-cv-headline"
-                data-unit-id={doc.headline.id}
-                data-unit-hidden={doc.headline.hidden ? 'true' : undefined}
-              >
-                {renderUnitContent(renderUnit, {
-                  unit: doc.headline,
-                  kind: 'headline',
-                  splittable: false,
-                })}
-              </div>
-            ) : null}
-            {doc.header.contacts.length > 0 ? (
-              <p className="doc-cv-contacts">
-                {doc.header.contacts.map((contact, index) => {
-                  const href = safeContactHref(contact)
-                  return (
-                    <Fragment key={`${contact.kind}-${index}-${contact.text}`}>
-                      {index > 0 ? (
-                        <span className="doc-cv-contact-sep" aria-hidden="true">
-                          {' \u00B7 '}
-                        </span>
-                      ) : null}
-                      {href ? (
-                        <a
-                          className="doc-cv-contact-link"
-                          href={href}
-                          rel="noopener noreferrer"
-                        >
-                          {contact.text}
-                        </a>
-                      ) : (
-                        <span className="doc-cv-contact-text">{contact.text}</span>
-                      )}
-                    </Fragment>
-                  )
-                })}
-              </p>
-            ) : null}
-          </header>
-          {leadingProfile
-            ? renderSection(leadingProfile, doc.language, showHidden, renderUnit)
-            : null}
+          <div className="doc-cv-header-main">
+            <header className="doc-cv-header">
+              <h1 className="doc-cv-name">{doc.header.name}</h1>
+              {showHeadline ? (
+                <div
+                  className="doc-cv-headline"
+                  data-unit-id={doc.headline.id}
+                  data-unit-hidden={doc.headline.hidden ? 'true' : undefined}
+                >
+                  {renderUnitContent(renderUnit, {
+                    unit: doc.headline,
+                    kind: 'headline',
+                    splittable: false,
+                  })}
+                </div>
+              ) : null}
+              {doc.header.contacts.length > 0 ? (
+                <p className="doc-cv-contacts">
+                  {doc.header.contacts.map((contact, index) => {
+                    const href = safeContactHref(contact)
+                    return (
+                      <Fragment key={`${contact.kind}-${index}-${contact.text}`}>
+                        {index > 0 ? (
+                          <span className="doc-cv-contact-sep" aria-hidden="true">
+                            {' \u00B7 '}
+                          </span>
+                        ) : null}
+                        {href ? (
+                          <a
+                            className="doc-cv-contact-link"
+                            href={href}
+                            rel="noopener noreferrer"
+                          >
+                            {contact.text}
+                          </a>
+                        ) : (
+                          <span className="doc-cv-contact-text">{contact.text}</span>
+                        )}
+                      </Fragment>
+                    )
+                  })}
+                </p>
+              ) : null}
+            </header>
+            {leadingProfile
+              ? renderSection(leadingProfile, doc.language, showHidden, renderUnit)
+              : null}
+          </div>
         </div>
 
         {remainingSections.map((section) =>

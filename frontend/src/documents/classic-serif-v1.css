@@ -100,18 +100,26 @@
 /* ---------- CV Header & Portrait ---------- */
 
 .doc-cv-header-wrap {
-  display: flow-root;
   margin-bottom: 4pt;
 }
 
+.doc-cv-header-wrap--with-photo {
+  display: grid;
+  grid-template-columns: 24mm minmax(0, 1fr);
+  column-gap: 5mm;
+  align-items: start;
+}
+
 .doc-cv-photo {
-  float: left;
   width: 24mm;
   height: 36mm;
-  margin: 0 5mm 2.5mm 0;
   object-fit: cover;
   object-position: center top;
   display: block;
+}
+
+.doc-cv-header-main {
+  min-width: 0;
 }
 
 .doc-cv-header {
@@ -196,6 +204,7 @@
   widows: 2;
 }
 
+.doc-cv-section--profile .doc-cv-paragraph,
 .doc-cv-paragraph--left,
 .doc-cv-entry-intro .doc-cv-paragraph {
   text-align: left;
@@ -468,16 +477,25 @@
     page-break-after: auto;
   }
 
-  .doc-cv-entry:has(.doc-cv-bullet):not(:has(.doc-cv-bullet:nth-child(4))):not(:has(.doc-cv-entry-intro)),
-  .doc-cv-entry:has(.doc-cv-entry-intro):has(.doc-cv-bullet):not(:has(.doc-cv-bullet:nth-child(3))) {
+  /* Keep short entries (<= 4 bullets, with or without intro) intact so page 2 starts at an entry or section header. */
+  .doc-cv-entry:has(.doc-cv-bullet):not(:has(.doc-cv-bullet:nth-child(5))) {
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
-  .doc-cv-entry:not(:has(.doc-cv-entry-intro)) .doc-cv-bullet:first-child:not(:last-child),
+  /* For longer entries (>= 5 bullets), keep at least 3 bullets with the header on page 1 and at least 2 on page 2. */
+  .doc-cv-entry .doc-cv-bullet:nth-child(1):not(:last-child),
+  .doc-cv-entry .doc-cv-bullet:nth-child(2):not(:last-child),
   .doc-cv-entry .doc-cv-bullet:nth-last-child(2) {
     break-after: avoid;
     page-break-after: avoid;
+  }
+
+  /* Keep compact trailing sections intact when short. */
+  .doc-cv-section--skills,
+  .doc-cv-section--list:not(:has(.doc-cv-bullet:nth-child(6))) {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   .doc-kind-cv.doc-page--compact {
