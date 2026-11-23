@@ -11,7 +11,7 @@ Never uses heldout cases for parameter selection and never prints private text.
 from __future__ import annotations
 
 import argparse
-from collections import defaultdict
+from collections import Counter, defaultdict
 from typing import Any
 
 from hiring_scraper.matching_v2.calibrate import calibrate_float, calibrate_score, fit_monotone_knots
@@ -117,9 +117,10 @@ def _ranking_objective(
     weights: dict[str, float],
     *,
     l2_reg: float = 0.00004,
+    sep_w: float = 0.15,
     use_semantic: bool = False,
 ) -> float:
-    """Compute regularized DEV ranking + separation objective across datasets."""
+    """Compute regularized DEV ranking + grade-margin separation objective across datasets."""
     ds_scores: list[float] = []
     for ds_name, rows in dev_by_dataset.items():
         visible = [r for r in rows if r['gate_result']['eligible'] and not r['should_hide']]
@@ -159,7 +160,21 @@ def _ranking_objective(
         pair_gaps = [abs(vals[0] - vals[1]) for vals in pair_map.values() if len(vals) == 2]
         pair_pen = (sum(pair_gaps) / len(pair_gaps)) / 120.0 if pair_gaps else 0.0
 
-        ds_scores.append(0.45 * mean_auc + 0.35 * mean_ndcg + 0.20 * global_auc - 0.12 * pair_pen)
+        margin = 0.0
+        if sep_w > 0.0:
+            g0 = [sc for sc, r in zip(raws, visible) if r['grade'] == 0]
+            g2 = [sc for sc, r in zip(raws, visible) if r['grade'] == 2]
+            g3 = [sc for sc, r in zip(raws, visible) if r['grade'] == 3]
+            if g0 and g3:
+                span = max(10.0, percentile(raws, 95) - percentile(raws, 5))
+                gap03 = (percentile(g3, 25) - percentile(g0, 85)) / span
+                gap23 = (percentile(g3, 50) - percentile(g2, 50)) / span if g2 else 0.0
+                margin = 0.75 * gap03 + 0.25 * gap23
+
+        ds_scores.append(
+            0.45 * mean_auc + 0.35 * mean_ndcg + 0.20 * global_auc
+            + sep_w * margin - 0.12 * pair_pen
+        )
 
     if not ds_scores:
         return 0.0
@@ -217,16 +232,17 @@ def fit_knots_dev(
     weights: dict[str, float],
     *,
     num_knots: int = 10,
-    min_slope: float = 0.40,
-    max_slope: float = 2.30,
+    min_slope: float = 0.50,
+    max_slope: float = 1.90,
     tail_slope: float = CALIBRATION_TAIL_SLOPE,
 ) -> tuple[tuple[float, float], ...]:
     """Fit strictly monotone piecewise-linear knots on visible DEV cases only.
 
     Initializes from PAVA isotonic regression on DEV, then runs regularized
     coordinate refinement (single-knot + monotone prefix/suffix shifts) over
-    the knot y-values subject to strict slope bounds ``[min_slope, max_slope]``
-    so scores span the full attainable 0-100 range without ties or plateaus.
+    the knot y-values subject to strict slope bounds ``[min_slope, max_slope]``,
+    slope-curvature smoothness, and 3-point local calibrated density control so
+    scores span the full attainable 0-100 range without plateaus or bunching.
     """
     xs: list[float] = []
     ys: list[float] = []
@@ -259,9 +275,9 @@ def fit_knots_dev(
     pava_y = [ky for _, ky in init_knots]
     # Seed the search at the per-dataset band constraints. The quantiles
     # reserve margin for integer rounding and evaluation on unseen postings.
-    lower_cutoffs = [percentile([r for r, g in zip(raws, grades) if g == 0], 83)
+    lower_cutoffs = [percentile([r for r, g in zip(raws, grades) if g == 0], 84)
                      for raws, grades in ds_eval_data if 0 in grades]
-    upper_cutoffs = [percentile([r for r, g in zip(raws, grades) if g == 3], 30)
+    upper_cutoffs = [percentile([r for r, g in zip(raws, grades) if g == 3], 25)
                      for raws, grades in ds_eval_data if 3 in grades]
     band_seed = None
     if lower_cutoffs and upper_cutoffs:
@@ -271,8 +287,8 @@ def fit_knots_dev(
                 x for x in anchor_x if min(abs(x - low), abs(x - high)) >= 1.0
             } | {low, high})
             pava_y = [calibrate_float(x, knots=init_knots, tail_slope=tail_slope) for x in anchor_x]
-            left_slope = min(0.8, 27.5 / max(1.0, low - anchor_x[0]))
-            right_slope = min(0.8, 18.0 / max(1.0, anchor_x[-1] - high))
+            left_slope = min(0.85, 28.0 / max(1.0, low - anchor_x[0]))
+            right_slope = min(1.05, 18.5 / max(1.0, anchor_x[-1] - high))
             if min(left_slope, right_slope) >= min_slope:
                 band_seed = [
                     29.0 + left_slope * (x - low) if x < low else
@@ -288,7 +304,7 @@ def fit_knots_dev(
     attainable_top_raw = max(xs) + 0.025 * (max(xs) - min(xs))
 
     def _valid_slopes(ky_list: list[float]) -> bool:
-        if ky_list[0] < 1.5 - 1e-9 or ky_list[-1] > 98.5 + 1e-9:
+        if ky_list[0] < 0.5 - 1e-9 or ky_list[-1] > 98.5 + 1e-9:
             return False
         for i in range(1, len(ky_list)):
             dx = anchor_x[i] - anchor_x[i - 1]
@@ -310,24 +326,36 @@ def fit_knots_dev(
             good_band = float(rng.get('good_in_band') or 0.0)
             msh = float(rng.get('max_value_share') or 0.0)
             p595 = float(rng.get('spread_p5_p95') or 0.0)
+            counts = Counter(int(c) for c in cals)
+            n_vis = max(1, len(cals))
+            max_w3 = max(
+                (counts[s] + counts[s + 1] + counts[s + 2]) for s in range(99)
+            ) / (3.0 * n_vis)
             # Penalize violations per DEV dataset so pooling cannot hide a miss.
-            # The margin above rollout targets is fixed before evaluating heldout.
+            # Smoothed 3-point density penalizes local bunching beyond discrete
+            # rounding boundaries so max_value_share generalizes to unseen splits.
             loss = (
                 1.0 * be
                 + 0.35 * ece
-                + 12.0 * max(0.0, 0.83 - i30)
-                + 8.0 * max(0.0, 0.70 - s80)
-                + 1.2 * (1.0 - good_band)
-                + 24.0 * max(0.0, msh - 0.05)
-                + 5.0 * max(0.0, msh - 0.03)
-                + 0.05 * max(0.0, 65.0 - p595)
+                + 24.0 * max(0.0, 0.84 - i30)
+                + 16.0 * max(0.0, 0.75 - s80)
+                + 2.4 * (1.0 - good_band)
+                + 24.0 * max(0.0, msh - 0.045)
+                + 6.0 * max(0.0, msh - 0.028)
+                + 22.0 * max(0.0, max_w3 - 0.022)
+                + 0.05 * max(0.0, 72.0 - p595)
             )
             losses.append(loss)
-        # Ensure strongest attainable raw scores reach 100 on the calibrated scale.
+        slopes = [
+            (ky_list[i] - ky_list[i - 1]) / (anchor_x[i] - anchor_x[i - 1])
+            for i in range(1, len(ky_list))
+        ]
+        curv = sum((slopes[i] - slopes[i - 1]) ** 2 for i in range(1, len(slopes)))
+        # Ensure strongest attainable raw scores reach 100 and top tail stays spread.
         top_cal = calibrate_float(attainable_top_raw, knots=cand_knots, tail_slope=tail_slope)
-        top_pen = 0.25 * max(0.0, 99.6 - top_cal)
+        top_pen = 0.25 * max(0.0, 99.6 - top_cal) + 0.05 * max(0.0, 96.5 - ky_list[-1])
         reg = 0.00004 * sum((a - b) ** 2 for a, b in zip(ky_list, pava_y))
-        return (sum(losses) / len(losses) if losses else 0.0) + top_pen + reg
+        return (sum(losses) / len(losses) if losses else 0.0) + top_pen + 0.05 * curv + reg
 
     if band_seed is not None and _valid_slopes(band_seed):
         if not _valid_slopes(curr_y) or _knot_loss(band_seed) < _knot_loss(curr_y):

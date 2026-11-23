@@ -36,8 +36,10 @@ from hiring_scraper.matching_v2.gates import (
     NON_REQUIREMENT_V2,
     is_language_or_visa_clause,
     job_requirement_texts,
+    mask_parens,
     parse_job_requirement_texts,
     strip_language_or_visa_subclauses,
+    unmask_parens,
 )
 from hiring_scraper.matching_v2.weights import SOFT_PENALTIES
 from hiring_scraper.requirements import (
@@ -805,25 +807,22 @@ def is_company_experience_claim(sentence: str) -> bool:
     return bool(_COMPANY_EXPERIENCE_CLAIM.search(sentence))
 
 
+_OR_ARM_SPLIT_RE = re.compile(r'\s+\b(?:or|oder|alternatively|alternativ)\b\s+', re.I)
+_TENURE_NON_YEARS_ALT_RE = re.compile(
+    r'\b(?:equivalent|comparable|vergleichbar|ausbildung|studium|degree|quereinsteiger)\b',
+    re.I,
+)
+
+
 def split_or_arms(clause: str) -> list[str]:
     """Split a requirement clause into top-level OR alternatives."""
     if not clause:
         return []
-    protected: dict[str, str] = {}
-    working = clause
-    for idx, m in reversed(list(enumerate(re.finditer(r'\([^()]*\)', working)))):
-        marker = f'\ue000p{idx}\ue001'
-        protected[marker] = m.group()
-        working = working[:m.start()] + marker + working[m.end():]
-    parts = [p.strip(' ,;.') for p in re.split(r'\s+\b(?:or|oder|alternatively|alternativ)\b\s+', working, flags=re.I) if p.strip(' ,;.')]
+    working, protected = mask_parens(clause)
+    parts = [p.strip(' ,;.') for p in _OR_ARM_SPLIT_RE.split(working) if p.strip(' ,;.')]
     if len(parts) <= 1:
         return [clause.strip()]
-    out = []
-    for part in parts:
-        for marker, orig in protected.items():
-            part = part.replace(marker, orig)
-        out.append(part.strip())
-    return out
+    return [unmask_parens(part, protected).strip() for part in parts]
 
 
 # ---------------------------------------------------------------------------
@@ -831,11 +830,20 @@ def split_or_arms(clause: str) -> list[str]:
 # ---------------------------------------------------------------------------
 
 _SENIORITY_LEVELS: tuple[tuple[int, re.Pattern[str]], ...] = (
-    (5, re.compile(r'\b(?:c-level|ceo|cto|cfo|coo|cpo|cmo|vp\b|vice\s+president|svp|evp|director|direktor\w*|head\s+of|bereichsleiter\w*|abteilungsleiter\w*|geschäftsführer\w*|vorstand)\b', re.I)),
-    (4, re.compile(r'\b(?:principal|staff\s+(?:engineer|designer|product)|team\s+lead|tech\s+lead|teamleiter\w*|teamleitung|fachliche\s+leitung|lead\s+(?:engineer|developer|designer|product|manager|analyst|architect)|architect|architekt\w*)\b', re.I)),
+    (5, re.compile(r'\b(?:c-level|ceo|cto|cfo|coo|cpo|cmo|vp\b|vice\s+president|svp|evp|director|direktor\w*|head\s+of|bereichsleit\w*|abteilungsleit\w*|geschäftsführ\w*|geschäftsleit\w*|vorstand)\b', re.I)),
+    (4, re.compile(r'\b(?:principal|staff\s+(?:engineer|designer|product)|team\s+lead|tech\s+lead|teamleit\w*|gruppenleit\w*|fachliche\s+leitung|fachleitung|lead\s+(?:engineer|developer|designer|product|manager|analyst|architect)|architect|[\wäöüß-]*architekt\w*)\b', re.I)),
     (3, re.compile(r'\b(?:senior|sr\.?\b|erfahrene[rnms]?\b|experienced\s+(?:engineer|developer|manager|specialist|consultant|analyst))\b', re.I)),
-    (2, re.compile(r'\b(?:mid[- ]?level|professional|regular|specialist|manager|engineer|developer|analyst|coordinator|consultant|referent\w*|berater\w*|spezialist\w*)\b', re.I)),
-    (1, re.compile(r'\b(?:junior|jr\.?\b|entry[- ]?level|graduate|trainee|berufseinsteiger\w*|einsteiger\w*|associate|assistant|assistent\w*|assistenz)\b', re.I)),
+    (2, re.compile(
+        r'\b(?:mid[- ]?level|professional|regular|specialist|manager|engineer|developer|analyst|'
+        r'coordinator|consultant|referent\w*|berater\w*|spezialist\w*|'
+        r'[\wäöüß-]*(?:manager\w*|engineer\w*|developer\w*|entwickler\w*|ingenieur\w*|analyst\w*|'
+        r'koordinator\w*|coordinator\w*|berater\w*|consultant\w*|spezialist\w*|specialist\w*|'
+        r'referent\w*|sachbearbeiter\w*|administrator\w*|controller\w*|techniker\w*|'
+        r'fachkraft|fachkräfte|wissenschaftler\w*|konstrukteur\w*|redakteur\w*|planer\w*|'
+        r'designer\w*|betreuer\w*|kaufmann|kauffrau|kaufleute|disponent\w*|buchhalter\w*|prüfer\w*))\b',
+        re.I,
+    )),
+    (1, re.compile(r'\b(?:junior|jr\.?\b|entry[- ]?level|graduate|trainee|berufseinsteiger\w*|einsteiger\w*|nachwuchskraft|nachwuchskräfte|absolvent\w*|associate|assistant|assistent\w*|assistenz)\b', re.I)),
     (0, re.compile(r'\b(?:intern|internship|praktikant\w*|praktikum|working\s+student|werkstudent\w*|studentische\s+hilfskraft|auszubildend\w*|azubi|apprentice|dual\s+student|duales\s+studium)\b', re.I)),
 )
 
@@ -875,8 +883,7 @@ def _tenure_minimums(
             matches = [m for m in EXPERIENCE_PATTERN.finditer(arm) if _is_experience_match(m)]
             if not matches:
                 if len(arms) > 1 and (
-                    DEGREE.search(arm)
-                    or re.search(r'\b(?:equivalent|comparable|vergleichbar|ausbildung|studium|degree|quereinsteiger)\b', arm, re.I)
+                    DEGREE.search(arm) or _TENURE_NON_YEARS_ALT_RE.search(arm)
                 ):
                     has_non_years_alternative = True
                 continue
@@ -903,28 +910,6 @@ def _tenure_minimums(
             effective = max(0.0, effective - 1.5)
         minimums.append((effective, sentence, source))
     return minimums
-
-
-def _extract_required_years_from_sentences(
-    filtered_sentences: list[tuple[str, str, str]],
-) -> tuple[float | None, str, str]:
-    years, quote, source = max(_tenure_minimums(filtered_sentences), key=lambda row: row[0], default=(None, '', ''))
-    return years, quote[:240], source
-
-
-def _extract_required_years(texts: list[tuple[str, str]]) -> tuple[float | None, str]:
-    """Extract required minimum years of experience, respecting OR-arms and ignoring company boasts."""
-    filtered: list[tuple[str, str, str]] = []
-    for source, text in texts:
-        if source == 'title' or not text:
-            continue
-        init_scope = structured_source_scope(source)
-        for sentence, scope in scoped_sentences(structured_text(text), initial_scope=init_scope):
-            cleaned = strip_language_or_visa_subclauses(sentence)
-            if cleaned:
-                filtered.append((source, cleaned, scope))
-    years, quote, _ = _extract_required_years_from_sentences(filtered)
-    return years, quote
 
 
 def _profile_experience_titles(profile: dict) -> list[str]:
@@ -1248,11 +1233,18 @@ _ROLE_STOP = frozenset({
 })
 
 
+_ROLE_GENDER_RE = re.compile(
+    r'\((?:[mwdfhx]\s*[/|&]\s*){1,3}[mwdfhx]\)|\((?:all genders|gn|divers)\)',
+    re.I,
+)
+_ROLE_TOK_RE = re.compile(r'[a-zäöüß0-9+/#&-]{2,}')
+
+
 def _role_tokens(text: str) -> frozenset[str]:
-    clean = re.sub(r'\((?:[mwdfhx]\s*[/|&]\s*){1,3}[mwdfhx]\)|\((?:all genders|gn|divers)\)', ' ', text, flags=re.I)
+    clean = _ROLE_GENDER_RE.sub(' ', text)
     return frozenset(
         tok
-        for tok in re.findall(r'[a-zäöüß0-9+/#&-]{2,}', clean.casefold())
+        for tok in _ROLE_TOK_RE.findall(clean.casefold())
         if tok not in _ROLE_STOP
     )
 

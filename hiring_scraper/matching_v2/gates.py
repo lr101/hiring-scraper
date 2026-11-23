@@ -43,7 +43,26 @@ from hiring_scraper.requirements import (
     structured_source_scope,
     structured_text,
 )
-from hiring_scraper.task_alignment import other_actor
+
+_PAREN_RE = re.compile(r'\([^()]*\)')
+
+
+def mask_parens(text: str) -> tuple[str, dict[str, str]]:
+    """Replace flat parenthetical spans with private-use placeholders."""
+    protected: dict[str, str] = {}
+    working = text
+    for idx, m in reversed(list(enumerate(_PAREN_RE.finditer(working)))):
+        marker = f'\ue000p{idx}\ue001'
+        protected[marker] = m.group()
+        working = working[:m.start()] + marker + working[m.end():]
+    return working, protected
+
+
+def unmask_parens(text: str, protected: dict[str, str]) -> str:
+    """Restore placeholders produced by ``mask_parens``."""
+    for marker, orig in protected.items():
+        text = text.replace(marker, orig)
+    return text
 
 # Expanded non-requirement detector (company boasts, employer offers, client language).
 NON_REQUIREMENT_V2 = re.compile(
@@ -228,13 +247,13 @@ _SPONSORSHIP_OFFER = re.compile(
     r'(?:is\s+)?(?:available|offered|provided|possible|supported|included)|'
     r'visum.?sponsoring\s+(?:ist\s+)?(?:möglich|verfügbar|wird\s+angeboten|übernommen)|'
     r'(?:wir\s+)?(?:unterstützen|helfen)\s+(?:(?:gerne|dich|sie|mitarbeit\w*|bewerber\w*|kandidat\w*)\s+){0,3}'
-    r'(?:bei\s+der\s+|beim\s+|dabei,?\s+)?'
-    r'(?:beantragung|beschaffung|antrag|erhalt\w*)\s+(?:eines?\s+|einer\s+)?'
-    r'(?:(?:deutsch\w*|schweizer\w*|österreich\w*|eu[- ]?)\s+)?(?:visums?|arbeitserlaubnis|arbeitsbewilligung)|'
-    r'(?:bei\s+der\s+|beim\s+)(?:beantragung|beschaffung|antrag)\s+(?:eines?\s+|einer\s+)?'
-    r'(?:(?:deutsch\w*|schweizer\w*|österreich\w*|eu[- ]?)\s+)?(?:visums?|arbeitserlaubnis|arbeitsbewilligung)\s+(?:unterstützen|helfen)\s+wir|'
+    r'(?:bei\s+(?:der\s+|dem\s+)?|beim\s+|dabei,?\s+)?'
+    r'(?:(?:beantragung|beschaffung|antrag|erhalt\w*)\s+(?:eines?\s+|einer\s+)?)?'
+    r'(?:(?:deutsch\w*|schweizer\w*|österreich\w*|eu[- ]?)\s+)?(?:visums?|visa|arbeitserlaubnis|arbeitsbewilligung)|'
+    r'(?:bei\s+(?:der\s+|dem\s+)?|beim\s+)(?:(?:beantragung|beschaffung|antrag)\s+(?:eines?\s+|einer\s+)?)?'
+    r'(?:(?:deutsch\w*|schweizer\w*|österreich\w*|eu[- ]?)\s+)?(?:visums?|visa|arbeitserlaubnis|arbeitsbewilligung)\s+(?:unterstützen|helfen)\s+wir|'
     r'unterstützung\s+(?:bei\s+(?:der\s+beantragung\s+)?)?(?:eines?\s+|beim\s+)?'
-    r'(?:(?:deutsch\w*|schweizer\w*|österreich\w*|eu[- ]?)\s+)?(?:visums?|arbeitserlaubnis|arbeitsbewilligung)|'
+    r'(?:(?:deutsch\w*|schweizer\w*|österreich\w*|eu[- ]?)\s+)?(?:visums?|visa|arbeitserlaubnis|arbeitsbewilligung)|'
     r'(?:or|oder)\s+(?:we\s+(?:can\s+|will\s+)?)?sponsor(?:ing)?\s+(?:(?:a|an)\s+)?(?:work\s+)?(?:visas?|work\s+permits?)'
     r')\b',
     re.I,
@@ -272,11 +291,31 @@ _EMPLOYER_PERMIT_ASSISTANCE = re.compile(
     r')',
     re.I,
 )
-_OTHER_REQUIREMENT_ACTOR = re.compile(
-    r'^(?:(?:our|their|the|unsere?\w*|deren|die)\s+)(?:[\w-]+\s+){0,4}'
-    r'(?:staff|employees?|workers?|teams?|partners?|contractors?|mitarbeit\w*|lagerkräfte|personal)\b',
+_OTHER_ACTOR_SUBJECT = re.compile(
+    r'^(?:(?:our|the|a|another|other)\s+)?(?:finance|people|hr|recruiting|legal|design|innovation)\s+(?:team|department)\b|'
+    r'^(?:another|other|andere\w*)\s+(?:[\w-]+\s+){0,2}(?:teams?|departments?|abteilung\w*)\b|'
+    r'^(?:our|their|the|my|another|other|unsere?\w*|deren|die|das)\s+(?:[\w-]+\s+){0,4}'
+    r'(?:staff|employees?|workers?|department|partners?|contractors?|colleague\w*|kolleg\w*|abteilung|'
+    r'clients?|customers?|kunden|kundinnen|'
+    r'[\w-]*mitarbeit\w*|[\w-]*kräfte\w*|[\w-]*kraefte\w*|[\w-]*personal)\b|'
+    r'^(?:(?:(?:a|the|our|ein\w*|der|die)\s+)?senior\s+(?:colleague\w*|manager\w*|kolleg\w*)|'
+    r'the\s+director|die\s+personalabteilung|unsere\s+personalabteilung)\b',
     re.I,
 )
+_HIRING_TEAM_LEAD = re.compile(
+    r'^(?:our|the|unser\w*)\s+(?:[\w-]+\s+){0,2}(?:team|department|abteilung)\s+'
+    r'(?:(?:is|are)\s+(?:looking\s+for|seeking|hiring|recruiting|requiring)|'
+    r'sucht|ist\s+auf\s+der\s+suche|benötigt|erfordert)\b',
+    re.I,
+)
+
+
+def _is_other_actor_subject(text: str) -> bool:
+    """Return True when ``text`` starts with a third-party/other-staff subject rather than the vacancy/applicant."""
+    stripped = (text or '').strip()
+    if not stripped or _HIRING_TEAM_LEAD.search(stripped):
+        return False
+    return bool(_OTHER_ACTOR_SUBJECT.search(stripped))
 _EXTERNAL_LANGUAGE_USE = re.compile(
     r'\b(?:is|are|wird|werden)\s+(?:used|spoken|required|verwendet|gesprochen|benötigt)\s+'
     r'(?:by|von)\s+(?:our|their|the|unser\w*|dem|der)\b',
@@ -296,8 +335,8 @@ _EXISTING_PERMIT_CUE = re.compile(
     r'already\s+(?:hold\w*|have|possess\w*|authori[sz]ed|eligible)|'
     r'must\s+(?:already\s+)?(?:hold|have|possess|be\s+(?:legally\s+)?(?:authori[sz]ed|eligible|permitted))|'
     r'need(?:s)?\s+to\s+(?:already\s+)?(?:hold|have|possess|be)|'
-    r'required|mandatory|essential|necessary|prerequisite|'
-    r'erforderlich|zwingend|notwendig|vorausgesetzt|voraussetzung|pflicht|verpflichtend|'
+    r'requires?|required|mandatory|essential|necessary|prerequisite|'
+    r'erfordert|verlangt|erforderlich|zwingend|notwendig|vorausgesetzt|voraussetzung|pflicht|verpflichtend|'
     r'muss\s+(?:vorliegen|vorhanden\s+sein|bestehen)|benötig\w*'
     r')\b',
     re.I,
@@ -360,7 +399,7 @@ def _extract_sponsorship_offers_from_sentences(
                 _SPONSORSHIP_OTHER_ROLE_SCOPE.search(clause)
                 or _SPONSORSHIP_OTHER_ASSIGNMENT.match(suffix)
                 or (explicit_location and not offer_jurs)
-                or other_actor(sentence) or _OTHER_REQUIREMENT_ACTOR.search(sentence)
+                or _is_other_actor_subject(sentence)
                 or is_source_instruction(sentence)
             )
             offers.append({
@@ -437,7 +476,7 @@ def _is_employer_permit_offer(arm: str) -> bool:
 
 def _has_existing_permit_condition(arm: str, scope: str, hit: re.Match) -> bool:
     """Require an affirmative existing-permit condition (must already hold/have right to work in X)."""
-    if other_actor(arm) or _OTHER_REQUIREMENT_ACTOR.search(arm):
+    if _is_other_actor_subject(arm):
         return False
     if _is_employer_permit_offer(arm) or re.search(
         r'\b(?:can\s+be\s+(?:obtained|arranged|acquired)|kann\s+[^.!?;]{0,45}\b(?:beantragt|beschafft|erworben)\s+werden)\b',
@@ -457,35 +496,35 @@ def _has_existing_permit_condition(arm: str, scope: str, hit: re.Match) -> bool:
     return False
 
 
+_ELIGIBILITY_OR_SPLIT_RE = re.compile(r'(?:,\s*|\s+)\b(?:or|oder)\b\s+', re.I)
+_NON_BARE_JURISDICTION_ARM_RE = re.compile(
+    r'\b(?:citizen\w*|national\w*|passport\w*|residen\w*|staatsbürg\w*|staatsbuerg\w*|'
+    r'staatsangehörig\w*|staatsangehoerig\w*|pass|aufenthalt\w*|visa|visum|permit|card|karte)\b',
+    re.I,
+)
+
+
 def _split_eligibility_or_arms(text: str) -> list[str]:
     """Split a clause on top-level OR conjunctions without splitting inside jurisdiction lists."""
-    protected: dict[str, str] = {}
-    working = text
-    for idx, m in reversed(list(enumerate(re.finditer(r'\([^()]*\)', working)))):
-        marker = f'\ue000p{idx}\ue001'
-        protected[marker] = m.group()
-        working = working[:m.start()] + marker + working[m.end():]
-    parts = [p.strip() for p in re.split(r'\s+\b(?:or|oder)\b\s+', working, flags=re.I) if p.strip()]
+    working, protected = mask_parens(text)
+    parts = [p.strip() for p in _ELIGIBILITY_OR_SPLIT_RE.split(working) if p.strip()]
     if len(parts) <= 1:
         return [text]
-    # Merge back bare jurisdiction OR pairs like 'Germany or Switzerland' inside one permit phrase.
+    # Merge back bare jurisdiction OR pairs like 'Germany or Switzerland' inside one permit phrase,
+    # while keeping distinct status alternatives like 'or EU citizenship' separate.
     merged: list[str] = [parts[0]]
     for part in parts[1:]:
         if (
             not AUTHORIZATION_CONDITION.search(part)
             and not has_sponsorship_alternative(part)
+            and not _NON_BARE_JURISDICTION_ARM_RE.search(part)
             and normalize_jurisdictions(part, strict_codes=True)
             and len(part.split()) <= 3
         ):
             merged[-1] = merged[-1] + ' or ' + part
         else:
             merged.append(part)
-    result = []
-    for item in merged:
-        for marker, orig in protected.items():
-            item = item.replace(marker, orig)
-        result.append(item.strip())
-    return result
+    return [unmask_parens(item, protected).strip() for item in merged]
 
 
 # ---------------------------------------------------------------------------
@@ -503,41 +542,53 @@ _EXPLICIT_NO_REMOTE = re.compile(
     r'\b(?:'
     r'no\s+(?:remote(?:\s+work(?:ing)?)?|home\s*office|work\s+from\s+home)' + _NO_REMOTE_EXP_GUARD + r'|'
     r'(?:does|do)\s+not\s+(?:offer|allow|permit|support)\s+(?:remote(?:\s+work(?:ing)?)?|home\s*office|work\s+from\s+home)|'
-    r'kein\w*\s+(?:remote(?:[- ]?(?:work|arbeit|möglichkeit))?|home\s*office|mobiles?\s+arbeiten)' + _NO_REMOTE_EXP_GUARD + r'|'
+    r'(?:kein\w*|ohne)\s+(?:remote(?:[- ]?(?:work|arbeit|möglichkeit))?|home\s*office|mobiles?\s+arbeiten)' + _NO_REMOTE_EXP_GUARD + r'|'
     r'(?:remote(?:\s+work(?:ing)?)?|home\s*office|mobiles?\s+arbeiten)\s+(?:is|ist)?\s*(?:not|nicht)\s+'
-    r'(?:possible|available|offered|permitted|möglich|vorgesehen|verfügbar)|'
+    r'(?:possible|available|offered|permitted|an\s+option|möglich|vorgesehen|verfügbar)|'
     r'100\s*%\s*(?:on[- ]?site|in[- ]?office|in[- ]?person|vor[- ]?ort|präsenz(?:pflicht)?)|'
     r'präsenzpflicht|anwesenheitspflicht)\b',
     re.I,
 )
 _ONSITE_LOCATION_TERM = re.compile(
     r'\b(?:on[- ]?site|in[- ]?office|in[- ]?person|vor[- ]?ort|präsenz(?:arbeit|tätigkeit)?|'
-    r'büroanwesenheit|anwesenheit\s+im\s+büro|im\s+büro|in\s+unserem\s+büro|am\s+standort|an\s+unserem\s+(?:standort|hauptsitz|sitz)|'
+    r'büroanwesenheit|anwesenheit\s+(?:im\s+büro|vor[- ]?ort|am\s+standort)|'
+    r'im\s+büro|in\s+unserem\s+büro|am\s+standort|an\s+unserem\s+(?:standort|hauptsitz|sitz)|'
     r'in\s+the\s+office|in\s+our\s+office|'
     r'at\s+our\s+(?:office|site|plant|facility|warehouse|location|headquarters|hq|premises|branch|campus))\b',
     re.I,
 )
 _ONSITE_DAYS = (
     r'(?:(?:[2-5]|two|three|four|five|zwei|drei|vier|fünf|fuenf)\s+'
-    r'(?:days?|tage)\s+(?:per|a|pro|in\s+der)\s+(?:week|woche))'
+    r'(?:days?|tage)\s*(?:/|\s+(?:per|a|pro|in\s+der)\s+)(?:week|wk|woche))'
+)
+_ONSITE_INTERVENING_LOC = (
+    r'(?:(?:on[- ]?site|in[- ]?office|in[- ]?person|vor[- ]?ort|im\s+büro|am\s+standort(?:\s+[\wäöüß-]+)?|'
+    r'(?:in|at|am)\s+(?:(?:our|the|unserem|dem)\s+)?[\wäöüß-]+)\s+){0,3}'
 )
 _ONSITE_MANDATE = re.compile(
     r'\b(?:'
     r'must\s+(?:work|be|attend|report)\b|'
     r'required\s+to\s+(?:work|be|attend|report)\b|'
+    r'(?:role|position|job|vacancy|stelle|tätigkeit|arbeit)\s+(?:requires?|demands?|erfordert|verlangt)\b|'
+    r'requires?\s+(?:(?:regular|daily|full[- ]?time|100\s*%|physical|in[- ]?person)\s+)?'
+    r'(?:on[- ]?site|in[- ]?office|in[- ]?person|office)\s+(?:work|attendance|presence)\b|'
+    r'(?:erfordert|verlangt)\s+(?:(?:eine?\s+)?(?:tägliche[rnms]?|regelmäßige[rnms]?|vollständige[rnms]?|durchgehende[rnms]?|100\s*%)\s+)?'
+    r'(?:anwesenheit|präsenz|büroanwesenheit|arbeit)\b|'
     r'(?:muss|müssen)\s+[^.;:!?\n]{0,45}\b(?:vor[- ]?ort|im\s+büro|in\s+präsenz|am\s+standort)\b|'
     r'(?:vor[- ]?ort|im\s+büro|in\s+präsenz|am\s+standort)\s+[^.;:!?\n]{0,40}\b(?:arbeiten|tätig\s+sein|anwesend\s+sein)\s+(?:muss|müssen)\b|'
-    r'(?:attendance|presence|büroanwesenheit|anwesenheit|präsenz|work|working|arbeit)\s+(?:(?:on[- ]?site|in[- ]?office|in[- ]?person|vor[- ]?ort|im\s+büro)\s+)?'
-    r'(?:is|ist)?\s*(?:required|mandatory|expected|erforderlich|notwendig|verpflichtend|pflicht|zwingend|vorausgesetzt)|'
+    r'(?:attendance|presence|büroanwesenheit|anwesenheit|präsenz|work|working|arbeit)\s+'
+    + _ONSITE_INTERVENING_LOC
+    + r'(?:is|ist)?\s*(?:required|mandatory|expected|essential|erforderlich|notwendig|verpflichtend|pflicht|zwingend|vorausgesetzt)|'
     r'(?:on[- ]?site|in[- ]?office|in[- ]?person|vor[- ]?ort|präsenz)\s+'
     r'(?:(?:work|attendance|presence|location|role|position|tätigkeit|arbeit|anwesenheit)\s+)?'
-    r'(?:is|ist)?\s*(?:required|mandatory|erforderlich|notwendig|verpflichtend|pflicht|zwingend|vorausgesetzt)|'
-    r'(?:full[- ]?time|fully|strictly|exclusively|ausschließlich|vollständig|vollzeit|täglich|daily)\s+'
-    r'(?:on[- ]?site|in[- ]?office|in[- ]?person|vor[- ]?ort|im\s+büro|in\s+präsenz|at\s+our\s+(?:office|site|plant|warehouse|location|facility))|'
-    r'(?:this\s+is\s+an?|role\s+is|position\s+is|job\s+is)\s+(?:a\s+)?(?:full[- ]?time\s+)?'
-    r'(?:on[- ]?site|in[- ]?office|in[- ]?person)\b|'
-    r'(?:stelle|position|tätigkeit|arbeit)\s+(?:ist|erfolgt|findet)\s+'
-    r'(?:(?:eine|vollständig|ausschließlich|vollzeit|überwiegend)\s+){0,2}(?:vor[- ]?ort|im\s+büro|in\s+präsenz)|'
+    + _ONSITE_INTERVENING_LOC
+    + r'(?:is|ist)?\s*(?:required|mandatory|expected|essential|erforderlich|notwendig|verpflichtend|pflicht|zwingend|vorausgesetzt)|'
+    r'(?:full[- ]?time|fully|strictly|exclusively|purely|solely|ausschließlich\w*|vollständig\w*|komplett|rein|vollzeit|täglich\w*|daily)\s+'
+    r'(?:on[- ]?site|in[- ]?office|in[- ]?person|vor[- ]?ort|im\s+büro|in\s+präsenz|präsenz|anwesenheit|at\s+our\s+(?:office|site|plant|warehouse|location|facility))|'
+    r'(?:this\s+(?:is\s+an?|(?:role|position|job|vacancy)\s+is)|(?:role|position|job|vacancy)\s+is)\s+'
+    r'(?:a\s+)?(?:(?:full[- ]?time|100\s*%)\s+)?(?:on[- ]?site|in[- ]?office|in[- ]?person)\b|'
+    r'(?:stelle|position|tätigkeit|arbeit|ausschreibung)\s+(?:ist|erfolgt|findet)\s+'
+    r'(?:(?:eine|vollständig|ausschließlich|komplett|rein|vollzeit|überwiegend|100\s*%)\s+){0,2}(?:vor[- ]?ort|im\s+büro|in\s+präsenz|am\s+standort)|'
     r'(?:monday\s*(?:to|through|-|–)\s*friday|mon\s*[-–]\s*fri|'
     r'montag\s*(?:bis|-|–)\s*freitag|mo\.?\s*[-–]\s*fr\.?|'
     + _ONSITE_DAYS
@@ -564,14 +615,16 @@ _ONSITE_NEGATIVE = re.compile(
 def _explicit_onsite_from_sentences(sentences: Sequence[tuple[str, str]]) -> str | None:
     for sentence, scope in sentences:
         if (
-            scope in {'optional', 'benefits'} or is_source_instruction(sentence)
-            or other_actor(sentence) or _OTHER_REQUIREMENT_ACTOR.search(sentence)
+            is_source_instruction(sentence)
+            or _is_other_actor_subject(sentence)
             or _ONSITE_NEGATIVE.search(sentence)
         ):
             continue
         if (hit := _EXPLICIT_NO_REMOTE.search(sentence)):
             if requirement_polarity(sentence, hit.start(), hit.end()) == 'required':
                 return sentence[:240]
+        if scope == 'optional':
+            continue
         if (loc := _ONSITE_LOCATION_TERM.search(sentence)) and _ONSITE_MANDATE.search(sentence):
             if requirement_polarity(sentence, loc.start(), loc.end()) == 'required':
                 return sentence[:240]
@@ -688,15 +741,7 @@ _OPTIONAL_SUBCLAUSE_RE = re.compile(
     r'optional|von\s+vorteil|a\s+plus|gerne(?:\s+auch)?)\b[^()]*',
     re.I,
 )
-_TIGHT_AND_CONNECTOR = re.compile(r'^\s*[-]?\s*(?:and|und|sowie|&|/|,)\s*$', re.I)
-_TIGHT_OR_CONNECTOR = re.compile(r'^\s*(?:or|oder)\s*$', re.I)
 _TIGHT_COORD_CONNECTOR = re.compile(r'^\s*[-]?\s*(?:and|und|sowie|or|oder|&|/|,)\s*$', re.I)
-_LEADING_SHARED_LEVEL = re.compile(
-    r'(?:mind(?:estens)?\.?|min\.?|at\s+least|ab|niveau|level)?\s*'
-    r'(?:A1|A2|B1|B2|C1|C2|native[- ]?level|near[- ]?native|muttersprach\w*)\s*'
-    r'(?:[- ]?niveau|level|\+|oder\s+höher|or\s+higher|upwards)?\s*(?:in|für|for)?\s*$',
-    re.I,
-)
 _LANG_MODALITY_RE = re.compile(
     r'\b(?:written|spoken|oral|verbal|in\s+writing|in\s+wort\s+und\s+schrift|'
     r'schriftlich\w*|mündlich\w*)\b',
@@ -901,38 +946,57 @@ def _is_non_language_mention(language: str, clause: str, hit: re.Match) -> bool:
     return False
 
 
+_LEVEL_MODIFIER_STRIP_RE = re.compile(
+    r'\b(?:mind(?:estens)?\.?|min\.?|at\s+least|ab|niveau|level|auf|in\s+wort\s+und\s+schrift)\b',
+    re.I,
+)
+_LANG_CLAUSE_SPLIT_RE = re.compile(
+    r'\s*;\s*|\s+\b(?:but|aber|jedoch|while|whereas|während)\b\s+|'
+    r'\s+[–—-]\s+(?=(?:gute|sehr\s+gute|good|very\s+good|fluent|fließend|verhandlungssicher|'
+    r'english|englisch|deutsch|german|french|französisch)\b)',
+    re.I,
+)
+
+
+_LEVEL_TOKEN_FRAG = (
+    r'(?:A1|A2|B1|B2|C1|C2|native[- ]?(?:level|like|speaker)?|near[- ]?native|'
+    r'mother\s+tongue|first\s+language|muttersprach\w*)'
+)
+_LEVEL_INTERNAL_OR_RE = re.compile(
+    r'\b(?:'
+    + _LEVEL_TOKEN_FRAG
+    + r'(?:[- ]?(?:niveau|level))?\s*(?:or|oder)\s*'
+    r'(?:'
+    + _LEVEL_TOKEN_FRAG
+    + r'(?:[- ]?(?:niveau|level))?|'
+    r'(?:(?:an?\s+|ein\w*\s+)?(?:higher|above|better|more|upwards?|equivalent|comparable|similar|'
+    r'höher\w*|mehr|besser\w*|vergleichbar\w*|ähnlich\w*|aehnlich\w*|entsprechend\w*)))|'
+    r'(?:written|spoken|mündlich\w*|schriftlich\w*|wort)\s+(?:or|oder)\s+'
+    r'(?:written|spoken|mündlich\w*|schriftlich\w*|schrift))\b',
+    re.I,
+)
+
+
 def _strip_parens_and_levels(text: str) -> str:
-    """Strip parentheticals, CEFR tokens, and native tokens to inspect bare inter-language connectors."""
-    s = re.sub(r'\([^()]*\)', ' ', text)
+    """Strip parentheticals, level-internal ORs, CEFR tokens, and native tokens to inspect bare connectors."""
+    s = _PAREN_RE.sub(' ', text)
+    s = _LEVEL_INTERNAL_OR_RE.sub(' ', s)
     s = _CEFR_TOKEN_RE.sub(' ', s)
     s = _NATIVE_LEVEL_RE.sub(' ', s)
     s = _STRICT_NATIVE_RE.sub(' ', s)
-    s = re.sub(r'\b(?:mind(?:estens)?\.?|min\.?|at\s+least|ab|niveau|level|auf|in\s+wort\s+und\s+schrift)\b', ' ', s, flags=re.I)
+    s = _LEVEL_MODIFIER_STRIP_RE.sub(' ', s)
     return ' '.join(s.split())
 
 
 def _split_language_clauses(sentence: str) -> list[str]:
     """Split a sentence into independent language clauses while keeping coordinated pairs intact."""
-    protected: dict[str, str] = {}
-    working = sentence
-    for idx, m in reversed(list(enumerate(re.finditer(r'\([^()]*\)', working)))):
-        marker = f'\ue000p{idx}\ue001'
-        protected[marker] = m.group()
-        working = working[:m.start()] + marker + working[m.end():]
-    # Split on semicolons, strong contrast words, or dash-separated language items.
-    raw = re.split(
-        r'\s*;\s*|\s+\b(?:but|aber|jedoch|while|whereas|während)\b\s+|'
-        r'\s+[–—-]\s+(?=(?:gute|sehr\s+gute|good|very\s+good|fluent|fließend|verhandlungssicher|english|englisch|deutsch|german|french|französisch)\b)',
-        working,
-        flags=re.I,
-    )
+    working, protected = mask_parens(sentence)
+    raw = _LANG_CLAUSE_SPLIT_RE.split(working)
     out = []
     for part in raw:
-        for marker, orig in protected.items():
-            part = part.replace(marker, orig)
-        part = part.strip(' ,.')
-        if part:
-            out.append(part)
+        restored = unmask_parens(part, protected).strip(' ,.')
+        if restored:
+            out.append(restored)
     return out
 
 
@@ -948,6 +1012,22 @@ _LANG_SEP_RE = re.compile(r'(?:,\s*|\s+(?:and|und|sowie|or|oder|&|/)\s+)', re.I)
 _LANGUAGE_PREFILTER = re.compile(
     r'\b(?:' + '|'.join(pattern.pattern.removeprefix(r'\b').removesuffix(r'\b')
                        for pattern in LANGUAGE_PATTERNS.values()) + r')\b',
+    re.I,
+)
+_OR_WORD_RE = re.compile(r'\b(?:or|oder)\b', re.I)
+_AND_WORD_RE = re.compile(r'(?:\b(?:and|und|sowie|plus|as\s+well\s+as)\b|&)', re.I)
+_COMMA_ONLY_RE = re.compile(r'\s*,\s*')
+_ADDITIVE_TAIL_SPLIT_RE = re.compile(
+    r'(?:,|\b(?:and|und|sowie|plus|as\s+well\s+as|with|mit)\b)',
+    re.I,
+)
+_UNRESOLVED_LEADING_OR_RE = re.compile(r'\b(?:or|oder)\s*$', re.I)
+_UNRESOLVED_TRAILING_OR_RE = re.compile(
+    r'\b(?:or|oder)\s+'
+    r'(?!(?:(?:an?\s+|ein\w*\s+)?'
+    r'(?:higher|above|better|more|upwards?|equivalent|comparable|similar|'
+    r'höher\w*|mehr|besser\w*|vergleichbar\w*|ähnlich\w*|aehnlich\w*|entsprechend\w*)|'
+    r'written|spoken|schriftlich\w*|mündlich\w*|schrift)\b)\w',
     re.I,
 )
 
@@ -970,8 +1050,6 @@ def _extract_language_requirements(
             if scope == 'optional':
                 continue
             if scope == 'benefits' and not REQUIREMENT.search(sentence):
-                continue
-            if NON_REQUIREMENT_V2.search(sentence):
                 continue
 
             req_section = scope == 'requirements' or force_req
@@ -1180,7 +1258,7 @@ def _extract_language_requirements(
                 # requirements section / modality / minimum requirement cue). Ambiguous
                 # wording without applicant binding becomes a review flag, never a hard hide.
                 clause_other_actor = bool(
-                    other_actor(clause) or _OTHER_REQUIREMENT_ACTOR.search(clause)
+                    _is_other_actor_subject(clause)
                     or _EXTERNAL_LANGUAGE_USE.search(clause)
                 )
                 clause_duty_action = bool(
@@ -1225,23 +1303,34 @@ def _extract_language_requirements(
                 ]
                 or_boundaries = {
                     i for i, connector in enumerate(connectors)
-                    if re.search(r'\b(?:or|oder)\b', connector, re.I)
+                    if _OR_WORD_RE.search(connector) and not _AND_WORD_RE.search(connector)
                 }
                 # Comma-separated enumerations ending in OR also denote alternatives.
                 for boundary in tuple(or_boundaries):
                     i = boundary - 1
-                    while i >= 0 and re.fullmatch(r'\s*,\s*', connectors[i]):
+                    while i >= 0 and _COMMA_ONLY_RE.fullmatch(connectors[i]):
                         or_boundaries.add(i)
                         i -= 1
                 group = hashlib.sha256(f'{source}:{clause}'.encode()).hexdigest()[:16] if or_boundaries else None
 
                 # An OR arm with no identifiable language condition cannot
-                # establish an explicit incompatibility.
-                trailing = _strip_parens_and_levels(clause[hits[-1][1].end():])
-                leading = _strip_parens_and_levels(clause[:hits[0][1].start()])
+                # establish an explicit incompatibility. Truncate trailing text at
+                # additive clause joins ('and'/'und'/'sowie'/, ) so unrelated skill
+                # ORs do not mask a language floor, and exempt level-equivalence or
+                # multi-level range wording ('B2 or C1', 'or equivalent', 'oder besser').
+                raw_trailing = clause[hits[-1][1].end():]
+                raw_leading = clause[:hits[0][1].start()]
+                trailing_scope = _ADDITIVE_TAIL_SPLIT_RE.split(
+                    _strip_parens_and_levels(raw_trailing), maxsplit=1
+                )[0]
+                leading_stripped = _strip_parens_and_levels(raw_leading)
+                unresolved_leading = bool(
+                    _UNRESOLVED_LEADING_OR_RE.search(leading_stripped)
+                    and len(_extract_explicit_levels(raw_leading)) < 2
+                )
                 unresolved_arm = bool(
-                    re.search(r'\b(?:or|oder)\s+(?!(?:higher|above|höher|mehr)\b)\w', trailing, re.I)
-                    or re.search(r'\b(?:or|oder)\s*$', leading, re.I)
+                    _UNRESOLVED_TRAILING_OR_RE.search(trailing_scope)
+                    or unresolved_leading
                 )
                 for i, item in enumerate(per_hit):
                     ambiguous = item['ambiguous_floor']
@@ -1598,7 +1687,7 @@ def _evaluate_authorization(
     seen_clauses: set[str] = set()
     for source, force_req, sentences in parsed_texts:
         for sentence, scope in sentences:
-            if is_source_instruction(sentence) or scope in {'benefits', 'optional'}:
+            if is_source_instruction(sentence) or scope == 'optional':
                 continue
             if not AUTHORIZATION_CONDITION.search(sentence):
                 continue

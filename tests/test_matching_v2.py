@@ -833,6 +833,100 @@ class TestReviewRegressions(unittest.TestCase):
         self.assertTrue(actual['duty_evidence']['duties'])
         self.assertTrue(all('German' not in row['job_quote'] for row in actual['duty_evidence']['duties']))
 
+    def test_language_gate_level_ranges_equivalents_and_mixed_or_and(self):
+        b1_german = _base_profile(language_levels={'German': 'B1', 'English': 'C2'})
+        b2_german = _base_profile(language_levels={'German': 'B2', 'English': 'C2'})
+        c1_german = _base_profile(language_levels={'German': 'C1', 'English': 'C2'})
+        for text, prof, expected_eligible in (
+            # Leading multi-level ranges: minimum is lower bound (B2 or C1 -> B2)
+            ('B2 or C1 German is required for this role.', b1_german, False),
+            ('B2 or C1 German is required for this role.', b2_german, True),
+            ('Native or C1 German is required.', b2_german, False),
+            ('Native or C1 German is required.', c1_german, True),
+            # Equivalence / higher qualifiers must not mask as unresolved OR arm
+            ('Deutsch C1 oder vergleichbar erforderlich.', b2_german, False),
+            ('Deutsch C1 oder besser erforderlich.', b2_german, False),
+            ('German C1 or equivalent is required.', b2_german, False),
+            # Trailing additive skill OR must not mask language requirement
+            ('Deutsch auf C1-Niveau sowie AWS oder GCP erforderlich.', b2_german, False),
+            # Level-internal OR combined with inter-language AND must stay AND
+            ('German at C2 or native level and fluent English are required.', b2_german, False),
+            ('Deutsch auf C1- oder C2-Niveau sowie fließendes Englisch erforderlich.', b2_german, False),
+            # Semicolon sentence with benefit second clause must still enforce first clause
+            ('German C1 is required; we offer language courses.', b1_german, False),
+        ):
+            with self.subTest(text=text):
+                res = match_job_v2(_strong_po_job(description=text), prof)
+                self.assertEqual(res['eligible'], expected_eligible)
+
+    def test_onsite_gate_vacancy_subject_benefits_header_and_german_compounds(self):
+        no_onsite = _base_profile(application_preferences={'willing_to_work_onsite': False})
+        for text, expected_eligible in (
+            # Explicit vacancy subject and About us / Über uns sections must still enforce
+            ('This vacancy requires 100% on-site presence in Berlin.', False),
+            ('Diese Ausschreibung erfordert 100% Präsenz vor Ort.', False),
+            ('About us\nThis role requires on-site presence in our Berlin office.', False),
+            ('Über uns\nFür diese Position ist Anwesenheit am Standort München erforderlich.', False),
+            # Broadened explicit DE+EN mandatory onsite wordings
+            ('On-site presence in Berlin is required for this role.', False),
+            ('Tägliche Präsenz im Büro in Hamburg ist erforderlich.', False),
+            ('This position is on-site 5 days/week.', False),
+            ('Vor Ort 5 Tage/Woche, ohne Homeoffice.', False),
+            # Other staff (including German compound nouns) must NEVER hide
+            ('Unsere Produktionsmitarbeiter arbeiten 5 Tage vor Ort; deine Stelle ist remote.', True),
+            ('Unsere Vertriebsmitarbeiter sind 100% vor Ort beim Kunden tätig.', True),
+            ('On-site support is handled by our operations team.', True),
+        ):
+            with self.subTest(text=text):
+                res = match_job_v2(_strong_po_job(description=text), no_onsite)
+                self.assertEqual(res['eligible'], expected_eligible)
+
+    def test_authorization_comma_or_arm_benefits_header_and_de_sponsorship(self):
+        no_de = _base_profile(application_preferences={
+            'authorized_to_work': False,
+            'sponsorship_required': True,
+            'authorization_country': 'Germany',
+        })
+        no_eu = _base_profile(application_preferences={
+            'authorized_to_work': False,
+            'sponsorship_required': True,
+            'authorization_country': 'EU',
+        })
+        eu_auth = _base_profile(application_preferences={
+            'authorized_to_work': True,
+            'sponsorship_required': False,
+            'authorization_country': 'EU',
+        })
+        for text, prof, expected_eligible in (
+            ('This vacancy requires an existing German work permit.', no_de, False),
+            ('About us\nCandidates must hold an existing work permit for Germany.', no_de, False),
+            ('Existing German work permit, or EU work permit is required.', eu_auth, True),
+            ('Existing German work permit, or EU work permit is required.', no_eu, False),
+            # Unsaved citizenship OR arm must stay fail-safe eligible (unknown), not hide
+            ('Existing German work permit, or EU citizenship is required.', eu_auth, True),
+            ('Existing German work permit, or EU citizenship is required.', no_de, True),
+            ('Für diese Position benötigen Sie eine deutsche Arbeitserlaubnis; wir unterstützen beim Visum.', no_de, True),
+        ):
+            with self.subTest(text=text):
+                res = match_job_v2(_strong_po_job(description=text), prof)
+                self.assertEqual(res['eligible'], expected_eligible)
+
+    def test_german_compound_title_seniority_detection(self):
+        from hiring_scraper.matching_v2.features import detect_title_seniority
+
+        for title, expected in (
+            ('Softwareentwickler (m/w/d)', 2),
+            ('Produktmanager (m/w/d)', 2),
+            ('Qualitätsingenieur', 2),
+            ('Nachwuchskraft Controlling', 1),
+            ('Senior Produktmanager (m/w/d)', 3),
+            ('Cloud-Architekt (m/w/d)', 4),
+            ('Fachleitung Einkauf', 4),
+            ('Geschäftsleitung Operations', 5),
+        ):
+            with self.subTest(title=title):
+                self.assertEqual(detect_title_seniority(title), expected)
+
 
 if __name__ == '__main__':
     unittest.main()
