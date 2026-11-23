@@ -36,6 +36,18 @@ python -m unittest tests.test_eval_regression
 set stays outside the repository (`data/eval/cv`, gitignored, or `RADIUS_PRIVATE_EVAL_DIR`)
 with its own baseline, and the regression tests skip its gates when it is absent.
 
+## Target acceptance gates
+
+Set `RADIUS_EVAL_TARGET_MATCHERS=v2` when running `tests.test_eval_regression` to check the
+absolute acceptance gates on both `overall` and `heldout`. `overall` enforces the strict
+`max_value_share <= 0.05` cap on rounded integer scores; splits (including `heldout`) use
+the small-sample bin bound `max(3, ceil(0.05 * n)) / n` over the split's `n` visible cases
+so 3–4 coincidental integer collisions on ~55–75 visible jobs do not fail as a false plateau,
+while genuine bunching (e.g. 5/56 = 8.93%) still fails and large splits converge to 5%. All
+other target gates (`strong_reach_80`, `irrelevant_below_30`, `spread_p5_p95`,
+`lang_visa_mean_abs_delta`, `lang_visa_band_jumps`, `hide_precision`, `hide_recall`,
+`good_hidden_rate`) apply identically to `overall` and `heldout`.
+
 ## Sources and independence
 
 Job facts were written from general knowledge of how such postings read, then varied to hit

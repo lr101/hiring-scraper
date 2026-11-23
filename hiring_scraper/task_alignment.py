@@ -125,32 +125,85 @@ _ADJACENT_ACTIONS = {frozenset(pair) for pair in (
     ('coordinate', 'plan'), ('coordinate', 'schedule'), ('analyse', 'research'),
 )}
 
+_RECORD_VERB_RE = re.compile(
+    r'\b(?:recorded|recording|erfass\w*|protokollier\w*)\b|'
+    r'^(?:(?:I|we|you)\s+)?(?:(?:will|can|must|should)\s+)?(?:\w+ly\s+){0,2}records?\s+(?!:)',
+    re.I,
+)
+_LEAD_VERB_RE = re.compile(
+    r'(?:^|[,;]|\b(?:you|we|will|and|und)\s+)\s*(?:lead(?:s|ing)?|led)\b',
+    re.I,
+)
+_NOMINAL_ACTION_PATTERNS = (
+    ('coordinate', re.compile(r'\bKoordination\b', re.I)),
+    ('deliver', re.compile(r'\bDurchführung\b', re.I)),
+    ('support', re.compile(r'\bUnterstützung\b', re.I)),
+)
+_DRAW_OBJECT_RE = re.compile(
+    r'\b(?:maps?|diagrams?|Prozesslandkart\w*|Ablaufdiagramm\w*)\b',
+    re.I,
+)
+_SCHEDULE_VERB_RE = re.compile(
+    r'\b(?:scheduled|scheduling|terminier\w*)\b|(?:^|:\s*|\b(?:we|I|you|will)\s+)schedule\b',
+    re.I,
+)
+_SEPARABLE_MODIFIER_RE = re.compile(r'\b(?:regelmäßig|aktiv)\b')
+_RECORD_OBJ_STRIP_1_RE = re.compile(r'\b(?:recorded|recording|erfass\w*|protokollier\w*)\b')
+_RECORD_OBJ_STRIP_2_RE = re.compile(r'^(?:(?:i|we|you)\s+)?records?\s+')
+_WORD_TOKEN_RE = re.compile(r'[^\W\d_][\w-]*', re.U)
+_NOMINAL_DUTY_STRIP_RE = re.compile(
+    r'\b(?:maintenance|creation|coordination|documentation|preparation|collection|comparison|'
+    r'Pflege|Erstellung|Koordination|Dokumentation|Vorbereitung|Sammlung|Vergleich|Erfassung\w*|Zeichnung\w*|Zusammenfassung\w*)\b',
+    re.I,
+)
+_PROFILE_INTRO = r'^(?:[^.!?;:,]+[:,]\s*)?'
+_PROFILE_PERSONAL = (
+    r'(?:I|we|you|ich|wir)\s+(?:(?:am|was|were|have|had|been|bin|habe)\s+)*'
+    r'(?:(?:[a-z]+ly|eigenständig|selbstständig|aktiv|regelmäßig)\s+){0,2}'
+)
+_PROFILE_AMBIGUOUS_ACTION_PATTERNS = tuple(
+    (
+        action,
+        re.compile(_PROFILE_INTRO + r'(?:' + _PROFILE_PERSONAL + r')?(?:' + performed + r')\b', re.I),
+        re.compile(_PROFILE_INTRO + _PROFILE_PERSONAL + action + r'\b', re.I),
+    )
+    for action, performed in (
+        ('plan', r'planned|planning|planen|plante\w*'),
+        ('research', r'researched|researching|recherchier\w*'),
+    )
+)
+_SCHEDULE_IMPERATIVE_STRIP_RE = re.compile(r'^(?:(?:you|we|I)\s+)?schedule\b', re.I)
+_DETAIL_ADJECTIVE_STRIP_RE = re.compile(r'\b(?:detailed|detailliert\w*)\b', re.I)
+_ACADEMIC_RE = re.compile(r'\b(?:student\w*|university|universit\w*|academic|akademisch\w*)\b', re.I)
+_COMPANY_ACTOR_RE = re.compile(
+    r'^(?:(?:our|the|this|your|unsere?\w*|die|das)\s+)?'
+    r'(?:company|employer|organisation|organization|Unternehmen)(?=\s|[,:.]|$)',
+    re.I,
+)
+_LEADING_WORD_WS_RE = re.compile(r'\s*(\w+)')
+_LEADING_WORD_RE = re.compile(r'\w+')
+
 
 def _actions(text):
     result = {name for name, pattern in _PATTERNS.items() if pattern.search(text)}
     result.update(name for name, pattern in _SEPARABLE_PATTERNS.items() if pattern.search(text))
     # "Inspection records" is an object; "record observations" is a duty.
-    if 'record' in result and not re.search(
-            r'\b(?:recorded|recording|erfass\w*|protokollier\w*)\b|'
-            r'^(?:(?:I|we|you)\s+)?(?:(?:will|can|must|should)\s+)?(?:\w+ly\s+){0,2}records?\s+(?!:)', text, re.I):
+    if 'record' in result and not _RECORD_VERB_RE.search(text):
         result.remove('record')
-    if re.search(r'(?:^|[,;]|\b(?:you|we|will|and|und)\s+)\s*(?:lead(?:s|ing)?|led)\b', text, re.I):
+    if _LEAD_VERB_RE.search(text):
         result.add('own')
-    for name, pattern in (('coordinate', r'Koordination'), ('deliver', r'Durchführung'),
-                          ('support', r'Unterstützung')):
-        if re.search(r'\b' + pattern + r'\b', text, re.I):
+    for name, pattern in _NOMINAL_ACTION_PATTERNS:
+        if pattern.search(text):
             result.add(name)
     if 'build' in result:
         result.remove('build')
         result.add('create')
     # Drawing a concrete map/diagram creates that work product; it does not
     # confer ownership or independent engineering authority.
-    if 'draw' in result and re.search(
-            r'\b(?:maps?|diagrams?|Prozesslandkart\w*|Ablaufdiagramm\w*)\b', text, re.I):
+    if 'draw' in result and _DRAW_OBJECT_RE.search(text):
         result.add('create')
     # The noun in "maintain the schedule" is not a second predicate.
-    if 'schedule' in result and not re.search(
-            r'\b(?:scheduled|scheduling|terminier\w*)\b|(?:^|:\s*|\b(?:we|I|you|will)\s+)schedule\b', text, re.I):
+    if 'schedule' in result and not _SCHEDULE_VERB_RE.search(text):
         result.remove('schedule')
     return result
 
@@ -158,16 +211,15 @@ def _actions(text):
 def _objects(text):
     text = text.casefold()
     for pattern in _SEPARABLE_PATTERNS.values():
-        text = pattern.sub(lambda match: re.sub(
-            r'\b(?:regelmäßig|aktiv)\b', ' ', match['object']), text)
+        text = pattern.sub(lambda match: _SEPARABLE_MODIFIER_RE.sub(' ', match['object']), text)
     for name, pattern in _PATTERNS.items():
         if name == 'record':
             # Retain object nouns when removing action vocabulary.
-            text = re.sub(r'\b(?:recorded|recording|erfass\w*|protokollier\w*)\b', ' ', text)
-            text = re.sub(r'^(?:(?:i|we|you)\s+)?records?\s+', ' ', text)
+            text = _RECORD_OBJ_STRIP_1_RE.sub(' ', text)
+            text = _RECORD_OBJ_STRIP_2_RE.sub(' ', text)
         else:
             text = pattern.sub(' ', text)
-    words = set(re.findall(r'[^\W\d_][\w-]*', text, re.U)) - _STOP
+    words = set(_WORD_TOKEN_RE.findall(text)) - _STOP
     return {word[:-1] if len(word) > 4 and word.endswith('s') else word for word in words if len(word) > 2}
 
 
@@ -180,21 +232,10 @@ def _profile_actions(text):
     """
     # Nominal duty labels can describe a job, but do not assert performed work
     # in an applicant inventory. Keep genuine verb forms in the same sentence.
-    predicate_text = re.sub(
-        r'\b(?:maintenance|creation|coordination|documentation|preparation|collection|comparison|'
-        r'Pflege|Erstellung|Koordination|Dokumentation|Vorbereitung|Sammlung|Vergleich|Erfassung\w*|Zeichnung\w*|Zusammenfassung\w*)\b',
-        ' ', text, flags=re.I)
+    predicate_text = _NOMINAL_DUTY_STRIP_RE.sub(' ', text)
     actions = _actions(predicate_text)
-    for action, performed in (
-            ('plan', r'planned|planning|planen|plante\w*'),
-            ('research', r'researched|researching|recherchier\w*')):
-        intro = r'^(?:[^.!?;:,]+[:,]\s*)?'
-        personal = (r'(?:I|we|you|ich|wir)\s+(?:(?:am|was|were|have|had|been|bin|habe)\s+)*'
-                    r'(?:(?:[a-z]+ly|eigenständig|selbstständig|aktiv|regelmäßig)\s+){0,2}')
-        predicate = re.search(intro + r'(?:' + personal + r')?(?:' + performed + r')\b', text, re.I)
-        predicate = predicate or re.search(
-            intro + personal + action + r'\b', text, re.I)
-        if not predicate:
+    for action, performed_pat, personal_pat in _PROFILE_AMBIGUOUS_ACTION_PATTERNS:
+        if not (performed_pat.search(text) or personal_pat.search(text)):
             actions.discard(action)
     return actions
 
@@ -207,9 +248,9 @@ def has_task_predicate(text):
 @lru_cache(maxsize=4096)
 def _semantic_objects(text):
     # Imperative "schedule workshops" names an action, not two deliverables.
-    text = re.sub(r'^(?:(?:you|we|I)\s+)?schedule\b', ' ', text, flags=re.I)
+    text = _SCHEDULE_IMPERATIVE_STRIP_RE.sub(' ', text)
     # Descriptive detail does not change a deliverable's domain or autonomy.
-    text = re.sub(r'\b(?:detailed|detailliert\w*)\b', ' ', text, flags=re.I)
+    text = _DETAIL_ADJECTIVE_STRIP_RE.sub(' ', text)
     concepts = set()
     for name, pattern in _DELIVERABLE_PATTERNS.items():
         if pattern.search(text):
@@ -241,8 +282,7 @@ def _excluded(text):
 
 
 def _academic(source, quote):
-    return source.startswith('cv_career_facts.education[') or bool(re.search(
-        r'\b(?:student\w*|university|universit\w*|academic|akademisch\w*)\b', quote, re.I))
+    return source.startswith('cv_career_facts.education[') or bool(_ACADEMIC_RE.search(quote))
 
 
 def _sentences(text):
@@ -250,9 +290,7 @@ def _sentences(text):
 
 
 def other_actor(text):
-    return bool(_OTHER_ACTOR.search(text) or re.match(
-        r'^(?:(?:our|the|this|your|unsere?\w*|die|das)\s+)?'
-        r'(?:company|employer|organisation|organization|Unternehmen)(?=\s|[,:.]|$)', text, re.I))
+    return bool(_OTHER_ACTOR.search(text) or _COMPANY_ACTOR_RE.match(text))
 
 
 def _task_sentences(job):
@@ -310,10 +348,10 @@ def _document_subject(text):
         return False
     personal = _APPLICANT_ACTOR.match(text)
     if personal:
-        predicate = re.match(r'\s*(\w+)', text[personal.end():])
+        predicate = _LEADING_WORD_WS_RE.match(text, personal.end())
         if predicate and _actions(predicate[1]):
             return False
-    first = re.match(r'\w+', text)
+    first = _LEADING_WORD_RE.match(text)
     if first:
         word = first.group().casefold()
         if _actions(word) and (word.endswith(('ed', 'te', 'ten')) or word == 'built'):

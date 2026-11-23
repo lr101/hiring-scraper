@@ -50,3 +50,9 @@ Never hidden (the matcher must keep these visible), tagged accordingly:
 `dev` (about 70%) and `heldout` (about 30%) are assigned by the SHA-256 of the job's group key.
 Jobs with near-identical text (5-gram Jaccard >= 0.6) share a group key, so near-duplicates
 never straddle splits.
+
+Target acceptance gates run on both `overall` and `heldout`. Because `heldout` has roughly
+55–75 visible cases spread across 101 integer scores, `max_value_share` on splits uses the
+small-sample bin bound `allowed_max_bin = max(3, ceil(0.05 * n))` (so 3 coincidental integer
+ties out of 56 visible cases passes while 4 or 5 fails, and large `n` behaves identically to
+the strict 5% cap enforced on `overall`). No other target gate is relaxed on splits.

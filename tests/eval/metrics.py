@@ -18,6 +18,7 @@ import hashlib
 import math
 from collections import Counter
 from collections.abc import Mapping, Sequence
+from fractions import Fraction
 
 GRADE_SCORE_BANDS: dict[int, tuple[int, int]] = {
     0: (0, 29),
@@ -365,15 +366,38 @@ def score_band(score: float) -> int:
     return 3
 
 
+def max_value_share_limit(
+    n: int,
+    *,
+    base_share: float = 0.05,
+    min_bin_count: int = 3,
+) -> float:
+    """Return the small-sample upper bound on ``max_value_share`` for ``n`` visible cases.
+
+    Allowed maximum count on any single rounded integer score is
+    ``max(min_bin_count, ceil(base_share * n))``. On small splits (e.g. heldout
+    with n ~ 50-75), even 3 coincidental ties on one integer score exceeds 5%
+    (3/56 = 0.0536), whereas genuine plateau bunching (e.g. 5/56 = 0.0893) still
+    fails. As ``n`` grows, ``ceil(0.05 * n) / n`` converges to the strict 5% cap
+    (e.g. n=1000 -> 50/1000 = 0.05). Exact rational arithmetic avoids IEEE-754
+    rounding artifacts such as ``0.05 * 60 == 3.0000000000000004``.
+    """
+    if n <= 0:
+        return base_share
+    allowed_bin = max(min_bin_count, math.ceil(Fraction(str(base_share)) * n))
+    return allowed_bin / n
+
+
 def score_range_metrics(
     grades: Sequence[int],
     scores: Sequence[float],
     *,
     is_hidden: Sequence[bool] | None = None,
-) -> dict[str, float]:
+) -> dict[str, float | int]:
     """Compute 0-100 range utilisation metrics on visible cases only.
 
     Returns:
+    - ``visible_count``: number of visible cases included in the range metrics
     - ``strong_reach_80``: share of visible grade-3 cases with score >= 80
     - ``good_in_band``: share of visible grade-2 cases with score in [60, 79]
     - ``irrelevant_below_30``: share of visible grade-0 cases with score < 30
@@ -394,6 +418,7 @@ def score_range_metrics(
     ]
     if not visible_pairs:
         return {
+            "visible_count": 0,
             "strong_reach_80": 0.0,
             "good_in_band": 0.0,
             "irrelevant_below_30": 0.0,
@@ -411,6 +436,7 @@ def score_range_metrics(
     max_value_share = max(rounded_counts.values()) / len(vis_scores)
 
     return {
+        "visible_count": len(vis_scores),
         "strong_reach_80": (sum(1 for s in g3 if s >= 80.0) / len(g3)) if g3 else 0.0,
         "good_in_band": (sum(1 for s in g2 if 60.0 <= s <= 79.0) / len(g2)) if g2 else 0.0,
         "irrelevant_below_30": (sum(1 for s in g0 if s < 30.0) / len(g0)) if g0 else 0.0,

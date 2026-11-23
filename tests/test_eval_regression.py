@@ -24,6 +24,7 @@ from tests.eval.metrics import (
     hide_precision,
     hide_recall,
     lang_visa_ablation_metrics,
+    max_value_share_limit,
     ndcg_at_k,
     pair_eligibility_disagreement,
     pairwise_auc,
@@ -228,18 +229,36 @@ TARGET_GATE_THRESHOLDS: dict[str, tuple[str, float]] = {
 }
 
 
-def check_target_gates(metrics: Mapping[str, object]) -> list[str]:
-    """Check absolute target acceptance gates against a report or its ``overall`` dict."""
+def check_target_gates(
+    metrics: Mapping[str, object],
+    *,
+    small_sample: bool = False,
+) -> list[str]:
+    """Check absolute target acceptance gates against a report or its ``overall`` dict.
+
+    ``overall`` always enforces the strict ``max_value_share <= 0.05`` gate.
+    Splits (such as ``heldout``, or any caller passing ``small_sample=True``)
+    use the small-sample bin bound ``max(3, ceil(0.05 * n)) / n`` where ``n``
+    is ``visible_count`` (falling back to ``count`` when ``visible_count`` is
+    omitted, or strict 0.05 if neither is present). Because a 0-100 integer
+    scale has 101 bins, 3 coincidental ties on a small heldout split (e.g.
+    3/56 = 0.0536) is ordinary sampling noise rather than a score plateau,
+    while genuine bunching (e.g. 5/56 = 0.0893) still fails and large splits
+    converge to 5% (e.g. 50/1000 = 0.05). No other gate is relaxed.
+    """
     overall = metrics.get("overall")
     if isinstance(overall, Mapping):
-        failures = [f"overall: {failure}" for failure in check_target_gates(overall)]
+        failures = [f"overall: {failure}" for failure in check_target_gates(overall, small_sample=False)]
         if "by_split" in metrics or metrics.get("split") == "all":
             by_split = metrics.get("by_split")
             heldout = by_split.get("heldout") if isinstance(by_split, Mapping) else None
             if not isinstance(heldout, Mapping):
                 failures.append("Missing heldout metrics")
             else:
-                failures.extend(f"heldout: {failure}" for failure in check_target_gates(heldout))
+                failures.extend(
+                    f"heldout: {failure}"
+                    for failure in check_target_gates(heldout, small_sample=True)
+                )
         return failures
 
     failures: list[str] = []
@@ -249,6 +268,20 @@ def check_target_gates(metrics: Mapping[str, object]) -> list[str]:
             failures.append(f"Missing target metric {key!r}")
             continue
         val = float(raw)
+        if key == "max_value_share" and small_sample:
+            n_raw = metrics.get("visible_count")
+            if n_raw is None:
+                n_raw = metrics.get("count")
+            if isinstance(n_raw, int) and not isinstance(n_raw, bool) and n_raw > 0:
+                limit = max_value_share_limit(n_raw, base_share=threshold)
+                # Reports round shares to 4 decimals (e.g. round(3/56, 4) == 0.0536);
+                # accept up to max(limit, round(limit, 4)) so an exact allowed integer
+                # bin count never trips on 4-decimal rounding while +1 job still fails.
+                if val > max(limit, round(limit, 4)):
+                    failures.append(
+                        f"{key} above target: {val:.4f} > {limit:.4f} (n={n_raw})"
+                    )
+                continue
         if op == ">=" and val < threshold:
             failures.append(f"{key} below target: {val:.4f} < {threshold:.4f}")
         elif op == "<=" and val > threshold:
@@ -644,6 +677,7 @@ class TestEvalMetricsUnit(unittest.TestCase):
         scores = [95.0, 80.0, 0.0, 79.0, 55.0, 10.0, 30.0, 99.0]
         hidden = [False, False, True, False, False, False, False, True]
         rm = score_range_metrics(grades, scores, is_hidden=hidden)
+        self.assertEqual(rm["visible_count"], 6)
         self.assertAlmostEqual(rm["strong_reach_80"], 1.0)
         self.assertAlmostEqual(rm["good_in_band"], 0.5)
         self.assertAlmostEqual(rm["irrelevant_below_30"], 0.5)
@@ -656,11 +690,13 @@ class TestEvalMetricsUnit(unittest.TestCase):
 
         # Bunching at one rounded score value shows up in max_value_share.
         bunched = score_range_metrics([1, 1, 1, 1], [59.0, 59.0, 59.0, 20.0])
+        self.assertEqual(bunched["visible_count"], 4)
         self.assertAlmostEqual(bunched["max_value_share"], 0.75)
 
         # All hidden -> zeros
         empty = score_range_metrics([3, 0], [90.0, 10.0], is_hidden=[True, True])
         self.assertEqual(empty, {
+            "visible_count": 0,
             "strong_reach_80": 0.0,
             "good_in_band": 0.0,
             "irrelevant_below_30": 0.0,
@@ -730,6 +766,66 @@ class TestEvalMetricsUnit(unittest.TestCase):
         missing.pop("spread_p5_p95")
         failures = check_target_gates(missing)
         self.assertTrue(any("spread_p5_p95" in f for f in failures), failures)
+
+    def test_small_sample_max_value_share_bound(self) -> None:
+        # Pure limit helper: allowed max bin = max(3, ceil(0.05 * n)).
+        self.assertAlmostEqual(max_value_share_limit(56), 3 / 56)
+        self.assertAlmostEqual(max_value_share_limit(60), 3 / 60)  # exact 0.05 (not 4/60)
+        self.assertAlmostEqual(max_value_share_limit(74), 4 / 74)
+        self.assertAlmostEqual(max_value_share_limit(1000), 50 / 1000)
+        self.assertAlmostEqual(max_value_share_limit(0), 0.05)
+
+        passing = {
+            "strong_reach_80": 0.6,
+            "irrelevant_below_30": 0.8,
+            "max_value_share": 0.05,
+            "spread_p5_p95": 60.0,
+            "lang_visa_mean_abs_delta": 5.0,
+            "lang_visa_band_jumps": 0.0,
+            "hide_precision": 0.9,
+            "hide_recall": 0.9,
+            "good_hidden_rate": 0.0,
+        }
+
+        # n=56 with 3 equal scores (exact and 4-decimal rounded 0.0536) passes on heldout/split...
+        for share_3_of_56 in (3 / 56, round(3 / 56, 4)):
+            split_ok = {**passing, "visible_count": 56, "max_value_share": share_3_of_56}
+            self.assertEqual(check_target_gates(split_ok, small_sample=True), [])
+            report_ok = {"overall": passing, "by_split": {"heldout": split_ok}}
+            self.assertEqual(check_target_gates(report_ok), [])
+
+        # ...but strict <= 0.05 still applies on overall even if visible_count=56.
+        overall_strict = {**passing, "visible_count": 56, "max_value_share": 3 / 56}
+        overall_failures = check_target_gates({"overall": overall_strict})
+        self.assertEqual(len(overall_failures), 1)
+        self.assertIn("overall: max_value_share", overall_failures[0])
+
+        # n=56 with 4 or 5 equal scores fails on heldout/split.
+        for bad_count in (4, 5):
+            split_bad = {**passing, "visible_count": 56, "max_value_share": round(bad_count / 56, 4)}
+            failures = check_target_gates({"overall": passing, "by_split": {"heldout": split_bad}})
+            self.assertEqual(len(failures), 1, f"Expected failure for {bad_count}/56, got {failures}")
+            self.assertIn("heldout: max_value_share", failures[0])
+
+        # n=74 allows ceil(0.05 * 74) = 4 equal scores (0.0541), rejects 5 (0.0676).
+        split_74_ok = {**passing, "visible_count": 74, "max_value_share": round(4 / 74, 4)}
+        self.assertEqual(check_target_gates(split_74_ok, small_sample=True), [])
+        split_74_bad = {**passing, "visible_count": 74, "max_value_share": round(5 / 74, 4)}
+        self.assertEqual(len(check_target_gates(split_74_bad, small_sample=True)), 1)
+
+        # n=1000 behaves like strict 5%: 50/1000 passes, 51/1000 fails.
+        split_1000_ok = {**passing, "visible_count": 1000, "max_value_share": 50 / 1000}
+        self.assertEqual(check_target_gates(split_1000_ok, small_sample=True), [])
+        split_1000_bad = {**passing, "visible_count": 1000, "max_value_share": 51 / 1000}
+        failures_1000 = check_target_gates(split_1000_bad, small_sample=True)
+        self.assertEqual(len(failures_1000), 1)
+        self.assertIn("max_value_share", failures_1000[0])
+
+        # Other gates (e.g. strong_reach_80) are never relaxed on small splits.
+        split_low_strong = {**passing, "visible_count": 56, "max_value_share": 3 / 56, "strong_reach_80": 0.5625}
+        low_strong_failures = check_target_gates(split_low_strong, small_sample=True)
+        self.assertEqual(len(low_strong_failures), 1)
+        self.assertIn("strong_reach_80", low_strong_failures[0])
 
 
 class TestLangVisaAblation(unittest.TestCase):

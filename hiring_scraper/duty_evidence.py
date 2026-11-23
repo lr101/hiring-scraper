@@ -66,6 +66,17 @@ _ACTION_EQUIVALENTS = {
     'prepare': r'\b(?:prepar\w*|bereit\w*\b.{0,65}\bauf|aufbereit\w*)\b',
     'document': r'\b(?:erfass\w*|protokollier\w*|dokumentier\w*|nachweis\w*)\b',
 }
+_ACTION_EQUIVALENT_PATTERNS = {
+    action: re.compile(pattern, re.I)
+    for action, pattern in _ACTION_EQUIVALENTS.items()
+}
+_DUTY_CLAUSE_SPLIT_RE = re.compile(
+    r'(?<=[.?!])\s+|\s+(?=(?:Du|Sie|Koordiniere|Verantworte|Unterstütze|Optimiere|Plane)\s+)'
+)
+_NON_DUTY_LEAD_RE = re.compile(
+    r'^(?:we|wir|our|unsere?\w*|about|at [A-Z]|experience|you are|du bist bereit)\b',
+    re.I,
+)
 _OWN = re.compile(r'\b(?:own(?:s|ed|ing)?|decision authority|end.to.end responsibility|verantwortest|verantworten|gesamtverantwortung)\b', re.I)
 
 
@@ -89,7 +100,7 @@ def _concepts(text):
 
 def _portable_actions(text, actions):
     actions = set(actions)
-    actions.update(action for action, pattern in _ACTION_EQUIVALENTS.items() if re.search(pattern, text, re.I))
+    actions.update(action for action, pattern in _ACTION_EQUIVALENT_PATTERNS.items() if pattern.search(text))
     return frozenset(actions)
 
 
@@ -126,7 +137,7 @@ def _duty_units(job, legacy_units, description_sentences=None):
             explicit = False
             continue
         if scope == 'duties' or explicit:
-            for clause in re.split(r'(?<=[.?!])\s+|\s+(?=(?:Du|Sie|Koordiniere|Verantworte|Unterstütze|Optimiere|Plane)\s+)', quote):
+            for clause in _DUTY_CLAUSE_SPLIT_RE.split(quote):
                 for part, _ in _atomic_job_duties(clause):
                     candidates.setdefault(part.casefold().strip(' .'), part)
     if candidates:
@@ -151,7 +162,7 @@ def analyze_duty_units(job, task_units, description_sentences=None):
     analyzed, seen = [], set()
     for task in _duty_units(job, task_units, description_sentences):
         quote = task['job_quote']
-        if re.match(r'^(?:we|wir|our|unsere?\w*|about|at [A-Z]|experience|you are|du bist bereit)\b', quote, re.I):
+        if _NON_DUTY_LEAD_RE.match(quote):
             continue
         actions = _portable_actions(quote, task['actions'])
         if not actions or len(quote.split()) < 3:
