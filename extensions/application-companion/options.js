@@ -2,7 +2,7 @@ import { localizedPreferenceKeys } from "./profile-language.js";
 import { parseTexCV } from "./tex-cv.js";
 import { cvFormattingPrompt, cvFormattingPromptDe } from "./tex-cv-prompt.js";
 import { emptyProfile, validateProfile } from "./profile.js";
-import { readPackage, connectSources, bulletPrompt } from "./sources.js";
+import { readPackage, connectSources } from "./sources.js";
 
 const keys = [
   "salutation",
@@ -234,7 +234,6 @@ function render(profile, keepPackage = false) {
     linked.application.cover_letter;
   document.querySelector("#source-notes").textContent = linked.source_notes;
   document.querySelector("#package-input").value = "";
-  document.querySelector("#bullet-prompt").value = "";
   const preview = document.querySelector("#tailored-bullets");
   preview.replaceChildren();
   for (const group of linked.application.experience_bullets) {
@@ -338,16 +337,7 @@ async function connectedEditor() {
   if (data.application.job_id === null) pendingPackage = null;
   return data;
 }
-document.querySelector("#prepare-bullets").onclick = () => {
-  try {
-    document.querySelector("#bullet-prompt").value = bulletPrompt(readEditor());
-    status(
-      "Request prepared. Copy it into ChatGPT with your application-preparation prompt.",
-    );
-  } catch (error) {
-    status(error.message, true);
-  }
-};
+
 document.querySelector("#connect").onclick = async () => {
   try {
     const data = await connectedEditor();

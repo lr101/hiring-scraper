@@ -10,7 +10,10 @@ import time
 from fastapi import HTTPException
 from sqlalchemy import select
 
-from hiring_scraper.app import application_generation as generation, application_generation_jobs as jobs, application_preparation_queue, codex_runtime
+from hiring_scraper.app import (
+    application_documents_v2 as documents, application_generation as generation, application_generation_jobs as jobs,
+    application_preparation_queue, codex_runtime,
+)
 from hiring_scraper.app.applications import canonical_application_states
 from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.job_search import profile_match_index_stale
@@ -37,6 +40,31 @@ def document_language(posting, variants):
     return language
 
 
+def _queue_structured(session, profile, job, language, current):
+    if not (profile.cv.variants or {}).get(language, {}).get('document'):
+        return False  # Let the applicant review the imported base CV first.
+    if current and not current.get('automatic'):
+        return False
+    from hiring_scraper.app.application_pipeline import PreparationInput, input_digest
+
+    fields, _ = documents.snapshot_inputs(session, profile.id, job.id, language)
+    digest = input_digest(PreparationInput(**fields))
+    latest = {kind: documents.latest(session, profile.id, job.id, kind) for kind in documents.KINDS}
+    if any(row and row.origin != 'ai' for row in latest.values()):
+        return False
+    if all(row and row.input_digest == digest and not row.stale_inputs for row in latest.values()):
+        return False
+    profile_id, job_id = profile.id, job.id
+    versions = {kind: row.version if row else 0 for kind, row in latest.items()}
+    session.rollback()
+    application_preparation_queue.enqueue_task(
+        profile_id, job_id, 'prepare',
+        {'job_id': job_id, 'language': language, 'mode': 'full', 'model': codex_runtime.selected_model() or ''},
+        automatic=True, extra={'base_versions': versions},
+    )
+    return True
+
+
 def prepare_once():
     root = codex_runtime._root()
     jobs._directory(root)
@@ -51,6 +79,7 @@ def prepare_once():
         quota = codex_runtime.subscription_usage()
         if not quota.get('allowed'):
             return False
+        structured = documents.pipeline_version() == 'v2'
         with SessionLocal() as session:
             if application_preparation_queue.has_active(session):
                 return False
@@ -76,9 +105,18 @@ def prepare_once():
                     job = session.get(Job, row.job_id)
                     if not job:
                         continue
+                    language = document_language(job.description or job.title, profile.cv.variants or {})
+                    if structured:
+                        try:
+                            if _queue_structured(session, profile, job, language, current):
+                                return True
+                        except (HTTPException, application_preparation_queue.TaskError) as error:
+                            LOG.info('Automatic structured preparation skipped profile=%s job=%s (%s)',
+                                     profile.id, row.job_id, type(error).__name__)
+                        continue
                     request = generation.PrepareApplicationRequest(job_id=job.id,
                         cv_updated_at=cv_metadata(profile.cv)['updated_at'], profile_updated_at=profile.updated_at.isoformat(),
-                        language=document_language(job.description or job.title, profile.cv.variants or {}),
+                        language=language,
                         model=codex_runtime.selected_model())
                     try:
                         with jobs.profile_lock(root, profile.id):

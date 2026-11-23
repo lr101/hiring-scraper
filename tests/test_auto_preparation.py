@@ -59,6 +59,7 @@ class SchedulerTests(unittest.TestCase):
                  patch.object(auto.codex_runtime, 'subscription_usage', return_value={'allowed': True, 'used_percent': 75}), \
                  patch.object(auto.codex_runtime, 'selected_model', return_value=None), \
                  patch.object(auto, 'profile_match_index_stale', return_value=False), \
+                 patch.object(auto.documents, 'pipeline_version', return_value='v1'), \
                  patch.object(auto.generation, '_snapshot', return_value=({}, 'revision')), \
                  patch.object(queue, 'has_active', return_value=False), \
                  patch.object(queue, 'status', side_effect=lambda _session, _profile, job_id: statuses.get(job_id)), \

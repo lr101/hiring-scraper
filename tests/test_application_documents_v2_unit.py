@@ -71,10 +71,11 @@ class VersionMathTests(unittest.TestCase):
 
     def test_public_task_hides_checkpoints_and_requests(self):
         record = {'id': 'a', 'kind': 'prepare', 'state': 'running', 'stage': 'cv', 'attempts': 1,
-                  'checkpoints': {'cv:x': {'secret': 1}}, 'request': {'job_id': 1}, 'held': {}}
+                  'checkpoints': {'cv:x': {'secret': 1}}, 'request': {'job_id': 1, 'language': 'de', 'mode': 'fast', 'model': 'private-model'}, 'held': {}}
         task = documents.public_task(record)
         self.assertNotIn('checkpoints', task)
         self.assertNotIn('request', task)
+        self.assertEqual(task['preparation'], {'language': 'de', 'mode': 'fast'})
         self.assertEqual(task['stages'], {})
         self.assertEqual(documents.public_task({'id': 'b', 'state': 'running'})['kind'], 'legacy')
 

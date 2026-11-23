@@ -1,4 +1,4 @@
-"""Render a browser-returned application document without persisting it."""
+"""Export a legacy application package for the form-filling companion."""
 from io import BytesIO
 import re
 import os
@@ -18,8 +18,6 @@ from hiring_scraper.app.profiles import TemplateChange, TYPES, cv_metadata, requ
 
 router = APIRouter(prefix='/api/v1/profiles', tags=['application-documents'])
 MAX_BYTES = 5 * 1024 * 1024
-# Keep this language-neutral drafting check aligned with assertFinishedText in
-# frontend/src/applicationHandoff.ts.
 _UNFINISHED = re.compile(
     r'\[(?:CONFIRM\b|TODO\b|TBD\b|INSERT\b|YOUR\b)[^\]]*\]'
     r'|(?:^|\n)\s*(?:TODO|TBD)\s*[:—-]'

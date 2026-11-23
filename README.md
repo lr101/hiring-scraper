@@ -200,13 +200,11 @@ model, set `HIRING_PREVIEW_PROFILE_MATCHING=true` with a fresh preview slug. Use
 `HIRING_PREVIEW_LOCAL_SEMANTICS=true` when the preview also needs local embedding
 backfills; it enables the profile worker as well.
 
-On a saved-CV application's page, **Prepare inside Radius** generates the CV,
-cover letter and answers through drafting, independent review, revision and PDF
-checks, directly into the review/export flow. Choose
-**Continue with ChatGPT** in Settings or on the application page to connect your
-subscription through the bundled Codex runtime. No API key is needed. The ChatGPT
-handoff remains available. See [configuration, data handling and
-limits](docs/application-handoff.md#prepare-inside-radius).
+On a job's application page, review your imported base CV and choose **Prepare
+documents** to draft a tailored CV and cover letter. Full mode also reviews the
+pair. Edit either document in Radius, review findings and export the saved version
+as a PDF. Connect the bundled Codex runtime through **Continue with ChatGPT** in
+Settings or on the application page. See the [application preparation guide](docs/application-preparation.md).
 
 ### City election context
 
@@ -345,8 +343,7 @@ website request budget is exhausted.
 ## Documentation
 
 - [Architecture](docs/architecture.md)
-- [Saved CVs, application handoff and original-template document export](docs/application-handoff.md)
-- [Application preparation prompt and generation integration](docs/application-generation-integration.md)
+- [Saved CVs, structured application documents and PDF export](docs/application-preparation.md)
 - [Parallel application stages](docs/application-stages.md)
 - [CV formatting prompt](docs/cv-formatting-prompt.md)
 - [Matching strategy](docs/matching-strategy-review.md)
@@ -388,7 +385,5 @@ Missing German text stays blank rather than silently borrowing English prose.
 
 Contact details, salary amounts and currency, availability dates, weekly hours,
 work permissions, search area and board settings are shared outside the tabs.
-Application briefs select the matching profile language alongside the CV.
-German briefs use German drafting and LaTeX instructions; JSON keys and history
-IDs retain the same machine-readable format in both languages. Connected companion
-saves and syncs preserve both language versions.
+Application preparation uses the selected base CV and matching profile language.
+Connected companion saves and syncs preserve both language versions.

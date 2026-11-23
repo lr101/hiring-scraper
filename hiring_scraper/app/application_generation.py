@@ -803,7 +803,7 @@ def _prepare_application(profile_id: int, request: PrepareApplicationRequest, se
         response.headers['Cache-Control'] = 'no-store'
     status = generation_status()
     if not status['enabled']:
-        raise HTTPException(503, 'Continue with ChatGPT to connect your subscription, or use the ChatGPT handoff.')
+        raise HTTPException(503, 'Continue with ChatGPT to connect your subscription.')
     if request.form and (request.form.job_id != request.job_id or request.form.profile_id != profile_id
                          or not 0 <= time.time() * 1000 - request.form.captured_at <= 7 * 86400000):
         raise HTTPException(409, 'Capture the current application questions again before preparing answers.')
@@ -848,7 +848,7 @@ def preparation_job_status(profile_id: int, job_id: int, response: Response, sum
     response.headers['Cache-Control'] = 'no-store'
     require_profile(profile_id, session)
     job = _public_job(application_preparation_queue.status(session, profile_id, job_id))
-    if job and summary: job = {key: value for key, value in job.items() if key not in ('request', 'result')}
+    if job and summary: job = {key: value for key, value in job.items() if key not in ('request', 'result', 'held')}
     return {'job': job}
 
 

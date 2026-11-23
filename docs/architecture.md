@@ -20,8 +20,13 @@ development, run the same modules with `python -m hiring_scraper.app.<module>`.
 | Discovery worker | `app.discovery_worker` | Runs search-area campaigns: finds employers from OpenStreetMap, resolves missing homepages, and discovers career pages and ATS feeds. |
 | Search snapshot worker | `app.search_snapshot_worker` | Rebuilds materialized job-search snapshots so browsing does not wait for ranking. |
 | Semantic search worker | `app.semantic_search_worker` | Hosts the pinned local multilingual E5 embedding model and indexes companies and jobs. |
+<<<<<<< HEAD
 | Profile match worker | `app.profile_match_worker` | Rebuilds stale profile matches using local rules and local semantic evidence. |
 | Application preparation worker | `app.application_preparation_worker` | Drafts, reviews and revises application documents from the PostgreSQL queue. |
+=======
+| Profile match worker | `app.profile_match_worker` | Rebuilds stale profile matches using local rules, local semantic evidence and queued subscription-backed AI assessments. |
+| Application preparation worker | `app.application_preparation_worker` | Runs inference and PDF rendering on separate threads with independent PostgreSQL queues. |
+>>>>>>> 63504f0e (feat(applications): inline v2 editor on the preparation page; remove ChatGPT handoff)
 
 PostgreSQL (with PostGIS and pgvector) is the only database. Development and tests use
 the same migrated schema and the same workers as production; requests never match,
@@ -64,13 +69,41 @@ flowchart LR
   which `scripts/dev/migrate.py` and the test harness apply too). Write sites declare source changes through
   `source_changes.py`, which invalidates caches, queues rematching and publishes search generations. Routers live beside their domain: `journey.py`
   (stages, Journey list, momentum), `focus.py` (Today's focus), `profiles.py`,
-  `companion.py`, `application_generation.py`; `api.py` keeps search, companies,
+  `companion.py`, `application_documents_v2.py`; `api.py` keeps search, companies,
   feeds and discovery.
 - `frontend/` — React + TypeScript + Vite single-page app.
 - `extensions/application-companion/` — Chrome extension that fills application
   forms from a saved profile. It never submits a form.
 - `runtime/codex/` — pinned Codex CLI bundled for ChatGPT subscription access.
 - `fixtures/` — sanitized data for the seed command, CI smoke test and manual demos.
+
+## Application preparation
+
+The application page confirms the imported base CV in the chosen language.
+`ProfileCV.variants[language].document` stores the structured source, and its
+projected marked text feeds the existing matcher and companion history. The
+application editor and Chromium PDF renderer share the same React document views.
+
+`application_preparation_tasks` holds one inference task per profile and job.
+A preparation runs CV, letter and optional Full-mode review, and publishes
+documents as each stage completes. The worker checkpoints stage outputs by
+input digest. Transient task failures retry after two minutes and then ten
+minutes, for up to three attempts. Unit revisions return a suggestion for
+explicit acceptance. Automatic preparation of high-ranked New jobs uses the
+same queue after the base CV has been confirmed.
+
+`application_documents` keeps the latest 20 versions of each CV and cover
+letter. `application_document_renders` stores verified PDFs for exact document
+versions. A PDF request without a cached result queues
+`application_render_tasks` and returns 202. The worker's render thread claims
+work independently of inference, opens the bundled print view in Chromium
+and publishes the verified file. Failed renders retry after 15 seconds and
+then 60 seconds, and the export can be retried explicitly afterward.
+
+Removing the base CV clears that profile's preparation tasks and tailored
+documents. Deleting or pruning a document version cascades to its PDF and
+render task. The form-filling companion remains opt-in and independent of
+document editing. See the [application preparation guide](application-preparation.md).
 
 ## Invariants
 
@@ -140,6 +173,20 @@ Several processes write to the same PostgreSQL database. Keep these rules when a
   (`reserve_job_source_rows`), then hold profiles, then write matches or Journey rows.
   Profile editors write the profile row before derived rows, so neither side
   can deadlock. Hold exclusively (`exclusive=True`) only to write the profile row itself.
+- **Preparation publishes with a fenced lease.** Inference renews its six-minute
+  lease through stage/checkpoint updates and periodic worker checks. Publication
+  holds the job and profile before the task row and verifies the lease token
+  and task ID. Retry waits keep the task active and claimable at its next retry
+  time. The render lane has its own two-minute lease and fences results to the
+  document version it claimed.
+- **Document versions use compare-and-set.** An editor saves against its observed
+  version. If another writer wins, the API returns 409 and the editor keeps the
+  local text. Preparation publishes over the version it started from or a
+  version it published itself. Otherwise it keeps the generated document with
+  the task so the applicant can review and adopt it explicitly. Input changes
+  during inference mark the result stale. CV saves and profile changes can mark
+  existing versions stale. CV removal takes the profile row before clearing
+  tasks and document versions, so expired workers cannot recreate them.
 - **Retry contention, don't discard work.** Wrap persistence of expensive results in
   `database.retry_transient()`, and log loop failures with `database.log_worker_failure()`
   (one warning line for contention, a traceback for bugs).

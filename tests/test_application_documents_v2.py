@@ -1,15 +1,16 @@
 """PostgreSQL checks for versioned application documents, the v2 queue and the render lane."""
 from datetime import timedelta
+import json
 from pathlib import Path
-import sys
 import types
+from tempfile import TemporaryDirectory
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
-from hiring_scraper.app import application_documents_v2 as documents
+from hiring_scraper.app import application_documents_v2 as documents, auto_preparation, codex_runtime, profiles
 from hiring_scraper.app import application_preparation_queue as queue
 from hiring_scraper.app.models import (
     ApplicationDocument, ApplicationDocumentRender, ApplicationPreparationTask, ApplicationRenderTask,
@@ -80,7 +81,6 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
         self.save(0)
         with self.sessions() as session:
             imported = documents.get_cv_structure(1, 'en', session)
-        import json
         payload = json.loads(imported.body)
         self.assertEqual(payload['source'], 'imported')
         with self.sessions() as session:
@@ -92,6 +92,67 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
             self.assertEqual(variant['document']['language'], 'en')
             self.assertIn('radius:entry', variant['text'])
             self.assertTrue(documents.latest(session, 1, 2, 'letter').stale_inputs)
+
+    def test_deleting_the_base_cv_removes_documents_render_tasks_and_pdfs(self):
+        source = FIXTURE.read_text()
+        with self.sessions.begin() as session:
+            session.add(ProfileCV(profile_id=1, filename='cv.tex', content_type='application/x-tex',
+                                  size_bytes=len(source), data=source.encode(), extracted_text=source,
+                                  variants={'en': {'filename': 'cv.tex', 'text': source}}))
+        self.save(0)
+        self.save(1)
+        with self.sessions.begin() as session:
+            queue.enqueue_render(session, 1, 2, 'letter', 1, 'classic-serif-v1')
+        self.assertTrue(queue.process_render_once(lambda *_: types.SimpleNamespace(
+            pdf=b'%PDF-1.7', pages=1, checks=[])))
+        with self.sessions.begin() as session:
+            queue.enqueue_render(session, 1, 2, 'letter', 2, 'classic-serif-v1')
+        queue.enqueue_task(1, 2, 'prepare', {'job_id': 2, 'language': 'en'})
+
+        with TemporaryDirectory() as folder, patch.object(codex_runtime, '_root', return_value=Path(folder)):
+            with self.sessions() as session:
+                self.assertEqual(profiles.delete_cv(1, session).status_code, 204)
+        with self.sessions() as session:
+            for model in (ProfileCV, ApplicationDocument, ApplicationDocumentRender,
+                          ApplicationRenderTask, ApplicationPreparationTask):
+                self.assertIsNone(session.scalar(select(model).where(model.profile_id == 1)), model.__name__)
+
+    def test_automatic_preparation_starts_only_after_the_base_cv_is_reviewed(self):
+        source = FIXTURE.read_text()
+        with self.sessions.begin() as session:
+            session.add(ProfileCV(profile_id=1, filename='cv.tex', content_type='application/x-tex',
+                                  size_bytes=len(source), data=source.encode(), extracted_text=source,
+                                  variants={'en': {'filename': 'cv.tex', 'text': source}}))
+        with self.sessions() as session:
+            self.assertFalse(auto_preparation._queue_structured(
+                session, session.get(UserProfile, 1), session.get(Job, 2), 'en', None))
+            payload = documents.get_cv_structure(1, 'en', session)
+            documents.put_cv_structure(
+                1, documents.StructureRequest(document=json.loads(payload.body)['document']), 'en', session)
+        with self.sessions() as session, patch.object(codex_runtime, 'selected_model', return_value=None):
+            self.assertTrue(auto_preparation._queue_structured(
+                session, session.get(UserProfile, 1), session.get(Job, 2), 'en', None))
+        with self.sessions() as session:
+            record = queue.status(session, 1, 2)
+            self.assertEqual((record['kind'], record['automatic']), ('prepare', True))
+            self.assertEqual(record['request']['mode'], 'full')
+
+    def test_revision_returns_a_suggestion_without_modifying_the_document(self):
+        from hiring_scraper.app import application_pipeline
+
+        self.save(0)
+        with patch.object(documents, 'snapshot_inputs', return_value=({}, 0)), \
+                patch.object(documents, '_preparation_input'), \
+                patch.object(application_pipeline, 'codex_generate'), \
+                patch.object(application_pipeline, 'revise_unit', return_value={'text': 'I help studios ship.'}):
+            outcome = documents.run_revise(1, {'job_id': 2, 'document': 'letter', 'unit_id': 'u-p1',
+                'base_version': 1, 'instruction': 'Use more direct wording.'},
+                Mock(cancelled=Mock(return_value=False)))
+        self.assertFalse(outcome['applied'])
+        self.assertEqual(outcome['original_text'], 'I build reliable services.')
+        self.assertEqual(outcome['text'], 'I help studios ship.')
+        with self.sessions() as session:
+            self.assertEqual(documents.latest(session, 1, 2, 'letter').version, 1)
 
     # --- queue -----------------------------------------------------------------
 
@@ -135,9 +196,7 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
                            extra={'base_versions': {'cv': 0, 'letter': 1}})
         key, token, record = queue._claim()
         progress = queue.Progress(key, token, {}, task_id=record['id'], record=record)
-        fake = types.SimpleNamespace(input_digest=lambda _inp: 'digest', PreparationInput=lambda **kw: kw)
-        with patch.dict(sys.modules, {'hiring_scraper.app.application_pipeline': fake}), \
-                patch.object(documents, 'snapshot_inputs', return_value=({}, 0)):
+        with patch.object(documents, '_fresh_digest', return_value=('digest', None)):
             documents._publish_prepared(1, 2, progress, 'digest', {'language': 'en'}, 'letter',
                                         letter(paragraph='AI one.'), [])
             self.save(2, paragraph='User edit.')  # the user saves while the review stage runs

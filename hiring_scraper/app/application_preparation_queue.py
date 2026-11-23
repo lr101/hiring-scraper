@@ -429,6 +429,13 @@ def _claim_render():
 def _finish_render(key, token, result=None, *, retry_at=None, error_code=None):
     from hiring_scraper.app.database import dialect_insert
     with SessionLocal.begin() as session:
+        if result is not None:
+            # The PDF FK points to the document. Take that lock before the
+            # render task so cascading CV deletion and version pruning agree.
+            document = session.get(ApplicationDocument, key[:4],
+                                   with_for_update={'read': True, 'key_share': True})
+            if document is None:
+                return False
         row = session.get(RenderTask, key, with_for_update=True, populate_existing=True)
         if row is None or row.lease_token != token:
             return False

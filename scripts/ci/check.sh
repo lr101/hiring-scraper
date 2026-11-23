@@ -20,15 +20,10 @@ node tests/frontend_profile_languages.mjs
 node tests/frontend_profile_onboarding.mjs
 node tests/frontend_applications.mjs
 node tests/frontend_application_interactions.mjs
-node tests/frontend_application_handoff.mjs
-node tests/frontend_application_personalization.mjs
-node tests/frontend_application_canvas.mjs
-node tests/frontend_application_preparation.mjs
 node tests/frontend_application_form.mjs
-node tests/frontend_application_generation.mjs
-node tests/frontend_application_generation_jobs.mjs
-node tests/frontend_document_revision.mjs
-node tests/frontend_profile_photo_export.mjs
+node tests/frontend_application_documents.mjs
+node tests/frontend_documents_editing.mjs
+node tests/frontend_documents_types.mjs
 node tests/frontend_todays_focus.mjs
 npm --prefix extensions/application-companion run check
 npm --prefix extensions/application-companion test

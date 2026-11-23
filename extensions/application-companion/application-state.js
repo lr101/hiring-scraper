@@ -1,5 +1,4 @@
-import { currentJob, buildCurrentJobPrompt } from "./current-job.js";
-import { selectCVLanguage } from "./tex-cv.js";
+import { currentJob } from "./current-job.js";
 import {
   emptyVault,
   normalizeJob,
@@ -472,11 +471,16 @@ export async function prepareJob(jobId) {
     throw new Error("Choose your Radius profile in Connection settings.");
   const job = vault.jobs.find((j) => j.id === jobId);
   if (!job) throw new Error("This job is no longer in the synced Radius list.");
+  if ((await currentCV(vault.settings)) !== vault.settings.cv_updated_at)
+    await refreshRadius();
+  const current = await loadVault();
+  if (!sameConnection(current.settings, vault.settings))
+    throw new Error("The Radius connection changed. Open preparation again.");
   await sessionPut("recentApplication", {
     job_id: jobId,
     expires: Date.now() + 30 * 60000,
   });
-  const url = new URL(applicationURL(vault, jobId));
+  const url = new URL(applicationURL(current, jobId));
   if (vault.forms?.[`${jobId}:${vault.settings.profile_id}`])
     url.searchParams.set("companion_form", "1");
   await chrome.tabs.create({ url: url.href });
@@ -548,7 +552,7 @@ export async function captureQuestions(
   });
   if (openRadius) await prepareJob(form.job_id);
   return {
-    message: `${form.fields.length} questions captured. Your Radius brief will include this application step.`,
+    message: `${form.fields.length} questions captured. Review these questions on the employer form.`,
   };
 }
 export async function usePage(tabId, jobId, url) {
@@ -1378,7 +1382,6 @@ export function installNavigation() {
       `page:${id}`,
       journeyKey(id),
       `report:${id}`,
-      `brief:${id}`,
     ]);
   });
   chrome.storage.onChanged.addListener((changes, area) => {
@@ -1390,100 +1393,6 @@ export function installNavigation() {
   });
   void refreshAllBadges();
   void attachRadiusTabs();
-}
-
-// Extension-owned preparation keeps the employer tab in place.
-export async function prepareCurrentJob(
-  tabId,
-  jobId,
-  requestedLanguage = "auto",
-  refreshed = false,
-) {
-  const tab = await chrome.tabs.get(tabId);
-  const state = await pageState(tabId, tab.url);
-  const item = currentJob(state, jobId);
-  if (!item)
-    throw new Error(
-      "Link this page to exactly one current job before preparing.",
-    );
-  if (!state.settings?.profile_id)
-    throw new Error("Choose your Radius profile in extension settings.");
-  if (item.job.active === false) throw new Error("This job is closed.");
-  const revision = connectionRevision;
-  const settings = state.settings;
-  const [job, profiles] = await Promise.all([
-    radiusJSON(settings, `/api/v1/jobs/${item.job.id}`),
-    radiusJSON(settings, "/api/v1/profiles"),
-  ]);
-  const profile = profiles.items?.find(
-    (profile) => profile.id === settings.profile_id,
-  );
-  if (!profile?.cv)
-    throw new Error("Save your base LaTeX CV in the extension profile first.");
-  if (settings.cv_updated_at !== profile.cv.updated_at) {
-    if (refreshed)
-      throw new Error(
-        "Your CV is changing. Finish saving it, then prepare again.",
-      );
-    await refreshRadius();
-    return prepareCurrentJob(tabId, jobId, requestedLanguage, true);
-  }
-  const language = selectCVLanguage(
-    requestedLanguage,
-    `${job.title}\n${job.description || ""}`,
-  );
-  const cv = await radiusJSON(
-    settings,
-    `/api/v1/profiles/${profile.id}/cv/text?language=${language}`,
-  );
-  const vault = await loadVault();
-  if (
-    revision !== connectionRevision ||
-    !sameConnection(vault.settings, settings) ||
-    (await chrome.tabs.get(tabId)).url !== tab.url
-  )
-    throw new Error(
-      "The current job or Radius connection changed during preparation.",
-    );
-  const { applicant } = await chrome.storage.local.get("applicant");
-  if (!applicant || (await currentCV(settings)) !== profile.cv.updated_at)
-    throw new Error("Your saved CV changed. Sync your profile and try again.");
-  const form = vault.forms?.[`${job.id}:${profile.id}`];
-  const prompt = buildCurrentJobPrompt({
-    job,
-    profile,
-    cv: { text: cv.text, updated_at: profile.cv.updated_at },
-    language,
-    form,
-  });
-  await sessionPut(`brief:${tabId}`, {
-    job_id: job.id,
-    profile_id: profile.id,
-    cv_updated_at: profile.cv.updated_at,
-    profile_stamp: await profileStamp(applicant),
-    prompt,
-    language,
-    expires: Date.now() + 30 * 60000,
-  });
-  return {
-    prompt,
-    language,
-    job_id: job.id,
-    chatgpt_url: "https://chatgpt.com/",
-  };
-}
-
-export async function importCurrentResult(tabId, jobId, input) {
-  const tab = await chrome.tabs.get(tabId);
-  const state = await pageState(tabId, tab.url);
-  const item = currentJob(state, jobId);
-  const pack = await readPackage(input);
-  if (!item || pack.job_id !== item.job.id)
-    throw new Error("This result does not belong to the current job.");
-  if ((await chrome.tabs.get(tabId)).url !== tab.url)
-    throw new Error("The current job page changed.");
-  await storePreparedPackage(pack, "", "");
-  return { message: "Application documents connected to the current job." };
 }
 
 export async function downloadCurrentDocument(tabId, jobId, kind, format) {

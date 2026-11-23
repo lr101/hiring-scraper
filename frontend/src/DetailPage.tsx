@@ -7,7 +7,7 @@ import { applicationStatuses, applicationStatusLabel, nextApplicationStages, sav
 import type { Application, ApplicationStatus, ApplicationSwipeAction } from './applications'
 import JobOverviewTags from './JobOverviewTags'
 import type { CityElectionResult, Profile } from './profile'
-import { applicationStartLink } from './applicationHandoff'
+import { applicationStartLink } from './applicationDocuments'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 const apiUrl = (path: string) => `${API_BASE_URL}${path}`

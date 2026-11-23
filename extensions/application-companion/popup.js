@@ -235,7 +235,12 @@ function entry(item, continuation = false) {
     progress.setAttribute("role", "status");
     card.append(progress);
     const labels = {
+      queued: "Queued for preparation",
       starting: "Starting preparation",
+      cv: "Preparing CV",
+      letter: "Preparing cover letter",
+      review: "Reviewing documents",
+      retry_wait: "Waiting to retry",
       waiting: "Waiting for ChatGPT",
       drafting: "Drafting documents",
       reviewing: "Reviewing draft",
@@ -391,30 +396,11 @@ function renderCurrentJob() {
   document.querySelector("#job-search").hidden = !catalog?.connected || !!item;
   document.querySelector("#add-to-radius").hidden =
     !catalog?.connected || !!item;
-  const brief = info?.brief?.job_id === item?.job.id ? info.brief : null;
-  document.querySelector("#prepared-prompt").value = brief?.prompt ?? "";
-  document.querySelector("#prepare-details").hidden = !brief;
-  if (brief) document.querySelector("#brief-language").value = brief.language;
   if (item) selectedJob = item.job.id;
 }
 async function refreshCurrent() {
   info = await request("inspect");
   renderCurrentJob();
-}
-async function copyBrief() {
-  const field = document.querySelector("#prepared-prompt");
-  try {
-    await navigator.clipboard.writeText(field.value);
-    return true;
-  } catch {
-    field.focus();
-    field.select();
-    try {
-      return document.execCommand("copy");
-    } catch {
-      return false;
-    }
-  }
 }
 async function prepareInline(jobId) {
   status.classList.remove("error");
@@ -426,37 +412,6 @@ document.querySelector("#current-job-picker").onchange = (event) => {
   selectedJob = Number(event.target.value) || null;
   renderCurrentJob();
   button.disabled = !selectedJob || !info.supported;
-};
-document.querySelector("#copy-brief").onclick = async () => {
-  status.textContent = (await copyBrief())
-    ? "Brief copied."
-    : "Select and copy the brief manually.";
-};
-async function importResult(input) {
-  status.classList.remove("error");
-  status.textContent = "Connecting the returned documents…";
-  try {
-    const result = await request("import-current-result", {
-      jobId: selectedJob,
-      input,
-    });
-    await refreshCurrent();
-    status.textContent = result.message;
-  } catch (error) {
-    message(error);
-  }
-}
-document.querySelector("#use-result").onclick = () =>
-  importResult(document.querySelector("#result-input").value);
-document.querySelector("#result-file").onchange = async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-  if (file.size > 300000) {
-    message(new Error("Choose an application package under 300 KB."));
-    return;
-  }
-  await importResult(await file.text());
-  event.target.value = "";
 };
 for (const kind of ["cv", "cover_letter"])
   for (const format of ["latex_pdf", "tex"]) {

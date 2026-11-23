@@ -6,7 +6,7 @@ on ``expected_version``: the new row is ``expected_version + 1`` and a primary
 key conflict, or a newer row, is a 409. The newest ``KEEP_VERSIONS`` versions
 are kept; PDFs and render tasks of pruned versions cascade away.
 
-Worker publication (``run_prepare``/``run_revise``) follows the lock order
+Preparation publication follows the lock order
 jobs -> profiles -> derived rows and never overwrites a user's edit made
 while the model was running: AI output replaces the latest version only when
 that version is the one the task started from or the one it published itself.
@@ -34,7 +34,7 @@ from hiring_scraper.app.models import (
     ProfileIndexChanged, ProfilePhoto, UserProfile, hold_profiles, utcnow,
 )
 from hiring_scraper.app.profiles import require_profile
-from hiring_scraper.documents.schema import CvDocument, LetterDocument, apply_patch, walk_units
+from hiring_scraper.documents.schema import CvDocument, LetterDocument, unit_by_id, walk_units
 
 LOG = logging.getLogger(__name__)
 NO_STORE = {'Cache-Control': 'no-store'}
@@ -130,9 +130,15 @@ def public_task(record: dict | None) -> dict | None:
     task['stages'] = task['stages'] or {}
     task['attempts'] = task['attempts'] or 0
     if record.get('kind') in queue.V2_KINDS:
-        task['held'] = record.get('held') or {}
+        task['held'] = {kind: {key: value for key, value in held.items() if key != 'input_digest'}
+                        for kind, held in (record.get('held') or {}).items()}
         task['published'] = record.get('published') or {}
         task['result'] = record.get('result')
+        request = record.get('request') or {}
+        if record['kind'] == 'prepare':
+            task['preparation'] = {'language': request.get('language', 'en'), 'mode': request.get('mode', 'full')}
+        else:
+            task['revision'] = {key: request.get(key) for key in ('document', 'unit_id', 'instruction', 'base_version')}
     return task
 
 
@@ -198,12 +204,14 @@ def save_version(session, profile_id, job_id, kind, body, *, expected_version, o
     return version
 
 
-def revert(session, profile_id, job_id, kind, version) -> int:
+def revert(session, profile_id, job_id, kind, version, *, expected_version=None) -> int:
     """Save a copy of an older version as the new latest version (origin ``user``)."""
     source = get_version(session, profile_id, job_id, kind, version)
     if source is None:
         raise HTTPException(404, 'This document version is no longer stored.')
     current = latest(session, profile_id, job_id, kind)
+    if expected_version is not None and current.version != expected_version:
+        raise VersionConflict(current.version)
     return save_version(session, profile_id, job_id, kind, source.body, expected_version=current.version,
                         origin='user', findings=source.findings, stale_inputs=source.stale_inputs,
                         input_digest=source.input_digest)
@@ -232,9 +240,15 @@ def localized_preferences(preferences: dict | None, language: str) -> dict:
     """Saved preferences with the language's translated fields applied (as v1 does)."""
     preferences = dict(preferences or {})
     translated = (preferences.get('localized_content') or {}).get(language) or {}
+    shared_voice = {key: value for key, value in (preferences.get('application_personalization') or {}).items()
+                    if key in {'voice_notes', 'style_exemplars'}}
     for key in _LOCALIZED_KEYS:
         if key in translated:
             preferences[key] = translated[key]
+    if shared_voice:
+        preferences['application_personalization'] = {
+            **(preferences.get('application_personalization') or {}), **shared_voice,
+        }
     details = dict(preferences.get('application_details') or {})
     details['preferences'] = {**(details.get('preferences') or {}), **translated.get('application_preferences', {})}
     preferences['application_details'] = details
@@ -328,7 +342,8 @@ def _publish_prepared(profile_id, job_id, progress, digest, request, kind, body,
             else:
                 held = {**(record.get('held') or {}),
                         kind: {'body': validate_body(kind, body), 'findings': list(findings or []),
-                               'latest_version': current.version}}
+                               'latest_version': current.version, 'stale_inputs': fresh != digest,
+                               'input_digest': digest}}
             progress.store(session, row, published=published, held=held)
 
     retry_transient(attempt, action='publishing an application document', retry_on=(ProfileIndexChanged, VersionConflict))
@@ -372,27 +387,10 @@ def run_revise(profile_id, request, progress):
     progress('revising')
     generate = pipeline.codex_generate(model=request.get('model') or None, cancelled=progress.cancelled)
     revision = pipeline.revise_unit(body, kind, unit_id, request['instruction'], _preparation_input(fields), generate)
-    outcome = {'applied': False, 'unit_id': unit_id, 'text': revision['text'],
-               'sources': list(revision.get('sources') or []), 'findings': list(revision.get('findings') or [])}
-
-    def attempt():
-        with SessionLocal.begin() as session:
-            _hold_publication(session, profile_id, job_id)
-            row = progress.fenced(session)
-            if row is None:
-                raise HTTPException(409, 'Preparation cancelled.')
-            current = latest(session, profile_id, job_id, kind)
-            if current is None or current.version != request['base_version']:
-                return None  # The user saved meanwhile: keep the suggestion on the task.
-            patched = apply_patch(MODELS[kind].model_validate(current.body), unit_id, revision['text'], 'ai',
-                                  sources=outcome['sources'])
-            findings = [finding for finding in current.findings or [] if finding.get('unit_id') != unit_id]
-            return save_version(session, profile_id, job_id, kind, patched.model_dump(mode='json'),
-                                expected_version=current.version, origin='ai', findings=findings + outcome['findings'],
-                                stale_inputs=current.stale_inputs, input_digest=current.input_digest)
-
-    version = retry_transient(attempt, action='publishing a unit revision', retry_on=(ProfileIndexChanged,))
-    return {**outcome, 'applied': version is not None, 'version': version}
+    original = unit_by_id(MODELS[kind].model_validate(body), unit_id)
+    return {'applied': False, 'document': kind, 'base_version': request['base_version'],
+            'unit_id': unit_id, 'original_text': original.text, 'text': revision['text'],
+            'sources': list(revision.get('sources') or []), 'findings': list(revision.get('findings') or [])}
 
 
 # --- Worker: render lane ----------------------------------------------------------
@@ -426,15 +424,19 @@ class PrepareRequest(StrictModel):
 class SaveRequest(StrictModel):
     expected_version: int = Field(ge=0)
     body: dict
+    dismissed_findings: list[str] = Field(default_factory=list, max_length=1000)
+    held_task_id: str | None = Field(default=None, min_length=1, max_length=64)
 
 
 class RevertRequest(StrictModel):
     version: int = Field(gt=0)
+    expected_version: int | None = Field(default=None, gt=0)
 
 
 class ReviseRequest(StrictModel):
     unit_id: str = Field(min_length=1, max_length=64, pattern=r'^[a-z0-9-]{1,64}$')
     instruction: str = Field(min_length=1, max_length=500)
+    expected_version: int | None = Field(default=None, gt=0)
 
 
 class StructureRequest(StrictModel):
@@ -446,8 +448,18 @@ def _json(content, status_code=200):
 
 
 def _require_job(session, job_id):
-    if session.get(Job, job_id) is None:
+    if session.get(Job, job_id, with_for_update={'read': True, 'key_share': True}) is None:
         raise HTTPException(404, 'Job not found.')
+
+
+def _hold_cv(session, profile_id, *, exclusive=False):
+    profile = session.get(UserProfile, profile_id, with_for_update={'read': not exclusive}, populate_existing=True)
+    if profile is None:
+        raise HTTPException(404, 'Profile not found.')
+    cv = session.get(ProfileCV, profile_id, populate_existing=True)
+    if cv is None:
+        raise HTTPException(404, 'Attach a CV to this profile first.')
+    return cv
 
 
 def _validated(kind, body):
@@ -512,13 +524,23 @@ def save_document(profile_id: int, kind: Kind, job_id: int, request: SaveRequest
     require_profile(profile_id, session)
     _require_job(session, job_id)
     body = _validated(kind, request.body)
+    _hold_cv(session, profile_id)
     previous = get_version(session, profile_id, job_id, kind, request.expected_version) if request.expected_version else None
     findings = carry_findings(kind, previous.body, previous.findings, body) if previous else []
+    stale, digest = (previous.stale_inputs, previous.input_digest) if previous else (False, None)
+    if request.held_task_id:
+        record = queue.status(session, profile_id, job_id) or {}
+        held = (record.get('held') or {}).get(kind) if record.get('id') == request.held_task_id else None
+        if held is None or body != held['body']:
+            raise HTTPException(409, 'This generated suggestion changed. Reload to see the latest result.')
+        findings = held.get('findings') or []
+        stale = stale or held.get('stale_inputs', False)
+        digest = held.get('input_digest')
+    dismissed = set(request.dismissed_findings)
     try:
         version = save_version(session, profile_id, job_id, kind, body, expected_version=request.expected_version,
-                               origin='user', findings=findings,
-                               stale_inputs=previous.stale_inputs if previous else False,
-                               input_digest=previous.input_digest if previous else None)
+                               origin='user', findings=[item for item in findings if item.get('id') not in dismissed],
+                               stale_inputs=stale, input_digest=digest)
         session.commit()
     except VersionConflict:
         session.rollback()
@@ -529,9 +551,11 @@ def save_document(profile_id: int, kind: Kind, job_id: int, request: SaveRequest
 @router.post('/{profile_id}/application-documents/{kind}/revert')
 def revert_document(profile_id: int, kind: Kind, job_id: int, request: RevertRequest,
                     session: Session = Depends(get_session)):
-    require_profile(profile_id, session)
+    _require_job(session, job_id)
+    _hold_cv(session, profile_id)
     try:
-        version = revert(session, profile_id, job_id, kind, request.version)
+        version = revert(session, profile_id, job_id, kind, request.version,
+                         expected_version=request.expected_version)
         session.commit()
     except VersionConflict:
         session.rollback()
@@ -543,13 +567,14 @@ def revert_document(profile_id: int, kind: Kind, job_id: int, request: RevertReq
 def revise_document(profile_id: int, kind: Kind, job_id: int, request: ReviseRequest,
                     session: Session = Depends(get_session)):
     from hiring_scraper.app import codex_runtime
-    from hiring_scraper.documents.schema import unit_by_id
     if not codex_runtime.status()['enabled']:
         raise HTTPException(503, 'Connect ChatGPT in Radius settings before revising documents.')
     require_profile(profile_id, session)
     current = latest(session, profile_id, job_id, kind)
     if current is None:
         raise HTTPException(404, 'Prepare this document first.')
+    if request.expected_version is not None and request.expected_version != current.version:
+        raise HTTPException(409, 'This document changed. Reload before requesting a revision.')
     if unit_by_id(MODELS[kind].model_validate(current.body), request.unit_id) is None:
         raise HTTPException(422, 'This part of the document no longer exists. Reload to continue.')
     payload = {'job_id': job_id, 'document': kind, 'unit_id': request.unit_id, 'instruction': request.instruction,
@@ -563,7 +588,10 @@ def revise_document(profile_id: int, kind: Kind, job_id: int, request: ReviseReq
 def document_pdf(profile_id: int, kind: Kind, job_id: int, version: int = Query(gt=0), retry: bool = False,
                  session: Session = Depends(get_session)):
     require_profile(profile_id, session)
-    document = get_version(session, profile_id, job_id, kind, version)
+    # Queue inserts reference this version. Keep it through enqueue so a concurrent
+    # prune or CV deletion cannot leave the render task without its parent.
+    document = session.get(ApplicationDocument, (profile_id, job_id, kind, version),
+                           with_for_update={'read': True, 'key_share': True})
     if document is None:
         raise HTTPException(404, 'This document version is no longer stored.')
     template = document.body.get('template', 'classic-serif-v1')
@@ -597,9 +625,7 @@ def put_cv_structure(profile_id: int, request: StructureRequest, language: Langu
     body = _validated('cv', request.document)
     if body['language'] != language:
         raise HTTPException(422, 'The CV language does not match the selected base CV.')
-    cv = session.get(ProfileCV, profile_id)
-    if cv is None:
-        raise HTTPException(404, 'Attach a CV to this profile first.')
+    cv = _hold_cv(session, profile_id, exclusive=True)
     text = project_tex(CvDocument.model_validate(body))
     try:
         history = parse_tex_cv(text)

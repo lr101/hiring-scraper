@@ -104,7 +104,7 @@ class ProductionPreparationTests(ProductionHarness):
         self.assertTrue(uploaded.ok, uploaded.text())
         return self.context.request.get(self.origin + '/api/v1/profiles').json()['items'][0]['cv']['updated_at']
 
-    def setup_preparation(self, attached=False):
+    def setup_preparation(self):
         version = self.upload_base()
         self.page.goto(self.origin + '/jobs/1574/apply?profile_id=1')
         expect(self.page.get_by_role('button', name='Continue with ChatGPT')).to_be_enabled()
@@ -115,17 +115,6 @@ class ProductionPreparationTests(ProductionHarness):
         expect(options.locator('#radius-status')).to_contain_text('1 jobs cached')
         options.close()
         return version
-
-    def import_package(self, page, payload, link=True):
-        if link:
-            from urllib.parse import quote
-            page.goto(self.origin + '/jobs/1574/apply?profile_id=1#application=' + quote(json.dumps(payload), safe=''))
-        else:
-            page.get_by_text('Options', exact=True).click()
-            page.get_by_role('button', name='I already have a result', exact=True).click()
-            page.get_by_role('textbox', name='Application package', exact=True).fill(json.dumps(payload))
-            page.get_by_role('button', name='Open documents', exact=True).click()
-        expect(page.get_by_role('heading', name='Your documents are ready.')).to_be_visible()
 
     def unlinked_page(self):
         url='https://employer.example/unlinked'
@@ -176,37 +165,8 @@ class ProductionPreparationTests(ProductionHarness):
         self.assertEqual(applicant['experiences'][0]['description'],'Built research tools.')
         self.assertEqual(applicant['education'][0]['id'],'study-1')
 
-    def test_question_capture_arriving_during_subscription_is_not_lost(self):
-        self.upload_base()
-        self.page.add_init_script('''(() => {
-          const original=document.addEventListener.bind(document);
-          document.addEventListener=(type,listener,options)=>{
-            if(type==='radius-form-updated'&&!window.captureRaceTriggered){
-              window.captureRaceTriggered=true;
-              localStorage.setItem('radius:application-form:v1:1574:1',JSON.stringify({
-                format:'radius-form-v1',job_id:1574,profile_id:1,form_id:'1'.repeat(64),
-                url:'https://ats.example/jobs/1574',captured_at:Date.now(),
-                fields:[{id:'q0',label:'What is your current city?',type:'text',required:true,
-                  manual:false,accept:'',max_length:100,options:[]}]
-              }));
-              document.dispatchEvent(new Event('radius-form-updated'));
-            }
-            return original(type,listener,options);
-          };
-        })()''')
-        self.page.goto(self.origin+'/jobs/1574/apply?profile_id=1')
-        self.page.get_by_text('Options', exact=True).click()
-        expect(self.page.get_by_text('This application step’s questions and answer limits are included in your brief.',exact=True)).to_be_visible()
-        self.assertTrue(self.page.evaluate('window.captureRaceTriggered'))
-
-    def test_production_cv_return_badge_apply_alias_and_fill(self):
-        self.check_prepared_package_fill()
-
-    def test_saved_profile_cv_return_sync_and_autofill(self):
-        self.check_prepared_package_fill(attached=True)
-
     def test_uncached_posting_is_recognized_and_server_search_can_link_another_job(self):
-        self.setup_preparation(attached=True)
+        self.setup_preparation()
         posting='https://employer.example/jobs/3001'
         self.context.route(posting+'*',lambda route:route.fulfill(content_type='text/html',body='<title>Fresh research role</title><h1>Fresh research role</h1>'))
         for url,title in [(posting,'Fresh research role'),('https://employer.example/jobs/3002','Uncached specialist')]:
@@ -229,7 +189,7 @@ class ProductionPreparationTests(ProductionHarness):
         self.assertTrue(any(binding['url']=='https://employer.example/unlinked' for binding in bindings))
 
     def test_delayed_search_response_cannot_replace_the_current_query(self):
-        self.setup_preparation(attached=True)
+        self.setup_preparation()
         for number,title in [(3001,'Earlier specialist'),(3002,'Latest specialist')]:
             result=self.context.request.post(self.origin+'/api/v1/companion/jobs',data={'profile_id':1,'url':f'https://employer.example/jobs/{number}','title':title})
             self.assertTrue(result.ok,result.text())
@@ -263,7 +223,7 @@ class ProductionPreparationTests(ProductionHarness):
         expect(popup.locator('#job-search-results')).not_to_contain_text('Earlier specialist')
 
     def test_badges_never_send_browsing_urls_and_lookup_skips_session_pages(self):
-        self.setup_preparation(attached=True)
+        self.setup_preparation()
         self.context.route('https://unseen.example/**',lambda route:route.fulfill(content_type='text/html',body='<title>Uncached employer</title>'))
         self.worker.evaluate('''()=>{
           const original=globalThis.fetch;globalThis.lookupRequests=[];
@@ -286,7 +246,7 @@ class ProductionPreparationTests(ProductionHarness):
         self.assertTrue(all(request==requests[0] for request in self.worker.evaluate('lookupRequests')))
 
     def test_search_uses_server_results_even_when_ten_cached_jobs_match(self):
-        self.setup_preparation(attached=True)
+        self.setup_preparation()
         jobs=[]
         for number in range(11):
             result=self.context.request.post(self.origin+'/api/v1/companion/jobs',data={'profile_id':1,'url':f'https://employer.example/jobs/{3000+number}','title':f'Specialist {number}'})
@@ -300,7 +260,7 @@ class ProductionPreparationTests(ProductionHarness):
         expect(popup.locator('#job-search-results .job-entry').first).to_contain_text('Specialist 10')
 
     def test_saving_an_uncached_job_keeps_the_catalog_bounded(self):
-        self.setup_preparation(attached=True)
+        self.setup_preparation()
         self.worker.evaluate("""async()=>{const {radiusVault:v}=await chrome.storage.local.get('radiusVault');v.jobs=Array.from({length:2000},(_,i)=>({id:10000+i,title:'Cached role',company_name:'Labs',url:`https://example.org/jobs/${10000+i}`,active:true}));await chrome.storage.local.set({radiusVault:v});}""")
         options=self.context.new_page();options.goto(f'chrome-extension://{self.extension_id}/options.html')
         saved=options.evaluate("()=>chrome.runtime.sendMessage({type:'add-job',job:{profile_id:1,url:'https://employer.example/jobs/3001',title:'New specialist'}})")
@@ -309,68 +269,8 @@ class ProductionPreparationTests(ProductionHarness):
         self.assertLessEqual(len(jobs),2000)
         self.assertTrue(any(job['id']==saved['result']['job']['id'] for job in jobs))
 
-    def check_prepared_package_fill(self, attached=False):
-        version = self.setup_preparation(attached=attached)
-        payload = {'format': 'radius-application-v1', 'job_id': 1574, 'profile_id': 1, 'cv_updated_at': version, 'cv': 'Alex Example. Coordinated research teams.', 'cover_letter': 'I coordinate research projects.', 'application_answers': 'Q: Why this role?\nA: I coordinate research teams.', 'review_notes': 'Review before applying.'}
-        payload['latex_documents']={'cv':self.cv_source}
-        self.import_package(self.page,payload,link=attached)
-        saved = self.page.evaluate("JSON.parse(localStorage.getItem('radius:application-draft:v1:1574:1'))")
-        self.assertIsInstance(saved['saved_at'], (int, float))
-        source = self.context.new_page()
-        source.goto(LISTING)
-        self.page = source
-        deadline = time.monotonic() + 10
-        while time.monotonic() < deadline:
-            packages = self.worker.evaluate("async ()=>(await chrome.storage.local.get('radiusVault')).radiusVault.packages")
-            if '1574:1' in packages:
-                break
-            self.page.wait_for_timeout(50)
-        self.assertIn('1574:1', packages)
-        popup = self.popup()
-        expect(popup.locator('#job-entries')).to_contain_text('CV prepared')
-        with self.context.expect_page() as event:
-            self.page.get_by_role('link', name='Apply now').click()
-        application = event.value
-        application.wait_for_url(ATS)
-        popup.close()
-        self.page = application
-        popup = self.popup()
-        self.fill(popup)
-        self.assertEqual(self.page.locator('#letter').input_value(), payload['cover_letter'])
-        self.assertEqual(self.page.locator('#why').input_value(), 'I coordinate research teams.')
-        self.assertEqual(self.page.evaluate('window.submits'), 0)
-        with urlopen(self.origin + '/api/v1/profiles/1/applications') as response:
-            self.assertEqual(json.load(response)['total'], 0, 'Preparing/filling must not change tracking stages')
-        with urlopen(self.origin + '/downloads/radius-application-companion.zip') as response:
-            self.assertEqual(response.read(2), b'PK')
-    def test_return_link_import_and_changed_cv_prevent_stale_tailored_fill(self):
-        version = self.setup_preparation()
-        payload = {'format':'radius-application-v1','job_id':1574,'profile_id':1,'cv_updated_at':version,'cv':'Alex Example. Research coordination.','cover_letter':'Only for the original CV.','application_answers':'Q: Why this role?\nA: Original research experience.','review_notes':'Review.'}
-        payload['latex_documents']={'cv':self.cv_source}
-        self.import_package(self.page,payload)
-        self.assertNotIn('#', self.page.url)
-        expect(self.page.get_by_role('heading',name='Your documents are ready.')).to_be_visible()
-        deadline = time.monotonic() + 10
-        while time.monotonic() < deadline:
-            packages = self.worker.evaluate("async ()=>(await chrome.storage.local.get('radiusVault')).radiusVault.packages")
-            if '1574:1' in packages:break
-            self.page.wait_for_timeout(50)
-        self.assertIn('1574:1', packages)
-        self.upload_base(changed=True)
-        employer = self.context.new_page();employer.goto(LISTING);self.page = employer;popup = self.popup()
-        with self.context.expect_page() as event:self.page.get_by_role('link',name='Apply now').click()
-        application = event.value;application.wait_for_url(ATS);popup.close();self.page = application;popup = self.popup()
-        popup.locator('#fill').click()
-        expect(popup.locator('#status')).not_to_have_text('Filling known details…')
-        self.assertEqual(self.page.locator('#letter').input_value(),'')
-        self.assertEqual(self.page.locator('#why').input_value(),'')
-        self.assertEqual(self.page.evaluate('window.submits'),0)
-
-    def test_captured_questions_return_documents_and_select_files_through_real_api(self):
-        self.check_captured_question_and_document_flow(attached=True)
-
     def test_captured_form_arriving_during_mount_is_read(self):
-        self.setup_preparation(attached=True)
+        self.setup_preparation()
         # Deliver the bridge's storage write after the component's initial read
         # but before its event listener is registered.
         self.context.add_init_script("""(() => {
@@ -393,72 +293,30 @@ class ProductionPreparationTests(ProductionHarness):
         })()""")
         prepared = self.context.new_page()
         prepared.goto(self.origin + '/jobs/1574/apply?profile_id=1')
-        prepared.get_by_text('Options', exact=True).click()
-        expect(prepared.get_by_text(
-            'This application step’s questions and answer limits are included in your brief.',
-            exact=True)).to_be_visible()
-        prepared.get_by_text('Options', exact=True).click()
+        expect(prepared.get_by_text('1 questions captured by the application companion.', exact=False)).to_be_visible()
 
-    def test_manual_import_captured_questions_and_document_exports(self):
-        self.check_captured_question_and_document_flow(attached=False)
 
-    def check_captured_question_and_document_flow(self, attached):
-        from .test_form_preparation import QUESTIONS
-        from pypdf import PdfReader
-        version=self.setup_preparation(attached=attached)
-        self.context.route('https://ats.example/**',lambda route:route.fulfill(content_type='text/html',body=QUESTIONS))
-        self.page.goto(LISTING);popup=self.popup()
-        with self.context.expect_page() as event:self.page.get_by_role('link',name='Apply now').click()
-        popup.close();self.page=event.value;self.page.wait_for_url(ATS)
-        self.page.locator('#why').fill('')
-        popup=self.popup()
-        # Capture stays in the extension; inspect the canonical capture before
-        # explicitly opening the Radius editor to exercise its return bridge.
-        tab_id=self.worker.evaluate("async url=>(await chrome.tabs.query({})).find(tab=>tab.url===url).id",self.page.url)
-        captured_result=popup.evaluate("async tabId=>chrome.runtime.sendMessage({type:'scan-form',tabId,jobId:1574,openRadius:false})",tab_id)
-        self.assertTrue(captured_result['ok'],captured_result)
-        captured=self.worker.evaluate("async()=>(await chrome.storage.local.get('radiusVault')).radiusVault.forms['1574:1']")
-        prepared=self.context.new_page()
-        prepared.goto(self.origin+'/jobs/1574/apply?profile_id=1')
-        prepared.get_by_text('Options', exact=True).click()
-        expect(prepared.get_by_text('This application step’s questions and answer limits are included in your brief.',exact=True)).to_be_visible()
-        prepared.get_by_text('Options', exact=True).click()
-        payload={'format':'radius-application-v1','job_id':1574,'profile_id':1,'cv_updated_at':version,'cv':'Alex Example. Coordinated research teams.','cover_letter':'I coordinate research projects.','application_answers':'I coordinate research teams.','review_notes':'Review before applying.','form_answers':{'form_id':captured['form_id'],'answers':[{'id':'q0','value':'I coordinate research teams.'},{'id':'q1','value':'research'}]}}
-        payload['latex_documents']={'cv':self.cv_source}
-        self.import_package(prepared,payload,link=attached)
-        prepared.get_by_role('button',name='Application answers',exact=True).click()
-        answers=prepared.get_by_role('region',name='Prepared form answers')
-        expect(answers.locator('strong')).to_have_text(['Why this role?','Preferred team'])
-        changed=json.loads(json.dumps(captured));changed['form_id']='0'*64
-        changed['fields'][0]['label']='Explain your disciplinary history'
-        changed['fields'][1]['label']='Choose a legal declaration'
-        prepared.evaluate("form=>{localStorage.setItem('radius:application-form:v1:1574:1',JSON.stringify(form));document.dispatchEvent(new Event('radius-form-updated'))}",changed)
-        expect(answers.locator('strong')).to_have_text(['q0','q1'])
-        expect(answers).to_contain_text('earlier capture')
-        expect(answers).to_contain_text('I coordinate research teams.')
-        prepared.evaluate("form=>{localStorage.setItem('radius:application-form:v1:1574:1',JSON.stringify(form));document.dispatchEvent(new Event('radius-form-updated'))}",captured)
-        expect(answers.locator('strong')).to_have_text(['Why this role?','Preferred team'])
-        prepared.get_by_role('button',name='CV',exact=True).click()
-        with prepared.expect_download() as download:prepared.get_by_role('button',name='Download LaTeX source',exact=True).click()
-        self.assertEqual(Path(download.value.path()).read_text(),self.cv_source)
-        prepared.get_by_role('button',name='Cover letter',exact=True).click()
-        with prepared.expect_download(timeout=25000) as download:prepared.get_by_role('button',name='Download PDF',exact=True).click()
-        self.assertIn('I coordinate research projects.', ''.join(page.extract_text() for page in PdfReader(download.value.path()).pages))
-        deadline=time.monotonic()+10
-        while time.monotonic()<deadline:
-            packages=self.worker.evaluate("async()=>(await chrome.storage.local.get('radiusVault')).radiusVault.packages")
-            if packages.get('1574:1',{}).get('package',{}).get('form_answers'):break
-            self.page.wait_for_timeout(50)
-        self.assertEqual(packages['1574:1']['package']['form_answers'],payload['form_answers'])
-        popup.close();popup=self.popup();self.fill(popup)
-        expect(self.page.locator('#why')).to_have_value('I coordinate research teams.')
-        expect(self.page.locator('#team')).to_have_value('research')
-        self.page.evaluate("window.submits=0;document.querySelector('form').addEventListener('submit',e=>{e.preventDefault();submits++})")
-        popup.get_by_role('button',name='Attach prepared documents',exact=True).click()
-        expect(popup.locator('#status')).to_contain_text('2 documents selected',timeout=30000)
-        self.assertEqual(self.page.locator('#cv').evaluate('el=>el.files[0].type'),'application/pdf')
-        self.assertEqual(self.page.locator('#letter-file').evaluate('el=>el.files[0].type'),'application/pdf')
-        self.assertTrue(self.page.locator('#cv').evaluate("async el=>(await el.files[0].arrayBuffer()).byteLength>100"))
-        expect(self.page.locator('#consent')).not_to_be_checked()
-        self.assertEqual(self.page.evaluate('window.submits'),0)
-        self.assertEqual(self.context.request.get(self.origin+'/api/v1/profiles/1/applications').json()['total'],0)
+    def test_structured_document_conflict_preserves_the_local_edit(self):
+        from tests.test_application_documents_v2_unit import letter
+
+        self.upload_base()
+        api = self.origin + '/api/v1/profiles/1/application-documents'
+        endpoint = f'{api}/letter?job_id=1574'
+        initial = self.context.request.put(endpoint, data={'body': letter(), 'expected_version': 0})
+        self.assertTrue(initial.ok, initial.text())
+        self.page.goto(self.origin + '/jobs/1574/apply?profile_id=1')
+        paragraph = self.page.locator('[data-editable-unit="u-p1"]')
+        expect(paragraph).to_have_text('I build reliable services.')
+        server_edit = self.context.request.put(endpoint, data={
+            'body': letter(paragraph='A newer saved paragraph.'), 'expected_version': 1,
+        })
+        self.assertTrue(server_edit.ok, server_edit.text())
+        paragraph.fill('My reviewed paragraph.')
+        expect(self.page.get_by_text('Your local edits are still here.', exact=False)).to_be_visible()
+        expect(paragraph).to_have_text('My reviewed paragraph.')
+        overwrite = self.page.get_by_role('button', name='Overwrite with my edits')
+        expect(overwrite).to_be_enabled()
+        overwrite.click()
+        expect(self.page.get_by_text('Version 3 · English', exact=True)).to_be_visible()
+        body = self.context.request.get(f'{api}?job_id=1574').json()['letter']['body']
+        self.assertEqual(body['paragraphs'][0]['text'], 'My reviewed paragraph.')

@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { profileForLanguage } from '../../extensions/application-companion/profile-language.js'
 import SiteHeader from './SiteHeader'
 import './profile-onboarding.css'
-import { readCVPhoto } from './applicationDocumentExport'
+import { readCVPhoto } from './cvPhoto'
 import { cvFormattingPrompt, cvFormattingPromptDe } from '../../extensions/application-companion/tex-cv-prompt.js'
 
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
-import type { DutyEvidence, SearchArea, Profile, ProfileSetupStep } from './profile'
+import type { DutyEvidence, SearchArea, Profile, ProfileSetupStep, StyleExemplar } from './profile'
 import { profileBoardLink, profileDraftFingerprint, profileSetupSections, selectedLanguageLevels, skillEvidenceKey, updateProfileLanguage } from './profile'
 const empty = (): Profile => ({ duty_evidence: [], localized_content: {}, application_personalization: {}, application_details: { preferences: {} }, cv: null, photo: null, name: '', summary: '', custom_instructions: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
   seniority_levels: [], experience_years: null, languages: [], language_levels: {}, excluded_terms: [], skill_evidence: {}, search_area: null,
@@ -122,6 +122,24 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
   function setForm(value: Profile | ((previous: Profile) => Profile)) {
     const next = typeof value === 'function' ? value(form) : value
     setStoredForm(previous => updateProfileLanguage(previous, next, contentLanguage))
+  }
+  const voice = storedForm.application_personalization
+  const exemplars = voice?.style_exemplars ?? []
+  function updateVoice(change: { voice_notes?: string; style_exemplars?: StyleExemplar[] }) {
+    setStoredForm(previous => {
+      const english = previous.localized_content?.en
+      return {
+        ...previous,
+        application_personalization: { ...previous.application_personalization, ...change },
+        localized_content: english ? {
+          ...previous.localized_content,
+          en: { ...english, application_personalization: { ...english.application_personalization, ...change } },
+        } : previous.localized_content,
+      }
+    })
+  }
+  function updateExemplar(index: number, change: Partial<StyleExemplar>) {
+    updateVoice({ style_exemplars: exemplars.map((sample, position) => position === index ? { ...sample, ...change } : sample) })
   }
   const [skillsText, setSkillsText] = useState('')
   const [rolesText, setRolesText] = useState('')
@@ -501,11 +519,15 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
           {removePhoto && form.photo && <p>{text('Photo will be removed when you save.', 'Das Foto wird beim Speichern entfernt.')} <button type="button" disabled={busy} onClick={() => setRemovePhoto(false)}>{text('Undo', 'Rückgängig')}</button></p>}
         </fieldset>
         <fieldset className="profile-section" id="profile-personalization"><legend>{text('About me for applications', 'Über mich für Bewerbungen')}</legend>
+<<<<<<< HEAD
           <p className="muted">{text('Add confirmed examples and preferences once. They’re used by Prepare inside Radius and included in application briefs for ChatGPT. You can draft these in your usual ChatGPT conversation, then check the facts before saving here.', 'Speichere bestätigte Beispiele und Wünsche einmal. Sie werden bei Prepare inside Radius und in Bewerbungsprompts für ChatGPT verwendet. Du kannst sie im gewohnten ChatGPT-Gespräch entwerfen und die Fakten vor dem Speichern prüfen.')}</p>
+=======
+          <p className="muted">{text('Save verified examples and preferences for application preparation.', 'Speichere geprüfte Beispiele und Wünsche für die Bewerbungsvorbereitung.')}</p>
+>>>>>>> 63504f0e (feat(applications): inline v2 editor on the preparation page; remove ChatGPT handoff)
           {([
             ['career_evidence', text('Career evidence bank', 'Berufliche Beispiele und Belege'), 12000, text('For each role or project: the problem, your own actions, tools or methods used, and the verified outcome. Add scope, dates, links and measured results only when known. Distinguish academic projects from paid work; concrete examples help more than job titles or skill lists.', 'Je Position oder Projekt: Problem, dein eigener Beitrag, verwendete Werkzeuge oder Methoden und belegtes Ergebnis. Umfang, Daten, Links und Messwerte nur nennen, wenn bekannt. Trenne Studienprojekte von bezahlter Arbeit; konkrete Beispiele helfen mehr als Titel oder Kompetenzlisten.')],
-            ['writing_samples', text('Writing samples', 'Eigene Textbeispiele'), 12000, text('Paste two or three short pieces you wrote. ChatGPT will use these as voice examples, without borrowing their facts for this application.', 'Füge zwei oder drei kurze eigene Texte ein. Sie dienen als Stilvorbilder, nicht als Quelle zusätzlicher Fakten.')],
-            ['cover_letter_example', text('Example cover letter (English)', 'Beispielanschreiben (Deutsch)'), 16000, text('Paste a full English cover letter as a reference for structure, formatting and voice. The matching language example is used when preparing an application; old employers, role names and claims are not reused as facts. Add the German example in the Deutsch tab.', 'Füge ein vollständiges deutsches Anschreiben als Vorlage für Aufbau, Format und Stil ein. Der Prompt verwendet das Beispiel der Bewerbungssprache; frühere Arbeitgeber, Stellen und Behauptungen werden nicht als Fakten übernommen. Das englische Beispiel hinterlegst du im English-Tab.')],
+            ['writing_samples', text('Writing samples', 'Eigene Textbeispiele'), 12000, text('Saved samples from earlier preparations. Add new samples under Voice notes and style examples.', 'Gespeicherte Beispiele aus früheren Vorbereitungen. Neue Beispiele kannst du unter Stilhinweise und Schreibbeispiele hinzufügen.')],
+            ['cover_letter_example', text('Example cover letter (English)', 'Beispielanschreiben (Deutsch)'), 16000, text('Saved English example from earlier preparations. Add new examples under Voice notes and style examples.', 'Gespeichertes deutsches Beispiel aus früheren Vorbereitungen. Neue Beispiele kannst du unter Stilhinweise und Schreibbeispiele hinzufügen.')],
             ['wording_to_avoid', text('Wording to avoid', 'Zu vermeidende Formulierungen'), 3000, text('Words or phrases that don’t sound like you.', 'Wörter oder Formulierungen, die nicht nach dir klingen.')],
             ['career_goals', text('Career goals', 'Berufliche Ziele'), 5000, text('What you want to do next, skills you want to develop, and roles you would consider.', 'Deine nächsten beruflichen Ziele, gewünschte Fähigkeiten und mögliche Positionen.')],
             ['work_preferences', text('Working preferences and dealbreakers', 'Arbeitswünsche und Ausschlusskriterien'), 5000, text('What energizes or drains you, team environment, management style, travel limits and practical needs. These guide fit and transferable career paths; private dealbreakers stay out of application prose.', 'Was dir Energie gibt oder nimmt, Teamumfeld, Führungsstil, Reisegrenzen und praktische Bedürfnisse. Das hilft bei Passung und möglichen Berufswegen; private Ausschlusskriterien bleiben außerhalb der Bewerbungstexte.')],
@@ -514,6 +536,37 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
               value={form.application_personalization?.[key] ?? ''} placeholder={hint}
               onChange={event => setForm({ ...form, application_personalization: { ...form.application_personalization, [key]: event.target.value } })} />
             <small>{hint}</small></label></details>)}
+          <details className="profile-writing-detail">
+            <summary>{text('Voice notes and style examples', 'Stilhinweise und Schreibbeispiele')}</summary>
+            <label>{text('Voice notes', 'Stilhinweise')}
+              <textarea rows={3} maxLength={1500} value={voice?.voice_notes ?? ''}
+                onChange={event => updateVoice({ voice_notes: event.target.value })} />
+            </label>
+            <small>{text('Used for writing style. Keep verified facts in the career evidence bank.', 'Diese Angaben prägen den Schreibstil. Hinterlege geprüfte Fakten bei den beruflichen Belegen.')}</small>
+            {exemplars.map((sample, index) => <fieldset className="profile-writing-detail" key={index}>
+              <legend>{sample.language === 'en' ? 'English' : 'Deutsch'}</legend>
+              <label>{text('Example type', 'Art des Beispiels')}
+                <select value={sample.kind} onChange={event => updateExemplar(index, { kind: event.target.value as StyleExemplar['kind'] })}>
+                  <option value="cover_letter">{text('Cover letter', 'Anschreiben')}</option>
+                  <option value="cv_summary">{text('CV summary', 'Kurzprofil im Lebenslauf')}</option>
+                </select>
+              </label>
+              <label>{text('Example text', 'Beispieltext')}
+                <textarea rows={5} maxLength={16000} value={sample.text} onChange={event => updateExemplar(index, { text: event.target.value })} />
+              </label>
+              <button type="button" onClick={() => updateVoice({ style_exemplars: exemplars.filter((_, position) => position !== index) })}>
+                {text('Remove example', 'Beispiel entfernen')}
+              </button>
+            </fieldset>)}
+            <div className="preparation-actions">
+              {(['en', 'de'] as const).map(language => <button key={language} type="button"
+                disabled={exemplars.filter(sample => sample.language === language).length >= 3}
+                onClick={() => updateVoice({ style_exemplars: [...exemplars, { language, kind: 'cover_letter', text: '' }] })}>
+                {language === 'en' ? text('Add English example', 'Englisches Beispiel hinzufügen')
+                  : text('Add German example', 'Deutsches Beispiel hinzufügen')}
+              </button>)}
+            </div>
+          </details>
         </fieldset>
         <fieldset className="profile-section"><legend>{text('Application writing preferences', 'Schreibstil für Bewerbungen')}</legend>
           <label htmlFor="profile-custom-instructions">{text('Custom application instructions', 'Eigene Bewerbungsanweisungen')}</label>

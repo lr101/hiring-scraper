@@ -79,13 +79,16 @@ pages, checks JSONB, created_at)` caches verified PDFs.
 Routes under `/api/v1/profiles/{profile_id}`:
 - `POST /application-documents/prepare` `{job_id, language, mode}` → 202 `{task}`
 - `GET /application-documents/task?job_id=` → `{task}` with `{id, kind, state, stage,
-  attempts, error_code, error, next_attempt_at, stages}`
+  attempts, error_code, error, next_attempt_at, stages}` and task-specific metadata.
+  A completed revision includes the proposed text and findings in `result` for explicit acceptance.
+  A generated document held after a concurrent save is available in `held`.
 - `POST /application-documents/task/cancel?job_id=&task_id=`
 - `GET /application-documents?job_id=` → `{cv: Doc|null, letter: Doc|null}`;
   `Doc = {version, language, body, findings, origin, stale_inputs, created_at}`
-- `PUT /application-documents/{kind}?job_id=` `{expected_version, body}` → `{version}`; 409 on conflict
-- `POST /application-documents/{kind}/revert?job_id=` `{version}` → `{version}`
-- `POST /application-documents/{kind}/revise?job_id=` `{unit_id, instruction}` → 202 `{task}`
+- `PUT /application-documents/{kind}?job_id=` `{expected_version, body}` → `{version}`; 409 on conflict.
+  Optional `dismissed_findings` records review dismissals and `held_task_id` adopts a held document.
+- `POST /application-documents/{kind}/revert?job_id=` `{version, expected_version?}` → `{version}`
+- `POST /application-documents/{kind}/revise?job_id=` `{unit_id, instruction, expected_version?}` → 202 `{task}`
 - `GET /application-documents/{kind}/pdf?job_id=&version=` → 200 PDF when cached, else
   202 `{state: 'rendering'}` and a render task is queued (worker lane)
 - `GET /cv/structure?language=` → `{document, source: 'stored'|'imported', errors}`;

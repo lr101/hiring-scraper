@@ -39,6 +39,11 @@ export interface DocumentEditorProps<T extends ApplicationDocument = Application
   findings?: Finding[]
   photoUrl?: string | null
   onDownloadPdf?: () => void
+  downloadDisabled?: boolean
+  onImproveUnit?: (unitId: string) => void
+  improveDisabled?: boolean
+  onApplyFinding?: (finding: Finding) => void
+  onDismissFinding?: (finding: Finding) => void
   saving?: DocumentEditorSavingState
   saveError?: string | null
   readOnly?: boolean
@@ -192,7 +197,7 @@ function EditableUnitText({
     if (el.textContent !== text) {
       el.textContent = text
     }
-  }, [text])
+  }, [text, readOnly])
 
   const handleInput = useCallback(() => {
     const el = spanRef.current
@@ -298,6 +303,11 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
   findings = [],
   photoUrl,
   onDownloadPdf,
+  downloadDisabled,
+  onImproveUnit,
+  improveDisabled,
+  onApplyFinding,
+  onDismissFinding,
   saving,
   saveError,
   readOnly = false,
@@ -632,12 +642,25 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
                               Suggestion: {finding.suggestion}
                             </p>
                           ) : null}
+                          <div className="doc-editor-finding-actions">
+                            {!readOnly && finding.suggestion && onApplyFinding && (
+                              <button type="button" onClick={() => { setOpenFindingUnitId(null); onApplyFinding(finding) }}>Apply suggestion</button>
+                            )}
+                            {!readOnly && onDismissFinding && (
+                              <button type="button" onClick={() => onDismissFinding(finding)}>Dismiss</button>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
                   ) : null}
                 </span>
               ) : null}
+              {!readOnly && !unit.hidden && onImproveUnit && <button
+                type="button" className="doc-editor-unit-action" disabled={improveDisabled}
+                aria-label={`Improve ${unitKindLabel(kind)} with AI`}
+                onClick={() => onImproveUnit(unit.id)}
+              >Improve with AI</button>}
               {!readOnly ? (
                 <button
                   type="button"
@@ -655,6 +678,10 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
     },
     [
       findingsByUnit,
+      improveDisabled,
+      onApplyFinding,
+      onDismissFinding,
+      onImproveUnit,
       handleRemoveEmpty,
       handleSplit,
       handleTextChange,
@@ -782,6 +809,7 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
               type="button"
               className="doc-editor-btn doc-editor-btn--primary"
               onClick={onDownloadPdf}
+              disabled={downloadDisabled}
             >
               Download PDF
             </button>
@@ -804,6 +832,7 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
               </span>
               <span>{finding.message}</span>
               {finding.suggestion ? <em> — {finding.suggestion}</em> : null}
+              {!readOnly && onDismissFinding && <button type="button" onClick={() => onDismissFinding(finding)}>Dismiss</button>}
             </p>
           ))}
         </div>
