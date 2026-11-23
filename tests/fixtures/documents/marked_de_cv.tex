@@ -1,0 +1,161 @@
+% Fictional marked LaTeX CV fixture for unit tests (German, 2 pages: fixed page 1 + flowing page 2).
+\documentclass[10pt,letterpaper]{article}
+\usepackage[letterpaper,margin=0pt]{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{eso-pic}
+\usepackage[unicode,hidelinks]{hyperref}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+% radius:profile
+\newcommand{\RadiusProfileA}{Wirtschaftsingenieurin mit Schwerpunkt auf Prozess-}
+\newcommand{\RadiusProfileB}{analyse, Planungs- und Steuerungsprozessen sowie}
+\newcommand{\RadiusProfileC}{bereichsübergreifender Koordination in der Logistik.}
+% radius:endprofile
+% radius:entry {"id": "work-1", "kind": "work", "company": "NORDWIND LOGISTICS GMBH", "title": "Operations Coordinator", "location": "Bremen, DE", "start": "2022", "end": "2025", "current": false}
+% radius:responsibilities
+\newcommand{\RadiusNordA}{Reduzierte Durchlaufzeiten um 35\% durch standardisierte}
+\newcommand{\RadiusNordB}{SOPs \& automatisierte KPI-Berichte in Tableau.}
+\newcommand{\RadiusNordC}{Koordinierte rund 1.200 Lieferungen pro Monat mit}
+\newcommand{\RadiusNordD}{Disponenten, Lagerleitung und externen Dienstleistern.}
+% radius:end
+% radius:entry {"id": "work-2", "kind": "work", "company": "HAFENWERK SYSTEMS", "title": "Junior Supply Analyst", "location": "Hamburg, DE", "start": "2020", "end": "2022", "current": false}
+% radius:responsibilities
+\newcommand{\RadiusHafenA}{Erstellte SQL-Auswertungen und Power BI Dashboards für}
+\newcommand{\RadiusHafenB}{Budget\_Tracking (\#42, ca. 500\$ Einsparung~pro Lauf).}
+% radius:end
+% radius:entry {"id": "study-1", "kind": "study", "company": "Technische Hochschule Nordsee (THN)", "title": "B.Sc. Wirtschaftsingenieurwesen", "location": "Bremen, DE", "start": "2016", "end": "2020", "current": false}
+% radius:responsibilities
+\newcommand{\RadiusStudyA}{\textbf{Küstendock -- Lageroptimierung:} Analysierte Kommissionierwege mit Stakeholder-Interviews und entwickelte ein neues Layout für 18\% kürzere Wege.}
+\newcommand{\RadiusStudyB}{\textbf{WeserPack -- Qualitätsprüfung \& WBS:} Erstellte einen Projektstrukturplan (WBS) und RACI-Matrix zur Einführung neuer Prüfstandards.}
+% radius:end
+% radius:entry {"id": "study-2", "kind": "study", "company": "Alster Mobility Lab", "title": "Forschungspraktikum", "location": "Hamburg, DE", "start": "2019", "end": "2019", "current": false}
+% radius:responsibilities
+\newcommand{\RadiusInternA}{Unterstützte ein interdisziplinäres Team bei einem Sensor-Prototyp mit RFID-Erfassung.}
+% radius:end
+\begin{document}
+
+% ====================================== SEITE 1 ======================================
+\AddToShipoutPictureFG*{%
+\AtPageLowerLeft{\setlength{\unitlength}{1bp}\begin{picture}(612,792)
+\put(72.00,620.00){\includegraphics[width=68bp,height=102bp]{avatar_sample.png}}
+\put(260.00,717.00){\hbox{\fontsize{12.0bp}{13.8bp}\selectfont \bfseries \makebox[160bp][s]{MAREN LINDNER}}}
+\put(168.00,705.00){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \makebox[360bp][s]{Operations \& Prozessanalyse | Logistik | Qualitätsmanagement}}}
+\put(190.00,693.00){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \makebox[80bp][s]{+49 151 00001234}}}
+\put(320.00,693.00){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \makebox[70bp][s]{Bremen, DE}}}
+\put(410.00,693.00){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \color[HTML]{0563C1} \href{mailto:maren.lindner@example.test}{maren.lindner@example.test}}}
+\put(150.00,670.00){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \makebox[395bp][s]{\RadiusProfileA{}}}}
+\put(150.00,658.50){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \makebox[395bp][s]{\RadiusProfileB{}}}}
+\put(150.00,647.00){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \makebox[280bp][s]{\RadiusProfileC{}}}}
+\put(72.00,590.00){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \bfseries BERUFSERFAHRUNG}}
+\put(72.00,576.00){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \bfseries \makebox[160bp][s]{NORDWIND LOGISTICS GMBH}}}
+\put(460.00,576.00){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont Bremen, DE}}
+\put(72.00,564.50){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \bfseries \itshape \makebox[140bp][s]{Operations Coordinator}}}
+\put(500.00,564.50){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont 2022-2025}}
+\put(72.00,538.90){\hbox{\fontsize{6.0bp}{7.0bp}\selectfont \CVBulletFont ●}}
+\put(90.00,538.00){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \makebox[455bp][s]{\RadiusNordA{}}}}
+\put(90.00,526.50){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \makebox[380bp][s]{\RadiusNordB{}}}}
+\put(72.00,512.40){\hbox{\fontsize{6.0bp}{7.0bp}\selectfont \CVBulletFont ●}}
+\put(90.00,511.50){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \makebox[455bp][s]{\RadiusNordC{}}}}
+\put(90.00,500.00){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \makebox[370bp][s]{\RadiusNordD{}}}}
+\put(410.00,692.00){\color[HTML]{0563C1}\rule{110bp}{0.45bp}}
+\put(72.00,588.00){\rule{474bp}{0.50bp}}
+\put(72.00,426.00){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \bfseries \makebox[120bp][s]{HAFENWERK SYSTEMS}}}
+\put(460.00,426.00){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont Hamburg, DE}}
+\put(72.00,414.50){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \bfseries \itshape \makebox[130bp][s]{Junior Supply Analyst}}}
+\put(500.00,414.50){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont 2020-2022}}
+\put(72.00,388.90){\hbox{\fontsize{6.0bp}{7.0bp}\selectfont \CVBulletFont ●}}
+\put(90.00,388.00){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \makebox[455bp][s]{\RadiusHafenA{}}}}
+\put(90.00,376.50){\hbox{\fontsize{10.0bp}{11.5bp}\selectfont \makebox[340bp][s]{\RadiusHafenB{}}}}
+\end{picture}}%
+}
+\mbox{}\newpage
+
+% ====================================== SEITE 2 ======================================
+\newcommand{\CVSection}[1]{%
+  \par\addvspace{12bp}%
+  {\bfseries #1}\par\nobreak\vspace{2.5bp}%
+  \noindent\rule{\linewidth}{0.5bp}\par\nobreak\vspace{5.5bp}%
+}
+\newcommand{\CVSubsection}[1]{%
+  \par\addvspace{9bp}{\bfseries #1}\par\nobreak\vspace{2.5bp}%
+}
+\newcommand{\CVRow}[2]{%
+  \noindent\makebox[\linewidth][l]{{#1}\hfill {#2}}\par\nobreak
+}
+\newcommand{\CVListBegin}{%
+  \begin{itemize}[label={\raisebox{0.7bp}{\CVBulletFont\fontsize{6bp}{7bp}\selectfont ●}},
+    leftmargin=18bp,labelsep=9bp,topsep=4bp,partopsep=0bp,parsep=0bp,itemsep=3bp]
+}
+\newcommand{\CVListEnd}{\end{itemize}}
+\AddToShipoutPictureFG*{%
+\AtPageLowerLeft{\setlength{\unitlength}{1bp}%
+\begin{picture}(612,792)
+\put(72.0,718.0){%
+\begin{minipage}[t]{474bp}
+\fontsize{10bp}{11.6bp}\selectfont
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\justifying
+\hyphenpenalty=8000
+\emergencystretch=1.5em
+% AUSBILDUNG
+{\bfseries AUSBILDUNG}\par\nobreak\vspace{2.5bp}
+\noindent\rule{\linewidth}{0.5bp}\par\nobreak\vspace{5.5bp}
+\CVRow{\bfseries HOCHSCHULE}{Bremen, DE}
+\CVRow{\bfseries\itshape Technische Hochschule Nordsee (THN)}{2016 -- 2020}
+\par\vspace{11bp}
+\textbf{B.Sc. Wirtschaftsingenieurwesen} -- Schwerpunkte: Logistik, Prozessanalyse \& Qualitätssicherung. Abschluss mit \textbf{Auszeichnung}.\par
+\vspace{3bp}
+\textbf{Anerkennung:} Vollständig anerkannter \textbf{Bachelorabschluss} mit Schwerpunkt Lieferketten.\par
+
+\vspace{11bp}
+Ausgewählte Projekte: Logistik \& Qualität\par
+\CVListBegin
+\item \RadiusStudyA{}
+\item \RadiusStudyB{}
+\CVListEnd
+
+% PRAKTIKUM
+\par\vspace{12bp}
+\CVRow{\bfseries PRAKTIKUM}{Hamburg, DE}
+\CVRow{\bfseries\itshape Alster Mobility Lab}{2019}
+\CVListBegin
+\item \RadiusInternA{}
+\CVListEnd
+
+% WEITERE QUALIFIKATIONEN
+\CVSection{WEITERE QUALIFIKATIONEN}
+{\bfseries VERÖFFENTLICHUNGEN}\par\nobreak\vspace{2bp}
+{\bfseries\itshape “Modular Warehouse Telemetry” — Mitautorenschaft}\par
+Entwickelte ein modulares Erfassungskonzept für Lagerprozesse mit 3D-gedruckten Halterungen und RFID-Lesern.\par
+
+\CVSubsection{KERNKOMPETENZEN}
+Prozessanalyse • Lieferkettensteuerung • Projektplanung • Qualitätsmanagement • KPI-Reporting\par
+
+\CVSubsection{TOOLS \& SYSTEME}
+Tableau • Power BI • SQL • Jira • Kanban • RFID-Systeme\par
+
+\par\vspace{12bp}
+\noindent\begin{minipage}[t]{179bp}
+  {\bfseries SPRACHEN}\par\vspace{6bp}
+  \begin{itemize}[label={\raisebox{0.7bp}{\CVBulletFont\fontsize{6bp}{7bp}\selectfont ●}},leftmargin=18bp,labelsep=9bp,topsep=0bp,partopsep=0bp,parsep=0bp,itemsep=3bp]
+  \item Deutsch -- Muttersprache
+  \item Englisch -- C1
+  \item Niederländisch -- B1
+  \end{itemize}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{291bp}
+  {\bfseries ZERTIFIKATE \& AUSZEICHNUNGEN}\par\vspace{6bp}
+  \begin{itemize}[label={\raisebox{0.7bp}{\CVBulletFont\fontsize{6bp}{7bp}\selectfont ●}},leftmargin=18bp,labelsep=9bp,topsep=0bp,partopsep=0bp,parsep=0bp,itemsep=3bp]
+  \item Six Sigma Green Belt -- Nordsee Akademie
+  \item Stipendium -- Hanseatisches Technikforum
+  \end{itemize}
+\end{minipage}
+\end{minipage}}
+\end{picture}}%
+}
+\mbox{}
+\end{document}
