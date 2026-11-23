@@ -1,6 +1,18 @@
 import type { CityElectionResult } from './profile'
 
+type ScoreContribution = {
+  signal: string; contribution: number; detail: string
+  job_quote?: string; profile_source?: string; profile_quote?: string
+}
+
 export type ProfileMatch = {
+  calibration?: { raw: number; calibrated: number; version: string }
+  explanation?: ScoreContribution[]
+  language_review?: boolean
+  prerequisite_conditions?: {
+    kind: string; status: string; reason: string
+    job_quote?: string; profile_source?: string; profile_quote?: string
+  }[]
   mandatory_review?: boolean
   task_fit?: number
   duty_evidence?: { score: number | null; coverage: number; duties: {
@@ -51,6 +63,34 @@ function ScoreGraphic({ match }: { match: ProfileMatch }) {
   </figure>
 }
 
+const scorePoints = new Intl.NumberFormat('en', { maximumFractionDigits: 4 })
+const signedPoints = new Intl.NumberFormat('en', { maximumFractionDigits: 4, signDisplay: 'exceptZero' })
+
+function ContributionLedger({ entries, calibration }: {
+  entries: ScoreContribution[]; calibration: NonNullable<ProfileMatch['calibration']>
+}) {
+  const positives = entries.filter(row => row.contribution > 0).sort((a, b) => b.contribution - a.contribution)
+  const negatives = entries.filter(row => row.contribution < 0).sort((a, b) => a.contribution - b.contribution)
+  const featured = [...positives.slice(0, 3), ...negatives.slice(0, 2)]
+  const remainder = [...positives.slice(3), ...negatives.slice(2)]
+  return <section aria-label="Score contributions">
+    <h3>Score contributions</h3>
+    <dl>{featured.map((row, index) => <div key={`${row.signal}:${index}`}>
+      <dt>{row.detail}</dt>
+      <dd><strong>{signedPoints.format(row.contribution)}</strong>
+        {row.job_quote && <p>Job <q>{row.job_quote}</q></p>}
+        {row.profile_quote && <p>Saved evidence <q>{row.profile_quote}</q></p>}
+      </dd>
+    </div>)}
+    {remainder.length > 0 && <div>
+      <dt>Other contributions</dt>
+      <dd>{signedPoints.format(remainder.reduce((total, row) => total + row.contribution, 0))}</dd>
+    </div>}
+    </dl>
+    <p>Raw score <strong>{scorePoints.format(calibration.raw)}</strong> · Calibrated score <strong>{calibration.calibrated}/100</strong></p>
+  </section>
+}
+
 export default function JobEvidence({ enrichment, match }: { enrichment: Enrichment; match?: ProfileMatch }) {
   const skillEvidence = [...enrichment.skills, ...(match?.custom_skill_evidence ?? [])]
   return <section className="detail-panel evidence-panel">
@@ -59,6 +99,8 @@ export default function JobEvidence({ enrichment, match }: { enrichment: Enrichm
       <h2>{!match.eligible ? 'Requirement or preference conflict' : match.mandatory_review ? 'Verify mandatory eligibility' : match.fit_tier === 'recommended' ? 'Recommended match' : match.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'} · {match.score}/100</h2>
       <p className="muted">Match score based on saved task, skill and requirement evidence. Shared tools may be incidental; verify the main work and mandatory requirements before applying. This is not a prediction of hiring success.</p>
       <ScoreGraphic match={match} />
+      {match.calibration && match.explanation && <ContributionLedger entries={match.explanation} calibration={match.calibration} />}
+      {match.calibration && match.language_review && <p className="evidence-note">Verify language proficiency against the stated requirement.</p>}
       {match.mandatory_review && <p className="evidence-note">A mandatory eligibility requirement is unverified. The qualification score does not clear that requirement.</p>}
       {match.task_fit != null && <>
         <p><strong>Task fit before mandatory requirements and preferences:</strong> {match.task_fit}/100. The match score above also accounts for unresolved qualifications and constraints.</p>
@@ -76,8 +118,14 @@ export default function JobEvidence({ enrichment, match }: { enrichment: Enrichm
         <h3>Eligibility and location checks</h3>
         <dl>{Object.entries(match.gates).map(([name, gate]) => <div key={name}><dt>{name} · {gate.status}</dt><dd>{gate.reason}</dd></div>)}</dl>
       </>}
-      {match.local_context && match.local_context.score_adjustment !== 0 && <p className="muted">Location preference changed this match by {match.local_context.score_adjustment} points.</p>}
-      {match.reasons.length > 0 && <ul>{match.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>}
+      {match.prerequisite_conditions?.filter(row => row.status !== 'pass' && row.job_quote).map((row, index) =>
+        <div className="evidence-note" key={`${row.kind}:${index}`}>
+          <strong>{row.reason}</strong>
+          <p>Job <q>{row.job_quote}</q></p>
+          {row.profile_quote && <p>Saved evidence <q>{row.profile_quote}</q></p>}
+        </div>)}
+      {!match.calibration && match.local_context && match.local_context.score_adjustment !== 0 && <p className="muted">Location preference changed this match by {match.local_context.score_adjustment} points.</p>}
+      {!match.calibration && match.reasons.length > 0 && <ul>{match.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>}
       {match.conflicts.length > 0 && <div className="error-banner"><strong>Requirements or preferences that conflict</strong><ul>{match.conflicts.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
       {(match.soft_conflicts?.length ?? 0) > 0 && <div className="evidence-note"><strong>Experience to verify</strong><ul>{match.soft_conflicts!.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
       {(match.requirement_gaps?.length ?? 0) > 0 && <div className="evidence-note"><strong>Qualification gaps to check</strong><ul>{match.requirement_gaps!.map(gap => <li key={gap}>{gap}</li>)}</ul></div>}

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 import hashlib
 import json
 import math
+import os
 import re
 from typing import Any
 
@@ -23,6 +24,7 @@ from hiring_scraper.app.models import (
 )
 from hiring_scraper.app.profile_semantics import cached_semantic_evidence, load_semantic_documents
 from hiring_scraper.matching import VERSION as MATCHING_VERSION, match_job
+from hiring_scraper.matching_v2 import VERSION as MATCHING_V2_VERSION, match_job_v2
 from hiring_scraper.semantic_matching import VERSION as SEMANTIC_VERSION
 
 EXPLANATION_MAX_BYTES = 16 * 1024
@@ -57,6 +59,9 @@ _REQUIREMENT_OBSERVATION_FIELDS = (
     'evidence_quote',
     'evidence_context',
     'explanation',
+    'unit',
+    'scope',
+    'modality',
 )
 _REQUIREMENT_OBSERVATION_SHORT_FIELDS = frozenset({
     'kind',
@@ -142,16 +147,29 @@ def apply_profile_match_scope(match: dict, scope: dict | None) -> dict:
     return match
 
 
-def _compose_score_version(components: dict[str, Any]) -> str:
+def _active_matcher():
+    setting = os.environ.get('RADIUS_MATCHER', 'v2').strip().lower()
+    if setting == 'v1':
+        return match_job, MATCHING_VERSION
+    if setting == 'v2':
+        return match_job_v2, MATCHING_V2_VERSION
+    raise ValueError('RADIUS_MATCHER must be v1 or v2')
+
+
+def active_matcher_version() -> str:
+    return _active_matcher()[1]
+
+
+def _compose_score_version(components: dict[str, str]) -> str:
     payload = json.dumps(components, sort_keys=True, ensure_ascii=False, separators=(',', ':'))
     digest = hashlib.sha256(payload.encode('utf-8')).hexdigest()[:40]
-    return f'{MATCHING_VERSION[:39]}:{digest}'
+    return f"{components['matcher'][:39]}:{digest}"
 
 
 def current_score_version() -> str:
     """Composite version stamping stored local explanations (<= 80 chars)."""
     return _compose_score_version({
-        'matcher': MATCHING_VERSION,
+        'matcher': active_matcher_version(),
         'semantic': SEMANTIC_VERSION,
     })
 
@@ -213,13 +231,14 @@ def compute_match(
     resolved_enrichment = current_enrichment(job) if enrichment is None else enrichment
     if documents is None:
         documents = load_semantic_documents(_session_for(job, profile), [job], [profile])
+    match_fn = _active_matcher()[0] if matcher is None else matcher
+    preferences = profile.matching_preferences
     semantic = cached_semantic_evidence(
-        resolved_source, profile.matching_preferences, job.id, profile.id, documents,
+        resolved_source, preferences, job.id, profile.id, documents, aggregate=match_fn is match_job_v2,
     )
-    match_fn = match_job if matcher is None else matcher
     local = match_fn(
         resolved_source,
-        profile.matching_preferences,
+        preferences,
         resolved_enrichment,
         **({'semantic': semantic} if semantic else {}),
     )
@@ -345,6 +364,9 @@ def _project_requirement_observations(
             if len(raw_val) > limit:
                 trimmed = True
             entry[field] = _trim_text(raw_val, limit)
+        for field in ('number', 'minimum_years'):
+            if isinstance(row.get(field), (int, float)):
+                entry[field] = _json_safe(row[field])
         if entry:
             items.append(entry)
     return items, trimmed
@@ -443,6 +465,28 @@ def _encoded_size(payload: dict[str, Any]) -> int:
     return len(serialize_explanation(payload).encode('utf-8'))
 
 
+def _project_cited_rows(rows, fields, *, max_items, text_chars, numeric_fields=()):
+    if not isinstance(rows, list):
+        return [], False
+    projected = []
+    trimmed = len(rows) > max_items
+    for row in rows[:max_items]:
+        if not isinstance(row, dict):
+            continue
+        entry = {}
+        for field in fields:
+            if field not in row:
+                continue
+            text = _sanitize_str(row[field])
+            limit = min(text_chars, 80) if field in {'signal', 'status', 'kind', 'gate'} else text_chars
+            trimmed = trimmed or len(text) > limit
+            entry[field] = _trim_text(text, limit)
+        for field in numeric_fields:
+            entry[field] = _json_safe(row.get(field))
+        projected.append(entry)
+    return projected, trimmed
+
+
 def _build_explanation_pass(
     result: dict,
     *,
@@ -507,6 +551,26 @@ def _build_explanation_pass(
     if custom_evidence:
         explanation['custom_skill_evidence'] = custom_evidence
     truncated = truncated or custom_trimmed
+    calibration = result.get('calibration')
+    if isinstance(calibration, dict):
+        explanation['calibration'] = {
+            'raw': _json_safe(calibration.get('raw')),
+            'calibrated': score,
+            'version': _trim_text(calibration.get('version'), 80),
+        }
+        # The fixed-size v2 ledger always keeps every numeric contribution.
+        # Shorten citations as necessary so it still reconciles with the raw score.
+        ledger = result.get('explanation') or []
+        explanation['explanation'], ledger_trimmed = _project_cited_rows(
+            ledger, ('signal', 'detail', 'job_quote', 'profile_source', 'profile_quote'),
+            max_items=len(ledger), text_chars=min(nested_chars, 160), numeric_fields=('contribution',),
+        )
+        explanation['prerequisite_conditions'], conditions_trimmed = _project_cited_rows(
+            result.get('prerequisite_conditions'),
+            ('kind', 'gate', 'status', 'reason', 'job_source', 'job_quote', 'profile_source', 'profile_quote'),
+            max_items=max(2, obs_limit), text_chars=nested_chars,
+        )
+        truncated = truncated or ledger_trimmed or conditions_trimmed
     if stamp is not None:
         explanation[_STAMP_KEY] = _json_safe(stamp)
     if truncated:

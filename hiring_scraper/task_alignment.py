@@ -253,35 +253,40 @@ def other_actor(text):
         r'(?:company|employer|organisation|organization|Unternehmen)(?=\s|[,:.]|$)', text, re.I))
 
 
-def task_units(job):
+def _task_sentences(job):
     texts = [('description', job.get('description') or '', False)]
     raw = job.get('raw_metadata') or {}
     for prefix, data in [('structured', raw), ('detail', raw.get('detail_requirements') or {})]:
         for field in ('responsibilities', 'duties'):
             for source, text in structured_requirement_texts({field: data.get(field)}, prefix):
                 texts.append((source, text, True))
-    rows, seen = [], set()
     for source, text, explicit in texts:
-        for full_sentence, scope in _sentences(text):
-            governing_clause = _COMPOUND_DUTY.split(full_sentence)[0]
-            for sentence, _ in _atomic_duties(full_sentence):
-                if scope in {'requirements', 'optional', 'benefits'} and not explicit:
-                    continue
-                if _excluded(sentence):
-                    continue
-                sentence = sentence[:1000]
-                actions, objects = _actions(sentence), _objects(sentence)
-                key = ' '.join(sentence.casefold().split())
-                if not actions or not _semantic_objects(sentence) or key in seen:
-                    continue
-                seen.add(key)
-                rows.append({'id': hashlib.sha256(key.encode()).hexdigest()[:12], 'job_source': source,
-                             'job_quote': sentence[:1000],
-                             'independent_scope': bool(_INDEPENDENT.search(governing_clause)
-                                                       or _INDEPENDENT.search(sentence)),
-                             'actions': sorted(actions), 'objects': sorted(objects)})
-                if len(rows) >= 40:
-                    return rows
+        for sentence, scope in _sentences(text):
+            yield source, sentence, 'duties' if explicit else scope
+
+
+def task_units(job, *, sentences=None):
+    rows, seen = [], set()
+    for source, full_sentence, scope in _task_sentences(job) if sentences is None else sentences:
+        governing_clause = _COMPOUND_DUTY.split(full_sentence)[0]
+        for sentence, _ in _atomic_duties(full_sentence):
+            if scope in {'requirements', 'optional', 'benefits'}:
+                continue
+            if _excluded(sentence):
+                continue
+            sentence = sentence[:1000]
+            actions, objects = _actions(sentence), _objects(sentence)
+            key = ' '.join(sentence.casefold().split())
+            if not actions or not _semantic_objects(sentence) or key in seen:
+                continue
+            seen.add(key)
+            rows.append({'id': hashlib.sha256(key.encode()).hexdigest()[:12], 'job_source': source,
+                         'job_quote': sentence[:1000],
+                         'independent_scope': bool(_INDEPENDENT.search(governing_clause)
+                                                   or _INDEPENDENT.search(sentence)),
+                         'actions': sorted(actions), 'objects': sorted(objects)})
+            if len(rows) >= 40:
+                return rows
     return rows
 
 

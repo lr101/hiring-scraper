@@ -59,6 +59,8 @@ no historical releases have been reconstructed.
 
 ### Changed
 
+- Calibrate local job-fit scores to 0–100 with matcher v2. Job details show the score contributions and supporting quotes. Language and work authorization contribute a combined deduction of at most five points on visible jobs. Only explicit, cited incompatibilities hide jobs during matching. The versioned background rebuild refreshes Journey rankings, and `RADIUS_MATCHER=v1` remains selectable for this release.
+
 - Publish profile matches and Journey changes with a version check instead of exclusive profile locks. Publishers no longer block each other, and a profile edit in progress defers background publication instead of timing it out. Migration `0041_profile_source_version` is required before starting updated workers.
 - Write paths declare job, feed, company, profile and vector changes explicitly instead of relying on database flush listeners. Undeclared changes are logged as errors.
 - Rank static matches by documented duties when the posting and profile contain enough work evidence. Show which duties match directly, which experience transfers, and which duties need verification.

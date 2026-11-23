@@ -18,6 +18,7 @@ from hiring_scraper.app.application_deduplication import (
 )
 from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.match_compute import (
+    active_matcher_version,
     compute_match,
     current_score_version,
     load_stored_match_snapshots,
@@ -31,7 +32,7 @@ from hiring_scraper.app.models import (
     reserve_job_source_rows,
 )
 from hiring_scraper.app.profile_semantics import load_semantic_documents
-from hiring_scraper.matching import VERSION, match_job
+from hiring_scraper.matching import match_job
 from hiring_scraper.semantic_matching import VERSION as SEMANTIC_VERSION
 
 _DEFAULT_MATCH_JOB = match_job
@@ -108,7 +109,7 @@ def scoring_preferences(matching_preferences: dict) -> dict:
 
 def _profile_index_version(profile: UserProfile) -> str:
     payload = json.dumps({
-        "matcher": VERSION,
+        "matcher": active_matcher_version(),
         "semantic": SEMANTIC_VERSION,
         "preferences": scoring_preferences(profile.matching_preferences),
     }, sort_keys=True, ensure_ascii=False, separators=(",", ":"), default=str)

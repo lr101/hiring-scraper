@@ -104,6 +104,33 @@ try {
   assert.match(localEvidence, /academic/)
   assert.match(localEvidence, /50% of extracted duties/)
   assert.doesNotMatch(localEvidence, /AI assessed|Local estimate|Role evidence ceiling|capped at 59/)
+  const ledger = renderToStaticMarkup(React.createElement(JobEvidence, {
+    enrichment: { skills: [], languages: [], warnings: [], seniority: null, experience_years: null },
+    match: {
+      score: 70, eligible: true, fit_tier: 'possible', language_review: true,
+      matched_skills: [], missing_skills: [], reasons: [], conflicts: [], unknowns: [],
+      calibration: { raw: 30, calibrated: 70, version: 'v2-fixture' },
+      explanation: [
+        { signal: 'duty_coverage', contribution: 20, detail: 'Duty evidence', job_quote: 'Build APIs', profile_quote: 'Built APIs' },
+        { signal: 'skill_overlap', contribution: 10, detail: 'Skill overlap' },
+        { signal: 'role_alignment', contribution: 4, detail: 'Role preference' },
+        { signal: 'domain_alignment', contribution: 1, detail: 'Domain alignment' },
+        { signal: 'penalty:language_visa_flag', contribution: -5, detail: 'Language verification' },
+      ],
+      prerequisite_conditions: [
+        { kind: 'language_cefr', status: 'unknown', reason: 'Verify German level', job_quote: 'Deutsch C1' },
+      ],
+    },
+  }))
+  assert.match(ledger, /Raw score[^<]*<[^>]*>30/)
+  assert.match(ledger, /Calibrated score[^<]*<[^>]*>70\/100/)
+  assert.match(ledger, /Build APIs/)
+  assert.match(ledger, /Built APIs/)
+  assert.match(ledger, /Other contributions/)
+  assert.match(ledger, /Language verification/)
+  assert.match(ledger, /Deutsch C1/)
+  assert.match(ledger, /Verify language proficiency/)
+  assert.doesNotMatch(localEvidence, /Raw score|Calibrated score/)
   console.log('Local match display assertions passed')
 } finally {
   await server.close()

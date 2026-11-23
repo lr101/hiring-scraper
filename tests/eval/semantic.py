@@ -69,10 +69,10 @@ def embed_sections(sections: Sequence[dict], *, dimensions: int = DIMENSIONS) ->
     return pack_vectors(vectors)
 
 
-def build_semantic_evidence(job: dict, profile: dict) -> dict:
+def build_semantic_evidence(job: dict, profile: dict, *, aggregate: bool = False) -> dict:
     """Compute the ``semantic`` evidence dict accepted by ``match_job``."""
     p_parts = profile_sections(profile)
     j_parts = job_sections(job)
     p_vectors = embed_sections(p_parts)
     j_vectors = embed_sections(j_parts)
-    return semantic_evidence(p_parts, p_vectors, j_parts, j_vectors)
+    return semantic_evidence(p_parts, p_vectors, j_parts, j_vectors, aggregate=aggregate)

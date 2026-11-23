@@ -110,12 +110,13 @@ def _facts(sources):
     return tuple(facts[:300])
 
 
-def _duty_units(job, legacy_units):
+def _duty_units(job, legacy_units, description_sentences=None):
     units = list(legacy_units)
     description = job.get('description') or ''
     candidates = []
     explicit = False
-    for quote, scope in _sentences(description):
+    sentences = _sentences(description) if description_sentences is None else description_sentences
+    for quote, scope in sentences:
         heading = _DUTY_HEADING.search(quote)
         if heading:
             # Limit any recovered scope to the next recognizable heading.
@@ -144,12 +145,12 @@ def _duty_units(job, legacy_units):
     return units[:60]
 
 
-def assess_duties(job, sources, legacy_alignment):
+def assess_duties(job, sources, legacy_alignment, *, description_sentences=None):
     facts = _facts(sources)
     original = {r['id']: r for r in legacy_alignment['requirements']}
     rows, seen = [], set()
     role_domains = _domains(job.get('title') or '')
-    for task in _duty_units(job, legacy_alignment['requirements']):
+    for task in _duty_units(job, legacy_alignment['requirements'], description_sentences):
         quote = task['job_quote']
         if re.match(r'^(?:we|wir|our|unsere?\w*|about|at [A-Z]|experience|you are|du bist bereit)\b', quote, re.I):
             continue

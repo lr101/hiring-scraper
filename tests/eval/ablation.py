@@ -7,6 +7,8 @@ job dictionary or dropping non-language/non-visa requirement sentences.
 from __future__ import annotations
 
 import copy
+
+from hiring_scraper.matching_v2.gates import strip_language_or_visa_subclauses
 import re
 from typing import Any
 
@@ -355,18 +357,17 @@ def _filter_sentence(sentence: str) -> tuple[str | None, list[str]]:
             kept: list[str] = []
             removed: list[str] = []
             for clause in clauses:
-                if is_lang_visa_sentence(clause):
-                    removed.append(clause)
-                else:
-                    kept.append(clause)
+                cleaned, stripped = _filter_sentence(clause)
+                removed.extend(stripped)
+                if cleaned:
+                    kept.append(cleaned)
             if not removed:
                 return sentence, []
             if not kept:
                 return None, removed
             return "; ".join(kept), removed
-    if is_lang_visa_sentence(sentence):
-        return None, [sentence]
-    return sentence, []
+    cleaned = strip_language_or_visa_subclauses(sentence, is_constraint=is_lang_visa_sentence)
+    return (cleaned or None, [sentence]) if cleaned != sentence else (sentence, [])
 
 
 def strip_lang_visa_text(text: str) -> tuple[str, list[str]]:

@@ -182,8 +182,18 @@ and refreshed in the background when a job, profile or vector changes.
 Explicit CV language sections can supply a missing language level without
 replacing a saved level; absence of a language claim remains unknown.
 Country-agnostic authorization flags are not country-specific eligibility evidence.
-Local task fit excludes desired-title preference; task evidence is required for a
-Recommended label, and explicit eligibility conflicts veto eligibility.
+The v2 matcher combines documented fit and preferences into a calibrated 0–100
+score. Desired titles contribute preference points. Postings with missing evidence
+are flagged for review. Language and work authorization together can deduct up to
+five points on visible jobs. Only explicit incompatibilities supported by quotes
+from the job and profile hide a job during matching.
+
+Job details show the strongest positive and negative contributions with evidence
+quotes, the raw total and the calibrated score. Journey uses the stored score
+and explanation while the worker refreshes old matches.
+
+Set `RADIUS_MATCHER=v1` on the API and workers to use the previous rules for this
+release. The default is `v2`. Switching runs the normal background rebuild.
 
 For a preview of the local profile matching worker without loading another local embedding
 model, set `HIRING_PREVIEW_PROFILE_MATCHING=true` with a fresh preview slug. Use
@@ -207,8 +217,8 @@ the Federal Returning Officer's [2025 polling-district CSV release](https://www.
 The checked-in municipality file is derived from its published CSV using
 [`scripts/import_btw2025_municipality_results.py`](scripts/import_btw2025_municipality_results.py).
 
-Profile settings can optionally adjust a match score by up to 20 points based
-on this share. A value of 0 disables the adjustment; a positive setting raises
+Profile settings can optionally add or deduct up to 20 raw points before v2
+calibration based on this share. A value of 0 disables the adjustment; a positive setting raises
 scores below 25% and lowers scores above 25%, capped at the selected value. Only
 unambiguous municipality-name matches are used, so missing or ambiguous city
 data leaves the match unchanged. Job details show the leading party's vote share

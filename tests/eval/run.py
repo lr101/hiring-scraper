@@ -23,6 +23,8 @@ from pathlib import Path
 
 from hiring_scraper.matching import VERSION as V1_VERSION
 from hiring_scraper.matching import match_job
+from hiring_scraper.matching_v2 import VERSION as V2_VERSION
+from hiring_scraper.matching_v2 import match_job_v2
 from tests.eval import cv as private_dataset
 from tests.eval import public as public_dataset
 from tests.eval.ablation import ablate_lang_visa
@@ -101,6 +103,12 @@ register_matcher(
     "v1+sem",
     lambda job, profile: match_job(job, profile, semantic=build_semantic_evidence(job, profile)),
     version=f"{V1_VERSION}+fixture-sem",
+)
+register_matcher("v2", lambda job, profile: match_job_v2(job, profile), version=V2_VERSION)
+register_matcher(
+    "v2+sem",
+    lambda job, profile: match_job_v2(job, profile, semantic=build_semantic_evidence(job, profile, aggregate=True)),
+    version=f"{V2_VERSION}+fixture-sem",
 )
 
 

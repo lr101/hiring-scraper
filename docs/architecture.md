@@ -56,7 +56,8 @@ flowchart LR
   - Job extraction: `ats.py` (Greenhouse, Lever, Personio, Ashby, Recruitee,
     SmartRecruiters, RSS/Atom), `html_jobs.py`, `regional.py` (BA Jobsuche).
   - Matching: `matching.py`, `requirements.py`, `duty_evidence.py`,
-    `task_alignment.py`, `semantic_matching.py`; `election_data.py` for optional city context.
+    `task_alignment.py`, `semantic_matching.py` and `matching_v2/` (gates, feature extraction,
+    weights, DEV-only fitter and calibration). `election_data.py` supplies optional city context.
 - `hiring_scraper/app/` — persistence, API routers, workers and application preparation.
   `models.py` is the schema; changes ship as Alembic migrations in
   `app/migrations/versions/` (plus the rollback-safe step in `docker/entrypoint.py`,
@@ -147,6 +148,27 @@ Several processes write to the same PostgreSQL database. Keep these rules when a
   rematch queue and new ids first, then sweeps one id window at a time.
   `tests/test_postgres_idle_cost.py` measures every worker's idle cycle at two inventory
   sizes and fails if its cost grows; add new poll loops to it.
+
+## Matcher rollout
+
+`RADIUS_MATCHER=v2` is the default and `RADIUS_MATCHER=v1` selects the previous rules
+for one release. Use the same setting for the API and all workers. Both the stored
+score version and the profile index version include the active matcher version,
+so switching queues the usual background rebuild. Journey retains user-selected
+stages and displays faithful stored cards while their scores refresh.
+
+V2 adds evidence and preference contributions into a raw score and maps it
+monotonically onto 0–100 using DEV-fitted knots. Cached local semantic evidence
+averages up to three duty or requirement chunks and accounts for each posting's
+similarity distribution. Job semantic inputs keep technical evidence from mixed
+clauses after language and work authorization text is removed. The match semantic
+worker refreshes its versioned vectors, and rules remain available in the meantime.
+
+Visible language and work authorization flags can deduct up to five points combined.
+The matcher hides a job only when it can cite an explicit incompatibility in both
+the posting and saved profile. Stored explanations include gate citations, the
+contribution ledger and calibration within the same 16 KiB limit. When space is
+tight, the projection shortens quotes while preserving contribution totals.
 
 ## Testing
 

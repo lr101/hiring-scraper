@@ -202,6 +202,7 @@ class ComputeMatchEquivalenceTests(unittest.TestCase):
         )
         return search_snapshots._apply_profile_match_scope(result, scope)
 
+    @patch.dict(os.environ, {'RADIUS_MATCHER': 'v1'})
     def test_byte_identical_across_representative_fixtures(self):
         base_profile = _make_profile()
         afd_profile = _make_profile(low_afd_vote_share_weight=10)
@@ -403,6 +404,60 @@ class StoredExplanationTests(unittest.TestCase):
         self.assertEqual(tiny['score'], 73)
         self.assertTrue(tiny.get('truncated'))
 
+    def test_switching_matchers_invalidates_scores_and_profile_index(self):
+        from hiring_scraper.app.job_search import _profile_index_version, profile_match_index_stale
+        from hiring_scraper.matching_v2 import VERSION
+
+        job = _make_job()
+        profile = _make_profile()
+        docs = _empty_documents()
+        with patch.dict(os.environ, {'RADIUS_MATCHER': 'v1'}):
+            legacy_result = match_compute.compute_match(job, profile, docs)
+            legacy_version = match_compute.current_score_version()
+            profile.match_index_version = _profile_index_version(profile)
+            self.assertNotIn('calibration', legacy_result)
+            self.assertFalse(profile_match_index_stale(profile))
+        with patch.dict(os.environ, {'RADIUS_MATCHER': 'v2'}):
+            result = match_compute.compute_match(job, profile, docs)
+            self.assertEqual(result['calibration']['version'], VERSION)
+            self.assertIn(VERSION, match_compute.current_score_version())
+            self.assertNotEqual(match_compute.current_score_version(), legacy_version)
+            self.assertTrue(profile_match_index_stale(profile))
+            self.assertEqual(result, search_snapshots.profile_match(job, profile, None, docs))
+
+    @patch.dict(os.environ, {'RADIUS_MATCHER': 'v2'})
+    def test_saved_narrative_reaches_v2_through_matching_preferences(self):
+        job = _make_job(description='Your tasks:\nBuild Python services and maintain SQL databases.')
+        profile = _make_profile(preferences={
+            'desired_roles': ['Software Developer'], 'skills': [], 'summary': '',
+            'application_personalization': {'career_evidence': 'Built Python services and maintained SQL databases.'},
+        })
+        result = match_compute.compute_match(job, profile, _empty_documents())
+        self.assertIn('Python', result['matched_skills'])
+        self.assertTrue(result['duty_evidence']['duties'])
+
+    def test_bounded_v2_ledger_retains_all_contributions_and_citations(self):
+        job = _make_job(description=(
+            'Requirements:\n- Python and Docker experience.\n'
+            '- A valid German work permit is required.\n'
+        ))
+        profile = _make_profile()
+        with patch.dict(os.environ, {'RADIUS_MATCHER': 'v2'}):
+            result = match_compute.compute_match(job, profile, _empty_documents())
+        # Simulate a long source quote with JSONB-unsafe text and costly Unicode escapes.
+        result['explanation'][0]['job_quote'] = 'Ä' * 3000 + '\x00'
+        stored = match_compute.build_explanation(result, stamp={'job': 'abc', 'sem': ':'})
+        self.assertLessEqual(len(match_compute.serialize_explanation(stored).encode()), 16 * 1024)
+        self.assertEqual(stored['calibration']['calibrated'], stored['score'])
+        self.assertAlmostEqual(
+            sum(row['contribution'] for row in stored['explanation']), stored['calibration']['raw'],
+        )
+        self.assertEqual(len(stored['explanation']), len(result['explanation']))
+        self.assertTrue(stored['prerequisite_conditions'][0]['job_quote'])
+        self.assertTrue(stored['mandatory_review'])
+        self.assertTrue(stored['truncated'])
+
+    @patch.dict(os.environ, {'RADIUS_MATCHER': 'v1'})
     def test_current_score_version_changes_with_matcher_and_semantic_versions(self):
         v1 = match_compute.current_score_version()
         self.assertLessEqual(len(v1), 80)
@@ -572,6 +627,7 @@ class PureDecisionLogicTests(unittest.TestCase):
         self.assertNotIn('.sections', compiled)
 
 
+@patch.dict(os.environ, {'RADIUS_MATCHER': 'v2'})
 class StoredExplanationReadPathTests(unittest.TestCase):
     """Verify read paths reuse stored explanations with minimal reads and fall back safely."""
 
@@ -580,6 +636,38 @@ class StoredExplanationReadPathTests(unittest.TestCase):
         score_version = match_compute.current_score_version()
         payload = match_compute.match_row_payload(profile.id, job.id, result, score_version, job=job, documents=docs)
         return SimpleNamespace(**payload), result, score_version, payload
+
+    @patch.dict(os.environ, {'RADIUS_MATCHER': 'v2'})
+    def test_v2_snapshot_and_journey_use_uncertain_and_eligibility(self):
+        from hiring_scraper.app.job_search import application_match_allowed
+
+        profile = _make_profile(preferences={'matching_defaults': {'min_match_score': 0}})
+        title_only = _make_job(71, description='')
+        soft_conflict = _make_job(72, employment_type='part_time')
+        hidden = _make_job(73, description='Requirements:\nGerman C1 required.')
+        scopes = {
+            job.id: {'eligible': True, 'reason': None, 'unknowns': [], 'match_kind': 'area'}
+            for job in (title_only, soft_conflict, hidden)
+        }
+        for job in (title_only, soft_conflict, hidden):
+            result = match_compute.compute_match(job, profile, _empty_documents(), scope=scopes[job.id])
+            self.assertEqual(result['eligible'], job is not hidden)
+            if job is not hidden:
+                self.assertTrue(result['uncertain'])
+                self.assertTrue(application_match_allowed(job, profile, result))
+                strict = _make_profile(preferences={'matching_defaults': {'include_unknown': False}})
+                self.assertFalse(application_match_allowed(job, strict, result))
+            if job is soft_conflict:
+                self.assertTrue(result['soft_conflicts'])
+
+        for include_unknown, expected in ((True, {71, 72}), (False, set())):
+            page = search_snapshots._jobs_page(
+                [title_only, soft_conflict, hidden], 'match', 0, 10, 49.0, 8.4, 35, profile,
+                0, include_unknown, precomputed_scopes=scopes,
+            )
+            self.assertEqual({item['id'] for item in page['items']}, expected)
+            self.assertEqual(page['counts']['filtered']['profile_conflict'], 1)
+            self.assertEqual(page['counts']['filtered']['uncertain'], 0 if include_unknown else 2)
 
     def test_indexed_jobs_page_reuses_stored_explanation_without_loading_vectors_on_hits(self):
         from hiring_scraper.app import job_search
@@ -597,7 +685,7 @@ class StoredExplanationReadPathTests(unittest.TestCase):
         scope = {'eligible': True, 'reason': None,
                  'unknowns': ['Remote country eligibility not stated'], 'match_kind': 'remote'}
         with patch.object(profile_semantics, 'load_semantic_documents', side_effect=AssertionError('Must not load vectors on hit')), \
-             patch.object(match_compute, 'match_job', side_effect=AssertionError('Should not recompute')):
+             patch.object(match_compute, 'match_job_v2', side_effect=AssertionError('Should not recompute')):
             page = search_snapshots._jobs_page(
                 [job], 'match', 0, 20, 49.0, 8.4, 35, profile, 0, True,
                 match_snapshots={(profile.id, job.id): snapshot},
@@ -666,7 +754,7 @@ class StoredExplanationReadPathTests(unittest.TestCase):
         docs.indexed_matches = {(profile.id, job.id): indexed}
         docs.dirty_job_ids = set()
 
-        with patch.object(match_compute, 'match_job', side_effect=AssertionError('Should not recompute')):
+        with patch.object(match_compute, 'match_job_v2', side_effect=AssertionError('Should not recompute')):
             result = search_snapshots.profile_match(job, profile, None, docs)
         self.assertEqual(result['score'], indexed.match_score)
         self.assertNotIn('_stamp', result)
@@ -710,7 +798,10 @@ class StoredExplanationReadPathTests(unittest.TestCase):
                 indexed_matches={job.id: old_ver},
                 precomputed_scopes={job.id: {'eligible': True, 'reason': None, 'unknowns': [], 'match_kind': 'area'}},
             )
-        self.assertEqual(page['items'][0]['profile_match']['score'], indexed.match_score)
+        rebuilt = page['items'][0]['profile_match']
+        fresh_rules = match_compute.compute_match(job, profile, _empty_documents())
+        self.assertEqual(rebuilt['score'], fresh_rules['score'])
+        self.assertIsNone(rebuilt['semantic_match'])
 
 
 class CheaperInvalidationTests(unittest.TestCase):
@@ -891,7 +982,7 @@ class CheaperInvalidationTests(unittest.TestCase):
                     return [match.job_id for match, _ in self.batch]
                 return [job for _, job in self.batch]
 
-        with patch.object(match_compute, 'match_job', side_effect=AssertionError('Must not recompute')), \
+        with patch.object(match_compute, 'match_job_v2', side_effect=AssertionError('Must not recompute')), \
              patch.object(job_search, 'match_job', side_effect=AssertionError('Must not recompute')), \
              patch.object(job_search, 'load_stored_match_snapshots', return_value=snapshots_map), \
              patch.object(job_search, 'upsert_new_match_states', side_effect=lambda s, rows: upserted_states.extend(rows)), \
@@ -1126,6 +1217,7 @@ class ReviewFixTests(unittest.TestCase):
 
 
 @unittest.skipUnless(os.environ.get('TEST_POSTGRES_URL'), 'Requires PostgreSQL with pgvector (TEST_POSTGRES_URL)')
+@patch.dict(os.environ, {'RADIUS_MATCHER': 'v2'})
 class MatchComputePostgresIntegrationTests(unittest.TestCase):
     """End-to-end DB tests exercising stored explanations, presentation edits, and dirty-queue repair."""
 
@@ -1193,7 +1285,7 @@ class MatchComputePostgresIntegrationTests(unittest.TestCase):
             self.assertEqual(row1.score_version, score_version)
             self.assertEqual(row2.score_version, score_version)
 
-            with patch.object(match_compute, 'match_job', side_effect=AssertionError('Should reuse stored explanation')), \
+            with patch.object(match_compute, 'match_job_v2', side_effect=AssertionError('Should reuse stored explanation')), \
                  patch.object(profile_semantics, 'load_semantic_documents', side_effect=AssertionError('Should not load vectors on hit')):
                 detail = api.get_job(job1_id, session=session, profile_id=profile_id)
             self.assertEqual(detail['profile_match']['score'], row1.match_score)
@@ -1257,7 +1349,7 @@ class MatchComputePostgresIntegrationTests(unittest.TestCase):
             dirty_ids = session.scalars(select(models.MatchDirtyJob.job_id)).all()
             self.assertEqual(dirty_ids, [job1_id])
 
-            with patch.object(match_compute, 'match_job', side_effect=AssertionError('Journey should not recompute faithful stored cards')), \
+            with patch.object(match_compute, 'match_job_v2', side_effect=AssertionError('Journey should not recompute faithful stored cards')), \
                  patch.object(profile_semantics, 'load_semantic_documents', side_effect=AssertionError('Journey should not load vectors for stored cards')):
                 journey_pre = api.list_applications(
                     profile_ids=str(profile_id), statuses='all', sort='match', session=session,
@@ -1270,7 +1362,7 @@ class MatchComputePostgresIntegrationTests(unittest.TestCase):
             self.assertNotIn('refreshing', by_job_pre[job2_id])
 
             # Pre-drain: detail for clean job2 reuses stored explanation; detail for dirty job1 computes live local score.
-            with patch.object(match_compute, 'match_job', side_effect=AssertionError('Clean row must stay reusable')):
+            with patch.object(match_compute, 'match_job_v2', side_effect=AssertionError('Clean row must stay reusable')):
                 detail2 = api.get_job(job2_id, session=session, profile_id=profile_id)
             self.assertEqual(detail2['profile_match']['score'], local_row2_score)
             detail1 = api.get_job(job1_id, session=session, profile_id=profile_id)
@@ -1284,7 +1376,7 @@ class MatchComputePostgresIntegrationTests(unittest.TestCase):
             self.assertEqual(repaired_row1.score_version, match_compute.current_score_version())
             self.assertEqual(repaired_row1.match_score, detail1['profile_match']['score'])
 
-            with patch.object(match_compute, 'match_job', side_effect=AssertionError('Post-drain Journey must reuse stored cards')), \
+            with patch.object(match_compute, 'match_job_v2', side_effect=AssertionError('Post-drain Journey must reuse stored cards')), \
                  patch.object(profile_semantics, 'load_semantic_documents', side_effect=AssertionError('Post-drain Journey must not load vectors')):
                 journey_post = api.list_applications(
                     profile_ids=str(profile_id), statuses='all', sort='match', session=session,

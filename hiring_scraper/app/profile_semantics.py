@@ -58,7 +58,9 @@ def load_semantic_documents(session, jobs, profiles) -> dict:
     return documents
 
 
-def cached_semantic_evidence(job: dict, profile: dict, job_id: int, profile_id: int, documents: dict) -> dict | None:
+def cached_semantic_evidence(
+    job: dict, profile: dict, job_id: int, profile_id: int, documents: dict, *, aggregate: bool = False,
+) -> dict | None:
     job_doc = documents.get(('job', job_id))
     profile_doc = documents.get(('profile', profile_id))
     if job_doc is None or profile_doc is None:
@@ -72,7 +74,9 @@ def cached_semantic_evidence(job: dict, profile: dict, job_id: int, profile_id: 
             job_doc.source_hash != hashes.get(('job', job_id)) or
             profile_doc.source_hash != hashes.get(('profile', profile_id))):
         return None
-    return semantic_evidence(profile_doc.sections, profile_doc.vectors, job_doc.sections, job_doc.vectors)
+    return semantic_evidence(
+        profile_doc.sections, profile_doc.vectors, job_doc.sections, job_doc.vectors, aggregate=aggregate,
+    )
 
 
 def _request_vectors(texts: list[str], kind: str) -> list[list[float]]:
