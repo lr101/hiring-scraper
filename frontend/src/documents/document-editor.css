@@ -626,3 +626,34 @@
     display: none;
   }
 }
+
+/* AI prompt and suggestion open next to the section that was clicked. */
+.doc-editor-ai-popover {
+  width: 320px;
+}
+
+.doc-editor-ai-popover label {
+  display: grid;
+  gap: 5px;
+  color: #29343c;
+}
+
+.doc-editor-ai-popover textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 62px;
+  padding: 6px 7px;
+  border: 1px solid #cbd5ca;
+  border-radius: 6px;
+  font: inherit;
+  resize: vertical;
+}
+
+.doc-editor-ai-popover .doc-editor-finding-actions {
+  margin-top: 7px;
+}
+
+.doc-editor-doc-findings > summary {
+  cursor: pointer;
+  color: #46574c;
+}

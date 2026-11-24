@@ -20,12 +20,16 @@ Use the inline review panel in the editor to step through AI changes in document
 order, inspect word diffs against the original wording, check versioned source
 citations and act on findings (accept, edit, restore original wording, or apply a
 suggested replacement). Accepted state saves with the document and clears when a
-unit is edited; if unreviewed changes remain, **Download PDF** offers to review
-first or download directly. Style checks, such as repeated openings or phrases,
+unit is edited. **Download PDF** renders directly, also with unreviewed changes. Style checks, such as repeated openings or phrases,
 surface as suggestions in both modes and give Full review targets for small
 wording edits. Edits save automatically. If another tab or the worker saved a
 newer version, the editor keeps your text and offers to reload or overwrite.
-**Improve with AI** requests an optional replacement for one unit. Use **Version
+**Improve with AI** opens a prompt next to the unit you clicked and shows the
+suggested replacement there to accept or dismiss. Tailoring and revisions keep the
+base headline and profile format (separator, number of parts, sentence count,
+paragraphs and similar length) and change only the wording. Once a tailored CV
+exists, the page shows only that CV; the base CV editor appears while none exists.
+Use **Version
 history** to restore an earlier version and **Download PDF** to render the
 currently saved version (review metadata is excluded from the PDF). CVs use the
 shared print layout with an optional saved portrait. When Radius flags changed

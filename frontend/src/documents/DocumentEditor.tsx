@@ -1,7 +1,6 @@
 import {
   useCallback,
   useEffect,
-  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -47,14 +46,26 @@ export interface DocumentEditorProps<T extends ApplicationDocument = Application
   photoUrl?: string | null
   onDownloadPdf?: () => void
   downloadDisabled?: boolean
-  onImproveUnit?: (unitId: string) => void
+  /** Called with the unit and the instruction typed into the prompt that opens at the unit. */
+  onImproveUnit?: (unitId: string, instruction: string) => void
   improveDisabled?: boolean
+  /** A pending AI rewrite of one unit, shown next to that unit. */
+  suggestion?: UnitSuggestion | null
   onApplyFinding?: (finding: Finding) => void
   onDismissFinding?: (finding: Finding) => void
   saving?: DocumentEditorSavingState
   saveError?: string | null
   readOnly?: boolean
   className?: string
+}
+
+export interface UnitSuggestion {
+  unitId: string
+  text: string
+  notes: string[]
+  canAccept: boolean
+  onAccept: () => void
+  onDismiss: () => void
 }
 
 interface PendingFocus {
@@ -328,6 +339,7 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
   downloadDisabled,
   onImproveUnit,
   improveDisabled,
+  suggestion,
   onApplyFinding,
   onDismissFinding,
   saving,
@@ -337,14 +349,10 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
 }: DocumentEditorProps<T>) {
   const [history, setHistory] = useState<HistoryState<T>>(() => createHistory(value))
   const [showHidden, setShowHidden] = useState(false)
-  const [markAi, setMarkAi] = useState(true)
+  const markAi = true
+  const [prompt, setPrompt] = useState<{ unitId: string; text: string } | null>(null)
   const [reviewId, setReviewId] = useState<string | null>(null)
-  const [downloadNotice, setDownloadNotice] = useState(false)
-  const [reviewComplete, setReviewComplete] = useState(false)
   const reviewButton = useRef<HTMLButtonElement>(null)
-  const downloadButton = useRef<HTMLButtonElement>(null)
-  const noticeReviewButton = useRef<HTMLButtonElement>(null)
-  const noticeId = useId()
   const [openFindingUnitId, setOpenFindingUnitId] = useState<string | null>(null)
   const [metrics, setMetrics] = useState<PageMetrics>(() => ({
     pageCount: 1,
@@ -503,18 +511,11 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
   const reviewIndex = changes.findIndex(unit => unit.id === reviewId)
   const reviewUnit = changes[reviewIndex]
 
-  useLayoutEffect(() => {
-    if (downloadNotice && remaining) noticeReviewButton.current?.focus()
-  }, [downloadNotice, remaining])
-
   useEffect(() => {
-    if (!remaining) setDownloadNotice(false)
-    if (remaining) setReviewComplete(false)
     if (reviewId && reviewIndex < 0) setReviewId(null)
-  }, [remaining, reviewId, reviewIndex])
+  }, [reviewId, reviewIndex])
 
   function startReview() {
-    setDownloadNotice(false)
     const first = changes.find(unit => !isReviewed(unit)) ?? changes[0]
     if (first?.id === reviewId) rootRef.current?.querySelector<HTMLElement>('.doc-review h3')?.focus()
     else setReviewId(first?.id ?? null)
@@ -538,13 +539,7 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
     const pending = [...changes.slice(reviewIndex + 1), ...changes.slice(0, reviewIndex)]
       .find(unit => !isReviewed(unit))
     if (pending) setReviewId(pending.id)
-    else {
-      setReviewComplete(true)
-      if (action === 'restore' && changes.length === 1) {
-        setReviewId(null)
-        downloadButton.current?.focus()
-      } else closeReview()
-    }
+    else closeReview()
   }
 
   function editInDocument(unitId: string) {
@@ -555,6 +550,7 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
   }
 
   function handleEditorKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if ((event.target as HTMLElement).closest('.doc-editor-ai-popover')) return
     if (reviewUnit && event.key === 'Escape' && (event.target as HTMLElement).matches('[data-editable-unit]')) {
       event.preventDefault()
       rootRef.current?.querySelector<HTMLElement>('.doc-review h3')?.focus()
@@ -635,7 +631,7 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
 
   const docKind = value.format === CV_FORMAT ? 'cv' : 'letter'
 
-  const { findingsByUnit, documentFindings, totalFindings, topSeverity } = useMemo(() => {
+  const { findingsByUnit, documentFindings } = useMemo(() => {
     const byUnit = new Map<string, Finding[]>()
     const docLevel: Finding[] = []
     const relevant = findings.filter((item) => item.document === docKind)
@@ -761,11 +757,59 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
                   ) : null}
                 </span>
               ) : null}
-              {!readOnly && !unit.hidden && onImproveUnit && <button
-                type="button" className="doc-editor-unit-action" disabled={improveDisabled}
-                aria-label={`Improve ${unitKindLabel(kind)} with AI`}
-                onClick={() => onImproveUnit(unit.id)}
-              >Improve with AI</button>}
+              {!readOnly && !unit.hidden && onImproveUnit && <span className="doc-editor-finding-anchor">
+                <button
+                  type="button" className="doc-editor-unit-action" disabled={improveDisabled}
+                  aria-label={`Improve ${unitKindLabel(kind)} with AI`}
+                  aria-expanded={prompt?.unitId === unit.id}
+                  onClick={() => {
+                    setOpenFindingUnitId(null)
+                    setPrompt(current => current?.unitId === unit.id ? null : { unitId: unit.id, text: '' })
+                  }}
+                >Improve with AI</button>
+                {prompt?.unitId === unit.id ? (
+                  <form
+                    className="doc-editor-finding-popover doc-editor-ai-popover"
+                    role="dialog"
+                    aria-label="Improve with AI"
+                    onSubmit={(event) => {
+                      event.preventDefault()
+                      const instruction = prompt.text.trim()
+                      if (!instruction || improveDisabled) return
+                      onImproveUnit(unit.id, instruction)
+                      setPrompt(null)
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Escape') { event.preventDefault(); setPrompt(null) }
+                    }}
+                  >
+                    <label>
+                      How should AI improve this {unitKindLabel(kind)}?
+                      <textarea
+                        value={prompt.text} maxLength={500} rows={3} autoFocus
+                        onChange={(event) => setPrompt({ unitId: unit.id, text: event.target.value })}
+                      />
+                    </label>
+                    <div className="doc-editor-finding-actions">
+                      <button type="submit" disabled={improveDisabled || !prompt.text.trim()}>Request suggestion</button>
+                      <button type="button" onClick={() => setPrompt(null)}>Cancel</button>
+                    </div>
+                  </form>
+                ) : null}
+                {suggestion?.unitId === unit.id ? (
+                  <div className="doc-editor-finding-popover doc-editor-ai-popover" role="dialog" aria-label="AI revision suggestion">
+                    <p className="doc-editor-finding-msg"><strong>Suggested</strong> {suggestion.text}</p>
+                    {suggestion.notes.map((note) => <p key={note} className="doc-editor-finding-suggestion">{note}</p>)}
+                    {!suggestion.canAccept ? (
+                      <p className="doc-editor-finding-suggestion">This text changed after the request. Ask again to revise the current text.</p>
+                    ) : null}
+                    <div className="doc-editor-finding-actions">
+                      <button type="button" disabled={!suggestion.canAccept} onClick={suggestion.onAccept}>Accept suggestion</button>
+                      <button type="button" onClick={suggestion.onDismiss}>Dismiss</button>
+                    </div>
+                  </div>
+                ) : null}
+              </span>}
               {!readOnly ? (
                 <button
                   type="button"
@@ -790,6 +834,8 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
       onApplyFinding,
       onDismissFinding,
       onImproveUnit,
+      prompt,
+      suggestion,
       handleRemoveEmpty,
       handleSplit,
       handleTextChange,
@@ -870,8 +916,6 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
               onClick={reviewUnit ? closeReview : startReview}>
               Review AI changes{remaining > 0 ? ` (${remaining})` : ''}
             </button>
-            <button type="button" className={`doc-editor-btn${markAi ? ' doc-editor-btn--active' : ''}`} aria-pressed={markAi}
-              onClick={() => setMarkAi(previous => !previous)}>Mark AI changes</button>
           </>}
 
           {hiddenCount > 0 ? (
@@ -902,15 +946,6 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
             {overflowLabel}
           </span>
 
-          {totalFindings > 0 && topSeverity ? (
-            <span
-              className={`doc-editor-pill doc-editor-pill--${topSeverity}`}
-              role="status"
-            >
-              {totalFindings} {totalFindings === 1 ? 'finding' : 'findings'}
-            </span>
-          ) : null}
-
           {savingBadge ? (
             <span
               className={`doc-editor-save-state${savingBadge.isError ? ' doc-editor-save-state--error' : ''}`}
@@ -925,10 +960,7 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
             <button
               type="button"
               className="doc-editor-btn doc-editor-btn--primary"
-              ref={downloadButton}
-              aria-expanded={remaining > 0 ? downloadNotice : undefined}
-              aria-controls={downloadNotice ? noticeId : undefined}
-              onClick={() => remaining > 0 ? setDownloadNotice(previous => !previous) : onDownloadPdf()}
+              onClick={onDownloadPdf}
               disabled={downloadDisabled}
             >
               Download PDF
@@ -936,22 +968,6 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
           ) : null}
         </div>
       </div>
-
-      {downloadNotice && remaining > 0 && (
-        <div id={noticeId} className="doc-review-notice" role="group" aria-label="Download review notice">
-          <p role="status">{remaining} AI {remaining === 1 ? 'change' : 'changes'} not reviewed yet.</p>
-          <div className="doc-editor-toolbar-group">
-            <button type="button" className="doc-editor-btn" ref={noticeReviewButton} onClick={startReview}>Review</button>
-            <button type="button" className="doc-editor-btn" disabled={downloadDisabled} onClick={() => {
-              setDownloadNotice(false)
-              downloadButton.current?.focus()
-              onDownloadPdf?.()
-            }}>Download anyway</button>
-          </div>
-        </div>
-      )}
-
-      {reviewComplete && !remaining && <p className="doc-review-complete" role="status">All AI changes reviewed.</p>}
 
       {reviewUnit && (
         <DocumentReview
@@ -976,11 +992,12 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
       )}
 
       {documentFindings.length > 0 ? (
-        <div
+        <details
           className="doc-editor-doc-findings"
           role="region"
           aria-label="Document-level review findings"
         >
+          <summary>{documentFindings.length} review {documentFindings.length === 1 ? 'note' : 'notes'}</summary>
           {documentFindings.map((finding) => (
             <p key={finding.id} className="doc-editor-doc-finding">
               <span
@@ -993,7 +1010,7 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
               {!readOnly && onDismissFinding && <button type="button" onClick={() => onDismissFinding(finding)}>Dismiss</button>}
             </p>
           ))}
-        </div>
+        </details>
       ) : null}
 
       <div className="doc-editor-stage">
