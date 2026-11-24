@@ -499,7 +499,9 @@ def supports_competency(text: str, cited: Iterable[str], posting: str) -> bool:
     )
 
 
-def profile_voice_issue(text: str, language: DocumentLanguage) -> str | None:
+def profile_voice_issue(
+    text: str, language: DocumentLanguage, *, first_sentence: bool | None = None,
+) -> str | None:
     """Detect verb-first or imperative CV profile openings that violate noun-phrase-led summary style."""
     for idx, sentence in enumerate(sentences(text)):
         tokens = re.findall(r'[^\W\d_]+', sentence)
@@ -507,17 +509,18 @@ def profile_voice_issue(text: str, language: DocumentLanguage) -> str | None:
             continue
         first = tokens[0].casefold()
         second = tokens[1].casefold() if len(tokens) > 1 else ''
+        is_first = idx == 0 and first_sentence is not False
         if language == 'de':
-            if first in _DE_CONJUGATED_VERB_OPENERS:
+            if first in _DE_CONJUGATED_VERB_OPENERS and (is_first or first_sentence is None):
                 return 'de_verb_opener'
-            if idx == 0 and first in _DE_PRETERITE_VERB_OPENERS:
+            if is_first and first in _DE_PRETERITE_VERB_OPENERS:
                 return 'de_first_sentence_verb'
         else:
             if first in _EN_IMPERATIVE_VERB_OPENERS:
                 return 'en_imperative_opener'
             if first in _EN_AMBIGUOUS_VERB_OPENERS and second not in _EN_ROLE_OR_NOUN_FOLLOWERS:
                 return 'en_imperative_opener'
-            if idx == 0 and first in _EN_PAST_VERB_OPENERS:
+            if is_first and first in _EN_PAST_VERB_OPENERS:
                 return 'en_first_sentence_verb'
     return None
 

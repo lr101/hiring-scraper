@@ -41,24 +41,28 @@ def inputs(mode='full'):
 def cv_reply():
     return {
         'headline': {'text': 'Exhibit and workshop designer', 'sources': ['cv:headline']},
-        'profile': {'text': 'Workshop designer focused on public participation.', 'sources': ['cv:work-1:b1']},
+        'profile': {
+            'first': {'text': 'Workshop designer focused on public participation.', 'sources': ['cv:headline']},
+            'second': {'text': 'Experience developing activities with library staff.', 'sources': ['cv:work-1:b1']},
+            'third': None,
+        },
         'entries': {'work-1': {
             'order': ['u-base-bullet'],
             'bullets': {
                 'u-base-bullet': {
-                    'action': 'rewrite',
+                    'relevance': 'high',
                     'text': 'Designed a public workshop with librarians.',
-                    'sources': ['cv:work-1:b1'],
+                    'source': 'cv:work-1:b1',
                 },
             },
         }},
-        'skills': [{'section_id': 's-skills', 'unit_ids': ['u-skill'], 'hidden_ids': [], 'additions': []}],
+        'skills': [{'section_id': 's-skills', 'unit_ids': ['u-skill']}],
     }
 
 
 def draft_cv(reply, base, evidence=None, posting=''):
-    _, response, slot_map = pipeline._cv_contract(base)
-    return pipeline._cv_from_slots(reply, response, slot_map, base, evidence or {}, posting)
+    _, response, slot_map = pipeline._cv_contract(base, evidence)
+    return pipeline._cv_from_slots(reply, response, slot_map, base)
 
 
 def letter_reply():
@@ -253,11 +257,11 @@ class PipelineTests(unittest.TestCase):
     @patch.object(pipeline, 'SLEEP', lambda _: None)
     def test_locked_facts_and_unknown_ids(self):
         cv = cv_reply()
-        cv['skills'].append({'section_id': 's-unknown', 'unit_ids': [], 'hidden_ids': [], 'additions': []})
+        cv['skills'].append({'section_id': 's-unknown', 'unit_ids': []})
         cv['skills'][0]['unit_ids'].append('u-unknown')
         cv['headline']['sources'].append('cv:unknown')
         unknown_id = cv_reply()
-        unknown_id['skills'].append({'section_id': 's-unknown', 'unit_ids': [], 'hidden_ids': [], 'additions': []})
+        unknown_id['skills'].append({'section_id': 's-unknown', 'unit_ids': []})
         replies = iter([cv, unknown_id, cv_reply(), letter_reply(), {'findings': [], 'patches': []}])
         result = self.prepare(lambda *_: next(replies), self.hooks)
         base = self.inp.base_cv
@@ -325,7 +329,7 @@ class PipelineTests(unittest.TestCase):
     @patch.object(pipeline, 'SLEEP', lambda _: None)
     def test_advisory_style_reaches_review_without_retry_and_can_be_fixed(self):
         cv = cv_reply()
-        cv['profile']['text'] = 'Workshop designer creating workshops. The workshops welcome visitors.'
+        cv['profile']['first']['text'] = 'Workshop designer creating workshops. The workshops welcome visitors.'
         letter = letter_reply()
         letter['paragraphs'][2]['text'] += ' I would help.'
         original = letter['paragraphs'][2]['text']
@@ -375,40 +379,17 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue({'letter_conditional_count'} <= {issue.code for issue in issues})
 
 
-    def test_competencies_require_posting_keywords_and_cited_support(self):
-        self.inp.job['description'] = 'Workshop design and tracking. Experience with Rust.'
-        self.inp.base_cv['sections'][1]['entries'][0]['units'][0]['text'] = (
-            'Designed a workshop with librarians and tracked visitor attendance.'
-        )
-        cv = cv_reply()
-        cv['entries']['work-1']['bullets']['u-base-bullet']['text'] = (
-            'Designed a public workshop with librarians and tracked visitor attendance.'
-        )
-        cv['skills'][0]['additions'] = [
-            {'text': 'Workshop design', 'sources': ['cv:headline']},
-            {'text': 'Attendance tracking', 'sources': ['cv:work-1:b1']},
-            {'text': 'Rust', 'sources': ['cv:headline']},
-            {'text': 'Rust', 'sources': ['job']},
-        ]
-        result = self.run_with(cv=cv)
-        units = result.cv['sections'][2]['units']
-        self.assertEqual([unit['text'] for unit in units], ['Workshop design', 'Attendance tracking', 'Facilitation'])
-        self.assertEqual(units[0]['sources'], ['cv:headline'])
-        self.assertEqual(units[1]['sources'], ['cv:work-1:b1'])
-        self.assertEqual([f['code'] for f in result.findings], ['review_grounding', 'review_grounding'])
-
     @patch.object(pipeline, 'SLEEP', lambda _: None)
     def test_cv_retries_explicit_first_person_and_preserves_project_lead_in(self):
         self.inp.mode = 'fast'
         entry = self.inp.base_cv['sections'][1]['entries'][0]
         entry['units'][0]['lead_in'] = 'Exhibit:'
         cv = cv_reply()
-        cv['entries']['work-1']['bullets']['u-base-bullet']['lead_in'] = 'Exhibit:'
         first_person = deepcopy(cv)
-        first_person['profile']['text'] = "I'm a workshop designer."
+        first_person['profile']['first']['text'] = "I'm a workshop designer."
         extra_bullet = deepcopy(cv)
         extra_bullet['entries']['work-1']['bullets']['u-extra'] = {
-            'action': 'rewrite', 'text': 'Worked with visiting teachers.', 'sources': ['cv:work-1:b1'],
+            'relevance': 'high', 'text': 'Worked with visiting teachers.', 'source': 'cv:work-1:b1',
         }
         replies = iter([first_person, extra_bullet, cv, letter_reply()])
         result = self.prepare(lambda *_: next(replies), self.hooks)
@@ -421,7 +402,7 @@ class PipelineTests(unittest.TestCase):
         long_headline = cv_reply()
         long_headline['headline']['text'] = 'Workshop and Public Exhibition Designer Focused on Interactive Museum Activities'
         roman_ok = cv_reply()
-        roman_ok['profile']['text'] = 'Workshop designer experienced in Phase I exhibition concepts and facilitation.'
+        roman_ok['profile']['first']['text'] = 'Workshop designer experienced in Phase I exhibition concepts and facilitation.'
         prompts = []
 
         def generate(prompt, schema):
@@ -463,7 +444,7 @@ class PipelineTests(unittest.TestCase):
              'text': 'I design workshops focused on public participation.'},
         ]})
         self.assertEqual(result.telemetry['applied_patches'], [])
-        self.assertEqual(result.cv['sections'][0]['units'][0]['text'], cv_reply()['profile']['text'])
+        self.assertEqual(result.cv['sections'][0]['units'][0]['text'], cv_reply()['profile']['first']['text'])
         self.assertEqual(result.letter['paragraphs'][-1]['text'], letter_reply()['closing']['text'])
 
     def test_cv_slot_contract_forbids_dropping_a_project_and_supports_keep_action(self):
@@ -486,8 +467,8 @@ class PipelineTests(unittest.TestCase):
             'order': ['u-study-p1'],
             'bullets': {
                 'u-study-p1': {
-                    'action': 'rewrite', 'lead_in': 'Wayfinding:',
-                    'text': 'Mapped gallery signage with museum visitors.', 'sources': ['cv:study-1:b1'],
+                    'relevance': 'high',
+                    'text': 'Mapped gallery signage with museum visitors.', 'source': 'cv:study-1:b1',
                 },
             },
         }
@@ -496,7 +477,7 @@ class PipelineTests(unittest.TestCase):
 
         complete = deepcopy(incomplete)
         complete['entries']['study-1']['order'] = ['u-study-p2', 'u-study-p1']
-        complete['entries']['study-1']['bullets']['u-study-p2'] = {'action': 'keep'}
+        complete['entries']['study-1']['bullets']['u-study-p2'] = {'relevance': 'low'}
         result = self.run_with(cv=complete)
         self.assertEqual(result.telemetry['attempts']['cv'], 1)
         self.assertEqual(result.telemetry['attempt_failures'], {})
@@ -521,52 +502,44 @@ class PipelineTests(unittest.TestCase):
         _, response, slot_map = pipeline._cv_contract(base)
         reply = cv_reply()
         reply['entries']['work-1']['order'] = ['u-visit']
-        reply['entries']['work-1']['bullets']['u-visit'] = {'action': 'keep'}
-        doc, _ = pipeline._cv_from_slots(reply, response, slot_map, base, pipeline.build_evidence(base), '')
+        reply['entries']['work-1']['bullets']['u-visit'] = {'relevance': 'low'}
+        doc, _ = pipeline._cv_from_slots(reply, response, slot_map, base)
         self.assertEqual([u.id for u in doc.sections[1].entries[0].units], ['u-visit', 'u-base-bullet'])
         self.assertEqual(doc.sections[1].entries[0].units[0].origin, 'source')
         self.assertEqual(doc.sections[1].entries[0].units[0].sources, ['cv:work-1:b2'])
 
-    def test_cv_rewrite_always_prepends_base_source_and_preserves_project_lead_in(self):
+    def test_cv_rewrite_cites_base_source_and_preserves_project_lead_in(self):
         self.inp.base_cv['sections'][1]['entries'][0]['units'][0]['lead_in'] = 'Gallery Guide:'
         base = CvDocument.model_validate(self.inp.base_cv)
         _, response, slot_map = pipeline._cv_contract(base)
         reply = cv_reply()
         reply['entries']['work-1']['bullets']['u-base-bullet'] = {
-            'action': 'rewrite',
-            'lead_in': '',
+            'relevance': 'high',
             'text': 'Gallery Guide: Designed a public workshop with librarians.',
-            'sources': [],
+            'source': 'cv:work-1:b1',
         }
-        doc, _ = pipeline._cv_from_slots(reply, response, slot_map, base, pipeline.build_evidence(base), '')
+        doc, _ = pipeline._cv_from_slots(reply, response, slot_map, base)
         bullet = doc.sections[1].entries[0].units[0]
         self.assertEqual(bullet.sources, ['cv:work-1:b1'])
         self.assertEqual(bullet.lead_in, 'Gallery Guide:')
         self.assertEqual(bullet.text, 'Designed a public workshop with librarians.')
 
-    def test_cv_keeps_skills_explicitly_named_in_visible_bullets(self):
-        self.inp.mode = 'fast'
-        bullets = self.inp.base_cv['sections'][1]['entries'][0]['units']
-        bullets[0]['text'] += ' Used Python and C++.'
-        bullets.append({'id': 'u-hidden', 'text': 'Sketched a sign in Figma.', 'hidden': True})
+    def test_cv_skill_order_retains_omitted_units_verbatim(self):
         skills = self.inp.base_cv['sections'][2]['units']
         skills.extend([
             {'id': 'u-python', 'text': 'Python (Basics)'},
-            {'id': 'u-cpp', 'text': 'C++'},
-            {'id': 'u-c', 'text': 'C'},
             {'id': 'u-figma', 'text': 'Figma'},
+            {'id': 'u-retired', 'text': 'An older skill', 'hidden': True},
         ])
         reply = cv_reply()
-        reply['entries']['work-1']['bullets']['u-base-bullet']['text'] = (
-            'Designed a workshop with librarians using Python and C++.'
-        )
-        reply['skills'][0]['hidden_ids'] = ['u-python', 'u-cpp', 'u-c', 'u-figma']
-        kept = self.run_with(cv=reply).cv['sections'][2]['units']
-        by_id = {unit['id']: unit['hidden'] for unit in kept}
-        self.assertFalse(by_id['u-python'])
-        self.assertFalse(by_id['u-cpp'])
-        self.assertTrue(by_id['u-c'])
-        self.assertTrue(by_id['u-figma'])
+        reply['skills'][0]['unit_ids'] = ['u-figma', 'u-figma']
+        base = CvDocument.model_validate(self.inp.base_cv)
+        doc, _ = draft_cv(reply, base)
+        original = base.sections[2].units
+        self.assertEqual(doc.sections[2].units, [original[2], *original[:2], original[3]])
+        reply['skills'][0]['hidden_ids'] = ['u-python']
+        with self.assertRaises(ValidationError):
+            draft_cv(reply, base)
 
     def test_study_degree_moves_to_the_header_without_losing_the_intro_details(self):
         self.inp.base_cv['sections'].append({
@@ -594,8 +567,8 @@ class PipelineTests(unittest.TestCase):
             'order': ['u-study-p1'],
             'bullets': {
                 'u-study-p1': {
-                    'action': 'rewrite', 'lead_in': 'Wayfinding:',
-                    'text': 'Mapped gallery signage with visitors.', 'sources': ['cv:study-1:b2'],
+                    'relevance': 'high',
+                    'text': 'Mapped gallery signage with visitors.', 'source': 'cv:study-1:b2',
                 },
             },
         }
@@ -702,7 +675,7 @@ class PipelineTests(unittest.TestCase):
         )
         base = CvDocument.model_validate(self.inp.base_cv)
         reply = cv_reply()
-        reply['profile']['text'] = (
+        reply['profile']['first']['text'] = (
             'Designer focused on visitor workshops. The work connects workshops to exhibits. '
             'Each workshop starts with a concrete goal.'
         )
@@ -710,14 +683,14 @@ class PipelineTests(unittest.TestCase):
             'order': ['u-base-bullet', 'u-guide'],
             'bullets': {
                 'u-base-bullet': {
-                    'action': 'rewrite',
+                    'relevance': 'high',
                     'text': 'Designed activities for library visitors after hours.',
-                    'sources': ['cv:work-1:b1'],
+                    'source': 'cv:work-1:b1',
                 },
                 'u-guide': {
-                    'action': 'rewrite',
+                    'relevance': 'high',
                     'text': 'Prepared a guide for library visitors after hours.',
-                    'sources': ['cv:work-1:b2'],
+                    'source': 'cv:work-1:b2',
                 },
             },
         }
@@ -740,18 +713,19 @@ class PipelineTests(unittest.TestCase):
                 normalized = pipeline._new_cv(base)
                 self.assertEqual(normalized.sections[1].entries[0].locked.title, label)
                 self.assertEqual([u.text for u in normalized.sections[2].units],
-                                 ['Facilitation', f'Clay & Glazes ({qualifier})'])
-                self.assertEqual(normalized.sections[2].units[-1].lead_in, '')
+                                 ['Clay & Glazes', 'Facilitation'])
+                self.assertEqual(normalized.sections[2].units[0].lead_in, qualifier + ':')
                 reply = cv_reply()
                 reply['skills'][0]['unit_ids'].insert(0, 'u-basics')
                 drafted, _ = draft_cv(reply, base)
                 self.assertEqual(drafted.sections[2].units[0].id, 'u-basics')
-                self.assertEqual(drafted.sections[2].units[0].text, f'Clay & Glazes ({qualifier})')
+                self.assertEqual(drafted.sections[2].units[0].text, 'Clay & Glazes')
+                self.assertEqual(drafted.sections[2].units[0].lead_in, qualifier + ':')
 
     def test_cv_profile_run_on_and_cross_paragraph_letter_conditionals_flagged(self):
         base = CvDocument.model_validate(self.inp.base_cv)
         reply = cv_reply()
-        reply['profile']['text'] = (
+        reply['profile']['first']['text'] = (
             'Exhibition designer with practical studio experience coordinating community workshops, '
             'building clear prototype displays, testing accessible visitor guidance, documenting '
             'repeatable setup routines, and aligning local library partners across regional cultural '
@@ -811,11 +785,11 @@ class PipelineTests(unittest.TestCase):
         )
         cv['entries']['work-2'] = {
             'order': ['u-other-bullet'],
-            'bullets': {'u-other-bullet': {'action': 'keep'}},
+            'bullets': {'u-other-bullet': {'relevance': 'low'}},
         }
         cv['entries']['work-3'] = {
             'order': ['u-third-bullet'],
-            'bullets': {'u-third-bullet': {'action': 'keep'}},
+            'bullets': {'u-third-bullet': {'relevance': 'low'}},
         }
 
         def generate(prompt, schema):
@@ -912,6 +886,29 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(result.telemetry['applied_patches'], [])
         self.assertEqual(result.letter['paragraphs'][2]['text'], letter_reply()['paragraphs'][2]['text'])
 
+    def test_cv_schema_scopes_rewrites_and_profile_sentences(self):
+        base = CvDocument.model_validate(self.inp.base_cv)
+        _, response, _ = pipeline._cv_contract(base)
+        draft = cv_reply()
+        draft['profile'] = {
+            'first': {'text': 'Workshop designer focused on public participation.', 'sources': ['cv:headline']},
+            'second': {'text': 'Designed activities with library staff.', 'sources': ['cv:work-1:b1']},
+            'third': None,
+        }
+        draft['skills'][0] = {'section_id': 's-skills', 'unit_ids': ['u-skill']}
+        bullets = draft['entries']['work-1']['bullets']
+        bullets['u-base-bullet'] = {'relevance': 'high', 'text': 'Designed a hands-on workshop with librarians.',
+                                    'source': 'cv:work-1:b1'}
+        response.model_validate(draft)
+        for key, value in [('relevance', 'medium'), ('source', 'cv:work-1:i1')]:
+            candidate = deepcopy(draft)
+            candidate['entries']['work-1']['bullets']['u-base-bullet'][key] = value
+            with self.assertRaises(ValidationError):
+                response.model_validate(candidate)
+        draft['profile']['second']['sources'] = ['job']
+        with self.assertRaises(ValidationError):
+            response.model_validate(draft)
+
     def test_unknown_entry_or_dropped_bullet_is_rejected_by_cv_schema(self):
         base = CvDocument.model_validate(self.inp.base_cv)
         _, response, _ = pipeline._cv_contract(base)
@@ -981,7 +978,7 @@ class PipelineTests(unittest.TestCase):
     def test_cv_retries_overflow_without_dropping_bullets(self):
         self.inp.mode = 'fast'
         shorter = cv_reply()
-        shorter['entries']['work-1']['bullets']['u-base-bullet'] = {'action': 'keep'}
+        shorter['entries']['work-1']['bullets']['u-base-bullet'] = {'relevance': 'low'}
         replies = iter([cv_reply(), shorter, letter_reply()])
 
         def render(kind, doc):
@@ -1208,9 +1205,9 @@ class PipelineTests(unittest.TestCase):
             'order': [f'u-w1-b{i}' for i in range(1, 5)],
             'bullets': {
                 f'u-w1-b{i}': {
-                    'action': 'rewrite',
+                    'relevance': 'high',
                     'text': f'Coordinated museum exhibit guide {i} with librarians.',
-                    'sources': [f'cv:work-1:b{i}'],
+                    'source': f'cv:work-1:b{i}',
                 }
                 for i in range(1, 5)
             },
@@ -1229,10 +1226,10 @@ class PipelineTests(unittest.TestCase):
         good_cv['entries']['work-1'] = {
             'order': [f'u-w1-b{i}' for i in range(1, 5)],
             'bullets': {
-                'u-w1-b1': {'action': 'rewrite', 'text': 'Coordinated museum exhibit guide 1 with librarians.', 'sources': ['cv:work-1:b1']},
-                'u-w1-b2': {'action': 'rewrite', 'text': 'Structured museum exhibit guide 2 with librarians.', 'sources': ['cv:work-1:b2']},
-                'u-w1-b3': {'action': 'rewrite', 'text': 'Mapped museum exhibit guide 3 with librarians.', 'sources': ['cv:work-1:b3']},
-                'u-w1-b4': {'action': 'rewrite', 'text': 'Designed museum exhibit guide 4 with librarians.', 'sources': ['cv:work-1:b4']},
+                'u-w1-b1': {'relevance': 'high', 'text': 'Coordinated museum exhibit guide 1 with librarians.', 'source': 'cv:work-1:b1'},
+                'u-w1-b2': {'relevance': 'high', 'text': 'Structured museum exhibit guide 2 with librarians.', 'source': 'cv:work-1:b2'},
+                'u-w1-b3': {'relevance': 'high', 'text': 'Mapped museum exhibit guide 3 with librarians.', 'source': 'cv:work-1:b3'},
+                'u-w1-b4': {'relevance': 'high', 'text': 'Designed museum exhibit guide 4 with librarians.', 'source': 'cv:work-1:b4'},
             },
         }
         doc, _ = draft_cv(good_cv, base, evidence, self.inp.job['description'])
@@ -1301,16 +1298,6 @@ class PipelineTests(unittest.TestCase):
             'Analyse von Markt und Anforderungen',
         ))
 
-        base = CvDocument.model_validate(self.inp.base_cv)
-        evidence = pipeline.build_evidence(base, self.inp.profile)
-        long_tag_cv = cv_reply()
-        long_tag_cv['skills'][0]['additions'] = [{
-            'text': 'Participatory public museum workshop facilitation planning',
-            'sources': ['cv:work-1:b1'],
-        }]
-        with self.assertRaises(pipeline._InvalidResponse) as ctx:
-            draft_cv(long_tag_cv, base, evidence, self.inp.job['description'])
-        self.assertIn('cv_competency_too_long', ctx.exception.codes)
 
     def test_letter_flags_repeated_endings_and_normalizes_german_salutation_case(self):
         from hiring_scraper.documents import editorial
@@ -1373,12 +1360,11 @@ class PipelineTests(unittest.TestCase):
         reordered['entries']['work-1'] = {
             'order': ['u-w1-b2', 'u-w1-b1'],
             'bullets': {
-                'u-w1-b1': {'action': 'keep'},
+                'u-w1-b1': {'relevance': 'low'},
                 'u-w1-b2': {
-                    'action': 'rewrite',
-                    'lead_in': 'Wayfinding:',
+                    'relevance': 'high',
                     'text': 'Built tactile museum signage for visitors.',
-                    'sources': ['cv:work-1:b2'],
+                    'source': 'cv:work-1:b2',
                 },
             },
         }
@@ -1393,7 +1379,7 @@ class PipelineTests(unittest.TestCase):
 
     def test_cv_keep_action_stays_verbatim_and_review_cannot_patch_it(self):
         cv = cv_reply()
-        cv['entries']['work-1']['bullets']['u-base-bullet'] = {'action': 'keep'}
+        cv['entries']['work-1']['bullets']['u-base-bullet'] = {'relevance': 'low'}
         result = self.run_with(
             cv=cv,
             review={
@@ -1469,5 +1455,5 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(result.telemetry['applied_patches'], [])
         self.assertEqual(
             result.cv['sections'][0]['units'][0]['text'],
-            cv_reply()['profile']['text'],
+            cv_reply()['profile']['first']['text'],
         )

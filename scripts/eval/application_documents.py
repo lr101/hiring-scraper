@@ -78,6 +78,10 @@ def cli_generate(model: str, workspace: Path) -> Generate:
                     error = (result.stderr[-65536:] + result.stdout[-65536:]).lower()
                     if 'model is not supported' in error or 'model_not_found' in error:
                         raise GenerationError('model_unavailable')
+                    if any(marker in error for marker in (
+                        'usage limit', 'usage_limit_reached', 'insufficient_quota',
+                    )):
+                        raise GenerationError('codex_usage_limit')
                     if '401 unauthorized' in error or 'not logged in' in error:
                         raise GenerationError('not_connected')
                     raise GenerationError('codex_exec_failed', retryable=True)

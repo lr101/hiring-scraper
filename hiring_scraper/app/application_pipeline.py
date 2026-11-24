@@ -22,7 +22,6 @@ from hiring_scraper.documents import editorial
 from hiring_scraper.documents.evidence import build_evidence, entry_bullets
 from hiring_scraper.documents.grounding import check_document
 from hiring_scraper.documents.schema import (
-    MAX_SECTION_UNITS,
     MAX_UNIT_TEXT,
     CvDocument,
     DocumentLanguage,
@@ -39,7 +38,7 @@ from hiring_scraper.documents.schema import (
 )
 from hiring_scraper.documents.text import unit_full_text
 
-PIPELINE_VERSION = 'application-documents-v2.10'
+PIPELINE_VERSION = 'application-documents-v2.11'
 SLEEP = time.sleep
 PROMPTS = Path(__file__).with_name('prompts')
 DocumentKind = Literal['cv', 'letter']
@@ -102,27 +101,20 @@ class _SourcedText(_Text):
 
 
 class _KeepBullet(_Response):
-    action: Literal['keep']
+    relevance: Literal['medium', 'low']
 
 
-class _RewriteBullet(_SourcedText):
-    action: Literal['rewrite']
-
-
-class _RewriteProjectBullet(_RewriteBullet):
-    lead_in: str
+class _RewriteBullet(_Text):
+    relevance: Literal['high']
 
 
 class _Skills(_Response):
     section_id: str
     unit_ids: list[str]
-    hidden_ids: list[str]
-    additions: list[_SourcedText]
 
 
 class _CvSlots(_Response):
     headline: _SourcedText
-    profile: _SourcedText
     skills: list[_Skills]
 
 
@@ -407,8 +399,12 @@ def _issues_to_findings(kind: DocumentKind, issues: tuple[_ProseIssue, ...] | li
     ]
 
 
-def _cv_contract(base: CvDocument) -> tuple[list[dict], type[_CvSlots], dict[str, dict[str, tuple[str, Unit]]]]:
-    """Build per-base-bullet keep/rewrite slots so no base bullet can be dropped."""
+def _cv_contract(base: CvDocument, evidence: dict[str, str] | None = None) -> tuple[list[dict], type[_CvSlots], dict[str, dict[str, tuple[str, Unit]]]]:
+    """Build relevance-gated bullet slots and source-cited profile sentences."""
+    if evidence is None:
+        evidence = build_evidence(base)
+    profile_sources = {'cv:headline', 'profile:education', 'profile:certifications'}
+    profile_sources.update(source for source in evidence if source.startswith('skill:'))
     entries_prompt: list[dict] = []
     entry_fields: dict[str, tuple] = {}
     slot_map: dict[str, dict[str, tuple[str, Unit]]] = {}
@@ -417,6 +413,19 @@ def _cv_contract(base: CvDocument) -> tuple[list[dict], type[_CvSlots], dict[str
         for entry in section.entries:
             intro = editorial.study_project_intro(entry)
             bank = [(source, unit) for source, unit in entry_bullets(entry) if unit is not intro]
+            prefix = f'cv:{entry.id}:'
+            intros = {source: fact for source, fact in evidence.items() if re.fullmatch(
+                rf'{re.escape(prefix)}i\d+', source,
+            )}
+            profile_sources.update(intros)
+            profile_sources.update(source for source, _ in bank)
+            entries_prompt.append({
+                'entry_id': entry.id,
+                'kind': entry.kind,
+                **entry.locked.model_dump(),
+                'intro_sources': intros,
+                'bullets': [],
+            })
             if not bank:
                 continue
             entry_index += 1
@@ -428,10 +437,11 @@ def _cv_contract(base: CvDocument) -> tuple[list[dict], type[_CvSlots], dict[str
                 item = {'bullet_id': unit.id, 'source': source, 'text': unit.text}
                 if unit.lead_in.strip():
                     item['lead_in'] = unit.lead_in.strip()
-                    rewrite_model = _RewriteProjectBullet
-                else:
-                    rewrite_model = _RewriteBullet
                 prompt_bullets.append(item)
+                rewrite_model = create_model(
+                    f'CvRewrite{entry_index}Bullet{bullet_index}', __base__=_RewriteBullet,
+                    source=(Literal[source], ...),
+                )
                 bullet_fields[f'b{bullet_index}'] = (
                     Union[_KeepBullet, rewrite_model], Field(alias=unit.id),
                 )
@@ -444,20 +454,22 @@ def _cv_contract(base: CvDocument) -> tuple[list[dict], type[_CvSlots], dict[str
             )
             entry_fields[f'e{entry_index}'] = (entry_model, Field(alias=entry.id))
             slot_map[entry.id] = entry_slots
-            entries_prompt.append({
-                'entry_id': entry.id,
-                'kind': entry.kind,
-                **entry.locked.model_dump(),
-                'bullets': prompt_bullets,
-            })
+            entries_prompt[-1]['bullets'] = prompt_bullets
     entries_model = create_model('CvEntries', __base__=_Response, **entry_fields)
-    response = create_model('CvDraft', __base__=_CvSlots, entries=(entries_model, ...))
+    # A sparse CV can cite its original headline as the only identity evidence.
+    allowed = tuple(sorted(profile_sources.intersection(evidence) or {'cv:headline'}))
+    sentence = create_model(
+        'CvProfileSentence', __base__=_Text,
+        sources=(list[Literal[allowed]], Field(min_length=1)),
+    )
+    profile = create_model(
+        'CvProfile', __base__=_Response,
+        first=(sentence, ...), second=(sentence, ...), third=(sentence | None, ...),
+    )
+    response = create_model(
+        'CvDraft', __base__=_CvSlots, entries=(entries_model, ...), profile=(profile, ...),
+    )
     return entries_prompt, response, slot_map
-
-
-def _mentions(text: str, name: str) -> bool:
-    # Treat C, C++ and C# as distinct names and avoid substring matches.
-    return bool(re.search(rf'(?<![\w+#]){re.escape(name)}(?![\w+#])', text, re.I))
 
 
 def _bullet_coverage(base: Entry, entry: Entry) -> tuple[dict[str, Unit], list[Unit]]:
@@ -517,30 +529,9 @@ def _check_cv_coverage(doc: CvDocument, base: CvDocument, *, restore: bool = Fal
     return issues
 
 
-def _show_named_skills(doc: CvDocument) -> None:
-    visible_bullets = [
-        unit_full_text(unit) for section in doc.sections for entry in section.entries
-        for unit in entry.units if not unit.hidden
-    ]
-    visible_bullets.extend(
-        unit_full_text(unit) for section in doc.sections
-        if section.layout == 'bullets' and section.kind not in ('skills', 'profile')
-        for unit in section.units if not unit.hidden
-    )
-    text = '\n'.join(visible_bullets)
-    for section in doc.sections:
-        if section.kind == 'skills':
-            for unit in section.units:
-                if not unit.hidden:
-                    continue
-                name = re.sub(r'\s+\((?:Basics|Grundlagen)\)$', '', unit_full_text(unit), flags=re.I)
-                if name and _mentions(text, name):
-                    unit.hidden = False
-
-
 def _cv_from_slots(
     output: dict, response: type[_CvSlots], slot_map: dict[str, dict[str, tuple[str, Unit]]],
-    base: CvDocument, evidence: dict[str, str], posting: str,
+    base: CvDocument,
 ) -> tuple[CvDocument, list[Finding]]:
     reply = response.model_validate(output).model_dump(by_alias=True)
     findings: list[Finding] = []
@@ -550,7 +541,6 @@ def _cv_from_slots(
         issues.append(_ProseIssue('cv_unknown_id', message, 'review_format', message))
 
     headline = _SourcedText.model_validate(reply['headline'])
-    profile_reply = _SourcedText.model_validate(reply['profile'])
     if not headline.sources:
         issues.append(_ProseIssue(
             'cv_missing_sources',
@@ -559,24 +549,10 @@ def _cv_from_slots(
             'The rewritten CV headline lacked evidence source citations.',
             unit_id=base.headline.id,
         ))
-    if not profile_reply.sources:
-        issues.append(_ProseIssue(
-            'cv_missing_sources',
-            'Profile is missing evidence ids; cite the evidence supporting the profile.',
-            'review_grounding',
-            'The rewritten CV profile lacked evidence source citations.',
-        ))
 
     skill_sections = {s.id for s in base.sections if s.kind == 'skills'}
     skills: dict[str, _Skills] = {}
     parsed_skills = [_Skills.model_validate(section) for section in reply['skills']]
-    if sum(len(section.additions) for section in parsed_skills) > 4:
-        issues.append(_ProseIssue(
-            'cv_skills_additions_limit',
-            'Add at most four evidence-backed competencies across all skills sections.',
-            'review_format',
-            'The CV proposed more than four new competency items.',
-        ))
     for proposed in parsed_skills:
         if proposed.section_id not in skill_sections:
             unknown('The CV response referred to an unknown skills section.')
@@ -604,7 +580,8 @@ def _cv_from_slots(
     profile = next((s for s in doc.sections if s.kind == 'profile'), None)
     if profile is not None:
         profile.units = [
-            _ai(new_id('u-ai-profile-1'), profile_reply),
+            *(_ai(new_id(f'u-ai-profile-{idx}'), _SourcedText.model_validate(sentence))
+              for idx, sentence in enumerate(reply['profile'].values(), 1) if sentence is not None),
             *(unit for unit in profile.units if unit.hidden),
         ]
 
@@ -622,27 +599,19 @@ def _cv_from_slots(
                 for bullet_id in ordered_ids:
                     base_source, base_unit = entry_slots[bullet_id]
                     choice = bullet_choices[bullet_id]
-                    if choice['action'] == 'keep':
+                    if choice['relevance'] != 'high':
                         built_units.append(base_unit.model_copy(update={
                             'origin': 'source',
                             'sources': [base_source],
                         }))
                         continue
                     text = _plain(choice['text'])
-                    extra_sources = [s for s in choice['sources'] if isinstance(s, str) and s.strip()]
-                    sources = list(dict.fromkeys([base_source, *extra_sources]))
-                    lead_in = ''
-                    if base_unit.lead_in.strip():
-                        lead_in = ' '.join(str(choice.get('lead_in') or '').split()) or base_unit.lead_in.strip()
-                        if not lead_in.endswith(':'):
-                            lead_in = f'{lead_in}:'
-                        if text.casefold().startswith(lead_in.casefold()):
-                            stripped = text[len(lead_in):].lstrip(' -–—')
-                            if stripped:
-                                text = stripped
+                    lead_in = base_unit.lead_in
+                    if lead_in and text.casefold().startswith(lead_in.casefold()):
+                        text = text[len(lead_in):].lstrip(' -–—') or text
                     built_units.append(Unit(
                         id=base_unit.id, text=text, lead_in=lead_in, origin='ai',
-                        role=base_unit.role, hidden=False, sources=sources,
+                        role=base_unit.role, hidden=False, sources=[choice['source']],
                     ))
                 entry.units = [
                     *built_units,
@@ -652,35 +621,9 @@ def _cv_from_slots(
             proposed = skills[section.id]
             by_id = {unit.id: unit for unit in section.units}
             order = dict.fromkeys(proposed.unit_ids + list(by_id))
-            hidden = set(proposed.hidden_ids)
-            for _ in dict.fromkeys(key for key in proposed.unit_ids + proposed.hidden_ids if key not in by_id):
+            for _ in dict.fromkeys(key for key in proposed.unit_ids if key not in by_id):
                 unknown('The CV response referred to an unknown skill unit.')
             section.units = [by_id[key] for key in order if key in by_id]
-            for unit in section.units:
-                unit.hidden = unit.hidden or unit.id in hidden
-            additions = []
-            existing = {unit.text.strip().casefold() for unit in section.units}
-            for item in proposed.additions:
-                unit = _ai(new_id('u-ai-competency'), item)
-                if unit.text.casefold() in existing or len(section.units) + len(additions) >= MAX_SECTION_UNITS:
-                    continue
-                if len(editorial.words(unit.text)) > 4:
-                    issues.append(_ProseIssue(
-                        'cv_competency_too_long',
-                        'An added competency has more than four words; keep each added competency to a short 1–4 word tag.',
-                        'review_style',
-                        'An added competency exceeded four words instead of using a short tag.',
-                    ))
-                    continue
-                if not _supported_competency(unit, evidence, posting):
-                    findings.append(_finding('cv', 'review_grounding',
-                                             'An added competency lacked support from its cited evidence and the posting.'))
-                    continue
-                additions.append(unit)
-                existing.add(unit.text.casefold())
-            section.units = additions + section.units
-            editorial.normalize_skills(section, preserve_order=True)
-    _show_named_skills(doc)
     issues.extend(_check_cv_coverage(doc, base))
     doc = CvDocument.model_validate(doc.model_dump())
     issues.extend(issue for issue in _cv_prose_issues(doc) if issue.code in _BLOCKING_PROSE_CODES)
@@ -698,8 +641,6 @@ def _new_cv(base: CvDocument) -> CvDocument:
     doc.page = 'a4'
     doc.photo = True
     for section in doc.sections:
-        if section.kind == 'skills':
-            editorial.normalize_skills(section)
         for entry in section.entries:
             caption = editorial.study_project_intro(entry)
             if caption is not None:
@@ -731,9 +672,8 @@ def _cv_prose_issues(doc: CvDocument) -> list[_ProseIssue]:
     ]
     for section in doc.sections:
         if section.kind == 'profile':
-            for idx, unit in enumerate(section.units, 1):
-                if unit.hidden or unit.origin != 'ai':
-                    continue
+            profile_units = [unit for unit in section.units if not unit.hidden and unit.origin == 'ai']
+            for idx, unit in enumerate(profile_units, 1):
                 if editorial.has_first_person(unit.text):
                     issues.append(_ProseIssue(
                         'cv_profile_first_person',
@@ -742,16 +682,16 @@ def _cv_prose_issues(doc: CvDocument) -> list[_ProseIssue]:
                         'The CV profile uses explicit first person instead of a noun-phrase-led summary.',
                         unit_id=unit.id,
                     ))
-                voice_error = editorial.profile_voice_issue(unit.text, doc.language)
+                voice_error = editorial.profile_voice_issue(unit.text, doc.language, first_sentence=idx == 1)
                 if voice_error:
                     issues.append(_ProseIssue(
                         'cv_profile_voice',
-                        f'Profile unit {idx} opens a sentence with a bare verb or imperative; start the profile with a noun phrase naming the professional identity from the evidence, and never start sentences with imperatives or conjugated first-person verbs.',
+                        f'Profile unit {idx} uses an unsuitable verb opening; lead with a verified identity, then use idiomatic applicant-centred phrasing.',
                         'review_style',
-                        'The CV profile uses verb-first or imperative phrasing instead of a noun-phrase-led summary.',
+                        'The CV profile uses an unsuitable verb opening.',
                         unit_id=unit.id,
                     ))
-                if editorial.repeated_profile_term(unit.text):
+                if idx == 1 and editorial.repeated_profile_term(' '.join(u.text for u in profile_units)):
                     issues.append(_ProseIssue(
                         'cv_profile_repetition',
                         f'Profile unit {idx} uses a content word at least three times; use precise, varied wording.',
@@ -771,9 +711,9 @@ def _cv_prose_issues(doc: CvDocument) -> list[_ProseIssue]:
                 if len(editorial.sentences(unit.text)) < 2 and len(editorial.words(unit.text)) > 28:
                     issues.append(_ProseIssue(
                         'cv_profile_run_on',
-                        f'Profile unit {idx} is a single long sentence; write 2–3 short sentences synthesizing the strongest evidence.',
+                        f'Profile sentence {idx} is too long; synthesize the strongest evidence in a short sentence.',
                         'review_style',
-                        'The CV profile is a single long run-on sentence instead of 2–3 short sentences.',
+                        'The CV profile includes a long run-on sentence.',
                         unit_id=unit.id,
                     ))
                 if editorial.has_third_person_applicant(unit.text, doc.language):
@@ -1143,9 +1083,9 @@ def _letter_prose_issues(
 
 
 def _letter_contract(base: CvDocument, evidence: dict[str, str]) -> tuple[dict, type[_LetterSlots]]:
-    """Partition original facts into uniquely addressable employer slots."""
+    """Partition original facts into separate employment and study slots."""
     groups: dict[str, dict] = {}
-    employer_slots: dict[str, str] = {}
+    employer_slots: dict[tuple[str, str], str] = {}
     for section in base.sections:
         for entry in section.entries:
             facts = {source: text for source, text in evidence.items() if re.fullmatch(
@@ -1154,7 +1094,7 @@ def _letter_contract(base: CvDocument, evidence: dict[str, str]) -> tuple[dict, 
             if not facts:
                 continue
             key = editorial.employer_key(entry.locked.company, entry.id)
-            slot = employer_slots.setdefault(key, entry.id)
+            slot = employer_slots.setdefault((entry.kind, key), entry.id)
             group = groups.setdefault(slot, {'entries': {}, 'supplemental': {}})
             group['entries'][entry.id] = {
                 'organization': entry.locked.company,
@@ -1164,7 +1104,9 @@ def _letter_contract(base: CvDocument, evidence: dict[str, str]) -> tuple[dict, 
                 'facts': facts,
             }
 
-    named_employers = {key: slot for key, slot in employer_slots.items() if key != slot}
+    named_employers = {
+        key: slot for (kind, key), slot in employer_slots.items() if kind == 'work' and key != slot
+    }
     for source, fact in evidence.items():
         if source.startswith('evidence:'):
             normalized = ' '.join(editorial.words(fact))
@@ -1569,7 +1511,7 @@ def prepare_documents(
         cv_state = 'fallback' if checkpoint.fallback else 'completed'
         resume(stats, checkpoint)
     else:
-        entries, cv_response, slot_map = _cv_contract(base)
+        entries, cv_response, slot_map = _cv_contract(base, evidence)
         skills = [{'section_id': s.id, 'title': s.title, 'units': [u.model_dump() for u in s.units]}
                   for s in base.sections if s.kind == 'skills']
         prompt = _prompt('cv', inp, evidence, entries=entries, skills=skills)
@@ -1578,7 +1520,7 @@ def prepare_documents(
         def accept_cv(output: dict):
             nonlocal last_render
             doc, findings = accept_grounded(
-                lambda reply: _cv_from_slots(reply, cv_response, slot_map, base, evidence, posting), output,
+                lambda reply: _cv_from_slots(reply, cv_response, slot_map, base), output,
             )
             telemetry, render_findings = _render('cv', doc, render)
             last_render = (doc, telemetry, render_findings)
@@ -1599,7 +1541,6 @@ def prepare_documents(
         if isinstance(cv_outcome, _Fallback):
             cv, base_draft_findings = cv_outcome.candidate
             _check_cv_coverage(cv, base, restore=True)
-            _show_named_skills(cv)
             draft_findings = base_draft_findings + _issues_to_findings(
                 'cv', [issue for issue in cv_outcome.issues
                        if issue.code not in _BLOCKING_PROSE_CODES and issue.code != 'cv_page_limit'],

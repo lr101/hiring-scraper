@@ -29,18 +29,15 @@ document), with a category:
   do not mention, or a strong piece of evidence left unused.
 - style: unnatural phrasing, translationese, clichés, buzzword strings, repetition, or
   impersonal CV profile subjects.
-- format: too long for the page limit, unbalanced paragraphs, an ordinary rewritten bullet
-  far outside 16–24 words or a labelled project bullet far outside 22–32 words (keep each
-  labelled project in one bullet).
+- format: excessive pages, unbalanced paragraphs, or a rewrite longer than its source
+  without a clear purpose. Keep each labelled project in one bullet.
 Severity is high (misleading or wrong), medium (weakens the application) or info.
 
 Patches: for AI-written units ONLY (`origin == "ai"` — never propose patches for kept
 `origin == "source"` base bullets), propose replacement text with a kind:
-- rephrase: same facts, better wording. Always return a `rephrase` patch to resolve every
-  deterministic `review_style` finding in FINDINGS (such as repeated CV opening verbs, a
-  CV profile repeating a bullet or written as a single run-on sentence, three consecutive
-  "I <verb>" openings, repeated paragraph endings, or multiple "würde"/"would" conditionals
-  across the letter). Keep the underlying facts and citations.
+- rephrase: same facts, better wording. Fix genuine style issues where a small edit can
+  preserve every claim and its original citation. Use one sentence for each profile unit.
+  Keep the existing distinction between separate source facts, even within a sentence.
 - shorten: same facts, fewer words (use when RENDER shows overflow).
 - content: adds, removes or changes facts, including narrowing an unsupported past claim.
   These are shown to the applicant, not applied.
@@ -57,41 +54,34 @@ Check that:
   headline. Avoid an unheld role-family label (such as "Product Management" /
   "Produktmanagement" without formal PM tenure), never elevate a one-off student task into
   a standalone pillar, and avoid unnecessary diminishing qualifiers.
-- CV profile is a single noun-phrase-led, active summary of 2–3 crisp, distinct sentences
-  (never a single run-on sentence). It leads with concrete evidence for the posting's core
-  duties at documented scope without repeating any bullet's wording or retelling an
-  individual project. Never use first- or third-person applicant pronouns, bare verb-first
-  openings, agentless passives, or impersonal activity subjects (never "Work with developers
-  helped…", "Joint KPI analysis identified…", or "Die Arbeit … umfasste…"). Avoid language-
-  level filler or repeating summary words in adjacent sentences.
+- CV profile has 2–3 distinct, short units of one sentence each. The first starts
+  with a verified professional identity or degree. In German use implicit first person
+  and allow subject-less verb-led clauses after the noun-led opening. In English use
+  fluent noun-led or subject-less CV prose. Keep the applicant implied and avoid a
+  third-person role subject. Ground each sentence in its own citations and never carry
+  a job title into another entry. Identify study projects as such; a company named in
+  a topic or project label is not a client or employer without explicit evidence.
 - Rewritten CV bullets (`origin == "ai"`) preserve verb strength, actors, recipients,
   objects, exact authorship/ownership, and separation of independent source clauses. They
   avoid third-person pronouns referring to the applicant (never "die sie koordinierte",
   "she", "he"), avoid unsupported qualifiers ("technical"/"technisch", "strategic",
-  "software", etc.), vary opening verbs (hard cap: NO verb starting more than 2 bullets
-  across the entire CV), avoid clunky compounds, repeated stems and abrupt endings, and
+  "software", etc.), avoid clunky compounds, repeated stems and abrupt endings, and
   keep verified quantified results with the actions they measure. In German, use direct
   active verbs and suspension hyphens in coordinated compounds ("Markt- und
   Nutzerbedürfnisse"). Leave kept `origin == "source"` bullets untouched.
-- Competency additions are 1–4 words and use concrete wording supported by cited evidence.
-  Keep the existing units and their citations intact.
-- Cover letter opens with a specific reason for interest in the work in the posting, citing
-  exact sources for any experience claim in the opening paragraph. Check claims about the
-  employer against the posting (no speculative bridges) and verify team/product names match
-  JOB verbatim.
-- Each experience paragraph reads as fresh first-person active narrative prose (not
-  restated CV bullets), connects one verified example to a core duty, and shows what the
-  applicant did with feedback or results where documented. For software/SaaS roles, ensure
-  the letter centres on software platform work (with consumer-product study work ≤ 1
-  sentence); include a verified training result when the posting lists training duties;
-  include one short clause on verified language level + international work when required.
-- Keep the letter to 4–5 paragraphs (~270–310 EN / ~260–320 DE words including closing).
-  Name the study discipline and keep leadership scope exact. Use each employer or project
-  once. Keep examples to four sentences and include a verified outcome where available. Use
-  at most ONE forward-looking conditional formula ("würde ich …" / "I would bring …") in
-  the entire letter, ensure no two body paragraphs end with the same construction, and
-  never allow three or more consecutive "I <verb>" sentence openings. Use "KPIs" over
-  "performance indicators" in English. End with brief thanks plus a specific interview
-  invitation in the applicant's voice with no new factual or technical claims.
-  Spell out English contractions. In German, keep formal Sie-Form throughout and lowercase
-  after the comma-ended salutation unless the opening is a noun, proper name or formal Sie/Ihr.
+- Skills are reordered only. Preserve their text, citations and visibility.
+- Cover letter opens by connecting a core duty to a specific, cited capability in
+  the applicant's background. Keep posting facts exact.
+- Each example covers one or two of the strongest verified actions and an outcome or
+  concrete takeaway for a named posting duty. Prefer verified quantities. Include a study
+  project with explicit study context where it supplies the best evidence. Check coverage
+  of core duties, including research, partnerships, requirements prioritization and
+  Figma prototyping where the posting asks for them and verified evidence exists.
+- Keep the letter to 4–5 paragraphs including a brief close. Use each paragraph-opening
+  word at most twice and avoid repeating the same main verb in adjacent sentences, even
+  across paragraph boundaries. Keep the scope of the source verbs when varying prose.
+  Use at most one forward-looking conditional and avoid repeated bridge formulas.
+- Close with a specific, natural interview invitation and no new claims. Use idiomatic
+  German (omit "Vielen Dank für Ihre Zeit.") or natural English, as appropriate. Spell out
+  English contractions. In German use formal Sie-Form and lowercase after the
+  comma-ended salutation unless the opening is a noun, proper name or formal Sie/Ihr.

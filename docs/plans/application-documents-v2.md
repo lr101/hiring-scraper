@@ -43,7 +43,7 @@ no LaTeX. Rendering escapes. Limits: unit text ≤ 1200 chars, ≤ 60 units per 
 Unit {
   "id": "u-…",                 // stable, unique in the document, [a-z0-9-]{1,64}
   "text": "…",                 // plain text, no newlines
-  "lead_in": "",               // optional bold prefix rendered before text ("Whirlpool – …:")
+  "lead_in": "",               // optional bold prefix rendered before text ("Studio Project:")
   "origin": "source" | "ai" | "user",
   "sources": ["cv:work-1:b2", "evidence:3"],   // evidence ids, may be empty for origin=source/user
   "role": "",                  // letter paragraphs: motivation|experience|education|bring|close
@@ -110,8 +110,10 @@ Pure, DB-free (`hiring_scraper/documents/`):
 App (`hiring_scraper/app/`):
 - `application_pdf.py` — Playwright Chromium render of `frontend/dist/print.html` with the
   document JSON (+ optional photo data URL), all network aborted, returns PDF bytes and
-  telemetry `{pages, overflow_px_by_page, clipped_units, text}`; pypdf text checks. Bounded
-  semaphore; one lazily started browser.
+  telemetry `{pages, overflow_px_by_page, clipped_units, text}`. Checks pypdf and pinned
+  PDFium extraction for readable text, word boundaries and control characters, and records
+  normalized extraction parity. Keeps short hyphenated compounds together for extraction.
+  Bounded semaphore; one lazily started browser.
 - `application_pipeline.py` — stages `cv`, `letter`, `review`, `answers`; prompts in
   `hiring_scraper/app/prompts/`; injectable `generate(prompt, schema, **options)`; per-call
   retries; patch application rules; returns documents + findings + telemetry.
@@ -129,6 +131,8 @@ Frontend (`frontend/src/documents/`):
 - `types.ts`, `CvView.tsx`, `LetterView.tsx`, `classic-serif-v1.css`, fonts in
   `frontend/public/fonts/` (Liberation Serif, SIL OFL), `print.html` + `print.tsx` (second Vite
   entry, reads `window.__RADIUS_DOCUMENT__`).
+  The shared CV view measures inline skill rows and hides separators across wraps. The
+  editor resyncs on edit or resize, and print resyncs after fonts load and layout changes.
 - `DocumentEditor.tsx` — renders the view with `contenteditable="plaintext-only"` per unit,
   Enter splits a bullet, Backspace on empty removes, hide/restore, undo/redo, debounced
   autosave with `expected_version`, findings badges, page guides + overflow indicator,
@@ -141,17 +145,23 @@ Frontend (`frontend/src/documents/`):
 Short, positive, per-stage prompts (`common.txt`, `cv.txt`, `letter.txt`, `review.txt`,
 `answers.txt`). Committed examples are fictional. The profile may hold `voice_notes`
 (≤ 1500 chars) and up to 3 `style_exemplars` per language; they are fenced as voice only.
-The CV generation schema gives each base bullet its own required slot keyed by `bullet_id`,
-with an explicit `{"action": "keep"}` (retaining base text and any `lead_in` verbatim as
-`origin="source"`) or `{"action": "rewrite", ...}` choice plus a per-entry `order` list of
-bullet ids and a single `profile` object. Dropping a base bullet or splitting a labelled
-project is impossible by construction.
-Letter arc: specific motivation for this company and work → one paragraph per relevant
-employer/project (concrete actions, tools, outcomes) → education/technical foundation →
-collaboration and what the applicant brings/wants to learn → one-line close.
-The letter generation schema gives each employer one optional example slot (with organization,
-title, location, and original facts) plus source-cited `motivation` and optional `fit` blocks.
-A selected example anchors to a single entry and cites one allowed source for each sentence.
+The CV generation schema gives each base bullet a required slot keyed by `bullet_id` and
+each entry an `order` list. Slots marked medium or low relevance retain the base text
+verbatim as `origin="source"`. High-relevance slots take replacement text and are bound to
+the exact base source. The application keeps the original lead-in. A typical CV rewrites
+two to four core-duty bullets at the source's exact scope, applying posting vocabulary
+where equivalent. Skills can only be reordered. The profile has two required sentence
+slots and one nullable third slot, each with a separate evidence list. Entry-scoped facts
+identify work and study contexts explicitly. The German profile uses implicit first person
+and the English profile uses noun-led or subject-less CV prose.
+
+The letter opens with a cited connection between the applicant's background and a core
+duty. Each selected employer or study example synthesizes one or two verified actions
+and an outcome or takeaway for a named duty. The best evidence can come from a study
+project, with the context made explicit. The letter generation schema gives each employer
+or institution one optional example slot plus source-cited `motivation` and optional `fit`
+blocks. A selected example anchors to one entry and cites an allowed source per sentence.
+The closing uses an idiomatic interview invitation in the target language.
 Subjects are formatted deterministically from the posting title (`Bewerbung als <Titel>` in
 German, `Application for <title>` in English). The tailored CV is available during review,
 where textual overlap and claim-scope issues can be surfaced as findings, while kept
@@ -178,3 +188,6 @@ their first bullet and an entry header/intro is never stranded on a page with ze
 Focused unit and node tests during development; frontend build; Chromium render tests skip
 when no browser is installed. PostgreSQL migration and queue tests run in CI. Real profile
 data, outputs and judge transcripts stay in gitignored `data/private/`.
+
+Pipeline version `application-documents-v2.11` invalidates earlier draft checkpoints for
+the relevance-based CV contract and revised letter and review prompts.
