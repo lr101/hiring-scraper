@@ -1,18 +1,25 @@
 import {
   useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react'
 import type { ClipboardEvent, KeyboardEvent } from 'react'
+import { DocumentReview, findingReplacement } from './DocumentReview.tsx'
 import { CvView } from './CvView.tsx'
 import { LetterView } from './LetterView.tsx'
 import type { UnitDisplayKind, UnitRenderContext } from './viewShared.tsx'
 import {
   countHiddenUnits,
   createHistory,
+  isAiChange,
+  isReviewed,
+  restoreOriginal,
+  reviewUnits,
+  setUnitReviewed,
   pushHistory,
   redoHistory,
   removeUnit,
@@ -168,6 +175,7 @@ interface EditableUnitTextProps {
   text: string
   kind: UnitDisplayKind
   splittable: boolean
+  changeLabel?: string
   readOnly: boolean
   onTextChange: (unitId: string, nextText: string) => void
   onSplit: (unitId: string, offset: number) => void
@@ -179,6 +187,7 @@ function EditableUnitText({
   text,
   kind,
   splittable,
+  changeLabel,
   readOnly,
   onTextChange,
   onSplit,
@@ -288,7 +297,7 @@ function EditableUnitText({
       suppressContentEditableWarning
       role="textbox"
       aria-multiline="false"
-      aria-label={`Edit ${unitKindLabel(kind)}`}
+      aria-label={`Edit ${unitKindLabel(kind)}${changeLabel ? `, ${changeLabel}` : ''}`}
       data-editable-unit={unitId}
       data-placeholder={splittable ? 'Type here…' : 'Empty'}
       onInput={handleInput}
@@ -328,6 +337,14 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
 }: DocumentEditorProps<T>) {
   const [history, setHistory] = useState<HistoryState<T>>(() => createHistory(value))
   const [showHidden, setShowHidden] = useState(false)
+  const [markAi, setMarkAi] = useState(true)
+  const [reviewId, setReviewId] = useState<string | null>(null)
+  const [downloadNotice, setDownloadNotice] = useState(false)
+  const [reviewComplete, setReviewComplete] = useState(false)
+  const reviewButton = useRef<HTMLButtonElement>(null)
+  const downloadButton = useRef<HTMLButtonElement>(null)
+  const noticeReviewButton = useRef<HTMLButtonElement>(null)
+  const noticeId = useId()
   const [openFindingUnitId, setOpenFindingUnitId] = useState<string | null>(null)
   const [metrics, setMetrics] = useState<PageMetrics>(() => ({
     pageCount: 1,
@@ -481,25 +498,89 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
     }
   }, [openFindingUnitId])
 
-  const handleEditorKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLDivElement>) => {
-      if (readOnly) return
-      if (!(event.ctrlKey || event.metaKey) || event.altKey) return
-      const key = event.key.toLowerCase()
-      if (key === 'z') {
+  const changes = useMemo(() => reviewUnits(value), [value])
+  const remaining = changes.filter(unit => !isReviewed(unit)).length
+  const reviewIndex = changes.findIndex(unit => unit.id === reviewId)
+  const reviewUnit = changes[reviewIndex]
+
+  useLayoutEffect(() => {
+    if (downloadNotice && remaining) noticeReviewButton.current?.focus()
+  }, [downloadNotice, remaining])
+
+  useEffect(() => {
+    if (!remaining) setDownloadNotice(false)
+    if (remaining) setReviewComplete(false)
+    if (reviewId && reviewIndex < 0) setReviewId(null)
+  }, [remaining, reviewId, reviewIndex])
+
+  function startReview() {
+    setDownloadNotice(false)
+    const first = changes.find(unit => !isReviewed(unit)) ?? changes[0]
+    if (first?.id === reviewId) rootRef.current?.querySelector<HTMLElement>('.doc-review h3')?.focus()
+    else setReviewId(first?.id ?? null)
+  }
+
+  function closeReview() {
+    setReviewId(null)
+    reviewButton.current?.focus()
+  }
+
+  function navigateReview(direction: -1 | 1) {
+    const next = changes[reviewIndex + direction]
+    if (next) setReviewId(next.id)
+  }
+
+  function finishChange(action: 'accept' | 'restore') {
+    if (!reviewUnit || readOnly) return
+    const result = action === 'restore' ? restoreOriginal(value, reviewUnit.id)
+      : setUnitReviewed(value, reviewUnit.id)
+    commitDocument(result)
+    const pending = [...changes.slice(reviewIndex + 1), ...changes.slice(0, reviewIndex)]
+      .find(unit => !isReviewed(unit))
+    if (pending) setReviewId(pending.id)
+    else {
+      setReviewComplete(true)
+      if (action === 'restore' && changes.length === 1) {
+        setReviewId(null)
+        downloadButton.current?.focus()
+      } else closeReview()
+    }
+  }
+
+  function editInDocument(unitId: string) {
+    const target = rootRef.current?.querySelector<HTMLElement>(`[data-editable-unit="${CSS.escape(unitId)}"]`)
+    if (!target) return
+    target.focus()
+    setCaretPosition(target, 'end')
+  }
+
+  function handleEditorKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (reviewUnit && event.key === 'Escape' && (event.target as HTMLElement).matches('[data-editable-unit]')) {
+      event.preventDefault()
+      rootRef.current?.querySelector<HTMLElement>('.doc-review h3')?.focus()
+      return
+    }
+    if (reviewUnit && event.altKey && !event.ctrlKey && !event.metaKey) {
+      if (event.shiftKey && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
         event.preventDefault()
-        if (event.shiftKey) {
-          handleRedo()
-        } else {
-          handleUndo()
-        }
-      } else if (key === 'y' && !event.shiftKey) {
+        navigateReview(event.key === 'ArrowLeft' ? -1 : 1)
+      } else if (!event.shiftKey && event.key === 'Enter' && !isReviewed(reviewUnit)) {
         event.preventDefault()
-        handleRedo()
+        finishChange('accept')
       }
-    },
-    [handleRedo, handleUndo, readOnly],
-  )
+      return
+    }
+    if (readOnly || !(event.ctrlKey || event.metaKey) || event.altKey) return
+    const key = event.key.toLowerCase()
+    if (key === 'z') {
+      event.preventDefault()
+      if (event.shiftKey) handleRedo()
+      else handleUndo()
+    } else if (key === 'y' && !event.shiftKey) {
+      event.preventDefault()
+      handleRedo()
+    }
+  }
 
   // Measure DOM height to calculate page count, overflow status, and page break guides.
   const measurePages = useCallback(() => {
@@ -589,19 +670,23 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
       const unitFindings = findingsByUnit.get(unit.id) ?? []
       const severity = highestSeverity(unitFindings)
       const isPopoverOpen = openFindingUnitId === unit.id
-      const isBlock = kind !== 'inline'
+      const isBlock = kind !== 'inline' && kind !== 'bullet' && kind !== 'column'
+      const showChange = markAi && isAiChange(unit) && !unit.hidden
+      const changeLabel = showChange ? isReviewed(unit) ? 'AI change reviewed' : 'AI change to review' : undefined
 
       const wrapperClasses = [
         'doc-editor-unit',
         isBlock ? 'doc-editor-unit--block' : '',
         unit.hidden ? 'doc-editor-unit--hidden' : '',
         severity ? `doc-editor-unit--finding-${severity}` : '',
+        showChange ? isReviewed(unit) ? 'doc-editor-unit--ai-reviewed' : 'doc-editor-unit--ai' : '',
+        reviewId === unit.id ? 'doc-editor-unit--in-review' : '',
       ]
         .filter(Boolean)
         .join(' ')
 
       return (
-        <span className={wrapperClasses}>
+        <span className={wrapperClasses} title={changeLabel}>
           {unit.lead_in ? (
             <>
               <strong className="doc-unit-lead-in">{unit.lead_in}</strong>{' '}
@@ -612,6 +697,7 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
             text={unit.text}
             kind={kind}
             splittable={splittable}
+            changeLabel={changeLabel}
             readOnly={readOnly}
             onTextChange={handleTextChange}
             onSplit={handleSplit}
@@ -656,8 +742,14 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
                             </p>
                           ) : null}
                           <div className="doc-editor-finding-actions">
-                            {!readOnly && finding.suggestion && onApplyFinding && (
-                              <button type="button" onClick={() => { setOpenFindingUnitId(null); onApplyFinding(finding) }}>Apply suggestion</button>
+                            {!readOnly && findingReplacement(finding) && (
+                              <button type="button" onClick={() => {
+                                setOpenFindingUnitId(null)
+                                commitDocument(updateUnitText(valueRef.current, unit.id, findingReplacement(finding)))
+                              }}>Apply suggestion</button>
+                            )}
+                            {!readOnly && finding.suggestion && !findingReplacement(finding) && onApplyFinding && (
+                              <button type="button" onClick={() => { setOpenFindingUnitId(null); onApplyFinding(finding) }}>Edit with guidance</button>
                             )}
                             {!readOnly && onDismissFinding && (
                               <button type="button" onClick={() => onDismissFinding(finding)}>Dismiss</button>
@@ -691,6 +783,9 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
     },
     [
       findingsByUnit,
+      commitDocument,
+      markAi,
+      reviewId,
       improveDisabled,
       onApplyFinding,
       onDismissFinding,
@@ -770,6 +865,15 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
             </>
           ) : null}
 
+          {changes.length > 0 && <>
+            <button type="button" className="doc-editor-btn" ref={reviewButton} aria-expanded={Boolean(reviewUnit)}
+              onClick={reviewUnit ? closeReview : startReview}>
+              Review AI changes{remaining > 0 ? ` (${remaining})` : ''}
+            </button>
+            <button type="button" className={`doc-editor-btn${markAi ? ' doc-editor-btn--active' : ''}`} aria-pressed={markAi}
+              onClick={() => setMarkAi(previous => !previous)}>Mark AI changes</button>
+          </>}
+
           {hiddenCount > 0 ? (
             <button
               type="button"
@@ -821,7 +925,10 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
             <button
               type="button"
               className="doc-editor-btn doc-editor-btn--primary"
-              onClick={onDownloadPdf}
+              ref={downloadButton}
+              aria-expanded={remaining > 0 ? downloadNotice : undefined}
+              aria-controls={downloadNotice ? noticeId : undefined}
+              onClick={() => remaining > 0 ? setDownloadNotice(previous => !previous) : onDownloadPdf()}
               disabled={downloadDisabled}
             >
               Download PDF
@@ -829,6 +936,44 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
           ) : null}
         </div>
       </div>
+
+      {downloadNotice && remaining > 0 && (
+        <div id={noticeId} className="doc-review-notice" role="group" aria-label="Download review notice">
+          <p role="status">{remaining} AI {remaining === 1 ? 'change' : 'changes'} not reviewed yet.</p>
+          <div className="doc-editor-toolbar-group">
+            <button type="button" className="doc-editor-btn" ref={noticeReviewButton} onClick={startReview}>Review</button>
+            <button type="button" className="doc-editor-btn" disabled={downloadDisabled} onClick={() => {
+              setDownloadNotice(false)
+              downloadButton.current?.focus()
+              onDownloadPdf?.()
+            }}>Download anyway</button>
+          </div>
+        </div>
+      )}
+
+      {reviewComplete && !remaining && <p className="doc-review-complete" role="status">All AI changes reviewed.</p>}
+
+      {reviewUnit && (
+        <DocumentReview
+          unit={reviewUnit}
+          position={reviewIndex + 1}
+          total={changes.length}
+          remaining={remaining}
+          sources={value.review_sources}
+          findings={[...(findingsByUnit.get(reviewUnit.id) ?? [])]
+            .sort((a, b) => SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity])}
+          readOnly={readOnly}
+          onNavigate={navigateReview}
+          onClose={closeReview}
+          onEdit={() => editInDocument(reviewUnit.id)}
+          onAccept={() => finishChange('accept')}
+          onRestore={() => finishChange('restore')}
+          onApply={text => {
+            commitDocument(updateUnitText(value, reviewUnit.id, text))
+            editInDocument(reviewUnit.id)
+          }}
+        />
+      )}
 
       {documentFindings.length > 0 ? (
         <div

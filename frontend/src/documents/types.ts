@@ -70,6 +70,9 @@ export interface Unit {
   sources: string[]
   role: LetterUnitRole
   hidden: boolean
+  original_text?: string | null
+  ai_edited?: boolean
+  reviewed_text?: string | null
 }
 
 export interface Contact {
@@ -116,6 +119,7 @@ export interface CvDocument {
   language: DocumentLanguage
   template: DocumentTemplate
   page: PageFormat
+  review_sources?: Record<string, string>
   photo: boolean
   header: CvHeader
   headline: Unit
@@ -132,6 +136,7 @@ export interface LetterDocument {
   language: DocumentLanguage
   template: DocumentTemplate
   page: PageFormat
+  review_sources?: Record<string, string>
   sender: LetterSender
   recipient_lines: string[]
   place_date: string
@@ -152,6 +157,8 @@ export interface Finding {
   severity: FindingSeverity
   message: string
   suggestion: string
+  claim?: string
+  replacement?: string
 }
 
 export class DocumentValidationError extends Error {
@@ -242,7 +249,9 @@ function asStringArray(value: unknown, path: string, options?: { noNewlines?: bo
 }
 
 function parseUnit(value: unknown, path: string, seenUnitIds: Set<string>): Unit {
-  const rec = asRecord(value, path, ['id', 'text', 'lead_in', 'origin', 'sources', 'role', 'hidden'])
+  const rec = asRecord(value, path, [
+    'id', 'text', 'lead_in', 'origin', 'sources', 'role', 'hidden', 'original_text', 'ai_edited', 'reviewed_text',
+  ])
   const id = asString(rec.id, `${path}.id`)
   if (!UNIT_ID_PATTERN.test(id)) {
     fail(`${path}.id`, 'must match /^[a-z0-9-]{1,64}$/')
@@ -269,7 +278,18 @@ function parseUnit(value: unknown, path: string, seenUnitIds: Set<string>): Unit
     rec.role === undefined ? '' : asLiteral(rec.role, `${path}.role`, LETTER_UNIT_ROLES)
   const hidden = asOptionalBoolean(rec.hidden, `${path}.hidden`, false)
 
-  return { id, text, lead_in, origin, sources, role, hidden }
+  const review: Pick<Unit, 'original_text' | 'ai_edited' | 'reviewed_text'> = {}
+  if (rec.original_text !== undefined) {
+    review.original_text = rec.original_text === null ? null
+      : asString(rec.original_text, `${path}.original_text`, { noNewlines: true, maxLength: MAX_UNIT_TEXT_LENGTH })
+  }
+  if (rec.ai_edited !== undefined) review.ai_edited = asBoolean(rec.ai_edited, `${path}.ai_edited`)
+  if (rec.reviewed_text !== undefined) {
+    const reviewed = rec.reviewed_text === null ? null
+      : asString(rec.reviewed_text, `${path}.reviewed_text`, { noNewlines: true, maxLength: MAX_UNIT_TEXT_LENGTH })
+    review.reviewed_text = reviewed === text && (origin === 'ai' || review.ai_edited) ? reviewed : null
+  }
+  return { id, text, lead_in, origin, sources, role, hidden, ...review }
 }
 
 function parseContact(value: unknown, path: string): Contact {
@@ -390,12 +410,24 @@ function parseSection(
   return { id, kind, title, group, layout, units, entries }
 }
 
+function parseReviewSources(value: unknown): Record<string, string> | undefined {
+  if (value === undefined) return undefined
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    fail('review_sources', 'must be a plain object')
+  }
+  return Object.fromEntries(Object.entries(value).map(([key, text]) => [
+    asString(key, 'review_sources key', { noNewlines: true, nonEmpty: true, maxLength: 120 }),
+    asString(text, 'review source', { maxLength: 13000 }),
+  ]))
+}
+
 export function parseCvDocument(value: unknown): CvDocument {
   const rec = asRecord(value, '', [
     'format',
     'language',
     'template',
     'page',
+    'review_sources',
     'photo',
     'header',
     'headline',
@@ -423,6 +455,7 @@ export function parseCvDocument(value: unknown): CvDocument {
     language,
     template,
     page,
+    ...(rec.review_sources !== undefined && { review_sources: parseReviewSources(rec.review_sources) }),
     photo,
     header,
     headline,
@@ -436,6 +469,7 @@ export function parseLetterDocument(value: unknown): LetterDocument {
     'language',
     'template',
     'page',
+    'review_sources',
     'sender',
     'recipient_lines',
     'place_date',
@@ -481,6 +515,7 @@ export function parseLetterDocument(value: unknown): LetterDocument {
     language,
     template,
     page,
+    ...(rec.review_sources !== undefined && { review_sources: parseReviewSources(rec.review_sources) }),
     sender,
     recipient_lines,
     place_date,
@@ -503,7 +538,7 @@ export function parseApplicationDocument(value: unknown): ApplicationDocument {
 }
 
 export function parseFinding(value: unknown): Finding {
-  const rec = asRecord(value, '', ['id', 'document', 'unit_id', 'code', 'severity', 'message', 'suggestion'])
+  const rec = asRecord(value, '', ['id', 'document', 'unit_id', 'code', 'severity', 'message', 'suggestion', 'claim', 'replacement'])
   const id = asString(rec.id, 'id', { noNewlines: true, nonEmpty: true, maxLength: 128 })
   const document = asLiteral(rec.document, 'document', FINDING_DOCUMENTS)
   let unit_id: string | null
@@ -519,7 +554,13 @@ export function parseFinding(value: unknown): Finding {
   const severity = asLiteral(rec.severity, 'severity', FINDING_SEVERITIES)
   const message = asString(rec.message, 'message', { maxLength: 2000 })
   const suggestion = asOptionalString(rec.suggestion, 'suggestion', '', { maxLength: 2000 })
-  return { id, document, unit_id, code, severity, message, suggestion }
+  return {
+    id, document, unit_id, code, severity, message, suggestion,
+    ...(rec.claim !== undefined && { claim: asString(rec.claim, 'claim', { maxLength: 500 }) }),
+    ...(rec.replacement !== undefined && {
+      replacement: asString(rec.replacement, 'replacement', { noNewlines: true, maxLength: MAX_UNIT_TEXT_LENGTH }),
+    }),
+  }
 }
 
 export function isCvDocument(doc: ApplicationDocument): doc is CvDocument {

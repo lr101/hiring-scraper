@@ -32,6 +32,11 @@ document), with a category:
 - format: excessive pages, unbalanced paragraphs, or a rewrite longer than its source
   without a clear purpose. Keep each labelled project in one bullet.
 Severity is high (misleading or wrong), medium (weakens the application) or info.
+Flag plausible wording drift as an advisory grounding finding with medium severity.
+For each unit finding, put the exact quoted words from the unit in `claim` where possible,
+a short explanation or suggested fix in `suggestion`, and a complete replacement for that
+unit in `replacement` when the same citations support it. Use empty strings for missing
+claims or replacements. Put slight verb-strength changes here for the applicant to assess.
 
 Patches: for AI-written units ONLY (`origin == "ai"` — never propose patches for kept
 `origin == "source"` base bullets), propose replacement text with a kind:
@@ -51,11 +56,13 @@ Check that:
 - CV headline is at most 70 characters and names 3 verified functional pillars (or 2–3 when
   narrow) covering the posting's core duties and ordered by fit, including cross-functional
   or interface coordination when asked and supported. Leave secondary duties out of the
-  headline. Avoid an unheld role-family label (such as "Product Management" /
-  "Produktmanagement" without formal PM tenure), never elevate a one-off student task into
-  a standalone pillar, and avoid unnecessary diminishing qualifiers.
+  headline. Use the posting's role-family wording for verified functional work and avoid
+  presenting an unheld job title. Never elevate a one-off student task into a standalone
+  pillar. Avoid unnecessary diminishing qualifiers.
 - CV profile has 2–3 distinct, short units of one sentence each. The first starts
-  with a verified professional identity or degree. In German use implicit first person
+  with a verified professional identity whenever work experience exists. Connect the second
+  sentence to the strongest work evidence and the optional third to a relevant analytical or
+  technical strength. Avoid repeating the bullets. In German use implicit first person
   and allow subject-less verb-led clauses after the noun-led opening. In English use
   fluent noun-led or subject-less CV prose. Keep the applicant implied and avoid a
   third-person role subject. Ground each sentence in its own citations and never carry

@@ -12,6 +12,10 @@ import {
   createHistory,
   findUnitById,
   newUnitId,
+  setUnitReviewed,
+  reviewUnits,
+  restoreOriginal,
+  wordDiff,
   pushHistory,
   redoHistory,
   removeUnit,
@@ -150,7 +154,7 @@ assert.equal(splitEntryUnits[1].id, splitResult.newUnitId)
 assert.equal(splitEntryUnits[1].text, 'and improved release stability.')
 assert.equal(splitEntryUnits[1].lead_in, '')
 assert.equal(splitEntryUnits[1].origin, 'user')
-assert.deepEqual(splitEntryUnits[1].sources, [])
+assert.deepEqual(splitEntryUnits[1].sources, splitEntryUnits[0].sources)
 assert.equal(splitEntryUnits[2].id, 'u-5')
 assert.doesNotThrow(() => parseCvDocument(splitResult.document))
 
@@ -304,5 +308,30 @@ itemD.rect = { top: 0, bottom: 14, height: 14 }
 syncInlineSeparators(fakeRoot)
 assert.equal(sepBC.classList.has('doc-cv-inline-sep--hidden'), false)
 assert.equal(sepCD.classList.has('doc-cv-inline-sep--collapsed'), false)
+
+{
+  const cv = makeCv()
+  cv.headline = makeUnit('headline', 'Designed a public workshop.', {
+    original_text: 'Designed a workshop.',
+  })
+  cv.review_sources = { 'cv:work-1:b1': 'Helped design a workshop.' }
+  const accepted = setUnitReviewed(cv, 'headline')
+  assert.equal(parseCvDocument(JSON.parse(JSON.stringify(accepted))).headline.reviewed_text, cv.headline.text)
+  assert.deepEqual(parseCvDocument(accepted).review_sources, cv.review_sources)
+  const edited = updateUnitText(accepted, 'headline', 'Helped design a workshop.')
+  assert.equal(edited.headline.reviewed_text, null)
+  assert.ok(reviewUnits(edited).includes(edited.headline))
+  assert.equal(undoHistory(pushHistory(createHistory(accepted), edited)).present, accepted)
+
+  const original = restoreOriginal(edited, 'headline')
+  assert.equal(original.headline.text, 'Designed a workshop.')
+  assert.equal(original.headline.origin, 'source')
+  assert.ok(!reviewUnits(original).includes(original.headline))
+}
+
+assert.deepEqual(wordDiff('Planned a tour.', 'Led a tour.'), {
+  before: [{ text: 'Planned', changed: true }, { text: ' a tour.', changed: false }],
+  after: [{ text: 'Led', changed: true }, { text: ' a tour.', changed: false }],
+})
 
 console.log('Document editing mutations and undo/redo history passed.')

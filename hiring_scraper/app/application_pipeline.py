@@ -38,7 +38,7 @@ from hiring_scraper.documents.schema import (
 )
 from hiring_scraper.documents.text import unit_full_text
 
-PIPELINE_VERSION = 'application-documents-v2.13'
+PIPELINE_VERSION = 'application-documents-v2.14'
 SLEEP = time.sleep
 PROMPTS = Path(__file__).with_name('prompts')
 DocumentKind = Literal['cv', 'letter']
@@ -147,6 +147,8 @@ class _ReviewFinding(_Response):
     severity: FindingSeverity
     message: str
     suggestion: str
+    claim: str
+    replacement: str
 
 
 class _ReviewPatch(_Text):
@@ -387,10 +389,11 @@ def _ai(unit_id: str, text: _Text, *, role: UnitRole = '', hidden: bool = False,
 
 def _finding(
     kind: DocumentKind, code: FindingCode, message: str, *, severity: FindingSeverity = 'info',
-    unit_id: str | None = None, suggestion: str = '',
+    unit_id: str | None = None, suggestion: str = '', claim: str = '', replacement: str = '',
 ) -> Finding:
     return Finding(id='f-draft', document=kind, unit_id=unit_id, code=code, severity=severity,
-                   message=message[:500], suggestion=suggestion[:500])
+                   message=message[:500], suggestion=suggestion[:500], claim=claim[:500],
+                   replacement=replacement)
 
 
 def _issues_to_findings(kind: DocumentKind, issues: tuple[_ProseIssue, ...] | list[_ProseIssue]) -> list[Finding]:
@@ -584,7 +587,13 @@ def _cv_from_slots(
         used_ids.add(candidate)
         return candidate
 
-    doc.headline = _ai(doc.headline.id, headline, hidden=doc.headline.hidden)
+    original_headline = doc.headline
+    doc.headline = _ai(original_headline.id, headline, hidden=original_headline.hidden,
+                       lead_in=original_headline.lead_in)
+    if doc.headline.text == original_headline.text:
+        doc.headline.origin = 'source'
+    else:
+        doc.headline.original_text = original_headline.text
     profile = next((s for s in doc.sections if s.kind == 'profile'), None)
     if profile is not None:
         profile.units = [
@@ -618,7 +627,9 @@ def _cv_from_slots(
                     if lead_in and text.casefold().startswith(lead_in.casefold()):
                         text = text[len(lead_in):].lstrip(' -–—') or text
                     built_units.append(Unit(
-                        id=base_unit.id, text=text, lead_in=lead_in, origin='ai',
+                        id=base_unit.id, text=text, lead_in=lead_in,
+                        origin='source' if text == base_unit.text else 'ai',
+                        original_text=base_unit.text if text != base_unit.text else None,
                         role=base_unit.role, hidden=False, sources=[choice['source']],
                     ))
                 entry.units = [
@@ -1205,7 +1216,7 @@ def _letter_draft(
         _ai(f'u-letter-p{i}', item, role=item.role) for i, item in enumerate(reply.paragraphs, 1)
     ]
     body_words = sum(len(unit.text.split()) for unit in paragraphs)
-    paragraphs.append(_ai('u-letter-closing', reply.closing, role='close'))
+    paragraphs.append(_ai('u-letter-closing', _SourcedText(text=reply.closing.text, sources=['job']), role='close'))
     company = ' '.join(str(inp.job.get('company_name') or '').split())
     company = re.sub(r'\s*\([^()]*\)\s*$', '', company).strip()[:200]
     city = _recipient_city(' '.join(str(inp.job.get('location') or '').split()))
@@ -1263,6 +1274,17 @@ def _letter_draft(
     return letter
 
 
+def _snapshot_sources(doc: Document, evidence: dict[str, str], inp: PreparationInput) -> None:
+    ids = dict.fromkeys(source for unit in walk_units(doc) if unit.origin == 'ai' for source in unit.sources)
+    source_texts = {source: evidence[source][:13000] for source in ids if source in evidence}
+    if 'job' in ids:
+        source_texts['job'] = '\n'.join(
+            str(inp.job[key]).strip() for key in ('title', 'company_name', 'location', 'description')
+            if inp.job.get(key)
+        )[:13000]
+    doc.review_sources = source_texts
+
+
 def _units(doc: Document) -> list[dict]:
     context = {}
     if isinstance(doc, CvDocument):
@@ -1273,7 +1295,7 @@ def _units(doc: Document) -> list[dict]:
                 for unit in entry.intro + entry.units:
                     context[unit.id] = {'section': section.kind, 'entry_id': entry.id,
                                         'company': entry.locked.company, 'title': entry.locked.title}
-    return [{**unit.model_dump(), 'context': context.get(unit.id, {})}
+    return [{**unit.model_dump(exclude={'original_text', 'ai_edited', 'reviewed_text'}), 'context': context.get(unit.id, {})}
             for unit in walk_units(doc)]
 
 
@@ -1297,13 +1319,23 @@ def _review(
     malformed = 0
     for item in reply.findings:
         try:
-            review = _ReviewFinding.model_validate(item)
-            if review.unit_id is not None and unit_by_id(docs[review.document], review.unit_id) is None:
+            if not isinstance(item, dict):
+                malformed += 1
+                continue
+            review = _ReviewFinding.model_validate({'claim': '', 'replacement': '', **item})
+            unit = unit_by_id(docs[review.document], review.unit_id) if review.unit_id is not None else None
+            if review.unit_id is not None and unit is None:
                 findings.append(_finding(review.document, 'review_format', 'The review referred to an unknown unit.'))
                 continue
+            claim = review.claim.strip()
+            replacement = ' '.join(review.replacement.split())
+            if (len(replacement) > MAX_UNIT_TEXT or not unit or unit.origin != 'ai'
+                    or '\x00' in replacement or re.search(r'[\ud800-\udfff]', replacement)):
+                replacement = ''
             findings.append(_finding(
                 review.document, f'review_{review.category}', _plain(review.message, 500),
                 unit_id=review.unit_id, severity=review.severity, suggestion=review.suggestion,
+                claim=claim if unit and claim in unit.text else '', replacement=replacement,
             ))
         except (ValidationError, _InvalidResponse):
             malformed += 1
@@ -1333,7 +1365,13 @@ def _review(
                 continue
         code = 'review_coverage' if proposed.kind == 'content' else 'review_style'
         findings.append(_finding(kind, code, 'Review suggested a manual wording change.',
-                                 unit_id=unit.id, suggestion=text))
+                                 unit_id=unit.id, suggestion=text, replacement=text if unit.origin == 'ai' else ''))
+    for finding in findings:
+        if finding.claim and (finding.document, finding.unit_id) in touched:
+            edited = unit_by_id(docs[finding.document], finding.unit_id)
+            if edited and finding.claim not in edited.text:
+                finding.replacement = ''
+                finding.claim = ''
     return docs, findings, applied, malformed
 
 
@@ -1574,6 +1612,7 @@ def prepare_documents(
             + render_findings
         )
         timing = complete(stats, started, cv_state)
+        _snapshot_sources(cv, evidence, inp)
         saved = _CvCheckpoint(document=cv, findings=cv_findings, draft_findings=draft_findings,
                               render=renders['cv'], fallback=cv_state == 'fallback', **timing)
         commit(key, saved, {'cv': cv}, cv_findings)
@@ -1616,6 +1655,7 @@ def prepare_documents(
             + render_findings
         )
         timing = complete(stats, started, letter_state)
+        _snapshot_sources(letter, evidence, inp)
         saved = _LetterCheckpoint(document=letter, cv_digest=cv_digest, findings=letter_findings,
                                   render=renders['letter'], non_prose_findings=letter_non_prose_findings, **timing)
         commit(key, saved, {'letter': letter}, letter_findings)

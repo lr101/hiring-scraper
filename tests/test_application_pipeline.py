@@ -142,6 +142,25 @@ class PipelineTests(unittest.TestCase):
                         review or {'findings': [], 'patches': []}))
         return self.prepare(lambda prompt, schema: next(replies), self.hooks, render)
 
+    def test_review_payload_snapshots_cited_evidence_and_original_bullet(self):
+        result = self.run_with()
+        bullet = result.cv['sections'][1]['entries'][0]['units'][0]
+        self.assertEqual(bullet['original_text'], 'Designed a workshop with librarians.')
+        self.assertEqual(result.cv['review_sources']['cv:work-1:b1'], bullet['original_text'])
+        self.assertIn('Plan hands-on exhibits.', result.letter['review_sources']['job'])
+        self.assertEqual(result.telemetry['attempts'], {'cv': 1, 'letter': 1, 'review': 1})
+
+    def test_wording_finding_marks_claim_and_offers_whole_unit_replacement(self):
+        report = {'document': 'cv', 'unit_id': 'u-headline', 'category': 'grounding',
+                  'severity': 'medium', 'message': 'Check the scope of the role.',
+                  'suggestion': 'Use the base title.', 'claim': 'Exhibit',
+                  'replacement': 'Workshop designer'}
+        result = self.run_with(review={'findings': [report], 'patches': []})
+        finding = next(f for f in result.findings if f['message'] == report['message'])
+        self.assertEqual(finding['claim'], 'Exhibit')
+        self.assertEqual(finding['replacement'], 'Workshop designer')
+        self.assertEqual(result.cv['headline']['text'], cv_reply()['headline']['text'])
+
     def test_input_digest_changes_with_effective_voice(self):
         initial = pipeline.input_digest(self.inp)
         for personalization in (

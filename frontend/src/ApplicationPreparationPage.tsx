@@ -582,9 +582,7 @@ function TailoredDocument({
         const unit = finding.unit_id && findUnitById(body, finding.unit_id)
         if (unit) {
           setInstruction(undefined)
-          const replacement = finding.code === 'review_style' || finding.code === 'review_coverage'
-            ? finding.suggestion : unit.text
-          setFindingEdit({ finding, original: unit.text, text: replacement })
+          setFindingEdit({ finding, original: unit.text, text: unit.text })
         }
       }} />
   </>

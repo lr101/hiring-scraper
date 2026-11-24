@@ -48,6 +48,7 @@ FindingCode = Literal[
 FindingSeverity = Literal['high', 'medium', 'info']
 
 SourceId = Annotated[str, Field(min_length=1, max_length=120)]
+ReviewSources = Annotated[dict[SourceId, Annotated[str, Field(max_length=13000)]], Field(max_length=1800)]
 SingleLineStr = Annotated[str, Field(max_length=200)]
 
 
@@ -69,6 +70,17 @@ class Unit(BaseModel):
     sources: list[SourceId] = Field(default_factory=list, max_length=32)
     role: UnitRole = ''
     hidden: bool = False
+    original_text: str | None = Field(default=None, max_length=MAX_UNIT_TEXT)
+    ai_edited: bool = False
+    reviewed_text: str | None = Field(default=None, max_length=MAX_UNIT_TEXT)
+
+    @model_validator(mode='after')
+    def _validate_review(self) -> Unit:
+        if self.original_text is not None:
+            _no_newlines(self.original_text, 'original_text')
+        if self.reviewed_text != self.text or (self.origin != 'ai' and not self.ai_edited):
+            self.reviewed_text = None
+        return self
 
     @field_validator('text')
     @classmethod
@@ -197,6 +209,7 @@ class CvDocument(BaseModel):
     language: DocumentLanguage
     template: DocumentTemplate = 'classic-serif-v1'
     page: PageSize = 'a4'
+    review_sources: ReviewSources = Field(default_factory=dict)
     photo: bool = True
     header: Header
     headline: Unit
@@ -252,6 +265,7 @@ class LetterDocument(BaseModel):
     language: DocumentLanguage
     template: DocumentTemplate = 'classic-serif-v1'
     page: PageSize = 'a4'
+    review_sources: ReviewSources = Field(default_factory=dict)
     sender: Sender
     recipient_lines: list[SingleLineStr] = Field(default_factory=list, max_length=10)
     place_date: str = Field(default='', max_length=200)
@@ -293,6 +307,8 @@ class Finding(BaseModel):
     severity: FindingSeverity
     message: str = Field(min_length=1, max_length=500)
     suggestion: str = Field(default='', max_length=500)
+    claim: str = Field(default='', max_length=500)
+    replacement: str = Field(default='', max_length=MAX_UNIT_TEXT)
 
     @field_validator('unit_id')
     @classmethod
@@ -341,6 +357,9 @@ def _patch_unit(
     data = unit.model_dump()
     data['text'] = text
     data['origin'] = origin
+    if text != unit.text or (lead_in is not None and lead_in != unit.lead_in):
+        data['reviewed_text'] = None
+        data['ai_edited'] = origin == 'user' and (unit.origin == 'ai' or unit.ai_edited)
     if lead_in is not None:
         data['lead_in'] = lead_in
     if sources is not None:
