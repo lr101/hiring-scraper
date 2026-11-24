@@ -121,12 +121,18 @@ export function safeContactHref(contact: Contact): string | null {
   return null
 }
 
+/** `YYYY-MM` reads as `MM/YYYY`; a bare year stays as it is. */
+function formatEntryDate(value: string): string {
+  const match = /^(\d{4})-(\d{2})$/.exec(value)
+  return match ? `${match[2]}/${match[1]}` : value
+}
+
 export function formatEntryDates(locked: EntryLocked, language: DocumentLanguage): string {
-  const start = locked.start.trim()
-  const end = (locked.end ?? '').trim()
-  const effectiveEnd = locked.current ? (language === 'de' ? 'heute' : 'Present') : end
+  const start = formatEntryDate(locked.start.trim())
+  const end = formatEntryDate((locked.end ?? '').trim())
+  const effectiveEnd = locked.current ? (language === 'de' ? 'heute' : 'present') : end
   if (start && effectiveEnd && start !== effectiveEnd) {
-    return `${start}-${effectiveEnd}`
+    return `${start} – ${effectiveEnd}`
   }
   return start || effectiveEnd
 }
