@@ -20,7 +20,9 @@ development, run the same modules with `python -m hiring_scraper.app.<module>`.
 | Discovery worker | `app.discovery_worker` | Runs search-area campaigns: finds employers from OpenStreetMap, resolves missing homepages, and discovers career pages and ATS feeds. |
 | Search snapshot worker | `app.search_snapshot_worker` | Rebuilds materialized job-search snapshots so browsing does not wait for ranking. |
 | Semantic search worker | `app.semantic_search_worker` | Hosts the pinned local multilingual E5 embedding model and indexes companies and jobs. |
-| Profile match worker | `app.profile_match_worker` | Rebuilds stale profile matches using local rules and local semantic evidence. |
+| Job analysis worker | `app.job_analysis_worker` | Drains the job analysis and pair evidence queues with the local `llm` and `llm-reranker` containers (see `docs/local-models.md`). |
+| Model containers | `llm`, `llm-reranker` | llama.cpp servers for the pinned Qwen3.5-4B (posting analysis) and Qwen3-Reranker-0.6B (CV evidence checks). CPU only. |
+| Profile match worker | `app.profile_match_worker` | Scores profiles against jobs from stored analyses and evidence (no inference) and rebuilds stale matches. |
 | Application preparation worker | `app.application_preparation_worker` | Runs inference and PDF rendering on separate threads with independent PostgreSQL queues. |
 
 PostgreSQL (with PostGIS and pgvector) is the only database. Development and tests use
@@ -39,9 +41,10 @@ flowchart LR
     Manual[Job feeds page<br/>HTML, browser, RSS, ATS, BA] --> Feeds
     Feeds --> FeedWorker[Feed worker]
     FeedWorker --> Jobs[(Jobs + locations)]
-    Jobs --> Semantic[Semantic search worker]
-    Jobs --> Match[Profile match worker]
-    Semantic --> Match
+    Jobs --> Analysis[Job analysis worker<br/>LLM + reranker containers]
+    Semantic[Semantic search worker<br/>E5 embeddings] --> Analysis
+    Analysis --> Match[Profile match worker]
+    Jobs --> Match
     Match --> Journey[Journey and job detail]
     Jobs --> Snap[Search snapshot worker] --> API[API + frontend]
 ```
@@ -55,9 +58,12 @@ flowchart LR
     `discovery.py`, `pages.py`, `geography.py`.
   - Job extraction: `ats.py` (Greenhouse, Lever, Personio, Ashby, Recruitee,
     SmartRecruiters, RSS/Atom), `html_jobs.py`, `regional.py` (BA Jobsuche).
-  - Matching: `matching.py`, `requirements.py`, `duty_evidence.py`,
-    `task_alignment.py`, `semantic_matching.py` and `matching_v2/` (gates, feature extraction,
-    weights, DEV-only fitter and calibration). `election_data.py` supplies optional city context.
+  - Matching: `job_analysis.py` (posting lines, LLM prompt and grammar, grounding of quotes),
+    `matching_v3/` (CV evidence units, reranker evidence, additive scorer and calibration),
+    `gates/` (eligibility: language, work permit, on-site, excluded titles, credentials),
+    `requirements.py` (sentence scoping), `matching.py` (job enrichment and skill vocabulary for
+    display) and `semantic_matching.py` (pinned E5 model identity). `election_data.py` supplies
+    optional city context.
 - `hiring_scraper/documents/` — database-free CV and letter schemas, marked TeX and
   DOCX import, marked-text projection, evidence, grounding and editorial checks.
 - `hiring_scraper/app/` — persistence, API routers, workers and application preparation.
@@ -121,8 +127,9 @@ fills saved profile facts and can capture employer form questions. See the
   City and state searches show these independently.
 - **Provenance over guesses.** Homepages, employers and locations keep their source
   evidence; unknown values stay unknown. A shared domain alone does not merge employers.
-- **Reads never infer.** API requests use cached matches; local embeddings and
-  application drafting run in workers, outside database transactions, and publish only if inputs are unchanged.
+- **Reads never infer.** API requests use cached matches; local model inference (job analysis,
+  evidence checks, embeddings) and application drafting run in workers, outside database
+  transactions, and publish only if inputs are unchanged.
 - **Profile data stays private.** Application prompts use saved career facts, not inferred
   abilities; profile photos are never sent to the model.
 
@@ -135,29 +142,32 @@ Several processes write to the same PostgreSQL database. Keep these rules when a
   `user_profiles`. The one exception is retiring jobs that have saved Journey stages: it
   holds the owning profiles `FOR SHARE` (through `before_publish`) while closing them.
 - **Declare every source change.** After editing jobs, feeds, companies, profiles or
-  vectors, call the matching `source_changes.*_changed()` function before
+  model outputs, call the matching `source_changes.*_changed()` function before
   commit. It drops caches whose inputs changed and queues rematching. Undeclared tracked
   writes fail tests (strict mode) and log an error in production.
-- **Derived data is rebuilt from queues.** A declared job change is queued in `match_dirty_jobs`; companies and jobs needing vectors are queued
-  in `semantic_search_refreshes` by database triggers. Workers drain these queues. Only profile-wide scoring inputs
-  (career/matching preferences, `low_afd_vote_share_weight`, `search_area`, CV career facts, profile vectors, or matcher/semantic versions) mark a whole profile stale via `_profile_index_version`.
+- **Derived data is rebuilt from queues.** A declared job change is queued in `match_dirty_jobs` and, when its text
+  changed or it was never analysed, in `job_analysis_queue`; companies and jobs needing search vectors are queued
+  in `semantic_search_refreshes` by database triggers. Published analyses and changed CV evidence units queue pairs in
+  `match_evidence_queue`. Workers drain these queues. Only profile-wide scoring inputs
+  (career/matching preferences, `low_afd_vote_share_weight`, `search_area`, CV career facts, or the matcher version)
+  mark a whole profile stale via `_profile_index_version`.
 - **Presentation defaults avoid full rebuilds.** Changing only `matching_defaults.min_match_score` or
   `matching_defaults.include_unknown` does not change `_profile_index_version` or clear `profile_job_matches`; saving those
   fields calls `source_changes.profile_changed(..., presentation_only=True)` (bumping `source_version` to serialize against
-  in-flight workers without dropping vectors or `match_index_version`) and runs
+  in-flight workers without touching `match_index_version`) and runs
   `reevaluate_profile_new_applications`, which shares `application_match_allowed` with the
   workers, leaves user-decided stages untouched, and defers dirty/stale/legacy rows to `match_dirty_jobs` (`ON CONFLICT DO
   NOTHING`).
 - **One match computation, single-snapshot reads, and version-stamped explanations.** Indexers (`job_search.py`) and
-  read fallbacks (`search_snapshots.py`, `journey.py`) share `match_compute.compute_match` (local rules + local semantic evidence).
+  read fallbacks (`search_snapshots.py`, `journey.py`) share `match_compute.compute_match` (gates + stored analysis and evidence).
   Every `profile_job_matches` upsert stores a JSONB-safe (NUL/surrogate/non-finite stripped) `explanation` bounded to
   `<= 16 KiB` on the final `json.dumps(..., allow_nan=False)` wire bytes (including `requirement_observations` and
-  `local_context.city_election_results`), stamped with internal provenance `_stamp` (`job` revision and `sem` hashes;
+  `local_context.city_election_results`), stamped with internal provenance `_stamp` (`job` revision and `sem`, the analysis and evidence hashes;
   stripped before returning) and `score_version` (`current_score_version()`) with
   `explanation['score'] == match_score`. Read paths validate `profile_job_matches`, `match_dirty_jobs`, `user_profiles`
-  and `match_semantic_documents.source_hash`
+  and the `job_analyses`/`match_evidence` hashes
   in ONE consistent SQL statement (`load_stored_match_snapshots`) for only the displayed `(profile_id, job_id)` pairs,
-  loading vectors only on fallback. Indexed search treats a missing `profile_job_matches` row as an
+  loading model output payloads only on fallback. Indexed search treats a missing `profile_job_matches` row as an
   authoritative `profile_conflict` only when the profile index is current and the job is not dirty, and recomputes via
   `compute_match` otherwise. Journey keeps rank and card score consistent, local-only: stale/dirty rows with a faithful
   stored explanation render the same ranked stored card flagged `'refreshing': True` (with `matching_pending = True`);
@@ -194,34 +204,33 @@ Several processes write to the same PostgreSQL database. Keep these rules when a
   `database.retry_transient()`, and log loop failures with `database.log_worker_failure()`
   (one warning line for contention, a traceback for bugs).
 - **No unbounded periodic scans.** Poll loops must do O(batch) work when idle. Backfills
-  use bounded id windows and stop once complete; the profile/job vector refresh checks the
-  rematch queue and new ids first, then sweeps one id window at a time.
+  use bounded id windows and stop once complete; the job analysis worker only reads its
+  own queues, so an idle cycle costs O(1).
   `tests/test_postgres_idle_cost.py` measures every worker's idle cycle at two inventory
   sizes and fails if its cost grows; add new poll loops to it.
 
-## Matcher rollout
+## Matcher v3
 
-`RADIUS_MATCHER=v2` is the default. Set `RADIUS_MATCHER=v1` to return to the previous matcher
-for this release.
-Use the same setting for the API and all workers. Both the stored
-score version and the profile index version include the active matcher version,
-so switching queues the usual background rebuild. Journey retains user-selected
-stages and displays faithful stored cards while their scores refresh. V2 promotion
-requires passing the target gates for both the overall and heldout splits of each
-evaluation dataset.
+Matching is local and model-based; the static keyword matchers (v1, v2) are removed.
+`docs/local-models.md` describes the pipeline. In short: a local LLM lists each posting's
+duties and requirements as verbatim, line-cited quotes (benefits and company text are
+never items); a local reranker checks each item against the closest CV lines, reading
+the job's occupation and industry; `matching_v3.score` adds five evidence components,
+bounded penalties and a DEV-fitted monotone calibration.
 
-V2 adds evidence and preference contributions into a raw score and maps it
-monotonically onto 0–100 using DEV-fitted knots. Cached local semantic evidence
-averages up to three duty or requirement chunks and accounts for each posting's
-similarity distribution. Job semantic inputs keep technical evidence from mixed
-clauses after language and work authorization text is removed. The match semantic
-worker refreshes its versioned vectors, and rules remain available in the meantime.
+A job without a usable analysis or pair evidence is `pending`: stored with score 0,
+never turned into a Journey New card, and shown as analysing. After an edit, the
+previous analysis (status `stale`) and evidence stay in use until replaced; evidence
+is only joined to the exact analysis revision it was computed for.
 
-Visible language and work authorization flags can deduct up to five points combined.
+Visible language and work authorization flags can deduct up to two points combined.
 The matcher hides a job only when it can cite an explicit incompatibility in both
 the posting and saved profile. Stored explanations include gate citations, the
 contribution ledger and calibration within the same 16 KiB limit. When space is
 tight, the projection shortens quotes while preserving contribution totals.
+
+The evaluation (`tests/eval`) scores from recorded model outputs, so CI needs no
+models; regenerate them after a model, prompt or query change.
 
 ## Testing
 

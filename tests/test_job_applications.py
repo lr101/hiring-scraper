@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from hiring_scraper.app import match_compute
 from hiring_scraper.app import api, journey, job_search, models, profiles, source_changes
+from tests.model_outputs import analyse_all
 from tests import pg
 
 
@@ -355,6 +356,8 @@ class JobApplicationTests(unittest.TestCase):
     def test_background_rebuild_populates_journey_and_preserves_saved_stages(self):
         self.save(self.jobs[0], 'interview')
         refresh = job_search.refresh_profile_match_indexes_once
+        self.session.commit()
+        analyse_all(self.engine, drain_rematch=False)
         with patch.object(job_search, 'SessionLocal', sessionmaker(bind=self.engine)):
             self.assertTrue(refresh())
             # The other saved profile is also stale and is processed next.

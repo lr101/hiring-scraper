@@ -7,25 +7,29 @@ from dataclasses import dataclass
 import hashlib
 import json
 import math
-import os
 import re
 from typing import Any
 
 from sqlalchemy import and_, select, tuple_
-from sqlalchemy.orm import aliased, object_session
+from sqlalchemy.orm import object_session
 
 from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.models import (
     Job,
+    JobAnalysis,
     MatchDirtyJob,
-    MatchSemanticDocument,
+    MatchEvidence,
     ProfileJobMatch,
     UserProfile,
 )
-from hiring_scraper.app.profile_semantics import cached_semantic_evidence, load_semantic_documents
-from hiring_scraper.matching import VERSION as MATCHING_VERSION, match_job
-from hiring_scraper.matching_v2 import VERSION as MATCHING_V2_VERSION, match_job_v2
-from hiring_scraper.semantic_matching import VERSION as SEMANTIC_VERSION
+from hiring_scraper.app.match_documents import (
+    USABLE_ANALYSIS_STATUSES,
+    documents_stamp,
+    evidence_stamp,
+    load_match_documents,
+    pair_inputs,
+)
+from hiring_scraper.matching_v3 import VERSION as MATCHING_VERSION, match_job_v3
 
 EXPLANATION_MAX_BYTES = 16 * 1024
 _TRUNCATED_ITEM = '... (truncated)'
@@ -62,9 +66,11 @@ _REQUIREMENT_OBSERVATION_FIELDS = (
     'unit',
     'scope',
     'modality',
+    'strength',
 )
 _REQUIREMENT_OBSERVATION_SHORT_FIELDS = frozenset({
     'kind',
+    'strength',
     'status',
     'job_source',
     'evidence_source',
@@ -109,8 +115,15 @@ class MatchSnapshot:
     profile_source_version: int | None
     match: MatchRowState | None
     dirty_revision: str | None
-    job_semantic_hash: str | None
-    profile_semantic_hash: str | None
+    analysis_hash: str | None
+    evidence_analysis_hash: str | None
+    evidence_units_hash: str | None
+    evidence_version: str | None = None
+
+    @property
+    def evidence_stamp(self) -> str:
+        return evidence_stamp(self.analysis_hash, self.evidence_analysis_hash,
+                              self.evidence_units_hash, self.evidence_version)
 
     @property
     def dirty(self) -> bool:
@@ -147,17 +160,8 @@ def apply_profile_match_scope(match: dict, scope: dict | None) -> dict:
     return match
 
 
-def _active_matcher():
-    setting = os.environ.get('RADIUS_MATCHER', 'v2').strip().lower()
-    if setting == 'v1':
-        return match_job, MATCHING_VERSION
-    if setting == 'v2':
-        return match_job_v2, MATCHING_V2_VERSION
-    raise ValueError('RADIUS_MATCHER must be v1 or v2')
-
-
 def active_matcher_version() -> str:
-    return _active_matcher()[1]
+    return MATCHING_VERSION
 
 
 def _compose_score_version(components: dict[str, str]) -> str:
@@ -168,10 +172,7 @@ def _compose_score_version(components: dict[str, str]) -> str:
 
 def current_score_version() -> str:
     """Composite version stamping stored local explanations (<= 80 chars)."""
-    return _compose_score_version({
-        'matcher': active_matcher_version(),
-        'semantic': SEMANTIC_VERSION,
-    })
+    return _compose_score_version({'matcher': active_matcher_version()})
 
 
 def job_revision(job, *, source: dict | None = None) -> str:
@@ -186,20 +187,9 @@ def job_revision(job, *, source: dict | None = None) -> str:
     return hashlib.sha256(encoded.encode('utf-8')).hexdigest()[:32]
 
 
-def semantic_stamp(job_semantic_hash: str | None, profile_semantic_hash: str | None) -> str:
-    """Combined revision of the job and profile semantic vector rows (or empty when absent)."""
-    return f'{job_semantic_hash or ""}:{profile_semantic_hash or ""}'
-
-
-def documents_semantic_stamp(documents, job_id: int | None, profile_id: int | None) -> str:
-    """Read semantic document hashes from a loaded SemanticDocuments bundle."""
-    if documents is None or job_id is None or profile_id is None:
-        return semantic_stamp(None, None)
-    job_doc = documents.get(('job', job_id)) if hasattr(documents, 'get') else None
-    profile_doc = documents.get(('profile', profile_id)) if hasattr(documents, 'get') else None
-    job_hash = getattr(job_doc, 'source_hash', None) if getattr(job_doc, 'version', SEMANTIC_VERSION) == SEMANTIC_VERSION else None
-    profile_hash = getattr(profile_doc, 'source_hash', None) if getattr(profile_doc, 'version', SEMANTIC_VERSION) == SEMANTIC_VERSION else None
-    return semantic_stamp(job_hash, profile_hash)
+def documents_evidence_stamp(documents, job_id: int | None, profile_id: int | None) -> str:
+    """Identity of the job analysis and pair evidence in a loaded MatchDocuments bundle."""
+    return documents_stamp(documents, job_id, profile_id)
 
 
 def provenance_stamp(
@@ -209,10 +199,10 @@ def provenance_stamp(
     *,
     source: dict | None = None,
 ) -> dict[str, Any]:
-    """Capture the exact job and semantic revisions that produced a stored match."""
+    """Capture the exact job revision and model outputs that produced a stored match."""
     return {
         'job': job_revision(job, source=source),
-        'sem': documents_semantic_stamp(documents, getattr(job, 'id', None), profile_id),
+        'sem': documents_evidence_stamp(documents, getattr(job, 'id', None), profile_id),
     }
 
 
@@ -230,17 +220,15 @@ def compute_match(
     resolved_source = job_input(job) if source is None else source
     resolved_enrichment = current_enrichment(job) if enrichment is None else enrichment
     if documents is None:
-        documents = load_semantic_documents(_session_for(job, profile), [job], [profile])
-    match_fn = _active_matcher()[0] if matcher is None else matcher
-    preferences = profile.matching_preferences
-    semantic = cached_semantic_evidence(
-        resolved_source, preferences, job.id, profile.id, documents, aggregate=match_fn is match_job_v2,
-    )
+        documents = load_match_documents(_session_for(job, profile), [job], [profile])
+    match_fn = match_job_v3 if matcher is None else matcher
+    analysis, evidence = pair_inputs(documents, job.id, profile.id)
     local = match_fn(
         resolved_source,
-        preferences,
+        profile.matching_preferences,
         resolved_enrichment,
-        **({'semantic': semantic} if semantic else {}),
+        analysis=analysis,
+        evidence=evidence,
     )
     return apply_profile_match_scope(local, scope)
 
@@ -513,9 +501,13 @@ def _build_explanation_pass(
         'language_review': bool(result.get('language_review', False)),
         'task_fit': _json_safe(result.get('task_fit')),
         'qualification_fit': _json_safe(result.get('qualification_fit')),
-        'static_rank_basis': _trim_text(result.get('static_rank_basis'), 80)
-        if result.get('static_rank_basis') is not None else None,
+        'pending': bool(result.get('pending', False)),
     }
+    job_context = result.get('job_context')
+    if isinstance(job_context, dict):
+        explanation['job_context'] = {
+            key: _trim_text(job_context.get(key), 120) for key in ('occupation', 'industry')
+        }
     if len(raw_label) > gate_chars:
         truncated = True
     for field in _STRING_LIST_FIELDS:
@@ -563,14 +555,18 @@ def _build_explanation_pass(
         ledger = result.get('explanation') or []
         explanation['explanation'], ledger_trimmed = _project_cited_rows(
             ledger, ('signal', 'detail', 'job_quote', 'profile_source', 'profile_quote'),
-            max_items=len(ledger), text_chars=min(nested_chars, 160), numeric_fields=('contribution',),
+            max_items=len(ledger), text_chars=min(nested_chars, 160),
+            numeric_fields=('contribution', 'max_points', 'supported', 'total'),
         )
-        explanation['prerequisite_conditions'], conditions_trimmed = _project_cited_rows(
-            result.get('prerequisite_conditions'),
-            ('kind', 'gate', 'status', 'reason', 'job_source', 'job_quote', 'profile_source', 'profile_quote'),
-            max_items=max(2, obs_limit), text_chars=nested_chars,
-        )
-        truncated = truncated or ledger_trimmed or conditions_trimmed
+        truncated = truncated or ledger_trimmed
+    # Cited gate outcomes are kept for pending jobs too: an explicit conflict is shown
+    # before the local models have read the posting.
+    explanation['prerequisite_conditions'], conditions_trimmed = _project_cited_rows(
+        result.get('prerequisite_conditions'),
+        ('kind', 'gate', 'status', 'reason', 'job_source', 'job_quote', 'profile_source', 'profile_quote'),
+        max_items=max(2, obs_limit), text_chars=nested_chars,
+    )
+    truncated = truncated or conditions_trimmed
     if stamp is not None:
         explanation[_STAMP_KEY] = _json_safe(stamp)
     if truncated:
@@ -643,6 +639,7 @@ def build_explanation(
         'uncertain': bool(result.get('uncertain', False)),
         'mandatory_review': bool(result.get('mandatory_review', False)),
         'language_review': bool(result.get('language_review', False)),
+        'pending': bool(result.get('pending', False)),
         'truncated': True,
     }
     if stamp is not None:
@@ -698,7 +695,7 @@ def explanation_is_current(
     dirty: bool,
     profile_stale: bool,
     job_revision: str,
-    semantic_hash: str,
+    evidence_hash: str,
     expected_version: str | None = None,
 ) -> bool:
     """Pure decision: whether a stored ProfileJobMatch explanation is current and faithful."""
@@ -719,7 +716,7 @@ def explanation_is_current(
         return False
     if stamp.get('job') != job_revision:
         return False
-    return stamp.get('sem') == semantic_hash
+    return stamp.get('sem') == evidence_hash
 
 
 def select_journey_card(
@@ -767,8 +764,6 @@ def build_stored_match_snapshot_query(pairs: list[tuple[int, int]]):
     Loads zero vector blobs or section JSON; all invalidation markers come from
     the same PostgreSQL MVCC snapshot as ``ProfileJobMatch``.
     """
-    job_sem = aliased(MatchSemanticDocument)
-    prof_sem = aliased(MatchSemanticDocument)
     profile_ids = sorted({int(profile_id) for profile_id, _ in pairs})
     job_ids = sorted({int(job_id) for _, job_id in pairs})
     pair_filter = and_(
@@ -789,8 +784,10 @@ def build_stored_match_snapshot_query(pairs: list[tuple[int, int]]):
             ProfileJobMatch.explanation.label('explanation'),
             ProfileJobMatch.score_version.label('score_version'),
             MatchDirtyJob.revision.label('dirty_revision'),
-            job_sem.source_hash.label('job_semantic_hash'),
-            prof_sem.source_hash.label('profile_semantic_hash'),
+            JobAnalysis.result_hash.label('analysis_hash'),
+            MatchEvidence.analysis_hash.label('evidence_analysis_hash'),
+            MatchEvidence.units_hash.label('evidence_units_hash'),
+            MatchEvidence.version.label('evidence_version'),
         )
         .select_from(UserProfile)
         .join(Job, pair_filter)
@@ -803,17 +800,18 @@ def build_stored_match_snapshot_query(pairs: list[tuple[int, int]]):
         )
         .outerjoin(MatchDirtyJob, MatchDirtyJob.job_id == Job.id)
         .outerjoin(
-            job_sem,
+            JobAnalysis,
             and_(
-                job_sem.job_id == Job.id,
-                job_sem.version == SEMANTIC_VERSION,
+                JobAnalysis.job_id == Job.id,
+                JobAnalysis.status.in_(USABLE_ANALYSIS_STATUSES),
             ),
         )
         .outerjoin(
-            prof_sem,
+            MatchEvidence,
             and_(
-                prof_sem.profile_id == UserProfile.id,
-                prof_sem.version == SEMANTIC_VERSION,
+                MatchEvidence.profile_id == UserProfile.id,
+                MatchEvidence.job_id == Job.id,
+                MatchEvidence.analysis_hash == JobAnalysis.result_hash,
             ),
         )
     )
@@ -856,8 +854,10 @@ def load_stored_match_snapshots(
                 profile_source_version=row.profile_source_version,
                 match=match,
                 dirty_revision=row.dirty_revision,
-                job_semantic_hash=row.job_semantic_hash,
-                profile_semantic_hash=row.profile_semantic_hash,
+                analysis_hash=row.analysis_hash,
+                evidence_analysis_hash=row.evidence_analysis_hash,
+                evidence_units_hash=row.evidence_units_hash,
+                evidence_version=row.evidence_version,
             )
     return snapshots
 
@@ -875,13 +875,12 @@ def snapshot_explanation_is_current(
         return False
     profile_stale = snapshot.profile_index_version != expected_profile_index_version
     resolved_job_rev = job_revision(job) if job_rev is None else job_rev
-    sem_hash = semantic_stamp(snapshot.job_semantic_hash, snapshot.profile_semantic_hash)
     return explanation_is_current(
         snapshot.match,
         dirty=snapshot.dirty,
         profile_stale=profile_stale,
         job_revision=resolved_job_rev,
-        semantic_hash=sem_hash,
+        evidence_hash=snapshot.evidence_stamp,
         expected_version=current_score_version(),
     )
 
@@ -920,7 +919,7 @@ def stored_match_explanation(
         dirty=bool(dirty_job_ids is not None and job.id in dirty_job_ids),
         profile_stale=bool(profile_stale),
         job_revision=job_revision(job),
-        semantic_hash=documents_semantic_stamp(documents, getattr(job, 'id', None), getattr(profile, 'id', None)),
+        evidence_hash=documents_evidence_stamp(documents, getattr(job, 'id', None), getattr(profile, 'id', None)),
         expected_version=expected_version or current_score_version(),
     )
     if not is_current:

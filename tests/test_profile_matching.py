@@ -102,38 +102,6 @@ class ProfileMatchingTests(unittest.TestCase):
         self.assertEqual(result['experience_years']['value'], 3)
         self.assertIn('German', [row['value'] for row in result['languages']])
 
-    def test_unknown_job_data_is_not_treated_as_a_perfect_fit_or_a_conflict(self):
-        engine = self.engine()
-        job = {'title': 'Software Engineer', 'description': None}
-        result = engine.match_job(job, {'skills': ['Python'], 'desired_roles': ['Software developer'],
-                                       'work_styles': ['remote']})
-        self.assertTrue(result['eligible'])
-        self.assertTrue(result['uncertain'])
-        self.assertIn('Work style not stated', result['unknowns'])
-        self.assertLess(result['score'], 65)
-        self.assertEqual(result['missing_skills'], [])
-
-    def test_known_preferences_and_minimum_experience_produce_explicit_conflicts(self):
-        result = self.engine().match_job({'title': 'Senior Python Developer',
-            'work_arrangement': 'onsite', 'employment_type': 'FULL_TIME',
-            'description': 'Python and SQL. At least 5 years of experience.'},
-            {'skills': ['Python'], 'desired_roles': ['Developer'], 'work_styles': ['remote'],
-             'employment_types': ['part_time'], 'experience_years': 2})
-        self.assertFalse(result['eligible'])
-        self.assertEqual(len(result['conflicts']), 3)
-        self.assertIn('Requires at least 5 years; profile has 2', result['conflicts'])
-
-    def test_role_and_skill_evidence_rank_developer_above_incidental_mention(self):
-        engine = self.engine()
-        profile = {'skills': ['Python', 'SQL'], 'desired_roles': ['Software developer']}
-        developer = engine.match_job({'title': 'Python Softwareentwickler',
-            'description': 'Develop backend services using Python and SQL.' * 8}, profile)
-        accountant = engine.match_job({'title': 'Finance Manager',
-            'description': 'Accounting and financial reporting; Python is a nice to have.' * 8}, profile)
-        self.assertGreater(developer['score'], accountant['score'])
-        self.assertEqual(developer['matched_skills'], ['Python', 'SQL'])
-        self.assertIn('Role matches Software developer', developer['reasons'])
-        self.assertLess(accountant['score'], 65)
 
     def test_cv_import_suggests_aliases_and_never_executes_embedded_content(self):
         result = self.engine().extract_profile_skills('Kenntnisse: JS, Postgres, Buchhaltung. <script>Java</script>')
@@ -162,11 +130,6 @@ class ProfileMatchingTests(unittest.TestCase):
         body = '<script type="application/ld+json">' + json.dumps(posting) + '</script>'
         self.assertEqual(engine.detail_updates(job, body, url), {})
 
-    def test_optional_languages_do_not_become_hard_requirements(self):
-        result = self.engine().match_job({'title': 'Developer',
-            'description': 'Python. Fluent German is a nice to have.'},
-            {'skills': ['Python'], 'languages': ['English']})
-        self.assertTrue(result['eligible'])
 
     def test_employer_history_is_not_inferred_as_required_experience(self):
         result = self.engine().enrich_job({'title': 'Junior Developer',
@@ -185,10 +148,6 @@ class ProfileMatchingTests(unittest.TestCase):
         self.assertTrue(result, 'Verified detail refresh must replace outdated content')
         self.assertIn('Java', result['description'])
 
-    def test_skill_only_profiles_can_reach_strong_overlap(self):
-        result = self.engine().match_job({'title': 'Developer',
-            'description': 'We build Python and SQL services. ' * 20}, {'skills': ['Python', 'SQL']})
-        self.assertEqual(result['score'], 100)
 
     def test_malformed_structured_url_is_ignored(self):
         body = '<script type="application/ld+json">{"@type":"JobPosting","url":{"bad":true},"title":"Developer"}</script>'
@@ -230,33 +189,6 @@ class ProfileMatchingTests(unittest.TestCase):
         body='<script type="application/ld+json">'+json.dumps(posting)+'</script>'
         result=self.engine().detail_updates({'title':'Developer','url':source},body,final)
         self.assertTrue(result, 'Canonical redirect must not discard the same verified posting')
-
-    def test_multiple_employment_types_accept_any_matching_preference(self):
-        result=self.engine().match_job({'title':'Developer','employment_type':'FULL_TIME, PART_TIME',
-            'description':'Python '*100},{'skills':['Python'],'employment_types':['full_time']})
-        self.assertTrue(result['eligible'])
-
-    def test_custom_skills_match_explicit_structured_fields(self):
-        result=self.engine().match_job({'title':'Developer','raw_metadata':{'skills':'Elixir'}}, {'skills':['Elixir']})
-        self.assertEqual(result['matched_skills'],['Elixir'])
-        self.assertGreater(result['score'],0)
-
-    def test_specific_backend_interest_does_not_match_a_frontend_title(self):
-        result=self.engine().match_job({'title':'Frontend Developer', 'description':'JavaScript and React '*30},
-            {'skills':['Python'],'desired_roles':['Backend']})
-        self.assertEqual(result['score'],0)
-
-    def test_multi_level_jobs_accept_a_matching_seniority(self):
-        result=self.engine().match_job({'title':'Junior / Senior Python Developer','description':'Python '*100},
-            {'skills':['Python'],'seniority_levels':['senior']})
-        self.assertTrue(result['eligible'])
-
-    def test_explicit_requirements_are_unknown_when_profile_evidence_is_missing(self):
-        result=self.engine().match_job({'title':'Python Developer',
-            'description':'Python. At least 5 years of experience. Fluent German. '*20}, {'skills':['Python']})
-        self.assertTrue(result['uncertain'])
-        self.assertIn('Profile experience not provided',result['unknowns'])
-        self.assertIn('Profile languages not provided',result['unknowns'])
 
 
 class QuantifiedScriptingRequirementTests(unittest.TestCase):
@@ -312,47 +244,4 @@ class QuantifiedScriptingRequirementTests(unittest.TestCase):
                 self.assertEqual(signals['requirements'], [])
                 self.assertEqual(signals.get('deferred_requirements', []), [])
 
-    def test_hydrated_alternative_does_not_create_false_skill_gaps_for_qualified_or_unknown_profiles(self):
-        from hiring_scraper.matching import detail_updates, enrich_job, match_job
-        url = 'https://example.org/jobs/linux-administrator'
-        job = {'title': 'Senior LINUX Administrator (all)', 'url': url}
-        body = ('<main><h1>Senior LINUX Administrator (all)</h1>'
-                '<h3>Wenn folgende Aufgaben Dich begeistern:</h3>'
-                '<p>Wir betreiben Linux Server und dokumentieren technische Lösungen '
-                'für unsere Kunden mit zuverlässigen Abläufen und sorgfältiger Überwachung.</p>'
-                '<h3>Wenn Du folgende Voraussetzungen mitbringst:</h3>'
-                '<ul><li>' + self.clause + '</li></ul></main>')
-        hydrated = {**job, **detail_updates(job, body, url)}
-        self.assertIn(self.clause, hydrated['description'])
-        hydrated['enrichment'] = enrich_job(hydrated)
-        for alternative in ['Python', 'Ruby', 'bash', None]:
-            with self.subTest(alternative=alternative):
-                profile = {'skills': ['Linux'] + ([alternative] if alternative else []),
-                           'desired_roles': [job['title']], 'experience_years': 10}
-                result = match_job(hydrated, profile)
-                self.assertEqual(result['requirement_gaps'], [])
-                self.assertEqual(result['conflicts'], [])
-                self.assertEqual(result['uncertain'], alternative is None)
-                self.assertEqual(len(result['unknowns']), int(alternative is None))
-                if alternative is None:
-                    self.assertIn(self.clause, result['unknowns'][0])
-                if alternative in {'bash', None}:
-                    self.assertIn('Python', result['missing_skills'])
-                    self.assertIn('Ruby', result['missing_skills'])
 
-    def test_deferred_alternative_needs_explicit_skill_or_professional_evidence(self):
-        from hiring_scraper.matching import match_job
-        job = {'title': 'Administrator', 'description': self.clause + '\n' + 'Linux administration. ' * 20}
-        for evidence, skills, desired_roles, uncertain in [
-            ({'Perl': {'context': 'professional'}}, ['Linux'], [], False),
-            ({'Perl': {'context': 'incidental'}}, ['Linux'], [], True),
-            ({'Python': {'context': 'academic'}}, ['Linux'], [], True),
-            ({}, ['Linux', 'python'], [], False),
-            ({}, ['Linux', 'Python tooling'], ['Python Administrator'], True),
-        ]:
-            with self.subTest(evidence=evidence, skills=skills, roles=desired_roles):
-                result = match_job(job, {'skills': skills, 'skill_evidence': evidence,
-                                         'desired_roles': desired_roles, 'experience_years': 10})
-                self.assertEqual(result['uncertain'], uncertain)
-                self.assertEqual(result['requirement_gaps'], [])
-                self.assertEqual(result['conflicts'], [])

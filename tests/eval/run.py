@@ -1,8 +1,12 @@
 """Offline evaluation runner for Radius job matchers.
 
 Usage:
-    python -m tests.eval.run [--dataset public|private] [--matcher v1] [--split all|dev|heldout]
+    python -m tests.eval.run [--dataset public|private] [--matcher v3] [--split all|dev|heldout]
                              [--json out.json] [--write-baseline]
+
+The ``v3`` matcher scores from recorded local-model outputs (``<dataset>/v3/analyses.json``
+and ``evidence.json``, written by ``python -m tests.eval.v3_fixtures``), so the evaluation
+runs offline and deterministically in CI.
 
 ``public`` (default) is the committed fictional composite set in ``tests/eval/public``; its
 baselines live in ``tests/eval/baseline.json``. ``private`` is the gitignored real-CV set in
@@ -22,13 +26,13 @@ from collections import Counter, defaultdict
 from collections.abc import Callable
 from pathlib import Path
 
-from hiring_scraper.matching import VERSION as V1_VERSION
-from hiring_scraper.matching import match_job
-from hiring_scraper.matching_v2 import VERSION as V2_VERSION
-from hiring_scraper.matching_v2 import match_job_v2
+from hiring_scraper.job_analysis import VERSION as ANALYSIS_VERSION, job_lines, result_hash, source_hash
+from hiring_scraper.matching_v3 import VERSION as V3_VERSION
+from hiring_scraper.matching_v3.evidence import VERSION as EVIDENCE_VERSION, evidence_hash, units_hash, units_source
+from hiring_scraper.matching_v3 import match_job_v3
 from tests.eval import cv as private_dataset
 from tests.eval import public as public_dataset
-from tests.eval.ablation import ablate_lang_visa
+from tests.eval.ablation import ABLATED_MARKER, ablate_lang_visa
 from tests.eval.metrics import (
     GRADE_SCORE_BANDS,
     GRADE_SCORE_TARGETS,
@@ -50,7 +54,7 @@ from tests.eval.metrics import (
     score_range_metrics,
     score_spread,
 )
-from tests.eval.semantic import build_semantic_evidence
+from tests.eval.v3_fixtures import fixture_dir, load_fixture
 
 EVAL_DIR = Path(__file__).resolve().parent
 BASELINE_PATH = EVAL_DIR / "baseline.json"  # public-set baselines only (committed)
@@ -99,18 +103,47 @@ def get_matcher(name: str) -> MatcherFn:
     return MATCHERS[name]
 
 
-register_matcher("v1", lambda job, profile: match_job(job, profile), version=V1_VERSION)
-register_matcher(
-    "v1+sem",
-    lambda job, profile: match_job(job, profile, semantic=build_semantic_evidence(job, profile)),
-    version=f"{V1_VERSION}+fixture-sem",
-)
-register_matcher("v2", lambda job, profile: match_job_v2(job, profile), version=V2_VERSION)
-register_matcher(
-    "v2+sem",
-    lambda job, profile: match_job_v2(job, profile, semantic=build_semantic_evidence(job, profile, aggregate=True)),
-    version=f"{V2_VERSION}+fixture-sem",
-)
+_ACTIVE_DATASET = [DEFAULT_DATASET]
+_FIXTURE_CACHE: dict[str, tuple[dict, dict]] = {}
+
+
+def recorded_model_outputs(dataset: str) -> tuple[dict, dict]:
+    """(analyses by job id, evidence by case id) recorded for ``dataset``."""
+    if dataset not in _FIXTURE_CACHE:
+        directory = fixture_dir(dataset)
+        _FIXTURE_CACHE[dataset] = (load_fixture(directory / "analyses.json"),
+                                   load_fixture(directory / "evidence.json"))
+    return _FIXTURE_CACHE[dataset]
+
+
+def recorded_inputs(job: dict, profile: dict, dataset: str | None = None) -> tuple[dict | None, dict | None]:
+    """Recorded outputs for this case, only if they were produced from its current inputs
+    (model versions, posting lines and CV units). An ablated copy reuses the outputs of
+    its original posting on purpose; everything else must match exactly."""
+    analyses, evidence = recorded_model_outputs(dataset or _ACTIVE_DATASET[0])
+    analysis = analyses.get(str(job.get("id")))
+    pair = evidence.get(f"{profile.get('id')}__{job.get('id')}")
+    if not analysis or not pair:
+        return None, None
+    if analysis.get("version") != ANALYSIS_VERSION or pair.get("version") != EVIDENCE_VERSION:
+        return None, None
+    if analysis.get("result_hash") != result_hash(ANALYSIS_VERSION, analysis["payload"]):
+        return None, None
+    if not job.get(ABLATED_MARKER) and analysis.get("source_hash") != source_hash(job_lines(job)):
+        return None, None
+    if pair.get("hash") != evidence_hash(analysis["result_hash"], units_hash(units_source(profile))):
+        return None, None
+    return analysis["payload"], pair["payload"]
+
+
+def _v3(job: dict, profile: dict, **overrides) -> dict:
+    """v3 from recorded model outputs. Ablated copies keep the job id: language and
+    work-permit clauses are scored by the gates, not by the recorded evidence."""
+    analysis, evidence = recorded_inputs(job, profile)
+    return match_job_v3(job, profile, analysis=analysis, evidence=evidence, **overrides)
+
+
+register_matcher("v3", _v3, version=V3_VERSION)
 
 
 def get_dataset(name: str = DEFAULT_DATASET):
@@ -153,9 +186,28 @@ def load_cases(
     return module.load_cases(split=split, **kwargs)
 
 
+# Clause-removal postings have no recorded model output; they reuse one fixed,
+# moderately supported analysis so only gates and penalties can move the score.
+_CLAUSE_REMOVAL_ANALYSIS = {
+    "occupation": "platform engineering", "industry": "software",
+    "duties": [{"line": 1, "text": "Operate Kubernetes and Terraform platforms"}],
+    "requirements": [{"line": 2, "text": "Experience with PostgreSQL", "need": "must", "kind": "experience"}],
+}
+_CLAUSE_REMOVAL_EVIDENCE = {
+    "items": [{"ref": "d0", "support": 0.7, "quote": "Kubernetes", "source": "skills"},
+              {"ref": "r0", "support": 0.6, "quote": "PostgreSQL", "source": "skills"}],
+    "role": {"support": 0.8, "role": "Platform Engineer"},
+    "domain": {"support": 0.7, "quote": "Platform Engineer", "source": "skills", "field": "platform engineering"},
+}
+
+
 def evaluate_clause_removal(matcher_name: str) -> list[dict]:
     """Measure individually authored posting pairs, independently of clause detection."""
-    matcher = get_matcher(matcher_name)
+    matcher = (
+        (lambda job, profile: match_job_v3(job, profile, analysis=_CLAUSE_REMOVAL_ANALYSIS,
+                                           evidence=_CLAUSE_REMOVAL_EVIDENCE))
+        if matcher_name == "v3" else get_matcher(matcher_name)
+    )
     profile = {
         "desired_roles": ["Platform Engineer", "Plattformingenieur"],
         "skills": ["Terraform", "Kubernetes", "SQL", "PostgreSQL", "Grafana", "Python", "Docker", "Jira", "Agile"],
@@ -443,7 +495,7 @@ def _compute_aggregate_metrics(
 
 
 def evaluate(
-    matcher_name: str = "v1",
+    matcher_name: str = "v3",
     *,
     dataset: str = DEFAULT_DATASET,
     split: str = "all",
@@ -456,6 +508,7 @@ def evaluate(
         raise ValueError(f"Invalid split {split!r}; expected one of {VALID_SPLITS}")
 
     matcher = get_matcher(matcher_name)
+    _ACTIVE_DATASET[0] = dataset
     cases = load_cases(
         dataset,
         split=split,
@@ -736,7 +789,7 @@ def main(argv: list[str] | None = None) -> int:
         choices=sorted(DATASETS),
         help="Evaluation dataset: public (committed composites, default) or private (gitignored real CVs)",
     )
-    parser.add_argument("--matcher", default="v1", help="Registered matcher name (default: v1)")
+    parser.add_argument("--matcher", default="v3", help="Registered matcher name (default: v3)")
     parser.add_argument(
         "--split",
         default="all",

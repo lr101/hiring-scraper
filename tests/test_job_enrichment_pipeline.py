@@ -163,7 +163,6 @@ class JobEnrichmentPipelineTests(unittest.TestCase):
             self.assertEqual({row['name'] for row in updated['skills']}, {'Python', 'Ruby'})
 
     def test_v13_cache_without_deferred_evidence_is_recomputed_and_marks_unknown(self):
-        from hiring_scraper.matching import match_job
         clause = ('Mindestens eine dieser Skriptsprachen '
                   '(bash, Python, Perl oder Ruby) beherrschst Du aus dem FF')
         self.upsert({'id': 'linux', 'title': 'Administrator',
@@ -179,8 +178,3 @@ class JobEnrichmentPipelineTests(unittest.TestCase):
             self.assertEqual(updated['requirements'], [])
             self.assertEqual(updated['source_hash'], cached['source_hash'])
             self.assertEqual(len(updated.get('deferred_requirements', [])), 1)
-            result = match_job({'title': job.title, 'description': job.description},
-                               {'skills': ['Linux']}, enrichment=updated)
-            self.assertTrue(result['uncertain'])
-            self.assertIn(clause, result['unknowns'][0])
-            self.assertEqual(result['requirement_gaps'], [])

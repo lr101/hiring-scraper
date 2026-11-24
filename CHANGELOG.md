@@ -12,6 +12,8 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Local model-based job matching: a local LLM (Qwen3.5-4B, CPU, own `llm` container) lists each posting's duties and requirements as verbatim quotes, and a local reranker (Qwen3-Reranker-0.6B, `llm-reranker` container) checks them against your CV lines in the context of the job's field. Benefits and company text no longer count as requirements, and shared words from unrelated fields no longer produce strong matches. Migration `0045_local_job_analysis` adds the analysis, evidence and queue tables; see `docs/local-models.md`.
+- The job page shows how the match score was built: earned against possible points per part (duties, must-haves, nice-to-haves, role, field), deductions, the calibrated score, and a checklist of each duty and requirement marked as shown, partly shown or not shown in your CV.
 - Today's focus on Journey: up to three roles to act on now (prepared documents first, then Interested, then best match) with a "3 a day" progress indicator. Ready documents open directly in review.
 - Persist PostgreSQL application preparation jobs and checkpoints across worker restarts. Migration `0040_application_preparation` adds the queue. Existing drafts stay on the private runtime volume.
 - A private application-generation benchmark runner and provenance-checked comparison of independent fit and checklist scores against frozen baselines.
@@ -59,6 +61,7 @@ no historical releases have been reconstructed.
 
 ### Changed
 
+- Journey shows a job only after the local models have analysed it; until then it appears as "Analysing job…". Jobs in your search area are analysed first. After a job or CV edit, the previous match stays visible until it is refreshed. Score contributions are shown with one decimal.
 - Matcher v2 is the default (`RADIUS_MATCHER=v2`; set `v1` to return to the previous matcher for this release), with calibrated local job-fit scores from 0–100. Job details show the score contributions and supporting quotes. Language and work authorization contribute a combined deduction of at most five points on visible jobs. Only explicit, cited incompatibilities hide jobs during matching. The versioned background rebuild refreshes Journey rankings. Known limitation: on small held-out evaluation slices some score-range and on-site hide-recall targets are still below goal.
 
 - Publish profile matches and Journey changes with a version check instead of exclusive profile locks. Publishers no longer block each other, and a profile edit in progress defers background publication instead of timing it out. Migration `0041_profile_source_version` is required before starting updated workers.
@@ -74,6 +77,7 @@ no historical releases have been reconstructed.
 
 ### Removed
 
+- The static keyword matchers (v1 rules and v2 additive scorer), their section vectors (`match_semantic_documents`) and the `RADIUS_MATCHER` setting.
 - AI job-fit assessment (ranking queue, status page, score overlay, and standalone ChatGPT fit brief) removed; ranking is local-only (rules matcher + local semantic evidence). Migration `0043_drop_ai_assessment` drops the AI assessment tables and invalidates legacy derived match state for local rebuild while preserving user-set Journey stages.
 - **Breaking:** remove SQLite support. Radius, local development and the test suite require PostgreSQL with PostGIS and pgvector; use `compose.dev.yaml` or `scripts/dev/postgres-sandbox.sh`.
 - Remove the proof-of-concept crawl runner (`python -m hiring_scraper`) and the research experiments, captures and reports from the repository. They remain available in Git history.

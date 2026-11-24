@@ -217,7 +217,8 @@ class HistoricalUpgradeTests(unittest.TestCase):
             old_config.set_main_option('script_location', str(migrations))
             with TemporaryDirectory() as folder, patch.dict(os.environ, {'DATABASE_URL': self.target}):
                 for file in (migrations / 'versions').glob('*.py'):
-                    if not file.name.startswith('0044_'):
+                    # The previous image shipped neither application documents v2 nor local job analysis.
+                    if not file.name.startswith(('0044_', '0045_')):
                         (Path(folder) / file.name).symlink_to(file)
                 old_config.set_main_option('version_locations', folder)
                 command.upgrade(old_config, 'head')

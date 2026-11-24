@@ -17,35 +17,35 @@ from __future__ import annotations
 
 from typing import Any
 
-from hiring_scraper.matching_v2.gates.authorization import (
+from hiring_scraper.gates.authorization import (
     AUTHORIZATION_CONDITION,
     _evaluate_authorization,
     authorization_jurisdictions,
     has_sponsorship_alternative,
     normalize_jurisdictions,
 )
-from hiring_scraper.matching_v2.gates.clause_filter import (
+from hiring_scraper.gates.clause_filter import (
     is_language_or_visa_clause,
     strip_language_or_visa_subclauses,
 )
-from hiring_scraper.matching_v2.gates.common import (
+from hiring_scraper.gates.common import (
     NON_REQUIREMENT_V2,
     job_requirement_texts,
     mask_parens,
     parse_job_requirement_texts,
     unmask_parens,
 )
-from hiring_scraper.matching_v2.gates.excluded_title import _evaluate_excluded_terms
-from hiring_scraper.matching_v2.gates.language import (
+from hiring_scraper.gates.excluded_title import _evaluate_excluded_terms
+from hiring_scraper.gates.language import (
     _evaluate_languages,
     canonical_language,
     normalize_profile_level,
 )
-from hiring_scraper.matching_v2.gates.onsite import (
+from hiring_scraper.gates.onsite import (
     _evaluate_location,
     explicit_onsite_evidence,
 )
-from hiring_scraper.matching_v2.gates.prerequisites import _inactive_credential_conflicts
+from hiring_scraper.gates.prerequisites import _inactive_credential_conflicts
 
 __all__ = [
     'AUTHORIZATION_CONDITION',

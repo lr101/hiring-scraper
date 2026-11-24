@@ -4,7 +4,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from hiring_scraper.matching_v2.gates.common import _is_other_actor_subject
+from hiring_scraper.gates.common import _is_other_actor_subject
 from hiring_scraper.requirements import (
     is_source_instruction,
     requirement_polarity,

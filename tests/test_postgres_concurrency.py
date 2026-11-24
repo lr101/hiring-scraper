@@ -17,9 +17,10 @@ from hiring_scraper.app import api, database, default_job_feeds, discovery_worke
 from hiring_scraper.app import source_changes, worker
 from hiring_scraper.app.models import reserve_job_source_rows
 from tests import pg
+from tests.model_outputs import analyse_all
 from hiring_scraper.app.models import (
     Company, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobApplication, JobFeed, JobLocation,
-    JobSearchRefresh, MatchSemanticDocument, ProfileJobMatch, ScanRun,
+    JobSearchRefresh, ProfileJobMatch, ScanRun,
     SemanticSearchIndexState, UserProfile, utcnow,
 )
 
@@ -101,108 +102,10 @@ class PostgresConcurrencyTests(unittest.TestCase):
             queue.prune_finished()
             self.assertIsNone(json.loads(documents.preparation_task(profile_id, job_id, session=session).body)['task'])
 
-    def test_profile_edit_locks_source_before_semantic_cache_lookup(self):
-        from sqlalchemy.engine.cursor import CursorResult
-        from hiring_scraper.app import profile_semantics
-        from hiring_scraper.app.models import MatchSemanticDocument
-
-        with self.factory.begin() as session:
-            profile = UserProfile(name='Semantic editor', preferences={
-                'desired_roles': ['Software developer'],
-                'summary': 'I build web services and maintain relational databases.',
-                'matching_defaults': {'min_match_score': 30},
-            })
-            session.add(profile)
-            session.flush()
-            profile_id = profile.id
-
-        editor_read_cache = threading.Event()
-        resume_editor = threading.Event()
-        publisher_waiting_for_source = threading.Event()
-        publisher_completed = threading.Event()
-        errors = []
-        original_scalar = CursorResult.scalar
-
-        def scalar_with_interleaving(result):
-            value = original_scalar(result)
-            statement = result.context.statement.upper()
-            if (threading.current_thread().name == 'profile-editor' and
-                    'MATCH_SEMANTIC_DOCUMENTS.SOURCE_HASH' in statement):
-                editor_read_cache.set()
-                if not resume_editor.wait(5):
-                    raise TimeoutError('Profile editor was not resumed')
-            return value
-
-        def observe_publisher_lock(_connection, _cursor, statement, _parameters, _context, _many):
-            if (threading.current_thread().name == 'semantic-publisher' and
-                    'FROM USER_PROFILES' in statement.upper() and _row_lock(statement.upper())):
-                publisher_waiting_for_source.set()
-
-        def edit_profile():
-            try:
-                with self.factory() as session:
-                    profiles.update_profile(profile_id, profiles.ProfileRequest(
-                        name='Semantic editor', desired_roles=['Software developer'],
-                        matching_defaults={'min_match_score': 30},
-                        summary='I design circuits and validate electronic hardware.'), session)
-            except Exception as error:
-                errors.append(error)
-
-        def publish_profile_vectors():
-            try:
-                with patch.object(profile_semantics, 'SessionLocal', self.factory):
-                    profile_semantics.refresh_semantic_documents_once(
-                        encode=lambda texts, kind: [[1.0] + [0.0] * 383 for _ in texts])
-            except Exception as error:
-                errors.append(error)
-            finally:
-                publisher_completed.set()
-
-        editor = threading.Thread(target=edit_profile, name='profile-editor', daemon=True)
-        publisher = None
-        event.listen(self.engine, 'before_cursor_execute', observe_publisher_lock)
-        try:
-            with patch.object(CursorResult, 'scalar', new=scalar_with_interleaving):
-                editor.start()
-                self.assertTrue(editor_read_cache.wait(3), 'Editor did not query the semantic cache')
-                publisher = threading.Thread(target=publish_profile_vectors,
-                                             name='semantic-publisher', daemon=True)
-                publisher.start()
-                self.assertTrue(publisher_waiting_for_source.wait(3), 'Publisher did not lock its profile source')
-                self.assertFalse(publisher_completed.wait(.2),
-                                 'Publisher passed an editor that had already checked for a cache row')
-                resume_editor.set()
-                editor.join(5)
-                publisher.join(5)
-                self.assertFalse(editor.is_alive(), 'Profile editor did not resume')
-                self.assertFalse(publisher.is_alive(), 'Semantic publisher did not resume')
-                self.assertEqual(errors, [])
-
-                with self.factory() as session:
-                    self.assertIsNone(session.scalar(select(MatchSemanticDocument).where(
-                        MatchSemanticDocument.profile_id == profile_id)))
-                with patch.object(profile_semantics, 'SessionLocal', self.factory):
-                    self.assertTrue(profile_semantics.refresh_semantic_documents_once(
-                        encode=lambda texts, kind: [[0.0, 1.0] + [0.0] * 382 for _ in texts]))
-                with self.factory() as session:
-                    self.assertIsNotNone(session.scalar(select(MatchSemanticDocument).where(
-                        MatchSemanticDocument.profile_id == profile_id)))
-        finally:
-            resume_editor.set()
-            if editor.is_alive():
-                editor.join(5)
-            if publisher is not None and publisher.is_alive():
-                publisher.join(5)
-            event.remove(self.engine, 'before_cursor_execute', observe_publisher_lock)
 
     def test_job_edit_uses_fk_compatible_lock_during_profile_index_publication(self):
         self.assert_job_writer_compatible_with_profile_index('edit')
 
-    def test_semantic_publication_uses_fk_compatible_lock_during_profile_index_publication(self):
-        self.assert_job_writer_compatible_with_profile_index('semantic')
-
-    def test_salary_edit_locks_job_before_profile_during_semantic_publication(self):
-        self.assert_salary_edit_lock_order('semantic')
 
     def test_salary_edit_locks_job_before_profile_during_application_tracking(self):
         self.assert_salary_edit_lock_order('application')
@@ -631,8 +534,6 @@ class PostgresConcurrencyTests(unittest.TestCase):
             self.assertEqual(job_c.missing_complete_scans, 1)
 
     def assert_salary_edit_lock_order(self, competitor_kind):
-        from hiring_scraper.app import profile_semantics
-
         _, feed_id, _ = self.seed_feed()
         with self.factory.begin() as session:
             profile = UserProfile(name='Salary lock test', preferences={
@@ -644,13 +545,6 @@ class PostgresConcurrencyTests(unittest.TestCase):
             session.add(profile)
             session.flush()
             profile_id = profile.id
-
-        if competitor_kind == 'semantic':
-            # Cache the profile first so the next semantic batch publishes only
-            # the job and then follows the job -> profile lock order.
-            with patch.object(profile_semantics, 'SessionLocal', self.factory):
-                self.assertTrue(profile_semantics.refresh_semantic_documents_once(
-                    encode=lambda texts, kind: [[1.0] + [0.0] * 383 for _ in texts]))
 
         with self.factory.begin() as session:
             job = Job(feed_id=feed_id, external_id=f'salary-lock-{competitor_kind}',
@@ -682,24 +576,14 @@ class PostgresConcurrencyTests(unittest.TestCase):
                     raise TimeoutError('Competing writer was not released')
 
         def after_cursor(_connection, _cursor, statement, _parameters, _context, _many):
-            normalized = ' '.join(statement.upper().split())
-            if (competitor_kind == 'semantic' and threading.current_thread().name == 'semantic-publisher'
-                    and 'FROM JOBS' in normalized and 'FOR NO KEY UPDATE' in normalized):
-                competitor_at_profile.set()
-                if not release_competitor.wait(5):
-                    raise TimeoutError('Semantic source publisher was not released')
+            pass
 
         def run_competitor():
             try:
-                if competitor_kind == 'application':
-                    with self.factory() as session:
-                        session.execute(text("SET lock_timeout = '8s'"))
-                        api.set_job_application(profile_id, job_id,
-                                                api.ApplicationRequest(status='new'), session)
-                else:
-                    with patch.object(profile_semantics, 'SessionLocal', self.factory):
-                        profile_semantics.refresh_semantic_documents_once(
-                            encode=lambda texts, kind: [[0.0, 1.0] + [0.0] * 382 for _ in texts])
+                with self.factory() as session:
+                    session.execute(text("SET lock_timeout = '8s'"))
+                    api.set_job_application(profile_id, job_id,
+                                            api.ApplicationRequest(status='new'), session)
             except Exception as error:
                 errors.append(error)
 
@@ -715,7 +599,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
             except Exception as error:
                 errors.append(error)
 
-        competitor_name = 'application-save' if competitor_kind == 'application' else 'semantic-publisher'
+        competitor_name = 'application-save'
         competitor = threading.Thread(target=run_competitor, name=competitor_name, daemon=True)
         editor = threading.Thread(target=edit_salary, name='salary-editor', daemon=True)
         event.listen(self.engine, 'before_cursor_execute', before_cursor)
@@ -747,8 +631,6 @@ class PostgresConcurrencyTests(unittest.TestCase):
             event.remove(self.engine, 'after_cursor_execute', after_cursor)
 
     def assert_job_writer_compatible_with_profile_index(self, writer_kind):
-        from hiring_scraper.app import profile_semantics
-
         _, feed_id, _ = self.seed_feed()
         with self.factory.begin() as session:
             profile = UserProfile(name='Index lock test', preferences={
@@ -760,13 +642,6 @@ class PostgresConcurrencyTests(unittest.TestCase):
             session.add(profile)
             session.flush()
             profile_id = profile.id
-
-        if writer_kind == 'semantic':
-            # Index the profile alone so the semantic worker later queues only
-            # the job and holds its job lock while waiting for the profile.
-            with patch.object(profile_semantics, 'SessionLocal', self.factory):
-                self.assertTrue(profile_semantics.refresh_semantic_documents_once(
-                    encode=lambda texts, kind: [[1.0] + [0.0] * 383 for _ in texts]))
 
         with self.factory.begin() as session:
             job = Job(feed_id=feed_id, external_id=f'lock-{writer_kind}', title='Engineer',
@@ -835,17 +710,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
             except Exception as error:
                 errors.append(error)
 
-        def publish_job_semantics():
-            try:
-                with patch.object(profile_semantics, 'SessionLocal', self.factory):
-                    writer_results.append(profile_semantics.refresh_semantic_documents_once(
-                        encode=lambda texts, kind: [[0.0, 1.0] + [0.0] * 382 for _ in texts]))
-            except Exception as error:
-                errors.append(error)
-
-        writer_thread = threading.Thread(
-            target=edit_job if writer_kind == 'edit' else publish_job_semantics,
-            name='job-editor' if writer_kind == 'edit' else 'semantic-publisher', daemon=True)
+        writer_thread = threading.Thread(target=edit_job, name='job-editor', daemon=True)
         index_thread = threading.Thread(target=rebuild_index, name='profile-index-rebuild', daemon=True)
         event.listen(self.engine, 'after_cursor_execute', after_cursor)
         event.listen(self.engine, 'before_cursor_execute', before_cursor)
@@ -866,9 +731,6 @@ class PostgresConcurrencyTests(unittest.TestCase):
             self.assertEqual(writer_results, [True])
             with self.factory() as session:
                 self.assertIsNotNone(session.get(ProfileJobMatch, (profile_id, job_id)))
-                if writer_kind == 'semantic':
-                    self.assertIsNotNone(session.scalar(select(MatchSemanticDocument).where(
-                        MatchSemanticDocument.job_id == job_id)))
         finally:
             continue_index.set()
             if index_thread.is_alive():
@@ -892,6 +754,8 @@ class PostgresConcurrencyTests(unittest.TestCase):
             pending = api.list_applications(profile_ids=str(profile_id), statuses='all', session=session)
         self.assertTrue(pending['matching_pending'])
         self.assertEqual(pending['items'], [])
+        # The local models analyse the posting first (stand-ins in tests).
+        analyse_all(self.engine, drain_rematch=False)
         # Another replica's worker owns the backfill; this replica must
         # return without blocking or touching the profile's index.
         with self.factory() as owner, patch.object(job_search, 'SessionLocal', self.factory):
@@ -1731,7 +1595,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
         continue_matching = threading.Event()
         errors = []
 
-        def slow_match(*_args):
+        def slow_match(*_args, **_kwargs):
             matching_started.set()
             if not continue_matching.wait(6):
                 raise AssertionError('cached match computation did not resume')

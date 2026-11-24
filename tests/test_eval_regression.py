@@ -8,7 +8,6 @@ import unittest
 from collections import Counter, defaultdict
 from collections.abc import Mapping
 
-from hiring_scraper.semantic_matching import DIMENSIONS
 from tests.eval import cv as private_dataset
 from tests.eval import public as public_dataset
 from tests.eval.ablation import ablate_lang_visa, is_lang_visa_sentence, strip_lang_visa_text
@@ -52,7 +51,6 @@ from tests.eval.run import (
     load_profiles,
     register_matcher,
 )
-from tests.eval.semantic import build_semantic_evidence, embed_text
 
 MIN_HARD_HIDE_GATE_CASES = 3
 MIN_PROFILE_GATE_CASES = 15
@@ -292,8 +290,8 @@ def check_target_gates(
 
 
 class TestIndependentClauseRemoval(unittest.TestCase):
-    def test_v2_preserves_score_when_independent_language_or_permit_span_is_removed(self) -> None:
-        pairs = evaluate_clause_removal("v2")
+    def test_v3_preserves_score_when_independent_language_or_permit_span_is_removed(self) -> None:
+        pairs = evaluate_clause_removal("v3")
         self.assertGreaterEqual(len(pairs), 30)
         self.assertEqual({(row["lang"], row["kind"]) for row in pairs}, {
             ("en", "language"), ("en", "permit"), ("de", "language"), ("de", "permit"),
@@ -618,25 +616,15 @@ class TestEvalMetricsUnit(unittest.TestCase):
                 MATCHERS.pop(name, None)
                 MATCHER_VERSIONS.pop(name, None)
 
-    def test_semantic_fixture_and_v1_sem_registered(self) -> None:
-        self.assertIn("v1+sem", MATCHERS)
-        v1 = embed_text("Python backend engineer PostgreSQL Docker")
-        v2 = embed_text("Python backend engineer PostgreSQL Docker")
-        self.assertEqual(len(v1), DIMENSIONS)
-        self.assertEqual(v1, v2)
-        self.assertAlmostEqual(math.sqrt(sum(x * x for x in v1)), 1.0, places=6)
-
-        profiles = load_profiles()
-        cases = load_cases()
-        sample = cases[0]
-        sem = build_semantic_evidence(sample["job"], profiles[sample["profile_id"]])
-        self.assertIn("score", sem)
-        self.assertIn("similarity", sem)
-        self.assertIn("model", sem)
-
-        res = get_matcher("v1+sem")(sample["job"], profiles[sample["profile_id"]])
-        self.assertIsInstance(res["eligible"], bool)
-        self.assertTrue(0.0 <= float(res["score"]) <= 100.0)
+    def test_v3_scores_from_recorded_model_outputs(self) -> None:
+        self.assertIn("v3", MATCHERS)
+        # Every case, not a sample: recorded outputs are used only when their versions and
+        # input hashes match the current posting, CV and models.
+        for case in load_cases(split="all"):
+            res = get_matcher("v3")(case["job"], case["profile"])
+            self.assertIsInstance(res["eligible"], bool)
+            self.assertTrue(0.0 <= float(res["score"]) <= 100.0)
+            self.assertFalse(res.get("pending"), f"{case['id']} needs current recorded model outputs")
 
     def test_split_evaluation_partitions_dataset(self) -> None:
         name = "_test_split_dummy"
@@ -964,7 +952,7 @@ class _RegressionGates:
 
     dataset = "public"
 
-    def _load_v1_baseline(self) -> dict:
+    def _load_v3_baseline(self) -> dict:
         _require_dataset(self, self.dataset)
         path = baseline_path(self.dataset)
         if not path.exists():
@@ -975,8 +963,8 @@ class _RegressionGates:
                 )
             self.fail(f"Missing baseline file: {path}")
         baselines = json.loads(path.read_text(encoding="utf-8"))
-        self.assertIn("v1", baselines, f"No 'v1' baseline in {path}")
-        return baselines["v1"]
+        self.assertIn("v3", baselines, f"No 'v3' baseline in {path}")
+        return baselines["v3"]
 
     def _gated_tags(self, baseline: dict) -> list[str]:
         """Hard-hide categories gated by the baseline that a never-hiding matcher can regress."""
@@ -990,16 +978,16 @@ class _RegressionGates:
 
     def test_matcher_meets_baseline_gates(self) -> None:
         _require_dataset(self, self.dataset)
-        matcher_name = os.environ.get("RADIUS_EVAL_MATCHER", "v1").strip() or "v1"
+        matcher_name = os.environ.get("RADIUS_EVAL_MATCHER", "v3").strip() or "v3"
         path = baseline_path(self.dataset)
         if not path.exists():
-            self._load_v1_baseline()  # skips (private) or fails (public) with a clear message
+            self._load_v3_baseline()  # skips (private) or fails (public) with a clear message
         baselines = json.loads(path.read_text(encoding="utf-8"))
-        baseline_key = matcher_name if matcher_name in baselines else "v1"
+        baseline_key = matcher_name if matcher_name in baselines else "v3"
         self.assertIn(
             baseline_key,
             baselines,
-            f"No baseline recorded for matcher {matcher_name!r} (or 'v1') in {path}",
+            f"No baseline recorded for matcher {matcher_name!r} (or 'v3') in {path}",
         )
 
         report = evaluate(matcher_name, dataset=self.dataset, split="all")
@@ -1012,7 +1000,7 @@ class _RegressionGates:
         target_matchers = [item.strip() for item in raw.split(",") if item.strip()]
         if not target_matchers:
             self.skipTest(
-                "RADIUS_EVAL_TARGET_MATCHERS is unset/empty; set e.g. RADIUS_EVAL_TARGET_MATCHERS=v2 "
+                "RADIUS_EVAL_TARGET_MATCHERS is unset/empty; set e.g. RADIUS_EVAL_TARGET_MATCHERS=v3 "
                 "to run target acceptance gates"
             )
         all_failures: list[str] = []
@@ -1023,7 +1011,7 @@ class _RegressionGates:
         self.assertFalse(all_failures, "Target gate failure(s):\n- " + "\n- ".join(all_failures))
 
     def test_constant_50_matcher_fails_gates(self) -> None:
-        baseline = self._load_v1_baseline()
+        baseline = self._load_v3_baseline()
         name = f"_test_constant_50_{self.dataset}"
         register_matcher(name, lambda _job, _profile: {"score": 50.0, "eligible": True})
         try:
@@ -1043,12 +1031,12 @@ class _RegressionGates:
             MATCHER_VERSIONS.pop(name, None)
 
     def test_everything_visible_matcher_fails_gates(self) -> None:
-        baseline = self._load_v1_baseline()
-        v1 = get_matcher("v1")
+        baseline = self._load_v3_baseline()
+        v3 = get_matcher("v3")
         name = f"_test_everything_visible_{self.dataset}"
         register_matcher(
             name,
-            lambda job, profile: {**v1(job, profile), "eligible": True},
+            lambda job, profile: {**v3(job, profile), "eligible": True},
         )
         try:
             report = evaluate(name, dataset=self.dataset, split="all")
@@ -1070,7 +1058,7 @@ class TestPublicEvalRegression(_RegressionGates, unittest.TestCase):
     dataset = "public"
 
     def test_public_set_keeps_translation_pair_coverage(self) -> None:
-        baseline = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))["v1"]["overall"]
+        baseline = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))["v3"]["overall"]
         self.assertGreaterEqual(baseline["pair_count"], MIN_PAIR_COUNT["public"])
         self.assertIsNotNone(baseline["de_en_parity"])
         self.assertIsNotNone(baseline["pair_eligibility_disagreement"])

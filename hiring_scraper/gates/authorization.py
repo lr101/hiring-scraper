@@ -5,7 +5,7 @@ import re
 from typing import Any
 
 from hiring_scraper.matching import OPTIONAL
-from hiring_scraper.matching_v2.gates.common import (
+from hiring_scraper.gates.common import (
     NON_REQUIREMENT_V2,
     _is_other_actor_subject,
     mask_parens,

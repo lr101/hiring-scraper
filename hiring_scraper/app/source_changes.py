@@ -30,13 +30,14 @@ import os
 from collections.abc import Iterable
 from uuid import uuid4
 
-from sqlalchemy import delete, event, inspect, insert, literal, select, text, update
+from sqlalchemy import delete, event, exists, func, inspect, insert, literal, select, text, true, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from hiring_scraper.app.models import (
-    Company, Job, JobFeed, JobLocation, JobSearchState, MatchDirtyJob, MatchSemanticDocument,
-    ProfileCV, ProfileMatchProgress, UserProfile, utcnow,
+    Company, Job, JobAnalysis, JobAnalysisQueue, JobFeed, JobLocation, JobSearchState, MatchDirtyJob, MatchEvidence,
+    MatchEvidenceQueue,
+    ProfileCV, UserProfile, utcnow,
 )
 
 LOG = logging.getLogger(__name__)
@@ -55,7 +56,8 @@ TRACKED_FIELDS = {
     JobLocation: {"job_id", "label", "latitude", "longitude", "country_code"},
     UserProfile: {"preferences"},
     ProfileCV: {"extracted_text", "variants"},
-    MatchSemanticDocument: {"source_hash", "version", "sections", "vectors"},
+    JobAnalysis: {"source_hash", "version", "status", "payload"},
+    MatchEvidence: {"version", "analysis_hash", "units_hash", "payload"},
 }
 
 
@@ -99,15 +101,38 @@ def queue_stale_rematch(session: Session, job_ids: Iterable[int]) -> None:
     session.execute(statement.on_conflict_do_nothing(index_elements=['job_id']))
 
 
-def _invalidate_job_vectors(session: Session, jobs: list[Job]) -> None:
-    from hiring_scraper.semantic_matching import job_sections, source_hash
-    documents = {row.job_id: row.source_hash for row in session.execute(select(
-        MatchSemanticDocument.job_id, MatchSemanticDocument.source_hash).where(
-        MatchSemanticDocument.job_id.in_([job.id for job in jobs])))}
-    stale = [job.id for job in jobs if job.id in documents and documents[job.id] != source_hash(
-        job_sections({'description': job.description, 'raw_metadata': job.raw_metadata}))]
+def _mark_stale_analyses(session: Session, jobs: list[Job]) -> None:
+    """Flag analyses whose posting text changed. They stay in use until re-analysed."""
+    from hiring_scraper.job_analysis import job_lines, source_hash
+    stored = {row.job_id: (row.source_hash, row.status) for row in session.execute(select(
+        JobAnalysis.job_id, JobAnalysis.source_hash, JobAnalysis.status).where(
+        JobAnalysis.job_id.in_([job.id for job in jobs])))}
+    stale = [job.id for job in jobs if job.id in stored and stored[job.id][1] == 'ok' and stored[job.id][0] != source_hash(
+        job_lines({'title': job.title, 'description': job.description, 'raw_metadata': job.raw_metadata}))]
     if stale:
-        session.execute(delete(MatchSemanticDocument).where(MatchSemanticDocument.job_id.in_(stale)))
+        session.execute(update(JobAnalysis).where(JobAnalysis.job_id.in_(stale)).values(status='stale'))
+    # New, edited or never successfully analysed postings wait for the job analysis worker.
+    needed = [job.id for job in jobs if job.is_active and (job.id not in stored or job.id in stale
+                                                           or stored[job.id][1] != 'ok')]
+    if needed:
+        statement = pg_insert(JobAnalysisQueue).values([{'job_id': job_id, 'queued_at': utcnow()} for job_id in needed])
+        # A newer queued_at tells an in-flight analysis of the old text not to dequeue.
+        session.execute(statement.on_conflict_do_update(
+            index_elements=['job_id'], set_={'retry_at': None, 'queued_at': statement.excluded.queued_at}))
+    # Reopened postings keep their analysis, but their pair evidence may have been
+    # dropped while closed: queue pairs without evidence for the current output.
+    analysed = [job.id for job in jobs if job.is_active and job.id in stored and job.id not in stale
+                and stored[job.id][1] in ('ok', 'stale')]
+    if analysed:
+        from hiring_scraper.matching_v3.evidence import VERSION as EVIDENCE_VERSION
+        matching = exists(select(1).where(
+            MatchEvidence.profile_id == UserProfile.id, MatchEvidence.job_id == JobAnalysis.job_id,
+            MatchEvidence.version == EVIDENCE_VERSION, MatchEvidence.analysis_hash == JobAnalysis.result_hash))
+        missing = (select(UserProfile.id, JobAnalysis.job_id, func.clock_timestamp())
+                   .select_from(JobAnalysis).join(UserProfile, true())
+                   .where(JobAnalysis.job_id.in_(analysed), ~matching))
+        session.execute(pg_insert(MatchEvidenceQueue).from_select(
+            ['profile_id', 'job_id', 'queued_at'], missing).on_conflict_do_nothing())
 
 
 def _bump_profiles(session: Session, profile_ids) -> None:
@@ -119,7 +144,7 @@ def _bump_profiles(session: Session, profile_ids) -> None:
 def jobs_changed(session: Session, job_ids: Iterable[int]) -> None:
     """Declare created, edited, closed or deleted jobs (including their locations).
 
-    Drops vectors whose inputs changed, queues the jobs for rematching and marks
+    Flags job analyses whose inputs changed, queues the jobs for rematching and marks
     search snapshots stale. Lock the rows first with ``reserve_job_source_rows``
     when writing more than one job.
     """
@@ -130,7 +155,7 @@ def jobs_changed(session: Session, job_ids: Iterable[int]) -> None:
     _declare(session, 'job', ids)
     jobs = session.scalars(select(Job).where(Job.id.in_(ids))).all()
     if jobs:
-        _invalidate_job_vectors(session, jobs)
+        _mark_stale_analyses(session, jobs)
         _queue_rematch(session, [job.id for job in jobs])
     session.info[_DIRTY] = True
 
@@ -168,14 +193,12 @@ def profile_changed(
 ) -> None:
     """Declare edits to a profile's preferences or CV.
 
-    Drops the profile's vectors whose inputs changed and marks its Journey index
-    stale when ``career_facts_changed``. When ``presentation_only`` is true (only
-    ``min_match_score`` / ``include_unknown`` or non-scoring fields changed),
-    bumps ``source_version`` to serialize against in-flight workers without
-    dropping vectors or ``match_index_version``.
+    Marks its Journey index stale when ``career_facts_changed``; the job analysis
+    worker notices changed CV lines by hash and refreshes the pair evidence. When
+    ``presentation_only`` is true (only ``min_match_score`` / ``include_unknown``
+    or non-scoring fields changed), bumps ``source_version`` to serialize against
+    in-flight workers without touching ``match_index_version``.
     """
-    from hiring_scraper.semantic_matching import profile_sections, source_hash as vector_hash
-
     session.flush()
     _declare(session, 'profile', [profile_id])
     # The version bump locks the row until commit; publishers verify the version.
@@ -187,33 +210,20 @@ def profile_changed(
                              .execution_options(populate_existing=True))
     if profile is None:
         return
-    stored = session.connection().execute(select(MatchSemanticDocument.source_hash).where(
-        MatchSemanticDocument.profile_id == profile_id)).scalar()
-    if stored is not None and stored != vector_hash(profile_sections(profile.matching_preferences)):
-        session.execute(delete(MatchSemanticDocument).where(MatchSemanticDocument.profile_id == profile_id))
     if career_facts_changed:
         profile.match_index_version = None
     session.info[_DIRTY] = True
 
 
-def vectors_changed(session: Session, *, job_ids: Iterable[int] = (), profile_ids: Iterable[int] = ()) -> None:
-    """Declare published section vectors.
-
-    New job vectors rematch those jobs; new profile vectors restart that
-    profile's Journey index, since every job's semantic evidence changes.
-    """
-    jobs, profiles = _ids(job_ids), _ids(profile_ids)
+def analysis_changed(session: Session, job_ids: Iterable[int]) -> None:
+    """Declare published job analyses or pair evidence: rematch those jobs."""
+    jobs = _ids(job_ids)
+    if not jobs:
+        return
     session.flush()
     _declare(session, 'job', jobs)
-    _declare(session, 'profile', profiles)
-    if jobs:
-        _queue_rematch(session, jobs)
-    if profiles:
-        session.execute(delete(ProfileMatchProgress).where(ProfileMatchProgress.profile_id.in_(profiles)))
-        session.execute(update(UserProfile).where(UserProfile.id.in_(profiles)).values(
-            match_index_version=None, source_version=UserProfile.source_version + 1))
-    if jobs or profiles:
-        session.info[_DIRTY] = True
+    _queue_rematch(session, jobs)
+    session.info[_DIRTY] = True
 
 
 def finish(session: Session) -> None:
@@ -271,8 +281,8 @@ def _detect(session: Session, _flush_context) -> None:
     for item in (*session.new, *session.dirty, *session.deleted):
         if type(item) not in TRACKED_FIELDS or not _changed(session, item):
             continue
-        # Vectors deleted with their profile change no job's inputs.
-        if (item in session.deleted and isinstance(item, MatchSemanticDocument)
+        # Evidence deleted with its profile changes no job's inputs.
+        if (item in session.deleted and isinstance(item, MatchEvidence)
                 and item.profile_id in deleted_profiles):
             continue
         if isinstance(item, Job):
@@ -288,8 +298,8 @@ def _detect(session: Session, _flush_context) -> None:
                 detected.add(('profile', item.id))
         elif isinstance(item, ProfileCV):
             detected.add(('profile', item.profile_id or (item.profile.id if item.profile is not None else None)))
-        elif isinstance(item, MatchSemanticDocument):
-            detected.add(('job', item.job_id) if item.job_id is not None else ('profile', item.profile_id))
+        elif isinstance(item, (JobAnalysis, MatchEvidence)):
+            detected.add(('job', item.job_id))
 
 
 def _verify(session: Session) -> None:

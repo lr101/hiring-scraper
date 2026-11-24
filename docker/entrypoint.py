@@ -261,6 +261,7 @@ WORKER_MODULES = (
     "search_snapshot_worker",
     "profile_match_worker",
     "semantic_search_worker",
+    "job_analysis_worker",
     "application_preparation_worker",
 )
 WORKER_POOL = {"HIRING_DB_POOL_SIZE": "5", "HIRING_DB_MAX_OVERFLOW": "5"}
@@ -278,7 +279,9 @@ def _workers_enabled() -> bool:
 
 
 def _worker_pool(module: str) -> dict[str, str]:
-    return PREPARATION_POOL if module == "application_preparation_worker" else WORKER_POOL
+    # Both run one item at a time; a small pool keeps the stack under max_connections.
+    small = {"application_preparation_worker", "job_analysis_worker"}
+    return PREPARATION_POOL if module in small else WORKER_POOL
 
 
 def _worker_command(module: str) -> list[str]:

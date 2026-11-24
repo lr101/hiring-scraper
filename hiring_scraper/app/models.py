@@ -267,8 +267,6 @@ class Job(Base):
         """Persisted canonical group for this source row, when indexed."""
         return self.vacancy_group.vacancy_group_id if self.vacancy_group is not None else None
 
-    semantic_document: Mapped[MatchSemanticDocument | None] = relationship(
-        foreign_keys="MatchSemanticDocument.job_id", cascade="all, delete-orphan", uselist=False)
 
 
 class JobLocation(Base):
@@ -321,8 +319,6 @@ class UserProfile(Base):
     cv: Mapped[ProfileCV | None] = relationship(
         back_populates="profile", cascade="all, delete-orphan", uselist=False, lazy="selectin")
     photo: Mapped[ProfilePhoto | None] = relationship(back_populates="profile", cascade="all, delete-orphan", uselist=False)
-    semantic_document: Mapped[MatchSemanticDocument | None] = relationship(
-        foreign_keys="MatchSemanticDocument.profile_id", cascade="all, delete-orphan", uselist=False)
 
     @property
     def matching_preferences(self) -> dict:
@@ -489,21 +485,68 @@ class ProfileJobMatch(Base):
     score_version: Mapped[str | None] = mapped_column(String(80), nullable=True)
 
 
-class MatchSemanticDocument(Base):
-    """Rebuildable section vectors, shared by all profile/job comparisons."""
-    __tablename__ = 'match_semantic_documents'
-    __table_args__ = (CheckConstraint(
-        '(job_id IS NULL AND profile_id IS NOT NULL) OR (job_id IS NOT NULL AND profile_id IS NULL)',
-        name='ck_match_semantic_document_owner'),)
+class JobAnalysis(Base):
+    """Local-LLM duties/requirements of one posting; rebuildable from the job source."""
+    __tablename__ = 'job_analyses'
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    job_id: Mapped[int | None] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), unique=True)
-    profile_id: Mapped[int | None] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), unique=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True)
+    version: Mapped[str] = mapped_column(String(200), nullable=False)
     source_hash: Mapped[str] = mapped_column(String(64), nullable=False)
-    version: Mapped[str] = mapped_column(String(160), nullable=False)
-    sections: Mapped[list] = mapped_column(JSON, nullable=False)
-    vectors: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
-    indexed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    # Identity of this output (version + payload); pair evidence is valid only for the same value.
+    result_hash: Mapped[str] = mapped_column(String(64), nullable=False, default='')
+    status: Mapped[str] = mapped_column(String(16), nullable=False, index=True)  # ok | stale | failed
+    payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    error: Mapped[str | None] = mapped_column(String(300))
+    analysed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ProfileEvidenceUnits(Base):
+    """Citable CV lines of one profile with their local E5 vectors."""
+    __tablename__ = 'profile_evidence_units'
+
+    profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
+    version: Mapped[str] = mapped_column(String(200), nullable=False)
+    source_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    vectors: Mapped[bytes] = mapped_column(LargeBinary, nullable=False, default=b'')
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class MatchEvidence(Base):
+    """Reranker-checked duty/requirement evidence for one profile/job pair."""
+    __tablename__ = 'match_evidence'
+
+    profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True, index=True)
+    version: Mapped[str] = mapped_column(String(200), nullable=False)
+    # Inputs that produced this row (JobAnalysis.result_hash and the CV units hash); either
+    # changing makes it stale (still shown until replaced).
+    analysis_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    units_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    computed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class JobAnalysisQueue(Base):
+    """Jobs waiting for (re)analysis by the local LLM; drained by the job analysis worker."""
+    __tablename__ = 'job_analysis_queue'
+
+    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True)
+    queued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+    retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class MatchEvidenceQueue(Base):
+    """Profile/job pairs whose reranker evidence must be (re)computed."""
+    __tablename__ = 'match_evidence_queue'
+
+    profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True, index=True)
+    queued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+    retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
 
 class MatchDirtyJob(Base):

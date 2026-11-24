@@ -39,6 +39,21 @@ try {
   assert.match(refreshing, /match-recommended/)
   assert.doesNotMatch(refreshing, /Local estimate|AI assessed|None identified yet/)
 
+  const pending = renderToStaticMarkup(React.createElement(JobFeedCard, {
+    job: {
+      id: 1,
+      title: 'Engineer',
+      company_name: 'Example',
+      location_text: null,
+      profile_match: { score: 0, matched_skills: [], pending: true },
+    },
+    href: '/jobs/1',
+    profileId: 3,
+    onAction() {},
+  }))
+  assert.match(pending, /Analysing job…/)
+  assert.doesNotMatch(pending, /0\/100 fit/)
+
   const noMatch = renderToStaticMarkup(React.createElement(JobFeedCard, {
     job: { id: 2, title: 'Engineer', company_name: 'Example', location_text: null, profile_match: null },
     href: '/jobs/2',
@@ -48,6 +63,24 @@ try {
   assert.doesNotMatch(noMatch, /Updating match…|fit<\/span>/)
 
   const { default: JobEvidence } = await server.ssrLoadModule('/src/JobEvidence.tsx')
+  const pendingEvidence = renderToStaticMarkup(React.createElement(JobEvidence, {
+    enrichment: { skills: [], languages: [], warnings: [], seniority: null, experience_years: null },
+    match: { score: 0, pending: true, eligible: true, uncertain: true, label: '', matched_skills: [],
+      missing_skills: [], reasons: [], conflicts: [], unknowns: [] },
+  }))
+  assert.match(pendingEvidence, /Analysing this job/)
+  assert.doesNotMatch(pendingEvidence, /0\/100/)
+  const pendingConflict = renderToStaticMarkup(React.createElement(JobEvidence, {
+    enrichment: { skills: [], languages: [], warnings: [], seniority: null, experience_years: null },
+    match: { score: 0, pending: true, eligible: false, uncertain: true, label: '', matched_skills: [],
+      missing_skills: [], reasons: [], conflicts: ['German C2 required; your level is B1'], unknowns: [],
+      prerequisite_conditions: [{ kind: 'language_cefr', status: 'fail', reason: 'German level too low',
+        job_quote: 'Deutsch auf Muttersprachniveau' }] },
+  }))
+  assert.match(pendingConflict, /Requirement or preference conflict/)
+  assert.match(pendingConflict, /German C2 required/)
+  assert.match(pendingConflict, /Deutsch auf Muttersprachniveau/)
+  assert.doesNotMatch(pendingConflict, /appears here and in Journey/)
   const evidence = review => renderToStaticMarkup(React.createElement(JobEvidence, {
     enrichment: { skills: [], languages: [], warnings: [], seniority: null, experience_years: null },
     match: {
@@ -66,71 +99,53 @@ try {
   assert.doesNotMatch(evidence(true), /<h2>Little match evidence/)
   assert.match(evidence(false), /<h2>Little match evidence/)
 
-  const localEvidence = renderToStaticMarkup(React.createElement(JobEvidence, {
+  const breakdown = renderToStaticMarkup(React.createElement(JobEvidence, {
     enrichment: { skills: [], languages: [], warnings: [], seniority: null, experience_years: null },
     match: {
-      score: 40,
-      task_fit: 85,
-      fit_tier: 'possible',
-      eligible: true,
-      mandatory_review: true,
-      matched_skills: [],
-      missing_skills: [],
-      reasons: [],
-      conflicts: [],
-      unknowns: [],
-      gates: { eligibility: { status: 'unknown', reason: 'Required degree is unverified.' } },
-      duty_evidence: {
-        score: 50,
-        coverage: 0.5,
-        duties: [{
-          job_quote: 'Maintain delivery schedules.',
-          status: 'transferable',
-          evidence_source: 'cv_career_facts.education[0].description',
-          evidence_quote: 'Planned production timelines.',
-          evidence_context: 'academic',
-        }],
-      },
-    },
-  }))
-  assert.match(localEvidence, /aria-label="Job score breakdown"/)
-  assert.match(localEvidence, /aria-label="Task fit"[^>]*aria-valuenow="85"/)
-  assert.match(localEvidence, /aria-label="Match score"[^>]*aria-valuenow="40"/)
-  assert.match(localEvidence, /Task fit before mandatory requirements and preferences/)
-  assert.match(localEvidence, /85\/100/)
-  assert.match(localEvidence, /Required degree is unverified/)
-  assert.match(localEvidence, /Documented duty fit/)
-  assert.match(localEvidence, /Planned production timelines/)
-  assert.match(localEvidence, /academic/)
-  assert.match(localEvidence, /50% of extracted duties/)
-  assert.doesNotMatch(localEvidence, /AI assessed|Local estimate|Role evidence ceiling|capped at 59/)
-  const ledger = renderToStaticMarkup(React.createElement(JobEvidence, {
-    enrichment: { skills: [], languages: [], warnings: [], seniority: null, experience_years: null },
-    match: {
-      score: 70, eligible: true, fit_tier: 'possible', language_review: true,
+      score: 57, eligible: true, fit_tier: 'possible', language_review: true,
       matched_skills: [], missing_skills: [], reasons: [], conflicts: [], unknowns: [],
-      calibration: { raw: 30, calibrated: 70, version: 'v2-fixture' },
+      requirement_gaps: ['Technische Ausbildung'],
+      job_context: { occupation: 'surface engineering', industry: 'automotive' },
+      calibration: { raw: 47.6, calibrated: 57, version: 'v3-fixture' },
       explanation: [
-        { signal: 'duty_coverage', contribution: 20, detail: 'Duty evidence', job_quote: 'Build APIs', profile_quote: 'Built APIs' },
-        { signal: 'skill_overlap', contribution: 10, detail: 'Skill overlap' },
-        { signal: 'role_alignment', contribution: 4, detail: 'Role preference' },
-        { signal: 'domain_alignment', contribution: 1, detail: 'Domain alignment' },
-        { signal: 'penalty:language_visa_flag', contribution: -5, detail: 'Language verification' },
+        { signal: 'duties', contribution: 20.5, max_points: 32, supported: 3, total: 5, detail: 'Duty evidence' },
+        { signal: 'must', contribution: 9.1, max_points: 28, supported: 1, total: 3, detail: 'Mandatory requirements' },
+        { signal: 'role', contribution: 12, max_points: 17, supported: null, total: null, detail: 'Role fit' },
+        { signal: 'domain', contribution: 10, max_points: 17, supported: null, total: null, detail: 'Field fit' },
+        { signal: 'penalty:work_style', contribution: -4, max_points: null, detail: 'Work style differs' },
+      ],
+      duty_evidence: { score: 60, coverage: 0.6, duties: [
+        { job_quote: 'Maintain delivery schedules.', status: 'transferable', evidence_source: 'cv', evidence_quote: 'Planned production timelines.' },
+        { job_quote: 'Run coating audits.', status: 'unverified', evidence_source: '', evidence_quote: '' },
+      ] },
+      requirement_observations: [
+        { kind: 'education', requirement: 'Technische Ausbildung', status: 'unknown', job_quote: 'Technische Ausbildung',
+          evidence_source: '', evidence_quote: '', modality: 'must', strength: 'none' },
+        { kind: 'skill', requirement: 'SAP', status: 'supported', job_quote: 'SAP', evidence_source: 'skills',
+          evidence_quote: 'SAP S/4HANA', modality: 'nice', strength: 'direct' },
       ],
       prerequisite_conditions: [
         { kind: 'language_cefr', status: 'unknown', reason: 'Verify German level', job_quote: 'Deutsch C1' },
       ],
     },
   }))
-  assert.match(ledger, /Raw score[^<]*<[^>]*>30/)
-  assert.match(ledger, /Calibrated score[^<]*<[^>]*>70\/100/)
-  assert.match(ledger, /Build APIs/)
-  assert.match(ledger, /Built APIs/)
-  assert.match(ledger, /Other contributions/)
-  assert.match(ledger, /Language verification/)
-  assert.match(ledger, /Deutsch C1/)
-  assert.match(ledger, /Verify language proficiency/)
-  assert.doesNotMatch(localEvidence, /Raw score|Calibrated score/)
+  assert.match(breakdown, /aria-label="How the match score was built"/)
+  assert.match(breakdown, /<strong>57<\/strong>/)
+  assert.match(breakdown, /Main duties/)
+  assert.match(breakdown, /3 of 5 shown in your CV/)
+  assert.match(breakdown, /20\.5<\/strong><small> \/ 32/)
+  assert.match(breakdown, /Work style[\s\S]*\u22124/)
+  assert.match(breakdown, /Points <strong>47\.6<\/strong>/)
+  assert.match(breakdown, /Match score <strong>57<\/strong>/)
+  assert.match(breakdown, /Planned production timelines/)
+  assert.match(breakdown, /aria-label="Partly shown"/)
+  assert.match(breakdown, /aria-label="Not shown yet"/)
+  assert.match(breakdown, /aria-label="Nice-to-haves"[\s\S]*SAP S\/4HANA/)
+  assert.match(breakdown, /Deutsch C1/)
+  assert.match(breakdown, /Verify language proficiency/)
+  // The checklist already lists unmet must-haves, so the separate gap list is not repeated.
+  assert.doesNotMatch(breakdown, /Qualification gaps to check/)
+  assert.doesNotMatch(breakdown, /AI assessed|Local estimate/)
   console.log('Local match display assertions passed')
 } finally {
   await server.close()

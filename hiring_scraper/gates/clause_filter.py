@@ -9,13 +9,13 @@ from hiring_scraper.matching import (
     LANGUAGE_FLUENCY,
     LANGUAGE_PATTERNS,
 )
-from hiring_scraper.matching_v2.gates.authorization import (
+from hiring_scraper.gates.authorization import (
     AUTHORIZATION_CONDITION,
     _EXPLICIT_NO_SPONSORSHIP,
     has_sponsorship_alternative,
 )
-from hiring_scraper.matching_v2.gates.common import _PAREN_RE
-from hiring_scraper.matching_v2.gates.language import (
+from hiring_scraper.gates.common import _PAREN_RE
+from hiring_scraper.gates.language import (
     _CEFR_TOKEN_RE,
     _DRIVING_LICENSE_RE,
     _LANG_MODALITY_RE,

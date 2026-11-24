@@ -8,7 +8,7 @@ from hiring_scraper.matching import (
     _LICENSE_CONDITION,
     _credential_evidence,
 )
-from hiring_scraper.matching_v2.gates.authorization import _condition_waived
+from hiring_scraper.gates.authorization import _condition_waived
 from hiring_scraper.requirements import is_source_instruction, requirement_polarity
 
 _CREDENTIAL_ALT_OR_RENEW_RE = re.compile(r'\b(?:or|oder|renew|verlänger\w*)\b', re.I)

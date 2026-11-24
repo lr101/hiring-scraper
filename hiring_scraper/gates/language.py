@@ -16,7 +16,7 @@ from hiring_scraper.matching import (
     REQUIREMENT,
     _canonical_language,
 )
-from hiring_scraper.matching_v2.gates.common import (
+from hiring_scraper.gates.common import (
     NON_REQUIREMENT_V2,
     _PAREN_RE,
     _is_other_actor_subject,

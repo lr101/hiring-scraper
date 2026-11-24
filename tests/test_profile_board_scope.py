@@ -74,7 +74,8 @@ class ProfileBoardScopeTests(unittest.TestCase):
         self.assertNotIn('profile_match', item)
         detail = api.get_job(unknown.id, self.session, profile_id=profile['id'])
         self.assertTrue(detail['profile_match']['uncertain'])
-        self.assertEqual(detail['profile_match']['fit_tier'], 'possible')
+        # An unstated remote country never allows a recommended tier.
+        self.assertNotEqual(detail['profile_match']['fit_tier'], 'recommended')
         self.assertTrue(any('country' in x.lower() for x in detail['profile_match']['unknowns']))
         self.assertEqual(detail['geography'], item['geography'])
         self.assertEqual(page['counts']['filtered']['remote_country'], 1)

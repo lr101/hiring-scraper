@@ -1,7 +1,9 @@
 import type { CityElectionResult } from './profile'
+import ScoreBreakdown from './ScoreBreakdown'
 
-type ScoreContribution = {
+export type ScoreContribution = {
   signal: string; contribution: number; detail: string
+  max_points?: number | null; supported?: number | null; total?: number | null
   job_quote?: string; profile_source?: string; profile_quote?: string
 }
 
@@ -15,12 +17,18 @@ export type ProfileMatch = {
   }[]
   mandatory_review?: boolean
   task_fit?: number
+  requirement_observations?: {
+    kind: string; requirement: string; status: string; job_quote: string
+    evidence_source: string; evidence_quote: string; modality?: string; strength?: 'direct' | 'partial' | 'none'
+  }[]
   duty_evidence?: { score: number | null; coverage: number; duties: {
     job_quote: string; status: 'direct' | 'transferable' | 'unverified'; evidence_source: string
     evidence_quote: string; evidence_reference?: string; evidence_context?: string
   }[] }
   gates?: Record<string, { status: string; reason: string }>
+  truncated?: boolean
   fit_tier?: 'recommended' | 'possible' | 'unlikely'; requirement_gaps?: string[]; refreshing?: boolean
+  pending?: boolean; job_context?: { occupation: string; industry: string }
   score: number; eligible: boolean; uncertain: boolean; label: string
   custom_skill_evidence?: { name: string; evidence: string; source: string }[]
   local_context?: {
@@ -41,79 +49,29 @@ export type Enrichment = {
   }[]
 }
 
-function ScoreGraphic({ match }: { match: ProfileMatch }) {
-  const rows = [
-    { label: 'Task fit', value: match.task_fit, tone: 'task' },
-    { label: 'Match score', value: match.score, tone: 'final' },
-  ]
-  return <figure className="score-graphic" aria-label="Job score breakdown">
-    <figcaption>Your match breakdown</figcaption>
-    <div className="score-scale" aria-hidden="true"><span>0</span><span>50</span><span>100</span></div>
-    {rows.map(row => {
-      const value = row.value != null && Number.isFinite(row.value) ? Math.max(0, Math.min(100, row.value)) : null
-      return <div className={`score-row score-row-${row.tone}`} key={row.label}>
-        <div className="score-row-label"><span>{row.label}</span><strong>{value == null ? 'Unknown' : `${value}/100`}</strong></div>
-        {value == null ? <div className="score-track score-track-unknown" aria-hidden="true" /> :
-          <div className="score-track" role="meter" aria-label={row.label} aria-valuenow={value} aria-valuemin={0} aria-valuemax={100}>
-            <span style={{ width: `${value}%` }} />
-          </div>}
-      </div>
-    })}
-    <p>The match score accounts for task fit, qualifications and preferences. Review the checks below for unresolved requirements.</p>
-  </figure>
-}
-
-const scorePoints = new Intl.NumberFormat('en', { maximumFractionDigits: 4 })
-const signedPoints = new Intl.NumberFormat('en', { maximumFractionDigits: 4, signDisplay: 'exceptZero' })
-
-function ContributionLedger({ entries, calibration }: {
-  entries: ScoreContribution[]; calibration: NonNullable<ProfileMatch['calibration']>
-}) {
-  const positives = entries.filter(row => row.contribution > 0).sort((a, b) => b.contribution - a.contribution)
-  const negatives = entries.filter(row => row.contribution < 0).sort((a, b) => a.contribution - b.contribution)
-  const featured = [...positives.slice(0, 3), ...negatives.slice(0, 2)]
-  const remainder = [...positives.slice(3), ...negatives.slice(2)]
-  return <section aria-label="Score contributions">
-    <h3>Score contributions</h3>
-    <dl>{featured.map((row, index) => <div key={`${row.signal}:${index}`}>
-      <dt>{row.detail}</dt>
-      <dd><strong>{signedPoints.format(row.contribution)}</strong>
-        {row.job_quote && <p>Job <q>{row.job_quote}</q></p>}
-        {row.profile_quote && <p>Saved evidence <q>{row.profile_quote}</q></p>}
-      </dd>
-    </div>)}
-    {remainder.length > 0 && <div>
-      <dt>Other contributions</dt>
-      <dd>{signedPoints.format(remainder.reduce((total, row) => total + row.contribution, 0))}</dd>
-    </div>}
-    </dl>
-    <p>Raw score <strong>{scorePoints.format(calibration.raw)}</strong> · Calibrated score <strong>{calibration.calibrated}/100</strong></p>
-  </section>
-}
-
 export default function JobEvidence({ enrichment, match }: { enrichment: Enrichment; match?: ProfileMatch }) {
   const skillEvidence = [...enrichment.skills, ...(match?.custom_skill_evidence ?? [])]
   return <section className="detail-panel evidence-panel">
     <p className="eyebrow">How this job fits</p>
-    {match ? <>
-      <h2>{!match.eligible ? 'Requirement or preference conflict' : match.mandatory_review ? 'Verify mandatory eligibility' : match.fit_tier === 'recommended' ? 'Recommended match' : match.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'} · {match.score}/100</h2>
-      <p className="muted">Match score based on saved task, skill and requirement evidence. Shared tools may be incidental; verify the main work and mandatory requirements before applying. This is not a prediction of hiring success.</p>
-      <ScoreGraphic match={match} />
-      {match.calibration && match.explanation && <ContributionLedger entries={match.explanation} calibration={match.calibration} />}
-      {match.calibration && match.language_review && <p className="evidence-note">Verify language proficiency against the stated requirement.</p>}
-      {match.mandatory_review && <p className="evidence-note">A mandatory eligibility requirement is unverified. The qualification score does not clear that requirement.</p>}
-      {match.task_fit != null && <>
-        <p><strong>Task fit before mandatory requirements and preferences:</strong> {match.task_fit}/100. The match score above also accounts for unresolved qualifications and constraints.</p>
-      </>}
-      {match.duty_evidence?.score != null && <details>
-        <summary>Documented duty fit · {match.duty_evidence.score}/100</summary>
-        <p>{Math.round(match.duty_evidence.coverage * 100)}% of extracted duties have some supporting evidence. This score compares work performed. Eligibility and preferences have separate checks.</p>
-        {match.duty_evidence.duties.map((duty, index) => <div className="evidence-note" key={index}>
-          <strong>{duty.status}{duty.evidence_context && duty.evidence_context !== 'unspecified' ? ' · ' + duty.evidence_context : ''}</strong>
-          <p>Job <q>{duty.job_quote}</q></p>
-          {duty.evidence_quote && <p>Saved evidence ({duty.evidence_reference || duty.evidence_source}) <q>{duty.evidence_quote}</q></p>}
+    {match?.pending ? <>
+      <h2>{match.eligible ? 'Analysing this job' : 'Requirement or preference conflict'}</h2>
+      <p className="muted">{match.eligible
+        ? 'A local model is reading the posting’s duties and requirements and checking them against your CV. The match appears here and in Journey once that finishes.'
+        : 'This posting states a requirement or condition that conflicts with your profile, so it stays out of Journey. The local model has not read the rest of it yet.'}</p>
+      {match.conflicts.length > 0 && <div className="error-banner"><strong>Requirements or preferences that conflict</strong><ul>{match.conflicts.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
+      {match.prerequisite_conditions?.filter(row => row.status === 'fail' && row.job_quote).map((row, index) =>
+        <div className="evidence-note" key={`${row.kind}:${index}`}>
+          <strong>{row.reason}</strong>
+          <p>Job <q>{row.job_quote}</q></p>
+          {row.profile_quote && <p>Saved evidence <q>{row.profile_quote}</q></p>}
         </div>)}
-      </details>}
+    </> : match ? <>
+      {match.job_context && (match.job_context.occupation || match.job_context.industry) && <p className="eyebrow">
+        {[match.job_context.occupation, match.job_context.industry].filter(Boolean).join(' · ')}</p>}
+      <h2>{!match.eligible ? 'Requirement or preference conflict' : match.mandatory_review ? 'Verify mandatory eligibility' : match.fit_tier === 'recommended' ? 'Recommended match' : match.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'}</h2>
+      <ScoreBreakdown match={match} />
+      {match.language_review && <p className="evidence-note">Verify language proficiency against the stated requirement.</p>}
+      {match.mandatory_review && <p className="evidence-note">A mandatory eligibility requirement is unverified. The match score does not clear that requirement.</p>}
       {match.gates && <>
         <h3>Eligibility and location checks</h3>
         <dl>{Object.entries(match.gates).map(([name, gate]) => <div key={name}><dt>{name} · {gate.status}</dt><dd>{gate.reason}</dd></div>)}</dl>
@@ -128,7 +86,7 @@ export default function JobEvidence({ enrichment, match }: { enrichment: Enrichm
       {!match.calibration && match.reasons.length > 0 && <ul>{match.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>}
       {match.conflicts.length > 0 && <div className="error-banner"><strong>Requirements or preferences that conflict</strong><ul>{match.conflicts.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
       {(match.soft_conflicts?.length ?? 0) > 0 && <div className="evidence-note"><strong>Experience to verify</strong><ul>{match.soft_conflicts!.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
-      {(match.requirement_gaps?.length ?? 0) > 0 && <div className="evidence-note"><strong>Qualification gaps to check</strong><ul>{match.requirement_gaps!.map(gap => <li key={gap}>{gap}</li>)}</ul></div>}
+      {(match.requirement_gaps?.length ?? 0) > 0 && !match.requirement_observations?.some(row => row.strength) && <div className="evidence-note"><strong>Qualification gaps to check</strong><ul>{match.requirement_gaps!.map(gap => <li key={gap}>{gap}</li>)}</ul></div>}
       {match.unknowns.length > 0 && <div className="evidence-note"><strong>Still needs checking</strong><ul>{match.unknowns.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
       {match.missing_skills.length > 0 && <p>Other skills mentioned in the post: {match.missing_skills.join(', ')}. Mentions can include optional skills.</p>}
     </> : <><h2>Skills and requirements found</h2><p className="muted"><a href="/profile">Create a profile</a> to rank jobs by your interests.</p></>}
