@@ -95,7 +95,7 @@ def classify(error: BaseException) -> tuple[str, bool, str]:
     render = sys.modules.get('hiring_scraper.app.application_pdf')
     if pipeline is not None and isinstance(error, getattr(pipeline, 'GenerationError', ())):
         retryable = bool(getattr(error, 'retryable', False))
-        message = ('The AI service did not answer in time. Radius will try again shortly.' if retryable
+        message = ('The AI service did not answer in time.' if retryable
                    else 'The AI service could not prepare these documents.')
         return str(getattr(error, 'code', None) or 'generation_failed')[:64], retryable, message
     if render is not None and isinstance(error, getattr(render, 'RenderUnavailable', ())):
@@ -104,9 +104,9 @@ def classify(error: BaseException) -> tuple[str, bool, str]:
         if error.code == 'document_too_large':
             return error.code, False, 'The document is too large to export as a PDF.'
         return (str(getattr(error, 'code', None) or 'render_failed')[:64], True,
-                'The document could not be rendered. Radius will try again shortly.')
+                'The document could not be rendered.')
     if isinstance(error, ProfileIndexChanged) or is_transient_database_error(error):
-        return 'database_contention', True, 'The database was busy. Radius will try again shortly.'
+        return 'database_contention', True, 'The database was busy.'
     return 'unexpected', False, 'Preparation failed unexpectedly. Check server logs and try again.'
 
 
@@ -351,7 +351,7 @@ def process_once(run):
             progress._update(finish=True, state='failed', stage='failed', error=message, error_code=code)
     else:
         progress._update(finish=True, state='completed', stage='completed', result=result,
-                         error_code=None, error=None)
+                         error_code=None, error=None, failed_stage=None)
     return True
 
 
