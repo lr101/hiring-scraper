@@ -405,17 +405,18 @@ def _orphan_entry_breaks(model: CvDocument, page_texts: list[str]) -> list[str]:
                 if section_heading != -1 and bisect_right(boundaries, section_heading) < header_page:
                     broken.append(entry.id)
                     continue
-            intro_on_header = [
-                is_colon for end, is_colon in intro_ends if bisect_right(boundaries, end) == header_page
-            ]
             bullet_pages = Counter(bisect_right(boundaries, end) for end in bullet_ends)
-            spills = any(page > header_page for page in bullet_pages)
-            if not spills:
+            if not bullet_ends:
                 continue
-            has_content_on_header = bullet_pages[header_page] >= 1 or (
-                bool(intro_on_header) and not intro_on_header[-1]
+            first_bullet_page = bisect_right(boundaries, bullet_ends[0])
+            dangling_caption = any(
+                is_colon and bisect_right(boundaries, end) < first_bullet_page
+                for end, is_colon in intro_ends
             )
-            dangling_caption = bullet_pages[header_page] == 0 and bool(intro_on_header) and intro_on_header[-1]
+            spills = any(page > header_page for page in bullet_pages)
+            if not spills and not dangling_caption:
+                continue
+            has_bullet_on_header = bullet_pages[header_page] >= 1
             lone_continuation = len(bullet_ends) >= 3 and any(
                 count < 2 for page, count in bullet_pages.items() if page > header_page
             )
@@ -423,7 +424,7 @@ def _orphan_entry_breaks(model: CvDocument, page_texts: list[str]) -> list[str]:
             lone_project_split = is_project_list and len(bullet_pages) > 1 and any(
                 count < 2 for count in bullet_pages.values()
             )
-            if not has_content_on_header or dangling_caption or lone_continuation or lone_project_split:
+            if not has_bullet_on_header or dangling_caption or lone_continuation or lone_project_split:
                 broken.append(entry.id)
     return broken
 

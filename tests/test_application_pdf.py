@@ -474,6 +474,49 @@ class RenderTests(unittest.TestCase):
         self.assertEqual(p2_projects, [1, 2, 3])
         self.assertEqual(self._passed(result, 'entry_pagination'), 'passed')
 
+    def test_education_entry_does_not_strand_header_and_degree_note_without_bullets_on_page_one(self):
+        from pypdf import PdfReader
+
+        doc = fictional_cv(bullets=13)
+        doc.language = 'en'
+        doc.sections[1].title = 'EXPERIENCE'
+        doc.sections.insert(2, Section(
+            id='s-education', kind='education', title='EDUCATION', entries=[
+                Entry(
+                    id='study-1', kind='study',
+                    locked=LockedEntry(company='Example Polytechnic Institute', title='B.S. Industrial Design',
+                                       location='Leeds, UK', start='2018', end='2022'),
+                    intro=[
+                        Unit(id='u-study-i1', text='Concentration in modular prototyping and product evaluation.'),
+                        Unit(id='u-study-i2', text='Relevant Product Development Projects:'),
+                    ],
+                    units=[
+                        Unit(id=f'u-study-b{n}', lead_in=f'Studio Project {n}:',
+                             text='Built modular hardware prototypes, ran usability sessions, and documented assembly tolerances. ' * 4)
+                        for n in range(1, 4)
+                    ],
+                ),
+            ],
+        ))
+        result = application_pdf.render_document('cv', doc.model_dump())
+        pages = [page.extract_text() or '' for page in PdfReader(BytesIO(result.pdf)).pages]
+        self.assertEqual(len(pages), 2)
+        self.assertFalse(result.page_limit_exceeded)
+        self.assertEqual(self._passed(result, 'entry_pagination'), 'passed')
+        self.assertEqual(result.telemetry['orphan_entry_breaks'], [])
+        # Header, degree note, list-label intro, and all 3 projects stay together on page 2.
+        for marker in (
+            'EDUCATION',
+            'EXAMPLE POLYTECHNIC INSTITUTE',
+            'Concentration in modular prototyping',
+            'Relevant Product Development Projects:',
+            'Studio Project 1:',
+            'Studio Project 2:',
+            'Studio Project 3:',
+        ):
+            self.assertNotIn(marker, pages[0], f'Stranded {marker!r} on page 1')
+            self.assertIn(marker, pages[1], f'Missing {marker!r} on page 2')
+
     def test_invalid_document_fails_cleanly(self):
         with self.assertRaises(application_pdf.RenderFailed) as ctx:
             application_pdf.render_document('cv', {'format': 'radius-cv-v2'})
@@ -502,12 +545,26 @@ class PaginationCheckTests(unittest.TestCase):
             Unit(id='u-i2', text='Selected projects:'),
         ]
         bullets = [unit.text for unit in entry.units]
-        # Heading + header + substantive intro on page 1, caption + bullets on page 2 -> clean.
-        clean_pages = [
+        # Heading + header + intro on page 1 with 0 bullets while caption + bullets start page 2 -> flagged.
+        header_only_pages = [
             '\n'.join(['BERUFSERFAHRUNG', entry.locked.company, entry.locked.title, entry.intro[0].text]),
             '\n'.join([entry.intro[1].text, *bullets]),
         ]
-        self.assertEqual(application_pdf._orphan_entry_breaks(doc, clean_pages), [])
+        self.assertEqual(application_pdf._orphan_entry_breaks(doc, header_only_pages), ['work-1'])
+        # Whole entry (heading + header + intro + caption + bullets) moved together to page 2 -> clean.
+        whole_entry_pages = [
+            'Prior section content.',
+            '\n'.join(['BERUFSERFAHRUNG', entry.locked.company, entry.locked.title,
+                       entry.intro[0].text, entry.intro[1].text, *bullets]),
+        ]
+        self.assertEqual(application_pdf._orphan_entry_breaks(doc, whole_entry_pages), [])
+        # Header + intro + caption + first bullet on page 1 and 2 remaining bullets on page 2 -> clean.
+        clean_split_pages = [
+            '\n'.join(['BERUFSERFAHRUNG', entry.locked.company, entry.locked.title,
+                       entry.intro[0].text, entry.intro[1].text, bullets[0]]),
+            '\n'.join(bullets[1:]),
+        ]
+        self.assertEqual(application_pdf._orphan_entry_breaks(doc, clean_split_pages), [])
         # Dangling colon caption on page 1 with 0 bullets on page 1 -> flagged.
         dangling_pages = [
             '\n'.join(['BERUFSERFAHRUNG', entry.locked.company, entry.locked.title,

@@ -288,15 +288,16 @@
   margin: 2pt 0;
 }
 
-.doc-cv-entry-intro:has(+ .doc-cv-bullets),
-.doc-cv-entry-intro:has(+ .doc-cv-bullets) > .doc-cv-paragraph:last-child {
+.doc-cv-entry-intro:has(+ .doc-cv-bullets) {
+  break-inside: avoid;
+  page-break-inside: avoid;
   break-after: avoid;
   page-break-after: avoid;
 }
 
-.doc-page:not(.doc-page--fill-first) .doc-cv-entry-intro:has(+ .doc-cv-bullets) {
-  break-inside: avoid;
-  page-break-inside: avoid;
+.doc-cv-entry-intro:has(+ .doc-cv-bullets) > .doc-cv-paragraph:last-child {
+  break-after: avoid;
+  page-break-after: avoid;
 }
 
 /* ---------- CV Bullets ---------- */
