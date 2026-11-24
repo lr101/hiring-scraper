@@ -232,10 +232,12 @@ available. They remain listed if no website can be verified, but cannot receive 
 checks until one is found.
 
 Use **View companies and jobs** on the Germany card to browse active, unexpired
-postings from German employers across all work locations, including remote and
-unspecified locations. The API uses `country=DE` for employer membership; the
-existing `country_code` parameter still describes remote eligibility in radius
-searches. Legacy companies with an observed canonical German state are included.
+postings whose work location is in Germany, plus remote roles open to Germany.
+The work location decides, not the employer: a German company's role in Romania
+is not listed, and a posting without a usable work location is not listed under
+Germany or a state. The company list still uses employer membership (`country=DE`,
+including legacy companies with an observed German state); the `country_code`
+parameter still describes remote eligibility in radius searches.
 Job search uses text relevance rather than profile-match filtering. The selected
 profile supplies its saved area and application-tracking context.
 

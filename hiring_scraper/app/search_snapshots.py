@@ -30,9 +30,8 @@ from hiring_scraper.app.models import (
     JobSearchResult, JobSearchSnapshot, JobSearchState, JobVacancyGroup, MatchDirtyJob,
     ProfileJobMatch, SemanticSearchDocument, UserProfile, utcnow,
 )
-from hiring_scraper.app.discovery_jobs import german_company_filter
 from hiring_scraper.election_data import municipality_vote_result
-from hiring_scraper.geography import GERMAN_STATES, normalize_german_state
+from hiring_scraper.geography import normalize_german_state
 from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.applications import (
     APPLICATION_STATUSES, application_json, canonical_application_states_for_jobs, vacancy_group_ids_for_jobs,
@@ -194,34 +193,7 @@ def _scope_candidate_branches(
     version = job_location_scope.LOCATION_SCOPE_VERSION
     posting_filter = posting_status_filter(posting_status)
     include_remote = location_scope in {"remote", "area_remote"} or work_style == "remote"
-    employer_company = aliased(Company)
     branches: list[Any] = []
-    if employer_country:
-        branches.extend([
-            select(Job.id, Job.feed_id).join(Job.feed).join(JobFeed.company).where(
-                posting_filter,
-                or_(german_company_filter(Company), Company.source == "default_job_feed"),
-            ),
-            select(Job.id, Job.feed_id).join(
-                employer_company, Job.employer_company_id == employer_company.id
-            ).where(
-                posting_filter,
-                german_company_filter(employer_company),
-            ),
-        ])
-    elif state:
-        branches.extend([
-            select(Job.id, Job.feed_id).join(Job.feed).join(JobFeed.company).where(
-                posting_filter,
-                Company.state == state,
-            ),
-            select(Job.id, Job.feed_id).join(
-                employer_company, Job.employer_company_id == employer_company.id
-            ).where(
-                posting_filter,
-                employer_company.state == state,
-            ),
-        ])
     if employer_country or state:
         if employer_country:
             precomputed = Job.germany_candidate.is_(True)
@@ -413,14 +385,12 @@ def result_scope(job, latitude, longitude, radius_km, place, country, state=None
         if text_scope is not None:
             return {'eligible': text_scope, 'reason': None if text_scope else 'outside_area',
                     'unknowns': [], 'match_kind': 'work_location' if text_scope else None}
-        company = job.employer_company or job.feed.company
-        source_company = job.feed.company
-        has_german_workplace = any(
-            str(location.country_code or "").casefold() == "de" for location in job.locations)
-        eligible = (company.country_code == 'DE' or company.state in GERMAN_STATES or
-                    source_company.source == "default_job_feed" or has_german_workplace)
+        # The work location decides, never the employer's or feed's country: a German
+        # company's role in Romania is not a job in Germany. Without a usable work
+        # location only an explicit German workplace country code counts.
+        eligible = any(str(location.country_code or "").casefold() == "de" for location in job.locations)
         return {'eligible': eligible, 'reason': None if eligible else 'outside_area',
-                'unknowns': [], 'match_kind': ('remote' if fully_remote(job) else 'employer_in_country') if eligible else None}
+                'unknowns': [], 'match_kind': 'work_location' if eligible else None}
     if state and (include_expired or not expiry(job)['expired']):
         if fully_remote(job):
             return geographic_scope(job, latitude, longitude, radius_km, place, 'DE',
@@ -429,10 +399,8 @@ def result_scope(job, latitude, longitude, radius_km, place, country, state=None
         if text_scope is not None:
             return {'eligible': text_scope, 'reason': None if text_scope else 'outside_area',
                     'unknowns': [], 'match_kind': 'work_location' if text_scope else None}
-        company = job.employer_company or job.feed.company
-        eligible = company.state == state or job.feed.company.state == state
-        return {'eligible': eligible, 'reason': None if eligible else 'outside_area',
-                'unknowns': [], 'match_kind': ('remote' if fully_remote(job) else 'employer_in_state') if eligible else None}
+        # No usable work location: the employer's state is not evidence of the workplace.
+        return {'eligible': False, 'reason': 'outside_area', 'unknowns': [], 'match_kind': None}
     return geographic_scope(job, latitude, longitude, radius_km, place, country,
                             include_expired=include_expired)
 
@@ -648,7 +616,7 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
                        'unlikely': tiers.count('unlikely')},
             'coverage': {'source_count': len({job.feed_id for job in jobs}),
                          'note': 'Observed active source records; selected sources are not exhaustive market coverage.'},
-            'rule': ('work location in Germany, with a German-employer fallback when location is missing or unspecified' if employer_country else 'work location in ' + state + ', with an employer-state fallback when location is missing or unspecified' if state else ('explicitly remote within country scope' if location_scope == 'remote' else
+            'rule': ('work location in Germany (employer country not used)' if employer_country else 'work location in ' + state + ' (employer state not used)' if state else ('explicitly remote within country scope' if location_scope == 'remote' else
                      'mapped or parsed work location within radius' if location_scope == 'area' else
                      'mapped or parsed work location within radius OR explicitly remote within country scope')),
             'state': state, 'country': employer_country}
@@ -817,8 +785,8 @@ def _search_page(session: Session, candidate_ids: list[int], profiles: list[Any]
         'profile_ids': [profile.id for profile in profiles],
         'profile_id': profiles[0].id if len(profiles) == 1 else None,
         'total': result_count,
-        'rule': ('work location in Germany, with a German-employer fallback when location is missing or unspecified' if employer_country else
-                 'work location in ' + state + ', with an employer-state fallback when location is missing or unspecified' if state else
+        'rule': ('work location in Germany (employer country not used)' if employer_country else
+                 'work location in ' + state + ' (employer state not used)' if state else
                  ('explicitly remote within country scope' if location_scope == 'remote' else
                   'mapped or parsed work location within radius' if location_scope == 'area' else
                   'mapped or parsed work location within radius OR explicitly remote within country scope')),
@@ -1267,15 +1235,12 @@ def semantic_jobs_page(session: Session, vector: list[float], *,
         .outerjoin(employer_company, Job.employer_company_id == employer_company.id))
     filters = [posting_status_filter(posting_status)]
     if employer_country:
-        scope_candidates = [german_company_filter(employer_company), german_company_filter(Company),
-                            Company.source == "default_job_feed",
-                            _job_germany_precomputed_or_fallback()]
+        scope_candidates = [_job_germany_precomputed_or_fallback()]
         if location_scope in {"remote", "area_remote"} or work_style == "remote":
             scope_candidates.append(_remote_job_candidate())
         filters.append(or_(*scope_candidates))
     elif state:
-        scope_candidates = [Company.state == state, employer_company.state == state,
-                            _job_state_precomputed_or_fallback(state)]
+        scope_candidates = [_job_state_precomputed_or_fallback(state)]
         if location_scope in {"remote", "area_remote"} or work_style == "remote":
             scope_candidates.append(_remote_job_candidate())
         filters.append(or_(*scope_candidates))
@@ -1435,8 +1400,8 @@ def semantic_jobs_page(session: Session, vector: list[float], *,
         "location": {"latitude": latitude, "longitude": longitude, "radius_km": radius_km,
                      "city": place, "country_code": country},
         "location_scope": location_scope,
-        "rule": ("work location in Germany, with a German-employer fallback when location is missing or unspecified" if employer_country else
-                 "work location in " + state + ", with an employer-state fallback when location is missing or unspecified" if state else
+        "rule": ("work location in Germany (employer country not used)" if employer_country else
+                 "work location in " + state + " (employer state not used)" if state else
                  ("explicitly remote within country scope" if location_scope == "remote" else
                   "mapped or parsed work location within radius" if location_scope == "area" else
                   "mapped or parsed work location within radius OR explicitly remote within country scope")),
