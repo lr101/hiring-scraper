@@ -746,6 +746,8 @@ class ApplicationDocument(Base):
     job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True)
     kind: Mapped[str] = mapped_column(String(16), primary_key=True)
     version: Mapped[int] = mapped_column(Integer, primary_key=True)
+    revision: Mapped[str] = mapped_column(String(32), nullable=False,
+                                           server_default=text("replace(gen_random_uuid()::text, '-', '')"))
     language: Mapped[str] = mapped_column(String(8), nullable=False)
     body: Mapped[dict] = mapped_column(JSONB, nullable=False)
     findings: Mapped[list] = mapped_column(JSONB, nullable=False, default=list, server_default=text("'[]'::jsonb"))

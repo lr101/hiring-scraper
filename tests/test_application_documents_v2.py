@@ -7,6 +7,7 @@ from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import Mock, patch
 
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
@@ -72,6 +73,40 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
         with self.sessions() as session:
             self.assertEqual(session.scalars(select(ApplicationDocument)).all(), [])
 
+    def test_cv_recreation_rejects_old_base_and_tailored_revisions(self):
+        from hiring_scraper.app import source_changes
+
+        def attach_cv():
+            source = FIXTURE.read_text()
+            with self.sessions.begin() as session:
+                session.add(ProfileCV(profile_id=1, filename='cv.tex', content_type='application/x-tex', size_bytes=1,
+                                      data=b'x', extracted_text=source, variants={'en': {'filename': 'cv.tex', 'text': source}}))
+                source_changes.profile_changed(session, 1)
+
+        attach_cv()
+        self.save(0)
+        with self.sessions() as session:
+            initial = documents.latest_pair(session, 1, 2)['letter']
+            base = json.loads(documents.get_cv_structure(1, 'en', session).body)
+        with self.sessions() as session:
+            profiles.delete_cv(1, session)
+        attach_cv()
+        self.save(0, paragraph='New fictional draft.')
+        with self.sessions() as session, self.assertRaises(HTTPException) as conflict:
+            documents.save_document(1, 'letter', 2,
+                                    documents.SaveRequest(expected_version=1, expected_revision=initial['revision'],
+                                                          body=initial['body']), session)
+        self.assertEqual(conflict.exception.status_code, 409)
+        with self.sessions() as session, self.assertRaises(HTTPException) as conflict:
+            documents.revert_document(1, 'letter', 2,
+                                      documents.RevertRequest(version=1, expected_version=1,
+                                                              expected_revision=initial['revision']), session)
+        self.assertEqual(conflict.exception.status_code, 409)
+        with self.sessions() as session, self.assertRaises(HTTPException) as conflict:
+            documents.put_cv_structure(1, documents.StructureRequest(
+                document=base['document'], expected_revision=base['revision']), 'en', session)
+        self.assertEqual(conflict.exception.status_code, 409)
+
     def test_saved_documents_become_stale_after_job_changes(self):
         from hiring_scraper.app import source_changes
         from hiring_scraper.documents.import_tex import import_marked_tex
@@ -107,7 +142,7 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
         self.assertEqual(payload['source'], 'imported')
         with self.sessions() as session:
             stored = json.loads(documents.put_cv_structure(
-                1, documents.StructureRequest(document=payload['document']), 'en', session).body)
+                1, documents.StructureRequest(document=payload['document'], expected_revision=payload['revision']), 'en', session).body)
         self.assertEqual(stored['source'], 'stored')
         with self.sessions() as session:
             variant = session.get(ProfileCV, 1).variants['en']
@@ -167,8 +202,10 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
                 patch.object(documents, '_preparation_input'), \
                 patch.object(application_pipeline, 'codex_generate'), \
                 patch.object(application_pipeline, 'revise_unit', return_value={'text': 'I help studios ship.'}):
+            with self.sessions() as session:
+                base_revision = documents.latest(session, 1, 2, 'letter').revision
             outcome = documents.run_revise(1, {'job_id': 2, 'document': 'letter', 'unit_id': 'u-p1',
-                'base_version': 1, 'instruction': 'Use more direct wording.'},
+                'base_version': 1, 'base_revision': base_revision, 'instruction': 'Use more direct wording.'},
                 Mock(cancelled=Mock(return_value=False)))
         self.assertFalse(outcome['applied'])
         self.assertEqual(outcome['original_text'], 'I build reliable services.')
@@ -214,8 +251,10 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
 
     def test_ai_output_is_held_when_the_user_saved_during_generation(self):
         self.save(0)
+        with self.sessions() as session:
+            base = documents._base_revisions(session, 1, 2)
         queue.enqueue_task(1, 2, 'prepare', {'job_id': 2, 'language': 'en'},
-                           extra={'base_versions': {'cv': 0, 'letter': 1}})
+                           extra={'base_revisions': base})
         key, token, record = queue._claim()
         progress = queue.Progress(key, token, {}, task_id=record['id'], record=record)
         with patch.object(documents, '_fresh_digest', return_value='digest'):

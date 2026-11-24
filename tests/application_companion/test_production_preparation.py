@@ -307,6 +307,7 @@ class ProductionPreparationTests(ProductionHarness):
         expect(paragraph).to_have_text('I build reliable services.')
         server_edit = self.context.request.put(endpoint, data={
             'body': letter(paragraph='A newer saved paragraph.'), 'expected_version': 1,
+            'expected_revision': initial.json()['revision'],
         })
         self.assertTrue(server_edit.ok, server_edit.text())
         paragraph.fill('My reviewed paragraph.')

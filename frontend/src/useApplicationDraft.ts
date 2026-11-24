@@ -4,7 +4,7 @@ import {
 } from './applicationDocuments'
 import type { ApplicationDocument, Finding } from './documents/types'
 import { findUnitById } from './documents/editing'
-import type { SavedDocument } from './applicationDocuments'
+import type { SavedDocument, Version } from './applicationDocuments'
 
 type HeldDraft = { id: string; findings: Finding[]; stale_inputs?: boolean }
 type Draft = {
@@ -53,11 +53,11 @@ export function useApplicationDraft(url: string) {
       return
     }
     if (inFlight.current) {
-      if (!deferred.current || deferred.current.version <= incoming.version) deferred.current = incoming
+      if (!deferred.current || deferred.current.created_at <= incoming.created_at) deferred.current = incoming
       return
     }
     const current = state.current
-    switch (current ? incomingDocument(current.saved.version, incoming.version, hasEdits(current)) : 'replace') {
+    switch (current ? incomingDocument(current.saved, incoming, hasEdits(current)) : 'replace') {
       case 'replace':
         replace(fromSaved(incoming))
         setError('')
@@ -68,7 +68,7 @@ export function useApplicationDraft(url: string) {
       case 'conflict':
         blocked.current = true
         setConflict(true)
-        setRemote(previous => !previous || incoming.version >= previous.version ? incoming : previous)
+        setRemote(previous => !previous || incoming.created_at >= previous.created_at ? incoming : previous)
         break
     }
   }, [replace])
@@ -87,17 +87,18 @@ export function useApplicationDraft(url: string) {
     }
     const previous = overwrite ?? snapshot.saved
     try {
-      const result = await applicationRequest<{ version: number }>(url, jsonRequest('PUT', {
+      const result = await applicationRequest<Pick<Version, 'version' | 'revision' | 'created_at'>>(url, jsonRequest('PUT', {
         expected_version: previous.version,
+        expected_revision: previous.revision,
         body: snapshot.body,
         dismissed_findings: snapshot.dismissed,
         ...(snapshot.held ? { held_task_id: snapshot.held.id } : {}),
       }, AbortSignal.timeout(20000)))
       const current = state.current!
       const saved: SavedDocument = {
-        ...previous, version: result.version, body: snapshot.body,
+        ...previous, ...result, body: snapshot.body,
         findings: visibleFindings({ ...snapshot, saved: previous }),
-        language: snapshot.body.language, origin: 'user', created_at: new Date().toISOString(),
+        language: snapshot.body.language, origin: 'user',
         stale_inputs: previous.stale_inputs || Boolean(snapshot.held?.stale_inputs),
       }
       // A user can keep typing during the PUT. Acknowledge only the sent snapshot.

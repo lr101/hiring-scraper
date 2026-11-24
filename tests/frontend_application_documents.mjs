@@ -6,10 +6,16 @@ import {
 } from '../frontend/src/applicationDocuments.ts'
 
 test('an incoming version preserves unsaved text and ignores older poll responses', () => {
-  assert.equal(incomingDocument(3, 4, true), 'conflict')
-  assert.equal(incomingDocument(3, 4, false), 'replace')
-  assert.equal(incomingDocument(3, 2, false), 'ignore')
-  assert.equal(incomingDocument(3, 3, true), 'metadata')
+  const current = { version: 3, revision: 'current', created_at: '2026-05-04T10:00:00+00:00' }
+  const earlier = { version: 2, revision: 'earlier', created_at: '2026-05-04T09:00:00+00:00' }
+  const later = { version: 4, revision: 'later', created_at: '2026-05-04T11:00:00+00:00' }
+  const recreated = { version: 1, revision: 'recreated', created_at: '2026-05-05T10:00:00+00:00' }
+  assert.equal(incomingDocument(current, later, true), 'conflict')
+  assert.equal(incomingDocument(current, later, false), 'replace')
+  assert.equal(incomingDocument(current, earlier, false), 'ignore')
+  assert.equal(incomingDocument(current, current, true), 'metadata')
+  assert.equal(incomingDocument(current, recreated, true), 'conflict')
+  assert.equal(incomingDocument(current, { ...recreated, version: 3 }, true), 'conflict')
 })
 
 test('default preparation stages include review while Fast skips it', () => {

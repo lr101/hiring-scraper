@@ -54,12 +54,12 @@ def _queue_structured(session, profile, job, language, current):
     if all(row and row.input_digest == digest and not row.stale_inputs for row in latest.values()):
         return False
     profile_id, job_id = profile.id, job.id
-    versions = {kind: row.version if row else 0 for kind, row in latest.items()}
+    revisions = {kind: row.revision for kind, row in latest.items() if row}
     session.rollback()
     application_preparation_queue.enqueue_task(
         profile_id, job_id, 'prepare',
         {'job_id': job_id, 'language': language, 'mode': 'full', 'model': codex_runtime.selected_model() or ''},
-        automatic=True, extra={'base_versions': versions},
+        automatic=True, extra={'base_revisions': revisions},
     )
     return True
 

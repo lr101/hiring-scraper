@@ -15,7 +15,7 @@ user to compare and adopt with an ordinary save. Document text is never logged.
 """
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timezone
 from hashlib import sha256
 import logging
 from typing import Literal
@@ -110,7 +110,7 @@ def carry_findings(kind, previous_body, previous_findings, body) -> list[dict]:
     return kept
 
 
-def should_publish(latest_version: int | None, base_version: int | None, published_version: int | None) -> bool:
+def should_publish(latest_version, base_version, published_version) -> bool:
     """Whether AI output may become the latest version (see module docstring)."""
     return latest_version is None or latest_version in {base_version or 0, published_version}
 
@@ -138,12 +138,15 @@ def public_task(record: dict | None) -> dict | None:
 
 # --- Storage ----------------------------------------------------------------------
 
+def _version_identity(row):
+    return {'version': row.version, 'revision': row.revision, 'created_at': row.created_at.astimezone(timezone.utc).isoformat(timespec='microseconds')}
+
+
 def document_json(row: ApplicationDocument | None, *, fresh_digest=None) -> dict | None:
     if row is None:
         return None
-    return {'version': row.version, 'language': row.language, 'body': row.body, 'findings': row.findings or [],
-            'origin': row.origin, 'stale_inputs': _is_stale(row.stale_inputs, row.input_digest, fresh_digest),
-            'created_at': row.created_at.isoformat()}
+    return {**_version_identity(row), 'language': row.language, 'body': row.body, 'findings': row.findings or [],
+            'origin': row.origin, 'stale_inputs': _is_stale(row.stale_inputs, row.input_digest, fresh_digest)}
 
 
 def latest(session, profile_id, job_id, kind) -> ApplicationDocument | None:
@@ -176,13 +179,14 @@ def list_versions(session, profile_id, job_id, kind) -> list[dict]:
     rows = session.execute(select(
         ApplicationDocument.version, ApplicationDocument.origin, ApplicationDocument.language,
         ApplicationDocument.stale_inputs, ApplicationDocument.created_at, ApplicationDocument.input_digest,
+        ApplicationDocument.revision,
     ).where(ApplicationDocument.profile_id == profile_id, ApplicationDocument.job_id == job_id,
             ApplicationDocument.kind == kind).order_by(ApplicationDocument.version.desc())).all()
     digests = {language: _fresh_digest(session, profile_id, job_id, language)
                for language in {row.language for row in rows if row.input_digest and not row.stale_inputs}}
-    return [{'version': version, 'origin': origin, 'language': language,
-             'stale_inputs': _is_stale(stale, digest, digests.get(language)), 'created_at': created.isoformat()}
-            for version, origin, language, stale, created, digest in rows]
+    return [{'version': version, 'revision': revision, 'origin': origin, 'language': language,
+             'stale_inputs': _is_stale(stale, digest, digests.get(language)), 'created_at': created.astimezone(timezone.utc).isoformat(timespec='microseconds')}
+            for version, origin, language, stale, created, digest, revision in rows]
 
 
 def save_version(session, profile_id, job_id, kind, body, *, expected_version, origin,
@@ -343,18 +347,20 @@ def _publish_prepared(profile_id, job_id, progress, digest, request, kind, body,
             record = row.record
             published = dict(record.get('published') or {})
             current = latest(session, profile_id, job_id, kind)
-            base = (record.get('base_versions') or {}).get(kind)
-            if should_publish(current.version if current else None, base, published.get(kind)):
+            base = (record.get('base_revisions') or {}).get(kind)
+            published_revisions = dict(record.get('published_revisions') or {})
+            if should_publish(current.revision if current else None, base, published_revisions.get(kind)):
                 published[kind] = save_version(
                     session, profile_id, job_id, kind, body, expected_version=current.version if current else 0,
                     origin='ai', findings=findings, stale_inputs=fresh != digest, input_digest=digest)
+                published_revisions[kind] = get_version(session, profile_id, job_id, kind, published[kind]).revision
                 held = {key: value for key, value in (record.get('held') or {}).items() if key != kind}
             else:
                 held = {**(record.get('held') or {}),
                         kind: {'body': validate_body(kind, body), 'findings': list(findings or []),
                                'latest_version': current.version, 'stale_inputs': fresh != digest,
                                'input_digest': digest}}
-            progress.store(session, row, published=published, held=held)
+            progress.store(session, row, published=published, published_revisions=published_revisions, held=held)
 
     retry_transient(attempt, action='publishing an application document', retry_on=(ProfileIndexChanged, VersionConflict))
 
@@ -390,7 +396,7 @@ def run_revise(profile_id, request, progress):
     job_id, kind, unit_id = request['job_id'], request['document'], request['unit_id']
     with SessionLocal() as session:
         source = get_version(session, profile_id, job_id, kind, request['base_version'])
-        if source is None:
+        if source is None or source.revision != request.get('base_revision'):
             raise queue.TaskError('document_missing', 'This document version is no longer stored.')
         body = source.body
         fields, _ = snapshot_inputs(session, profile_id, job_id, source.language)
@@ -399,7 +405,7 @@ def run_revise(profile_id, request, progress):
     revision = pipeline.revise_unit(body, kind, unit_id, request['instruction'], _preparation_input(fields), generate)
     original = unit_by_id(MODELS[kind].model_validate(body), unit_id)
     return {'applied': False, 'document': kind, 'base_version': request['base_version'],
-            'unit_id': unit_id, 'original_text': original.text, 'text': revision['text'],
+            'base_revision': source.revision, 'unit_id': unit_id, 'original_text': original.text, 'text': revision['text'],
             'sources': list(revision.get('sources') or []), 'findings': list(revision.get('findings') or [])}
 
 
@@ -443,6 +449,7 @@ class PrepareRequest(StrictModel):
 
 class SaveRequest(StrictModel):
     expected_version: int = Field(ge=0)
+    expected_revision: str | None = Field(default=None, pattern=r'^[0-9a-f]{32}$')
     body: dict
     dismissed_findings: list[str] = Field(default_factory=list, max_length=1000)
     held_task_id: str | None = Field(default=None, min_length=1, max_length=64)
@@ -450,16 +457,19 @@ class SaveRequest(StrictModel):
 
 class RevertRequest(StrictModel):
     version: int = Field(gt=0)
-    expected_version: int | None = Field(default=None, gt=0)
+    expected_version: int = Field(gt=0)
+    expected_revision: str = Field(pattern=r'^[0-9a-f]{32}$')
 
 
 class ReviseRequest(StrictModel):
     unit_id: str = Field(min_length=1, max_length=64, pattern=r'^[a-z0-9-]{1,64}$')
     instruction: str = Field(min_length=1, max_length=500)
-    expected_version: int | None = Field(default=None, gt=0)
+    expected_version: int = Field(gt=0)
+    expected_revision: str = Field(pattern=r'^[0-9a-f]{32}$')
 
 
 class StructureRequest(StrictModel):
+    expected_revision: str = Field(pattern=r'^[0-9]{1,19}$')
     document: dict
 
 
@@ -489,8 +499,8 @@ def _validated(kind, body):
         raise HTTPException(422, f'The {kind} document is invalid: {error.errors()[0]["msg"]}') from None
 
 
-def _base_versions(session, profile_id, job_id):
-    return {kind: (row.version if (row := latest(session, profile_id, job_id, kind)) else 0) for kind in KINDS}
+def _base_revisions(session, profile_id, job_id):
+    return {kind: row.revision for kind in KINDS if (row := latest(session, profile_id, job_id, kind))}
 
 
 @router.post('/{profile_id}/application-documents/prepare', status_code=202)
@@ -504,10 +514,10 @@ def start_preparation(profile_id: int, request: PrepareRequest, session: Session
     except queue.TaskError as error:
         status = 404 if error.code == 'not_found' else 409 if error.code == 'job_closed' else 422
         raise HTTPException(status, error.message) from None
-    base_versions = _base_versions(session, profile_id, request.job_id)
+    base_revisions = _base_revisions(session, profile_id, request.job_id)
     session.rollback()
     payload = {**request.model_dump(), 'model': codex_runtime.selected_model() or ''}
-    task = queue.enqueue_task(profile_id, request.job_id, 'prepare', payload, extra={'base_versions': base_versions})
+    task = queue.enqueue_task(profile_id, request.job_id, 'prepare', payload, extra={'base_revisions': base_revisions})
     return _json({'task': public_task(task)}, 202)
 
 
@@ -551,6 +561,9 @@ def save_document(profile_id: int, kind: Kind, job_id: int, request: SaveRequest
     body = _validated(kind, request.body)
     _hold_cv(session, profile_id)
     previous = get_version(session, profile_id, job_id, kind, request.expected_version) if request.expected_version else None
+    if (request.expected_version and (previous is None or previous.revision != request.expected_revision)
+            or not request.expected_version and request.expected_revision is not None):
+        raise HTTPException(409, 'This document changed. Reload before saving.')
     findings = carry_findings(kind, previous.body, previous.findings, body) if previous else []
     stale, digest = (previous.stale_inputs, previous.input_digest) if previous else (False, None)
     if request.held_task_id:
@@ -566,11 +579,12 @@ def save_document(profile_id: int, kind: Kind, job_id: int, request: SaveRequest
         version = save_version(session, profile_id, job_id, kind, body, expected_version=request.expected_version,
                                origin='user', findings=[item for item in findings if item.get('id') not in dismissed],
                                stale_inputs=stale, input_digest=digest)
+        identity = _version_identity(get_version(session, profile_id, job_id, kind, version))
         session.commit()
     except VersionConflict:
         session.rollback()
         raise HTTPException(409, 'This document changed in another tab or by the assistant. Reload to continue.') from None
-    return _json({'version': version})
+    return _json(identity)
 
 
 @router.post('/{profile_id}/application-documents/{kind}/revert')
@@ -578,6 +592,9 @@ def revert_document(profile_id: int, kind: Kind, job_id: int, request: RevertReq
                     session: Session = Depends(get_session)):
     _require_job(session, job_id)
     _hold_cv(session, profile_id)
+    current = latest(session, profile_id, job_id, kind)
+    if current is None or current.revision != request.expected_revision:
+        raise HTTPException(409, 'This document changed meanwhile. Reload and try again.')
     try:
         version = revert(session, profile_id, job_id, kind, request.version,
                          expected_version=request.expected_version)
@@ -598,12 +615,12 @@ def revise_document(profile_id: int, kind: Kind, job_id: int, request: ReviseReq
     current = latest(session, profile_id, job_id, kind)
     if current is None:
         raise HTTPException(404, 'Prepare this document first.')
-    if request.expected_version is not None and request.expected_version != current.version:
+    if (request.expected_version, request.expected_revision) != (current.version, current.revision):
         raise HTTPException(409, 'This document changed. Reload before requesting a revision.')
     if unit_by_id(MODELS[kind].model_validate(current.body), request.unit_id) is None:
         raise HTTPException(422, 'This part of the document no longer exists. Reload to continue.')
     payload = {'job_id': job_id, 'document': kind, 'unit_id': request.unit_id, 'instruction': request.instruction,
-               'base_version': current.version, 'model': codex_runtime.selected_model() or ''}
+               'base_version': current.version, 'base_revision': current.revision, 'model': codex_runtime.selected_model() or ''}
     session.rollback()
     task = queue.enqueue_task(profile_id, job_id, 'revise', payload)
     return _json({'task': public_task(task)}, 202)
@@ -611,6 +628,7 @@ def revise_document(profile_id: int, kind: Kind, job_id: int, request: ReviseReq
 
 @router.get('/{profile_id}/application-documents/{kind}/pdf')
 def document_pdf(profile_id: int, kind: Kind, job_id: int, version: int = Query(gt=0), retry: bool = False,
+                 revision: str | None = Query(default=None, pattern=r'^[0-9a-f]{32}$'),
                  session: Session = Depends(get_session)):
     require_profile(profile_id, session)
     if kind == 'cv':
@@ -621,6 +639,8 @@ def document_pdf(profile_id: int, kind: Kind, job_id: int, version: int = Query(
                            with_for_update={'read': True, 'key_share': True})
     if document is None:
         raise HTTPException(404, 'This document version is no longer stored.')
+    if revision is not None and revision != document.revision:
+        raise HTTPException(409, 'This document changed. Open the latest version before downloading.')
     template = render_key(session, profile_id, kind, document.body)
     cached = get_render(session, profile_id, job_id, kind, version, template)
     if cached is not None:
@@ -638,8 +658,10 @@ def document_pdf(profile_id: int, kind: Kind, job_id: int, version: int = Query(
 @router.get('/{profile_id}/cv/structure')
 def get_cv_structure(profile_id: int, language: Language = 'en', session: Session = Depends(get_session)):
     require_profile(profile_id, session)
+    versions = hold_profiles(session, [profile_id])
     document, source, errors = base_cv_document(session.get(ProfileCV, profile_id), language)
-    return _json({'document': document, 'source': source, 'errors': errors})
+    return _json({'document': document, 'source': source, 'errors': errors,
+                  'revision': str(versions[profile_id]) if profile_id in versions else None})
 
 
 @router.put('/{profile_id}/cv/structure')
@@ -653,6 +675,8 @@ def put_cv_structure(profile_id: int, request: StructureRequest, language: Langu
     if body['language'] != language:
         raise HTTPException(422, 'The CV language does not match the selected base CV.')
     cv = _hold_cv(session, profile_id, exclusive=True)
+    if str(hold_profiles(session, [profile_id])[profile_id]) != request.expected_revision:
+        raise HTTPException(409, 'The base CV changed. Reload it before saving.')
     text = project_tex(CvDocument.model_validate(body))
     try:
         history = parse_tex_cv(text)
@@ -669,5 +693,6 @@ def put_cv_structure(profile_id: int, request: StructureRequest, language: Langu
     # Profile (source) row first, then derived rows: the same order publishers use.
     source_changes.profile_changed(session, profile_id, career_facts_changed=_cv_career_facts(cv) != previous_facts)
     mark_stale(session, profile_id)
+    revision = str(hold_profiles(session, [profile_id])[profile_id])
     session.commit()
-    return _json({'document': body, 'source': 'stored', 'errors': []})
+    return _json({'document': body, 'source': 'stored', 'errors': [], 'revision': revision})

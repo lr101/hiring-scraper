@@ -6,6 +6,7 @@ export type Mode = 'full' | 'fast'
 export type PreparationStage = 'cv' | 'letter' | 'review'
 export type Version = {
   version: number
+  revision: string
   language: Language
   origin: string
   stale_inputs: boolean
@@ -13,12 +14,13 @@ export type Version = {
 }
 export type SavedDocument = Version & { body: ApplicationDocument; findings: Finding[] }
 export type Documents = Record<DocumentKind, SavedDocument | null>
-export type Structure = { document: CvDocument | null; source: 'stored' | 'imported'; errors: string[] }
+export type Structure = { document: CvDocument | null; source: 'stored' | 'imported'; errors: string[]; revision: string | null }
 export type RevisionRequest = { document: DocumentKind; unit_id: string; instruction: string; base_version: number }
 export type Revision = {
   document: DocumentKind
   unit_id: string
   base_version: number
+  base_revision: string
   original_text: string
   text: string
   findings: Finding[]
@@ -70,9 +72,10 @@ export function taskErrorMessage(task: Task) {
   }
 }
 
-export function incomingDocument(currentVersion: number, incomingVersion: number, hasLocalEdits: boolean) {
-  if (incomingVersion < currentVersion) return 'ignore'
-  if (incomingVersion === currentVersion) return 'metadata'
+export function incomingDocument(current: Pick<Version, 'revision' | 'created_at'>,
+  incoming: Pick<Version, 'revision' | 'created_at'>, hasLocalEdits: boolean) {
+  if (incoming.revision === current.revision) return 'metadata'
+  if (incoming.created_at < current.created_at) return 'ignore'
   return hasLocalEdits ? 'conflict' : 'replace'
 }
 

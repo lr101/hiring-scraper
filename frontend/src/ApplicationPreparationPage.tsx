@@ -5,7 +5,7 @@ import { DocumentEditor } from './documents/DocumentEditor'
 import type { CvDocument, Finding } from './documents/types'
 import { findUnitById, updateUnitText } from './documents/editing'
 import {
-  applicationPostingURL, applicationRequest, applicationStartLink, isActive, jsonRequest, pollDocumentPdf,
+  ApplicationHttpError, applicationPostingURL, applicationRequest, applicationStartLink, isActive, jsonRequest, pollDocumentPdf,
   preparationStages, taskErrorMessage,
 } from './applicationDocuments'
 import type { DocumentKind, Documents, Language, Mode, Revision, Structure, Task, Version } from './applicationDocuments'
@@ -78,6 +78,7 @@ function Preparation({ job, profile, editHref }: { job: Job; profile: Profile; e
   const [base, setBase] = useState<Structure>()
   const [baseBody, setBaseBody] = useState<CvDocument | null>(null)
   const [baseError, setBaseError] = useState('')
+  const [baseConflict, setBaseConflict] = useState(false)
   const [baseOpen, setBaseOpen] = useState(false)
   const [baseSaving, setBaseSaving] = useState(false)
   const [baseReload, setBaseReload] = useState(0)
@@ -106,6 +107,7 @@ function Preparation({ job, profile, editHref }: { job: Job; profile: Profile; e
 
   useEffect(() => {
     const controller = new AbortController()
+    setBaseConflict(false)
     setBase(undefined)
     setBaseBody(null)
     setBaseError('')
@@ -195,16 +197,19 @@ function Preparation({ job, profile, editHref }: { job: Job; profile: Profile; e
   }
 
   async function saveBase() {
-    if (!baseBody || baseSaving) return
+    if (!baseBody || !base?.revision || baseSaving) return
     setBaseSaving(true)
     setBaseError('')
     try {
-      const saved = await applicationRequest<Structure>(structureUrl, jsonRequest('PUT', { document: baseBody }, AbortSignal.timeout(20000)))
+      const saved = await applicationRequest<Structure>(structureUrl, jsonRequest('PUT', { document: baseBody, expected_revision: base.revision }, AbortSignal.timeout(20000)))
       setBase(saved)
       setBaseBody(saved.document)
       setBaseOpen(false)
       setRefresh(current => current + 1)
-    } catch (reason) { setBaseError(message(reason)) }
+    } catch (reason) {
+      setBaseConflict(reason instanceof ApplicationHttpError && reason.status === 409)
+      setBaseError(message(reason))
+    }
     finally { setBaseSaving(false) }
   }
 
@@ -215,15 +220,15 @@ function Preparation({ job, profile, editHref }: { job: Job; profile: Profile; e
   }
 
   const canRevise = connected && taskLoaded && !closed && !active && !busy
-  function revise(kind: DocumentKind, unitId: string, instruction: string, version: number) {
+  function revise(kind: DocumentKind, unitId: string, instruction: string, version: Version) {
     void taskAction(`${documentsUrl}/${kind}/revise${query}`, {
-      unit_id: unitId, instruction, expected_version: version,
+      unit_id: unitId, instruction, expected_version: version.version, expected_revision: version.revision,
     })
   }
 
   const retryRevision = task?.kind === 'revise' ? task.revision : undefined
   const revisionDraft = retryRevision?.document === 'cv' ? cv : letter
-  const retryVersion = revisionDraft.draft?.saved.version
+  const retryVersion = revisionDraft.draft?.saved
   const retryUnit = retryRevision && revisionDraft.body && findUnitById(revisionDraft.body, retryRevision.unit_id)
   const canRetryRevision = canRevise && retryVersion !== undefined && retryUnit
     && !revisionDraft.dirty && !revisionDraft.saving && !revisionDraft.conflict
@@ -238,7 +243,8 @@ function Preparation({ job, profile, editHref }: { job: Job; profile: Profile; e
       <div className="preparation-settings">
         <label>Document language<select value={language} disabled={baseSaving || active || busy || !taskLoaded} onChange={event => {
           if (baseDirty && !window.confirm('Discard unsaved edits to this base CV?')) return
-          setBase(undefined)
+          setBaseConflict(false)
+    setBase(undefined)
           setBaseBody(null)
           setLanguage(event.target.value as Language)
         }}><option value="en">English</option><option value="de">Deutsch</option></select></label>
@@ -253,9 +259,12 @@ function Preparation({ job, profile, editHref }: { job: Job; profile: Profile; e
           <summary>{base.source === 'imported' ? 'Review imported base CV' : 'Review or edit base CV'}</summary>
           <p>Radius uses this CV as the source for future applications in this language. Review each editable section before saving.</p>
           <DocumentEditor value={baseBody} onChange={setBaseBody} photoUrl={photoUrl} readOnly={baseSaving} saving={baseSaving} />
-          <button type="button" disabled={baseSaving || (!baseDirty && base.source === 'stored')} onClick={() => void saveBase()}>
+          <button type="button" disabled={baseSaving || baseConflict || (!baseDirty && base.source === 'stored')} onClick={() => void saveBase()}>
             {baseSaving ? 'Saving base CV…' : base.source === 'imported' ? 'Confirm and save base CV' : 'Save base CV changes'}
           </button>
+          {baseConflict && <button type="button" onClick={() => setBaseReload(current => current + 1)}>
+            Discard local edits and reload base CV
+          </button>}
         </details>}
       {!!form?.fields.length && <p className="finish-help">{form.fields.length} questions captured by the application companion. Open the employer form to review them.</p>}
       <div className="preparation-actions">
@@ -352,7 +361,7 @@ type TailoredDocumentProps = {
   query: string
   photoUrl?: string
   canRevise: boolean
-  onRevise: (kind: DocumentKind, unitId: string, instruction: string, version: number) => void
+  onRevise: (kind: DocumentKind, unitId: string, instruction: string, version: Version) => void
   task: Task | null
   dismissedOutput: string[]
   dismissOutput: (key: string) => void
@@ -388,7 +397,7 @@ function TailoredDocument({
   const originalUnit = revision?.document === kind && findUnitById(body, revision.unit_id)
   const suggestion = revision?.document === kind && !revision.applied && originalUnit
     && originalUnit.text !== revision.text ? revision : undefined
-  const canAccept = Boolean(originalUnit && originalUnit.text === suggestion?.original_text)
+  const canAccept = Boolean(originalUnit && originalUnit.text === suggestion?.original_text && saved.revision === suggestion?.base_revision)
   const held = showOutput && task?.held?.[kind]
 
   async function getLatest() {
@@ -428,7 +437,7 @@ function TailoredDocument({
     setReverting(true)
     try {
       await applicationRequest(`${url}/revert${query}`, jsonRequest('POST', {
-        version: Number(selectedVersion), expected_version: saved.version,
+        version: Number(selectedVersion), expected_version: saved.version, expected_revision: saved.revision,
       }, AbortSignal.timeout(20000)))
       draft.receive(await getLatest())
       setVersions(undefined)
@@ -445,7 +454,7 @@ function TailoredDocument({
     setPdfError('')
     const version = saved.version
     try {
-      const blob = await pollDocumentPdf(`${url}/pdf${query}&version=${version}`, controller.signal, pdfRetryVersion === version)
+      const blob = await pollDocumentPdf(`${url}/pdf${query}&version=${version}&revision=${saved.revision}`, controller.signal, pdfRetryVersion === version)
       if (controller.signal.aborted) return
       const href = URL.createObjectURL(blob)
       const anchor = document.createElement('a')
@@ -528,7 +537,7 @@ function TailoredDocument({
     {instruction && <form className="preparation-review-panel" onSubmit={event => {
       event.preventDefault()
       if (!canRevise || unsettled || !instruction.text.trim() || !findUnitById(body, instruction.unitId)) return
-      onRevise(kind, instruction.unitId, instruction.text.trim(), saved.version)
+      onRevise(kind, instruction.unitId, instruction.text.trim(), saved)
       setInstruction(undefined)
     }}>
       <label>How should AI improve this section?

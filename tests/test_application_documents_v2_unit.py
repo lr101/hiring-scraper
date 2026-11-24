@@ -1,6 +1,6 @@
 """Database-free checks for application documents v2 storage math, queue policy and API validation."""
 import asyncio
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 import json
 import sys
 import types
@@ -289,11 +289,14 @@ class RouterValidationTests(unittest.TestCase):
                                       {'expected_version': 2, 'body': letter()}, b'job_id=1')
         self.assertEqual(status, 409)
         self.assertEqual(headers.get(b'cache-control'), b'no-store')
+        stored = types.SimpleNamespace(version=1, revision='1' * 32, created_at=datetime(2026, 5, 1, tzinfo=timezone.utc))
         with patch.object(documents, 'save_version', return_value=1), \
+                patch.object(documents, 'get_version', return_value=stored), \
                 patch.object(FakeSession, 'commit', lambda self: None, create=True):
             status, payload, headers = call('PUT', '/api/v1/profiles/1/application-documents/letter',
                                             {'expected_version': 0, 'body': letter()}, b'job_id=1')
-        self.assertEqual((status, payload), (200, {'version': 1}))
+        self.assertEqual((status, payload), (200, {'version': 1, 'revision': '1' * 32,
+                                                  'created_at': '2026-05-01T00:00:00.000000+00:00'}))
         self.assertEqual(headers.get(b'cache-control'), b'no-store')
 
     def test_prepare_and_revise_validate_requests(self):
@@ -323,7 +326,7 @@ class RouterValidationTests(unittest.TestCase):
         self.assertEqual(headers.get(b'cache-control'), b'no-store')
 
     def test_cv_structure_rejects_invalid_documents_before_storage(self):
-        status, _, _ = call('PUT', '/api/v1/profiles/1/cv/structure', {'document': {'format': 'radius-cv-v2'}},
+        status, _, _ = call('PUT', '/api/v1/profiles/1/cv/structure', {'expected_revision': '1', 'document': {'format': 'radius-cv-v2'}},
                             b'language=en')
         self.assertEqual(status, 422)
 

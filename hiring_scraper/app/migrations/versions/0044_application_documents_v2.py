@@ -23,6 +23,8 @@ def upgrade():
         sa.Column('job_id', sa.Integer(), sa.ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True),
         sa.Column('kind', sa.String(16), primary_key=True),
         sa.Column('version', sa.Integer(), primary_key=True),
+        sa.Column('revision', sa.String(32), nullable=False,
+                  server_default=sa.text("replace(gen_random_uuid()::text, '-', '')")),
         sa.Column('language', sa.String(8), nullable=False),
         sa.Column('body', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column('findings', postgresql.JSONB(astext_type=sa.Text()), nullable=False,
@@ -35,6 +37,10 @@ def upgrade():
         sa.CheckConstraint('version > 0', name='ck_application_documents_version'),
         if_not_exists=True,
     )
+    op.execute("""
+        ALTER TABLE application_documents ADD COLUMN IF NOT EXISTS revision VARCHAR(32)
+        NOT NULL DEFAULT replace(gen_random_uuid()::text, '-', '')
+    """)
     op.create_index('ix_application_documents_job', 'application_documents', ['job_id'], if_not_exists=True)
     op.create_table(
         'application_document_renders',
