@@ -383,6 +383,33 @@ class MigrationAndEvalGuardTests(unittest.TestCase):
         self.assertTrue(any('GRANT SELECT, INSERT, UPDATE, DELETE ON' in sql and 'hiring_app' in sql
                             for sql in executed))
 
+    def test_eval_cli_uses_private_state_and_a_sanitized_environment_by_default(self):
+        import os
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from scripts.eval import application_documents as evaluator
+
+        with TemporaryDirectory() as folder:
+            root = Path(folder)
+            workspace = root / 'data' / 'private' / 'fixture'
+            workspace.mkdir(parents=True)
+            fake_cli = root / 'fake_cli.py'
+            fake_cli.write_text("""
+import json
+import os
+from pathlib import Path
+import sys
+out = Path(sys.argv[sys.argv.index('--output-last-message') + 1])
+out.write_text(json.dumps({'state': os.getenv('CODEX_HOME'), 'inherited': os.getenv('EVAL_TEST_MARKER')}))
+""")
+            environment = dict(os.environ, EVAL_TEST_MARKER='fictional inherited value')
+            environment.pop('RADIUS_CODEX_STATE_DIR', None)
+            with patch.dict(os.environ, environment, clear=True), patch.object(evaluator, 'ROOT', root), \
+                    patch.object(evaluator.codex_runtime, '_command', return_value=[sys.executable, str(fake_cli)]):
+                generate = evaluator.cli_generate('fictional-model', workspace)
+                result = generate('Fictional prompt', {})
+            self.assertEqual(result, {'state': str(root / 'data/private/codex/home'), 'inherited': None})
+
     def test_eval_script_restricts_paths_to_data_private(self):
         import importlib.util
         from pathlib import Path

@@ -46,7 +46,10 @@ def write_json(path: Path, value) -> None:
     path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
 
 
-def cli_generate(model: str, workspace: Path, state: Path | None) -> Generate:
+def cli_generate(model: str, workspace: Path) -> Generate:
+    workspace = private_path(workspace)
+    state = private_path(Path(os.environ.get('RADIUS_CODEX_STATE_DIR') or ROOT / 'data' / 'private' / 'codex'))
+
     def generate(prompt: str, schema: dict) -> dict:
         with TemporaryDirectory(prefix='codex-', dir=workspace) as directory:
             cwd = Path(directory)
@@ -66,8 +69,10 @@ def cli_generate(model: str, workspace: Path, state: Path | None) -> Generate:
             command.append('-')
             try:
                 # CLI output can contain application text. Capture it in memory and report fixed codes.
+                environment = codex_runtime._environment(state, cwd)
+                environment['TMPDIR'] = str(cwd)
                 result = subprocess.run(command, input=prompt, encoding='utf-8', errors='replace',
-                                        cwd=cwd, env=codex_runtime._environment(state, cwd) if state else None,
+                                        cwd=cwd, env=environment,
                                         capture_output=True, timeout=300)
                 if result.returncode:
                     error = (result.stderr[-65536:] + result.stdout[-65536:]).lower()
@@ -94,10 +99,6 @@ def run(args: argparse.Namespace) -> None:
     job = case['job']
     profile = read_json(private_path(args.profile))
     out = private_path(args.out)
-    # Default: the operator's own Codex CLI login (no credential copies). An explicit
-    # RADIUS_CODEX_STATE_DIR selects an isolated Radius-style state inside data/private/.
-    state_dir = os.environ.get('RADIUS_CODEX_STATE_DIR')
-    state = private_path(Path(state_dir)) if state_dir else None
     base_path = private_path(args.base_tex or args.base_docx)
     language = case.get('language')
     base = (import_marked_tex(base_path.read_text(encoding='utf-8'), language=language) if args.base_tex
@@ -126,7 +127,7 @@ def run(args: argparse.Namespace) -> None:
     hooks = StageHooks(checkpoints.get, commit_stage, lambda _: None, lambda: False)
     with TemporaryDirectory(prefix='.run-', dir=out) as directory:
         workspace = Path(directory)
-        result = prepare_documents(inp, cli_generate(args.model, workspace, state), hooks, render)
+        result = prepare_documents(inp, cli_generate(args.model, workspace), hooks, render)
         write_json(workspace / 'job.json', job)
         write_json(workspace / 'findings.json', result.findings)
         pages = {}
