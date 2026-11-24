@@ -1482,7 +1482,10 @@ def get_job(job_id: int, session: Session = Depends(get_session),
                                  resolved['radius_km'], resolved['place'],
                                  resolved['country'] if resolved['profile_area'] or isinstance(country_code, str) else None, state, employer_country) if state or employer_country or resolved['profile_area'] or resolved['explicit'] else None
         data['geography'] = scope
-        data['profile_match'] = search_snapshots.profile_match(job, profile, scope)
+        # Application-state lookups (include_analysis=false) skip matching: it can
+        # load the full analysis and evidence, and those callers discard it.
+        if include_analysis:
+            data['profile_match'] = search_snapshots.profile_match(job, profile, scope)
         application = canonical_application_states_for_jobs(session, profile.id, [job]).get(job.id)
         data['application'] = application_json(application) if application else None
     return data

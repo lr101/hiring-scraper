@@ -1,6 +1,8 @@
 """Posting analysis on job details without an application profile."""
 import unittest
 
+from sqlalchemy import event
+
 from hiring_scraper.app import api, models
 from hiring_scraper.app.enrichment import current_enrichment
 from hiring_scraper.job_analysis import VERSION, analysis_payload, result_hash, source_hash
@@ -111,10 +113,22 @@ class JobDetailAnalysisTests(unittest.TestCase):
         self.session.flush()
         self.session.add(models.JobApplication(profile_id=profile.id, job_id=self.job.id, status='open'))
         self.session.flush()
-        detail = api.get_job(self.job.id, self.session, profile_id=profile.id, include_analysis=False)
+        statements = []
+
+        def record(conn, cursor, statement, *args):
+            statements.append(statement)
+
+        engine = self.session.get_bind()
+        event.listen(engine, 'before_cursor_execute', record)
+        try:
+            detail = api.get_job(self.job.id, self.session, profile_id=profile.id, include_analysis=False)
+        finally:
+            event.remove(engine, 'before_cursor_execute', record)
         self.assertEqual(detail['application']['status'], 'open')
         self.assertNotIn('analysis', detail)
         self.assertNotIn('analysis_state', detail)
+        self.assertNotIn('profile_match', detail)
+        self.assertEqual([sql for sql in statements if 'job_analyses' in sql or 'match_evidence' in sql], [])
 
     def test_stored_enrichment_omits_only_the_legacy_vocabulary_warning(self):
         warning = 'No skills recognized in the current vocabulary'

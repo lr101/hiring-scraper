@@ -79,6 +79,14 @@ try {
   assert.match(analysedPosting, /Duties.*<q>Catalogue new acquisitions\.<\/q>/)
   assert.match(analysedPosting, /Must-haves.*Education.*<q>Archival training required\.<\/q>/)
   assert.match(analysedPosting, /Nice-to-haves.*Language.*<q>Latin is a plus\.<\/q>/)
+  const earlier = { occupation: 'archival science', industry: 'museums', duties: [],
+    requirements: [{ line: 2, text: '<b>Archival</b> training required.', need: 'must', kind: 'education' }] }
+  const outdated = (refreshing) =>
+    renderToStaticMarkup(React.createElement(JobPostingAnalysis, { state: 'outdated', analysis: earlier, refreshing }))
+  assert.match(outdated(true), /role="status">Earlier analysis — updating…/)
+  assert.match(outdated(false), /role="status">Earlier analysis</)
+  assert.match(outdated(false), /<q>&lt;b&gt;Archival&lt;\/b&gt; training required\.<\/q>/)
+  assert.doesNotMatch(outdated(false), /<b>Archival/)
   assert.match(postingEvidence('pending'), /role="status">Reading this posting…/)
   assert.match(postingEvidence('failed'), /Could not read this posting/)
   assert.match(postingEvidence('unavailable'), /Posting analysis is unavailable/)
