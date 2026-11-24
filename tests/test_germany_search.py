@@ -81,7 +81,9 @@ class GermanySearchTests(unittest.TestCase):
             self.assertEqual(set(ids), {row['id'] for row in companies['items']})
             jobs = pg.list_jobs(self.engine, session=session, company_id=None, query=None, offset=0, limit=100, country='DE', country_code='DE')
             self.assertEqual(jobs['total'], 0)
-            self.assertEqual(jobs['counts']['filtered']['expired'], 2)
+            # Expired jobs without a work location only reached this scope through the
+            # retired employer-country fallback; they are no longer candidates at all.
+            self.assertEqual(jobs['counts']['filtered']['expired'], 0)
             self.assertEqual(api.summary(session=session, country='DE')['jobs_for_location'], 0)
             self.assertEqual(api.summary(session=session, country='DE')['remote_jobs_in_result'], 0)
 
@@ -152,11 +154,35 @@ class GermanySearchTests(unittest.TestCase):
         with self.factory.begin() as session:
             company = models.Company(source='test', source_id='detail', name='Employer', country_code='DE')
             feed = models.JobFeed(company=company, provider='html_jobs', status='parsed', feed_url='https://de.example/jobs')
-            job = models.Job(feed=feed, external_id='role', title='Engineer', url='https://de.example/role')
+            job = models.Job(feed=feed, external_id='role', title='Engineer', location_text='Köln', url='https://de.example/role')
             session.add(job)
         with self.factory() as session:
             detail = api.get_job(job.id, session, country='DE')
-            self.assertEqual(detail['geography']['match_kind'], 'employer_in_country')
+            self.assertEqual(detail['geography']['match_kind'], 'work_location')
+            self.assertTrue(detail['geography']['eligible'])
+
+    def test_germany_scope_uses_the_work_location_not_the_employer_country(self):
+        with self.factory.begin() as session:
+            company = models.Company(source='test', source_id='abroad', name='German employer', country_code='DE',
+                                     state='Bayern')
+            feed = models.JobFeed(company=company, provider='html_jobs', status='parsed', feed_url='https://de.example/jobs')
+            abroad = models.Job(feed=feed, external_id='ro', title='Engineer', location_text='Bucharest, Romania',
+                                url='https://de.example/ro')
+            unknown = models.Job(feed=feed, external_id='none', title='Engineer', url='https://de.example/none')
+            local = models.Job(feed=feed, external_id='de', title='Engineer', location_text='München',
+                               url='https://de.example/de')
+            session.add_all([abroad, unknown, local])
+        with self.factory() as session:
+            from hiring_scraper.app.search_snapshots import result_scope
+            for job_id, expected in ((abroad.id, False), (unknown.id, False), (local.id, True)):
+                with self.subTest(job=job_id):
+                    self.assertEqual(api.get_job(job_id, session, country='DE')['geography']['eligible'], expected)
+                    job = session.get(models.Job, job_id)
+                    self.assertEqual(result_scope(job, 0, 0, 15, None, None, state='Bayern')['eligible'], expected)
+            titles = {item['url'] for item in pg.list_jobs(
+                self.engine, session=session, company_id=None, query=None, offset=0, limit=100,
+                country='DE', include_unknown=True)['items']}
+            self.assertEqual(titles, {'https://de.example/de'})
     def test_next_check_uses_earliest_persisted_schedule_and_pause_hides_it(self):
         from datetime import datetime, timezone
         career_due = datetime(2026, 10, 15, 12, tzinfo=timezone.utc)
