@@ -71,6 +71,13 @@ class RenderResult:
     telemetry: dict = field(default_factory=dict)
 
 
+def export_verified(checks: list[dict]) -> bool:
+    """Require readable text and applicant details. Layout checks are advisory."""
+    required = {'text_extractable', 'glyphs', 'special_characters', 'name_present', 'contacts_present'}
+    passed = {check['code'] for check in checks if check.get('status') == 'passed'}
+    return required <= passed
+
+
 def _dist() -> Path:
     configured = os.environ.get('RADIUS_FRONTEND_DIST')
     if configured:
@@ -427,8 +434,14 @@ def _text_checks(
                              if not orphan_breaks else f'{len(orphan_breaks)} entry split with orphan bullets.'))
     else:
         name = model.sender.name
-    checks.append(_check('name_present', 'passed' if _squash(name) in squashed else 'failed',
-                         'Name found in PDF text.' if _squash(name) in squashed else 'Name missing from PDF text.'))
+        contacts = model.sender.lines
+        present = sum(_squash(line) in squashed for line in contacts)
+        checks.append(_check('contacts_present', 'passed' if present == len(contacts) else 'failed',
+                             f'{present} of {len(contacts)} sender lines present.'))
+    normalized_name = _squash(name)
+    has_name = bool(normalized_name and normalized_name in squashed)
+    checks.append(_check('name_present', 'passed' if has_name else 'failed',
+                         'Name found in PDF text.' if has_name else 'Name missing from PDF text.'))
     return checks
 
 

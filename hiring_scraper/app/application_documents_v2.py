@@ -651,16 +651,23 @@ def document_pdf(profile_id: int, kind: Kind, job_id: int, version: int = Query(
     if revision is not None and revision != document.revision:
         raise HTTPException(409, 'This document changed. Open the latest version before downloading.')
     template = render_key(session, profile_id, kind, document.body)
+    from hiring_scraper.app.application_pdf import export_verified
+
     cached = get_render(session, profile_id, job_id, kind, version, template)
-    if cached is not None:
+    if cached is not None and export_verified(cached.checks):
         return Response(cached.pdf, media_type='application/pdf', headers={
             **NO_STORE, 'X-Content-Type-Options': 'nosniff',
             'Content-Disposition': f'attachment; filename="{kind}-{version}.pdf"'})
+    if cached is not None:
+        session.delete(cached)
+        session.flush()
     state = queue.enqueue_render(session, profile_id, job_id, kind, version, template, retry=retry)
     session.commit()
     if state['state'] == 'failed':
-        return _json({'state': 'failed', 'error_code': state['error_code'],
-                      'detail': 'This document could not be rendered. Try again, or edit the document.'}, 422)
+        detail = ('The PDF did not pass its readability checks. Review the name, contact details and text before retrying.'
+                  if state['error_code'] == 'render_verification_failed'
+                  else 'This document could not be rendered. Try again, or edit the document.')
+        return _json({'state': 'failed', 'error_code': state['error_code'], 'detail': detail}, 422)
     return _json({'state': 'rendering'}, 202)
 
 

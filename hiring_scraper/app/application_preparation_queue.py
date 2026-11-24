@@ -458,12 +458,16 @@ def _finish_render(key, token, result=None, *, retry_at=None, error_code=None):
 
 def process_render_once(render):
     """Claim one render and run ``render(profile_id, kind, body) -> RenderResult``."""
+    from hiring_scraper.app.application_pdf import export_verified
+
     claimed = _claim_render()
     if claimed is None:
         return False
     key, token, attempts, body = claimed
     try:
         result = render(key[0], key[2], body)
+        if not export_verified(result.checks):
+            raise TaskError('render_verification_failed', 'The PDF did not pass its readability checks.')
     except Exception as error:  # noqa: BLE001 - every failure must finish the task
         code, retryable, _ = classify(error)
         delay = retry_delay(attempts, RENDER_BACKOFF) if retryable else None

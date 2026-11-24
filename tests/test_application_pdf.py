@@ -378,6 +378,24 @@ class AvailabilityTests(unittest.TestCase):
             with self.assertRaises(application_pdf.RenderUnavailable):
                 application_pdf.render_document('letter', fictional_letter().model_dump(mode='json'))
 
+class ExportVerificationTests(unittest.TestCase):
+    def test_pdf_export_requires_integrity_checks_but_allows_pagination_warnings(self):
+        checks = [
+            {'code': 'text_extractable', 'status': 'passed'},
+            {'code': 'glyphs', 'status': 'passed'},
+            {'code': 'special_characters', 'status': 'passed'},
+            {'code': 'name_present', 'status': 'passed'},
+            {'code': 'contacts_present', 'status': 'passed'},
+            {'code': 'entry_pagination', 'status': 'failed'},
+            {'code': 'overflow', 'status': 'warning'},
+        ]
+        self.assertTrue(application_pdf.export_verified(checks))
+        self.assertFalse(application_pdf.export_verified(checks[1:]))
+        for index in range(5):
+            broken = [dict(check) for check in checks]
+            broken[index]['status'] = 'failed'
+            self.assertFalse(application_pdf.export_verified(broken))
+
 
 if __name__ == '__main__':
     unittest.main()

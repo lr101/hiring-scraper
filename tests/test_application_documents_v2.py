@@ -21,6 +21,9 @@ from tests import pg
 from tests.test_application_documents_v2_unit import letter
 
 FIXTURE = Path(__file__).parent / 'fixtures' / 'documents' / 'flowing_en_cv.tex'
+PASSED_PDF_CHECKS = [{'code': code, 'status': 'passed'} for code in (
+    'text_extractable', 'glyphs', 'special_characters', 'name_present', 'contacts_present',
+)]
 
 
 class ApplicationDocumentsV2Tests(unittest.TestCase):
@@ -161,7 +164,7 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
         with self.sessions.begin() as session:
             queue.enqueue_render(session, 1, 2, 'letter', 1, 'classic-serif-v1')
         self.assertTrue(queue.process_render_once(lambda *_: types.SimpleNamespace(
-            pdf=b'%PDF-1.7', pages=1, checks=[])))
+            pdf=b'%PDF-1.7', pages=1, checks=PASSED_PDF_CHECKS)))
         with self.sessions.begin() as session:
             queue.enqueue_render(session, 1, 2, 'letter', 2, 'classic-serif-v1')
         queue.enqueue_task(1, 2, 'prepare', {'job_id': 2, 'language': 'en'})
@@ -306,7 +309,7 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
             key = documents.render_key(session, 1, 'cv', body)
             queue.enqueue_render(session, 1, 2, 'cv', 1, key)
             queue.enqueue_render(session, 1, 2, 'cv', 2, key)
-        result = types.SimpleNamespace(pdf=b'fictional PDF with portrait', pages=1, checks=[])
+        result = types.SimpleNamespace(pdf=b'fictional PDF with portrait', pages=1, checks=PASSED_PDF_CHECKS)
         self.assertTrue(queue.process_render_once(lambda *_args: result))
         claimed_key, token, *_ = queue._claim_render()
         with self.sessions() as session:
@@ -317,11 +320,24 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
             self.assertEqual(session.scalars(select(ApplicationRenderTask)).all(), [])
             self.assertNotEqual(documents.render_key(session, 1, 'cv', body), key)
 
+    def test_pdf_that_fails_verification_is_not_cached_or_downloaded(self):
+        self.save(0)
+        with self.sessions() as session:
+            self.assertEqual(documents.document_pdf(1, 'letter', 2, 1, session=session).status_code, 202)
+        result = types.SimpleNamespace(pdf=b'fictional blank PDF', pages=1,
+                                       checks=[{'code': 'text_extractable', 'status': 'failed'}])
+        self.assertTrue(queue.process_render_once(lambda *_: result))
+        with self.sessions() as session:
+            self.assertEqual(session.scalars(select(ApplicationDocumentRender)).all(), [])
+            response = documents.document_pdf(1, 'letter', 2, 1, session=session)
+            self.assertEqual(response.status_code, 422)
+            self.assertEqual(json.loads(response.body)['error_code'], 'render_verification_failed')
+
     def test_render_lane_caches_pdfs_and_stops_after_failures(self):
         self.save(0)
         with self.sessions.begin() as session:
             self.assertEqual(queue.enqueue_render(session, 1, 2, 'letter', 1, 'classic-serif-v1')['state'], 'queued')
-        result = types.SimpleNamespace(pdf=b'%PDF-1.7', pages=1, checks=[])
+        result = types.SimpleNamespace(pdf=b'%PDF-1.7', pages=1, checks=PASSED_PDF_CHECKS)
         self.assertTrue(queue.process_render_once(lambda *_args: result))
         with self.sessions() as session:
             self.assertEqual(documents.get_render(session, 1, 2, 'letter', 1, 'classic-serif-v1').pdf, b'%PDF-1.7')
