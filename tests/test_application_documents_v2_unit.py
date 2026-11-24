@@ -33,6 +33,17 @@ def letter(paragraph='I build reliable services.', closing='Kind regards'):
 
 
 class VersionMathTests(unittest.TestCase):
+    def test_review_confirmation_round_trips_only_for_the_current_text(self):
+        body = letter()
+        unit = body['paragraphs'][0]
+        unit['reviewed_text'] = unit['text']
+        body['review_sources'] = {'job': 'Plan public workshops.'}
+        validated = documents.validate_body('letter', body)
+        self.assertEqual(validated['paragraphs'][0]['reviewed_text'], unit['text'])
+        self.assertEqual(validated['review_sources'], body['review_sources'])
+        unit['text'] = 'I plan workshops.'
+        self.assertIsNone(documents.validate_body('letter', body)['paragraphs'][0]['reviewed_text'])
+
     def test_next_version_is_expected_plus_one_and_rejects_invalid_expectations(self):
         self.assertEqual(documents.next_version(0), 1)
         self.assertEqual(documents.next_version(19), 20)
@@ -79,7 +90,7 @@ class VersionMathTests(unittest.TestCase):
         self.assertEqual(task['stages'], {})
         self.assertEqual(documents.public_task({'id': 'b', 'state': 'running'})['kind'], 'legacy')
 
-    def test_portrait_changes_render_key_only_for_portrait_enabled_cvs(self):
+    def test_portrait_changes_render_key_for_legacy_cvs(self):
         class Session:
             photo = b'fictional first portrait'
 
@@ -87,14 +98,13 @@ class VersionMathTests(unittest.TestCase):
                 return types.SimpleNamespace(data=self.photo) if self.photo else None
 
         session = Session()
-        body = {'template': 'classic-serif-v1', 'photo': True}
+        body = {'template': 'classic-serif-v1', 'photo': False}
         first = documents.render_key(session, 1, 'cv', body)
         session.photo = b'fictional second portrait'
         second = documents.render_key(session, 1, 'cv', body)
         session.photo = None
         removed = documents.render_key(session, 1, 'cv', body)
         self.assertEqual(len({first, second, removed}), 3)
-        self.assertEqual(documents.render_key(session, 1, 'cv', {**body, 'photo': False}), 'classic-serif-v1')
         self.assertEqual(documents.render_key(session, 1, 'letter', body), 'classic-serif-v1')
 
     def test_preparation_uses_the_hiring_organization(self):
@@ -305,6 +315,24 @@ class RouterValidationTests(unittest.TestCase):
         self.assertEqual((status, payload), (200, {'version': 1, 'revision': '1' * 32,
                                                   'created_at': '2026-05-01T00:00:00.000000+00:00'}))
         self.assertEqual(headers.get(b'cache-control'), b'no-store')
+
+    def test_save_review_confirmation_uses_the_expected_revision(self):
+        body = letter()
+        body['paragraphs'][0]['reviewed_text'] = body['paragraphs'][0]['text']
+        previous = types.SimpleNamespace(revision='a' * 32, body=letter(), findings=[],
+                                         stale_inputs=False, input_digest=None)
+        saved = types.SimpleNamespace(version=3, revision='b' * 32,
+                                      created_at=datetime(2026, 5, 1, tzinfo=timezone.utc))
+        with patch.object(documents, 'save_version', return_value=3) as store, \
+                patch.object(documents, 'get_version', side_effect=[previous, saved]), \
+                patch.object(FakeSession, 'commit', lambda self: None, create=True):
+            status, payload, _ = call('PUT', '/api/v1/profiles/1/application-documents/letter', {
+                'expected_version': 2, 'expected_revision': previous.revision, 'body': body,
+            }, b'job_id=1')
+        self.assertEqual((status, payload['version']), (200, 3))
+        self.assertEqual(store.call_args.kwargs['expected_version'], 2)
+        self.assertEqual(store.call_args.args[4]['paragraphs'][0]['reviewed_text'],
+                         body['paragraphs'][0]['text'])
 
     def test_prepare_and_revise_validate_requests(self):
         status, _, _ = call('POST', '/api/v1/profiles/1/application-documents/prepare',

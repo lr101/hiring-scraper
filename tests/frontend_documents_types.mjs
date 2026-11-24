@@ -151,6 +151,13 @@ assert.equal(parsedCv.header.name, 'Alex Example')
 assert.equal(isCvDocument(parsedCv), true)
 assert.equal(isLetterDocument(parsedCv), false)
 
+const groupedCv = makeSampleCv()
+groupedCv.sections[1].group = 'Additional Qualifications'
+assert.equal(parseCvDocument(groupedCv).sections[1].group, 'Additional Qualifications')
+assert.equal(parsedCv.sections[1].group, '')
+groupedCv.sections[1].group = 'Invalid\nheading'
+assert.throws(() => parseCvDocument(groupedCv), DocumentValidationError)
+
 const parsedLetter = parseLetterDocument(makeSampleLetter())
 assert.equal(parsedLetter.format, 'radius-letter-v2')
 assert.equal(parsedLetter.page, 'letter')

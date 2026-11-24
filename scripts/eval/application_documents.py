@@ -78,6 +78,10 @@ def cli_generate(model: str, workspace: Path) -> Generate:
                     error = (result.stderr[-65536:] + result.stdout[-65536:]).lower()
                     if 'model is not supported' in error or 'model_not_found' in error:
                         raise GenerationError('model_unavailable')
+                    if any(marker in error for marker in (
+                        'usage limit', 'usage_limit_reached', 'insufficient_quota',
+                    )):
+                        raise GenerationError('codex_usage_limit')
                     if '401 unauthorized' in error or 'not logged in' in error:
                         raise GenerationError('not_connected')
                     raise GenerationError('codex_exec_failed', retryable=True)
@@ -104,8 +108,6 @@ def run(args: argparse.Namespace) -> None:
     base = (import_marked_tex(base_path.read_text(encoding='utf-8'), language=language) if args.base_tex
             else import_docx(base_path.read_bytes(), language=language))
     photo = private_path(args.photo).read_bytes() if args.photo else None
-    if photo:
-        base.photo = True
     inp = PreparationInput(base.model_dump(), profile, job, base.language, args.mode)
 
     out.mkdir(mode=0o700, parents=True, exist_ok=True)

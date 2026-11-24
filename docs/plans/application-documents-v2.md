@@ -21,8 +21,8 @@ stilted. See the validation notes in the PR description.
   typed fields that no model schema contains. Prose lives in addressable units.
 - One React view renders documents. The inline editor and the PDF use the same component;
   the worker prints a built `print.html` in Playwright Chromium. Fonts are bundled.
-- Generation: CV call, then letter call (sees the accepted CV), then one review call (findings
-  plus patches, receives overflow telemetry). Fast mode skips review. Form answers stay a
+- Generation: CV call, then letter call with original evidence grouped by employer, then one
+  review call (findings plus patches, receives overflow telemetry). Fast mode skips review. Form answers stay a
   separate optional call. No AI requirement assessment call.
 - Deterministic grounding produces unit-anchored findings. Unsupported qualifiers and
   high-severity grounding issues can trigger a retry. Editorial findings are review targets.
@@ -43,21 +43,26 @@ no LaTeX. Rendering escapes. Limits: unit text ≤ 1200 chars, ≤ 60 units per 
 Unit {
   "id": "u-…",                 // stable, unique in the document, [a-z0-9-]{1,64}
   "text": "…",                 // plain text, no newlines
-  "lead_in": "",               // optional bold prefix rendered before text ("Whirlpool – …:")
+  "lead_in": "",               // optional bold prefix rendered before text ("Studio Project:")
   "origin": "source" | "ai" | "user",
   "sources": ["cv:work-1:b2", "evidence:3"],   // evidence ids, may be empty for origin=source/user
   "role": "",                  // letter paragraphs: motivation|experience|education|bring|close
-  "hidden": false              // hidden units are kept but not rendered
+  "hidden": false,             // hidden units are kept but not rendered
+  "original_text": null,       // exact pre-rewrite body, without the retained lead-in
+  "ai_edited": false,          // user-edited wording that started as an AI change
+  "reviewed_text": null        // accepted wording, cleared on edit
 }
 CvDocument {
   "format": "radius-cv-v2", "language": "de" | "en", "template": "classic-serif-v1",
-  "page": "a4" | "letter", "photo": true | false,
+  "page": "a4" | "letter", "photo": true | false,  // legacy field; show the profile portrait when available
   "header": { "name": "…", "contacts": [{"kind": "phone|email|location|link", "text": "…", "href": ""}] },
+  "review_sources": {"cv:work-1:b2": "…"},  // cited source snapshots for this document version
   "headline": Unit,
   "sections": [Section]
 }
 Section {
   "id": "s-…", "kind": "profile|experience|education|skills|list|text", "title": "…",
+  "group": "",                   // optional major heading shared by consecutive subsections
   "layout": "paragraphs|bullets|inline|columns",   // units presentation
   "units": [Unit],              // profile paragraphs, skills, list items, free text
   "entries": [Entry]            // experience/education only
@@ -72,6 +77,7 @@ Entry {
 }
 LetterDocument {
   "format": "radius-letter-v2", "language": "de" | "en", "template": "classic-serif-v1", "page": "a4" | "letter",
+  "review_sources": {"job": "…"},
   "sender": { "name": "…", "lines": ["…"] },        // locked, from profile
   "recipient_lines": ["…"], "place_date": "…",
   "subject": Unit, "salutation": Unit, "paragraphs": [Unit], "closing": Unit, "signature": "…"
@@ -79,7 +85,9 @@ LetterDocument {
 Finding {
   "id": "f-…", "document": "cv" | "letter", "unit_id": "u-…" | null,
   "code": "unsupported_number|unsupported_term|misattributed|sensitive_fact|placeholder|language_mix|repetition|overflow|extra_page|review_grounding|review_coverage|review_style|review_format",
-  "severity": "high" | "medium" | "info", "message": "…", "suggestion": ""
+  "severity": "high" | "medium" | "info", "message": "…", "suggestion": "",
+  "claim": "",                 // exact affected wording when available
+  "replacement": ""            // complete replacement for the unit, when offered
 }
 ```
 
@@ -109,8 +117,10 @@ Pure, DB-free (`hiring_scraper/documents/`):
 App (`hiring_scraper/app/`):
 - `application_pdf.py` — Playwright Chromium render of `frontend/dist/print.html` with the
   document JSON (+ optional photo data URL), all network aborted, returns PDF bytes and
-  telemetry `{pages, overflow_px_by_page, clipped_units, text}`; pypdf text checks. Bounded
-  semaphore; one lazily started browser.
+  telemetry `{pages, overflow_px_by_page, clipped_units, text}`. Checks pypdf and pinned
+  PDFium extraction for readable text, word boundaries and control characters, and records
+  normalized extraction parity. Keeps short hyphenated compounds together for extraction.
+  Bounded semaphore; one lazily started browser.
 - `application_pipeline.py` — stages `cv`, `letter`, `review`, `answers`; prompts in
   `hiring_scraper/app/prompts/`; injectable `generate(prompt, schema, **options)`; per-call
   retries; patch application rules; returns documents + findings + telemetry.
@@ -128,10 +138,25 @@ Frontend (`frontend/src/documents/`):
 - `types.ts`, `CvView.tsx`, `LetterView.tsx`, `classic-serif-v1.css`, fonts in
   `frontend/public/fonts/` (Liberation Serif, SIL OFL), `print.html` + `print.tsx` (second Vite
   entry, reads `window.__RADIUS_DOCUMENT__`).
-- `DocumentEditor.tsx` — renders the view with `contenteditable="plaintext-only"` per unit,
-  Enter splits a bullet, Backspace on empty removes, hide/restore, undo/redo, debounced
-  autosave with `expected_version`, findings badges, page guides + overflow indicator,
-  "Download PDF".
+  The shared CV view measures inline skill rows and hides separator bullets across wraps
+  while keeping a real space in the PDF text layer so extracted items stay separated. The
+  editor resyncs on edit or resize, and print resyncs after fonts load and layout changes.
+- `DocumentEditor.tsx` + `DocumentReview.tsx` — renders the view with
+  `contenteditable="plaintext-only"` per unit, Enter splits a bullet, Backspace on empty
+  removes, hide/restore, undo/redo, debounced autosave with `expected_version`, findings
+  badges, page guides + overflow indicator, "Download PDF". The inline review panel steps
+  through visible AI changes in document order, compares current wording with versioned
+  `review_sources` citations, shows a word diff against `original_text` for rewrites, and
+  presents unit findings with actionable replacements when available. Accept, edit, restore
+  and apply-suggestion actions share the same undo history and versioned autosave.
+  Reviewed-state persistence stores acceptance in the document JSON (`reviewed_text = text`),
+  so reviewed progress survives reloads and version history; any edit clears `reviewed_text`
+  (marking `ai_edited: true` while keeping `original_text` and `sources` for another pass),
+  and restoring original wording resets the unit to `origin: "source"` and clears review
+  fields. Alt+Shift+Left and Alt+Shift+Right navigate, Alt+Enter accepts, and Escape returns
+  from inline editing to the review panel. The PDF action offers review or download when
+  unreviewed changes remain. Older versions open with the same editing tools and display
+  available source snapshots. Review metadata and controls are excluded from rendered PDFs.
 - `ApplicationPreparationPage.tsx` — uses the editor for v2 documents; removes the manual
   ChatGPT handoff (brief copy, paste/import result) and the raw LaTeX textarea.
 
@@ -140,27 +165,57 @@ Frontend (`frontend/src/documents/`):
 Short, positive, per-stage prompts (`common.txt`, `cv.txt`, `letter.txt`, `review.txt`,
 `answers.txt`). Committed examples are fictional. The profile may hold `voice_notes`
 (≤ 1500 chars) and up to 3 `style_exemplars` per language; they are fenced as voice only.
-Letter arc: specific motivation for this company and work → one paragraph per relevant
-employer/project (concrete actions, tools, outcomes) → education/technical foundation →
-collaboration and what the applicant brings/wants to learn → one-line close.
+The CV generation schema gives each base bullet a required keep/rewrite slot keyed by
+`bullet_id` with a `relevance` level (`high`, `medium`, `low`) and gives each entry an
+`order` list. Medium- and low-relevance slots keep the base text verbatim as
+`origin="source"`. High-relevance slots supply rewritten text bound to that exact base
+source while preserving the original lead-in. A typical CV rewrites
+two to four core-duty bullets at the source's exact scope, applying posting vocabulary
+where equivalent. Skills can only be reordered. The profile has two required sentence
+slots and one nullable third slot, each with a separate evidence list limited to one
+entry plus general facts. Entry-scoped facts identify work and study contexts explicitly.
+The profile opens with a verified professional identity, connects to the strongest
+work evidence, and adds a distinct technical or analytical strength when relevant.
+Each sentence has its own evidence, and the sequence avoids restating bullet wording.
+The headline uses the posting’s role-family language for verified functional work.
+The German profile uses implicit first person
+and the English profile uses noun-led or subject-less CV prose.
+
+The letter opens with a cited connection between the applicant's background and a core
+duty. Each selected employer or study example synthesizes one or two verified actions
+and an outcome or takeaway for a named duty. The best evidence can come from a study
+project, with the context made explicit. The letter generation schema gives each employer
+or institution one optional employer-scoped example slot plus source-cited `motivation`
+and optional `fit` blocks. A selected example names its posting duty, anchors to one entry
+and cites an allowed source per sentence.
+The closing uses an idiomatic interview invitation in the target language.
+Subjects are formatted deterministically from the posting title (`Bewerbung als <Titel>` in
+German, `Application for <title>` in English). The tailored CV is available during review,
+where textual overlap and claim-scope issues can be surfaced as findings. Wording drift
+is advisory and can carry an exact quote plus a proposed replacement. These findings
+never initiate a generation retry. In PDF rendering, the heading, entry header, intro
+and first project stay together. If a two-page CV underfills the first page, education
+can start there with one complete project and continue on page two.
 
 ## Work packages
 
-1. WP-A Documents core: schema, import_tex, project_tex, evidence, grounding, text + unit tests
-   on fictional fixtures.
-2. WP-B Frontend view: types, CvView, LetterView, CSS, fonts, print entry, DocumentEditor +
-   node tests.
-3. WP-C Render + pipeline: application_pdf, application_pipeline, prompts, retries, private
-   eval harness `scripts/eval/application_documents.py` (reads only `data/private/`).
+1. WP-A Documents core (done): schema, import_tex, import_docx, project_tex, evidence,
+   grounding, editorial, text + unit tests on fictional fixtures.
+2. WP-B Frontend view (done): types, CvView, LetterView, CSS, fonts, print entry,
+   DocumentEditor, DocumentReview + node tests.
+3. WP-C Render + pipeline (done): application_pdf, application_pipeline, prompts, retries,
+   private eval harness `scripts/eval/application_documents.py` (reads only `data/private/`).
 4. WP-D Storage, queue, API, migration, page integration, handoff removal, legacy cleanup,
-   docs (`docs/architecture.md`).
-5. WP-E Acceptance: generate with GPT sol on real private cases; CV and letter judged by
-   Gemini 4 Neon, GPT sol and Claude Opus 5.5 on a 0–10 rubric (job fit, ATS parsability,
-   editability, no unverified claims, common CV/letter criteria). Done when every judge
-   scores every document ≥ 8.
+   docs (`docs/architecture.md`, `docs/application-preparation.md`, `README.md`) (done).
+5. WP-E Acceptance (done): generated on private cases and judged on a 0–10 rubric (job fit,
+   ATS parsability, editability, no unverified claims, common CV/letter criteria), iterating
+   until every judge scored every document ≥ 8.
 
 ## Verification
 
 Focused unit and node tests during development; frontend build; Chromium render tests skip
 when no browser is installed. PostgreSQL migration and queue tests run in CI. Real profile
 data, outputs and judge transcripts stay in gitignored `data/private/`.
+
+Pipeline version `application-documents-v2.14` invalidates earlier draft checkpoints for
+the review evidence contract, revised prompts and CV pagination.

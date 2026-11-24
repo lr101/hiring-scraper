@@ -383,7 +383,7 @@ def run_prepare(profile_id, request, progress):
     job_id, language, mode = request['job_id'], request['language'], request.get('mode', 'full')
     with SessionLocal() as session:
         fields, _ = snapshot_inputs(session, profile_id, job_id, language, mode)
-        photo = _photo(session, profile_id) if fields['base_cv'].get('photo') else None
+        photo = _photo(session, profile_id)
     inputs = _preparation_input(fields)
     digest = pipeline.input_digest(inputs)
     render = None
@@ -431,10 +431,10 @@ def _photo(session, profile_id):
 
 def render_key(session, profile_id, kind, body):
     template = body.get('template', 'classic-serif-v1')
-    if kind != 'cv' or not body.get('photo'):
+    if kind != 'cv':
         return template
     # The existing template column is the render discriminator. Include the
-    # exact portrait bytes (or absence) in that key for portrait-enabled CVs.
+    # exact portrait bytes (or absence) in that key for CVs.
     photo = _photo(session, profile_id) or b''
     return sha256(template.encode() + b'\x00' + photo).hexdigest()[:40]
 
@@ -442,7 +442,7 @@ def render_key(session, profile_id, kind, body):
 def render_for_worker(profile_id, kind, body):
     from hiring_scraper.app import application_pdf
     photo = None
-    if kind == 'cv' and body.get('photo'):
+    if kind == 'cv':
         with SessionLocal() as session:
             photo = _photo(session, profile_id)
     return application_pdf.render_document(kind, body, photo_png=photo)

@@ -184,9 +184,78 @@ export function updateUnitText<T extends ApplicationDocument>(
   const sanitized = sanitizeUnitText(text)
   return mapDocumentUnits(doc, (unit) => {
     if (unit.id !== unitId) return unit
-    if (unit.text === sanitized && unit.origin === origin) return unit
-    return { ...unit, text: sanitized, origin }
+    if (unit.text === sanitized) return unit
+    return {
+      ...unit,
+      text: sanitized,
+      origin,
+      ai_edited: origin === 'user' && isAiChange(unit),
+      reviewed_text: null,
+    }
   })
+}
+
+export function isAiChange(unit: Unit): boolean {
+  return unit.origin === 'ai' || Boolean(unit.ai_edited)
+}
+
+export function isReviewed(unit: Unit): boolean {
+  return unit.reviewed_text === unit.text
+}
+
+export function reviewUnits(doc: ApplicationDocument): Unit[] {
+  return walkUnits(doc).filter(unit => !unit.hidden && isAiChange(unit))
+}
+
+export function setUnitReviewed<T extends ApplicationDocument>(doc: T, unitId: string): T {
+  return mapDocumentUnits(doc, unit => unit.id === unitId && isAiChange(unit) && !isReviewed(unit)
+    ? { ...unit, reviewed_text: unit.text }
+    : unit)
+}
+
+export function restoreOriginal<T extends ApplicationDocument>(doc: T, unitId: string): T {
+  return mapDocumentUnits(doc, unit => unit.id === unitId && unit.original_text != null
+    ? { ...unit, text: unit.original_text, origin: 'source', ai_edited: false, reviewed_text: null, original_text: null }
+    : unit)
+}
+
+type DiffPart = { text: string; changed: boolean }
+
+export function wordDiff(original: string, current: string): { before: DiffPart[]; after: DiffPart[] } {
+  const originalWords = original.match(/\s*\S+|\s+/g) ?? []
+  const currentWords = current.match(/\s*\S+|\s+/g) ?? []
+  const lengths = Array.from({ length: originalWords.length + 1 }, () => new Uint16Array(currentWords.length + 1))
+  for (let left = originalWords.length - 1; left >= 0; left -= 1) {
+    for (let right = currentWords.length - 1; right >= 0; right -= 1) {
+      lengths[left][right] = originalWords[left].trim() === currentWords[right].trim()
+        ? 1 + lengths[left + 1][right + 1]
+        : Math.max(lengths[left + 1][right], lengths[left][right + 1])
+    }
+  }
+
+  const before: DiffPart[] = []
+  const after: DiffPart[] = []
+  function append(parts: DiffPart[], text: string, changed: boolean) {
+    const last = parts.at(-1)
+    if (last && last.changed === changed) last.text += text
+    else parts.push({ text, changed })
+  }
+
+  let left = 0
+  let right = 0
+  while (left < originalWords.length || right < currentWords.length) {
+    if (left < originalWords.length && right < currentWords.length
+        && originalWords[left].trim() === currentWords[right].trim()) {
+      append(before, originalWords[left++], false)
+      append(after, currentWords[right++], false)
+    } else if (right === currentWords.length
+        || (left < originalWords.length && lengths[left + 1][right] >= lengths[left][right + 1])) {
+      append(before, originalWords[left++], true)
+    } else {
+      append(after, currentWords[right++], true)
+    }
+  }
+  return { before, after }
 }
 
 export function toggleHidden<T extends ApplicationDocument>(
@@ -227,13 +296,18 @@ function splitInList(
     ...target,
     text: before,
     origin: 'user',
+    ai_edited: isAiChange(target),
+    reviewed_text: null,
+    // Restoring one half of a split would duplicate the other half.
+    original_text: null,
   }
   const insertedUnit: Unit = {
     id: createdId,
     text: after,
     lead_in: '',
     origin: 'user',
-    sources: [],
+    sources: isAiChange(target) ? target.sources : [],
+    ai_edited: isAiChange(target),
     role: target.role,
     hidden: false,
   }

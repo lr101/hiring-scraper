@@ -153,9 +153,11 @@ embedding service.
 On a job's application page, confirm the imported base CV in the chosen language.
 Choose **Prepare documents** to draft a tailored CV and cover letter through the
 connected ChatGPT subscription. **Full** adds a review pass, while **Fast** drafts
-the pair. Edit the documents in place, review any findings and download each
-saved version as a PDF. Radius stores up to 20 versions per document and the
-applicant submits the application. See the [application preparation guide](docs/application-preparation.md).
+the pair. Edit the documents in place, step through AI changes with word diffs,
+source citations and findings in the inline review panel (accepting or restoring
+wording as you go), and download each saved version as a PDF. Radius stores up to
+20 versions per document and the applicant submits the application. See the
+[application preparation guide](docs/application-preparation.md).
 
 ### City election context
 

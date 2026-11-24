@@ -85,7 +85,10 @@ flowchart LR
 The applicant confirms the imported base CV in the chosen language. The profile
 stores the structured source in `ProfileCV.variants[language].document` alongside
 marked text for the matcher and companion. The editor and bundled Vite
-`print.html` entry use the same React document views. Chromium loads the print
+`print.html` entry use the same React document views. The editor includes an
+inline review panel that steps through AI changes with word diffs, versioned
+source citations and unit findings, saving acceptance in the document JSON while
+excluding review metadata from rendered PDFs. Chromium loads the print
 bundle through intercepted local assets, verifies the extracted PDF text and
 reports page fill and overflow. Preparation uses these observations in Full review.
 Editorial heuristics pass through to review as findings. Structural violations,

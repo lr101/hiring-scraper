@@ -69,10 +69,14 @@
   line-height: 1.15;
   font-synthesis: none;
   hyphens: manual;
-  text-rendering: optimizeLegibility;
+  text-rendering: geometricPrecision;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
   page: doc-a4;
+}
+
+.doc-nowrap {
+  white-space: nowrap;
 }
 
 .doc-page *,
@@ -136,6 +140,7 @@
   line-height: 1.2;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  word-spacing: 0.14em;
   color: #000000;
 }
 
@@ -187,8 +192,19 @@
   line-height: 1.15;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  word-spacing: 0.14em;
   color: #000000;
   display: flow-root;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.doc-cv-subsection-title {
+  margin: 0 0 3pt;
+  font-size: 10pt;
+  font-weight: 700;
+  line-height: 1.15;
+  word-spacing: 0.10em;
   break-after: avoid;
   page-break-after: avoid;
 }
@@ -199,15 +215,9 @@
 
 .doc-cv-paragraph {
   margin: 0 0 4pt 0;
-  text-align: justify;
+  text-align: left;
   orphans: 2;
   widows: 2;
-}
-
-.doc-cv-section--profile .doc-cv-paragraph,
-.doc-cv-paragraph--left,
-.doc-cv-entry-intro .doc-cv-paragraph {
-  text-align: left;
 }
 
 .doc-cv-paragraph:last-child {
@@ -230,6 +240,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  word-spacing: 0.14em;
   color: #000000;
   break-after: avoid;
   page-break-after: avoid;
@@ -247,29 +258,39 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 8pt;
+  gap: 5pt;
 }
 
 .doc-cv-entry-company {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 9.5pt;
   font-weight: 700;
+  letter-spacing: -0.01em;
+  word-spacing: 0.10em;
   text-transform: uppercase;
+  text-wrap: balance;
 }
 
 .doc-cv-entry-location {
+  flex: 0 0 auto;
+  font-size: 9.5pt;
   text-align: right;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .doc-cv-entry-title {
+  flex: 1 1 auto;
+  min-width: 0;
   font-weight: 700;
   font-style: italic;
 }
 
 .doc-cv-entry-dates {
+  flex: 0 0 auto;
+  font-size: 9.5pt;
   text-align: right;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .doc-cv-entry-intro {
@@ -277,8 +298,15 @@
 }
 
 .doc-cv-entry-intro:has(+ .doc-cv-bullets) {
-  break-after: avoid;
   break-inside: avoid;
+  page-break-inside: avoid;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.doc-cv-entry-intro:has(+ .doc-cv-bullets) > .doc-cv-paragraph:last-child {
+  break-after: avoid;
+  page-break-after: avoid;
 }
 
 /* ---------- CV Bullets ---------- */
@@ -325,12 +353,37 @@
 /* ---------- Inline Skills & Columns ---------- */
 
 .doc-cv-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  row-gap: 1.5pt;
   margin: 0;
   text-align: left;
 }
 
+.doc-cv-inline-entry {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
 .doc-cv-inline-sep {
   white-space: pre;
+  color: #000000;
+  user-select: none;
+}
+
+.doc-cv-inline-sep--hidden .doc-cv-inline-sep-mark {
+  visibility: hidden;
+}
+
+.doc-cv-inline-sep--collapsed {
+  display: inline-block;
+  width: 0;
+}
+
+.doc-cv-inline-sep--collapsed .doc-cv-inline-sep-mark {
+  display: none;
 }
 
 .doc-cv-columns {
@@ -421,7 +474,7 @@
 
 .doc-letter-paragraph {
   margin: 0 0 6pt 0;
-  text-align: justify;
+  text-align: left;
   orphans: 2;
   widows: 2;
   break-inside: avoid;
@@ -483,11 +536,19 @@
     page-break-inside: avoid;
   }
 
-  /* Keep the first two bullets with the header and prevent a final bullet on its own. */
-  .doc-cv-entry .doc-cv-bullet:nth-child(1):not(:last-child),
-  .doc-cv-entry .doc-cv-bullet:nth-last-child(2) {
+  /* Keep the first two bullets with the header when page one is already full, and avoid a lone trailing bullet. */
+  .doc-page:not(.doc-page--fill-first) .doc-cv-entry .doc-cv-bullet:nth-child(1):not(:last-child),
+  .doc-cv-section:not(.doc-cv-section--education) .doc-cv-entry--projects .doc-cv-bullet:nth-child(1):not(:last-child),
+  .doc-cv-entry .doc-cv-bullet:nth-last-child(2):not(:first-child) {
     break-after: avoid;
     page-break-after: avoid;
+  }
+
+  /* Let education start with one project in the fill-first pass. */
+  .doc-page:not(.doc-page--fill-first) .doc-cv-entry--projects .doc-cv-bullets:not(:has(.doc-cv-bullet:nth-child(4))),
+  .doc-cv-section:not(.doc-cv-section--education) .doc-cv-entry--projects .doc-cv-bullets:not(:has(.doc-cv-bullet:nth-child(4))) {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   /* Keep compact sections together so a continuation starts with its section heading. */

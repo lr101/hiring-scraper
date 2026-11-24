@@ -178,6 +178,40 @@ class DocxImportTests(unittest.TestCase):
         with self.assertRaises(DocxImportError):
             import_docx(buffer.getvalue())
 
+    def test_umbrella_heading_groups_trailing_subsections(self):
+        xml = fictional_paragraphs().replace(
+            para(run('CORE COMPETENCIES', b=True)),
+            para(run('EXTRA QUALIFICATIONS AND SKILLS', b=True))
+            + para(run('PUBLICATIONS', b=True))
+            + para(run('Workshop paper on routing heuristics (2020).'))
+            + para(run('CORE COMPETENCIES', b=True)),
+        )
+        doc = import_docx(build_docx(xml))
+        by_title = {section.title: section for section in doc.sections if section.title}
+        self.assertEqual(by_title['PROFESSIONAL EXPERIENCE'].group, '')
+        self.assertEqual(by_title['EDUCATION'].group, '')
+        self.assertNotIn('EXTRA QUALIFICATIONS AND SKILLS', by_title)
+        for title in ('PUBLICATIONS', 'CORE COMPETENCIES', 'LANGUAGES'):
+            self.assertEqual(by_title[title].group, 'EXTRA QUALIFICATIONS AND SKILLS')
+
+    def test_word_heading_levels_group_subsections_and_reset_on_major_heading(self):
+        def styled(text, style):
+            return f'<w:p><w:pPr><w:pStyle w:val="{style}"/></w:pPr>{run(text, b=True)}</w:p>'
+
+        xml = fictional_paragraphs().replace(
+            para(run('CORE COMPETENCIES', b=True))
+            + para(run('Forecasting • Data Cleaning • Stakeholder Reporting'))
+            + para(run('LANGUAGES', b=True)),
+            styled('Additional Qualifications', 'Heading1')
+            + styled('Core Skills', 'Heading2')
+            + para(run('Forecasting • Data Cleaning • Stakeholder Reporting'))
+            + styled('Languages', 'Heading2'),
+        )
+        doc = import_docx(build_docx(xml))
+        by_title = {section.title: section for section in doc.sections if section.title}
+        self.assertEqual(by_title['Core Skills'].group, 'Additional Qualifications')
+        self.assertEqual(by_title['Languages'].group, 'Additional Qualifications')
+
     def test_import_error_is_import_error_subclass(self):
         self.assertTrue(issubclass(DocxImportError, ImportError))
 

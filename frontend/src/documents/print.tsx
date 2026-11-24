@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import type { Root } from 'react-dom/client'
 import { CvView } from './CvView.tsx'
 import { LetterView } from './LetterView.tsx'
+import { syncInlineSeparators } from './inlineSeparators.ts'
 import { parseCvDocument, parseLetterDocument } from './types.ts'
 
 export interface RadiusPrintPayload {
@@ -15,6 +16,7 @@ declare global {
   interface Window {
     __RADIUS_DOCUMENT__?: RadiusPrintPayload
     __RADIUS_RENDER__?: (payload: RadiusPrintPayload) => Promise<void>
+    __RADIUS_SYNC_LAYOUT__?: () => void
   }
 }
 
@@ -91,6 +93,8 @@ async function renderPayload(payload: RadiusPrintPayload): Promise<void> {
     }
     await waitForImages(rootElement)
     await nextFrame()
+    syncInlineSeparators(rootElement)
+    await nextFrame()
 
     if (generation === renderGeneration) {
       document.body.dataset.ready = '1'
@@ -104,6 +108,9 @@ async function renderPayload(payload: RadiusPrintPayload): Promise<void> {
 }
 
 window.__RADIUS_RENDER__ = renderPayload
+window.__RADIUS_SYNC_LAYOUT__ = () => {
+  syncInlineSeparators(rootElement)
+}
 
 window.addEventListener('radius-document-ready', () => {
   if (window.__RADIUS_DOCUMENT__) {

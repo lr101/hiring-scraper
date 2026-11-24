@@ -76,7 +76,22 @@ _STEM_SUFFIXES = (
     'ierten', 'endes', 'enden', 'ender', 'ende', 'ings', 'ing', 'ung', 'ied', 'ies', 'ern',
     'ers', 'ten', 'tet', 'es', 'ed', 'er', 'en', 'te', 's', 'e', 'n', 't',
 )
-_CRITICAL_ACRONYM = re.compile(r'\b(?:[A-Z]{2,6}[0-9]{0,3}|[A-Za-z]*[a-z][A-Z][A-Za-z0-9]*)\b')
+_CRITICAL_ACRONYM = re.compile(r'\b(?:[A-Z]{2,6}[0-9]{0,3}|[0-9]+[A-Z]{1,4}|[A-Za-z]*[a-z][A-Z][A-Za-z0-9]*)\b')
+
+_PROFILE_META_WORDS = frozenset({'experience', 'experiences', 'erfahrung', 'erfahrungen'})
+_LETTER_GENERIC_WORDS = frozenset(
+    'work working team teams role position experience product products project projects company '
+    'business development process processes collaboration arbeit arbeiten stelle erfahrung '
+    'produkt produkte entwicklung projekt projekte unternehmen bereich prozess zusammenarbeit'.split()
+)
+_BRIDGE_VERBS = {
+    'anknüpfen': re.compile(r'\b(?:an(?:zu)?knüpf\w*|knüpf(?:e|en|t)\b[^.!?]{0,60}\ban)\b', re.I),
+    'aufgreifen': re.compile(r'\b(?:auf(?:zu)?greif\w*|greif(?:e|en|t)\b[^.!?]{0,60}\bauf)\b', re.I),
+}
+_EN_BRIDGE_VERB = re.compile(
+    r'\b(bring|apply|transfer|leverage)\s+(?:this|that|the same)\s+(?:approach|method|experience)\b',
+    re.I,
+)
 
 # Profile voice validation (sentence-initial verb/imperative detection)
 _DE_CONJUGATED_VERB_OPENERS = frozenset(
@@ -257,10 +272,13 @@ def sentence_phrases(text: str, *, size: int = 4) -> set[tuple[str, ...]]:
 def repeated_profile_term(text: str) -> bool:
     tokens = (token for token in _prose_words(text)
               if token.isalpha() and len(token) >= 3 and token not in _NGRAM_STOPWORDS)
-    return any(count >= 3 for count in Counter(map(_stem, tokens)).values())
+    if any(count >= 3 for count in Counter(map(_stem, tokens)).values()):
+        return True
+    meta = [set(words(sentence)) & _PROFILE_META_WORDS for sentence in sentences(text)]
+    return any(left and right for left, right in zip(meta, meta[1:], strict=False))
 
 
-def normalize_skills(section: Section) -> None:
+def normalize_skills(section: Section, *, preserve_order: bool = False) -> None:
     regular: list[Unit] = []
     qualified: list[Unit] = []
     for unit in section.units:
@@ -274,7 +292,8 @@ def normalize_skills(section: Section) -> None:
                 unit.text = normalized
         is_qualified = prefix or re.search(r'\((?:Grundlagen|Basics)\)$', unit.text, re.I)
         (qualified if is_qualified else regular).append(unit)
-    section.units = regular + qualified
+    if not preserve_order:
+        section.units = regular + qualified
 
 
 def normalize_internship(entry: Entry, language: DocumentLanguage) -> None:
@@ -480,7 +499,9 @@ def supports_competency(text: str, cited: Iterable[str], posting: str) -> bool:
     )
 
 
-def profile_voice_issue(text: str, language: DocumentLanguage) -> str | None:
+def profile_voice_issue(
+    text: str, language: DocumentLanguage, *, first_sentence: bool | None = None,
+) -> str | None:
     """Detect verb-first or imperative CV profile openings that violate noun-phrase-led summary style."""
     for idx, sentence in enumerate(sentences(text)):
         tokens = re.findall(r'[^\W\d_]+', sentence)
@@ -488,17 +509,18 @@ def profile_voice_issue(text: str, language: DocumentLanguage) -> str | None:
             continue
         first = tokens[0].casefold()
         second = tokens[1].casefold() if len(tokens) > 1 else ''
+        is_first = idx == 0 and first_sentence is not False
         if language == 'de':
-            if first in _DE_CONJUGATED_VERB_OPENERS:
+            if first in _DE_CONJUGATED_VERB_OPENERS and (is_first or first_sentence is None):
                 return 'de_verb_opener'
-            if idx == 0 and first in _DE_PRETERITE_VERB_OPENERS:
+            if is_first and first in _DE_PRETERITE_VERB_OPENERS:
                 return 'de_first_sentence_verb'
         else:
             if first in _EN_IMPERATIVE_VERB_OPENERS:
                 return 'en_imperative_opener'
             if first in _EN_AMBIGUOUS_VERB_OPENERS and second not in _EN_ROLE_OR_NOUN_FOLLOWERS:
                 return 'en_imperative_opener'
-            if idx == 0 and first in _EN_PAST_VERB_OPENERS:
+            if is_first and first in _EN_PAST_VERB_OPENERS:
                 return 'en_first_sentence_verb'
     return None
 
@@ -616,6 +638,30 @@ def repeated_paragraph_endings(paragraphs: Iterable[Unit]) -> list[tuple[int, in
     return repeats
 
 
+def letter_content_trigrams(text: str, ignore_phrases: Iterable[str]) -> set[tuple[str, ...]]:
+    """Match short sequences through light inflection and intervening function words."""
+    trigrams = set()
+    for segment in _strip_ignored_phrases(text, ignore_phrases):
+        content = [
+            (_stem(token), token not in _LETTER_GENERIC_WORDS)
+            for token in _prose_words(segment)
+            if token.isalpha() and len(token) >= 4 and token not in _NGRAM_STOPWORDS
+        ]
+        for gram in zip(content, content[1:], content[2:], strict=False):
+            stems = tuple(stem for stem, _ in gram)
+            if len(set(stems)) == 3 and sum(distinctive for _, distinctive in gram) >= 2:
+                trigrams.add(stems)
+    return trigrams
+
+
+def letter_bridge_verbs(text: str) -> set[str]:
+    """Recognize recurring ways of introducing the transfer of past experience."""
+    return (
+        {label for label, pattern in _BRIDGE_VERBS.items() if pattern.search(text)}
+        | set(_EN_BRIDGE_VERB.findall(text.casefold()))
+    )
+
+
 def has_de_salutation_case_error(salutation: str, first_paragraph: str) -> bool:
     """Return True when a German letter body opens with a capitalized non-noun after a comma-ended salutation."""
     if not salutation.rstrip().endswith(','):
@@ -678,37 +724,16 @@ def omitted_details(unit: Unit, evidence: dict[str, str], entry_id: str) -> set[
     return dropped if len(dropped) >= 2 else set()
 
 
-def merge_split_project_bullets(entry: Entry) -> bool:
-    """Merge visible unlabelled continuation bullets into the preceding labelled project bullet."""
-    merged = False
-    result: list[Unit] = []
-    last_labelled_idx: int | None = None
-    for unit in entry.units:
-        if unit.hidden:
-            result.append(unit)
-            continue
-        if unit.lead_in.strip():
-            last_labelled_idx = len(result)
-            result.append(unit)
-            continue
-        if last_labelled_idx is not None:
-            previous = result[last_labelled_idx]
-            left = previous.text.rstrip()
-            right = unit.text.lstrip()
-            if left and right:
-                sep = ' ' if left[-1] in '.!?;:' else '. '
-                combined = f'{left}{sep}{right}'
-            else:
-                combined = right or left
-            if len(combined) <= MAX_UNIT_TEXT:
-                previous.text = combined
-                previous.sources = list(dict.fromkeys([*previous.sources, *unit.sources]))
-                merged = True
-                continue
-        result.append(unit)
-    if merged:
-        entry.units = result
-    return merged
+def study_project_intro(entry: Entry) -> Unit | None:
+    """Find a standalone project-list caption stored as a bullet by older imports."""
+    visible = [u for u in entry.units if not u.hidden]
+    if entry.kind != 'study' or len(visible) < 2:
+        return None
+    first = visible[0]
+    if (first.origin == 'source' and not first.lead_in.strip()
+            and first.text.rstrip().endswith(':') and len(first.text.strip()) <= 100):
+        return first
+    return None
 
 
 def normalize_study_entry(entry: Entry) -> None:
@@ -730,15 +755,8 @@ def normalize_study_entry(entry: Entry) -> None:
                 promoted = True
         if not promoted and locked.title.strip():
             entry.locked = locked = locked.model_copy(update={'company': locked.title})
-    visible_units = [u for u in entry.units if not u.hidden]
-    if (
-        len(visible_units) >= 2
-        and visible_units[0].origin == 'source'
-        and not visible_units[0].lead_in.strip()
-        and visible_units[0].text.rstrip().endswith(':')
-        and len(visible_units[0].text.strip()) <= 100
-    ):
-        lead_unit = visible_units[0]
+    lead_unit = study_project_intro(entry)
+    if lead_unit is not None:
         entry.units = [u for u in entry.units if u.id != lead_unit.id]
         entry.intro.append(lead_unit)
     if not locked.title.strip():

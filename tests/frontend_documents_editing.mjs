@@ -12,6 +12,10 @@ import {
   createHistory,
   findUnitById,
   newUnitId,
+  setUnitReviewed,
+  reviewUnits,
+  restoreOriginal,
+  wordDiff,
   pushHistory,
   redoHistory,
   removeUnit,
@@ -20,6 +24,7 @@ import {
   undoHistory,
   updateUnitText,
 } from '../frontend/src/documents/editing.ts'
+import { syncInlineSeparators } from '../frontend/src/documents/inlineSeparators.ts'
 
 function makeUnit(id, text, overrides = {}) {
   return {
@@ -149,7 +154,7 @@ assert.equal(splitEntryUnits[1].id, splitResult.newUnitId)
 assert.equal(splitEntryUnits[1].text, 'and improved release stability.')
 assert.equal(splitEntryUnits[1].lead_in, '')
 assert.equal(splitEntryUnits[1].origin, 'user')
-assert.deepEqual(splitEntryUnits[1].sources, [])
+assert.deepEqual(splitEntryUnits[1].sources, splitEntryUnits[0].sources)
 assert.equal(splitEntryUnits[2].id, 'u-5')
 assert.doesNotThrow(() => parseCvDocument(splitResult.document))
 
@@ -243,5 +248,127 @@ assert.equal(splitUnit(fullIntro, 'u-intro-0', 4), null)
 
 const safeUnicode = updateUnitText(cv, 'u-2', 'Draft\u0000\ud800 text 📝')
 assert.equal(findUnitById(safeUnicode, 'u-2')?.text, 'Draft text 📝')
+
+// 7. Inline skill separators hide/collapse across wrapped lines and reset on reflow
+function fakeNode(rect) {
+  const classes = new Set()
+  return {
+    rect,
+    previousElementSibling: null,
+    nextElementSibling: null,
+    classList: {
+      add: (...names) => names.forEach((n) => classes.add(n)),
+      remove: (...names) => names.forEach((n) => classes.delete(n)),
+      has: (name) => classes.has(name),
+    },
+    getBoundingClientRect() {
+      return this.rect
+    },
+  }
+}
+
+const itemA = fakeNode({ top: 0, bottom: 14, height: 14 })
+const sepAB = fakeNode({ top: 0, bottom: 14, height: 14 })
+const itemB = fakeNode({ top: 0, bottom: 14, height: 14 })
+const sepBC = fakeNode({ top: 0, bottom: 14, height: 14 }) // trailing before wrap -> hidden
+const itemC = fakeNode({ top: 18, bottom: 32, height: 14 })
+const sepCD = fakeNode({ top: 36, bottom: 50, height: 14 }) // wrapped onto next line -> collapsed
+const itemD = fakeNode({ top: 36, bottom: 50, height: 14 })
+
+sepAB.previousElementSibling = itemA
+sepAB.nextElementSibling = itemB
+sepBC.previousElementSibling = itemB
+sepBC.nextElementSibling = itemC
+sepCD.previousElementSibling = itemC
+sepCD.nextElementSibling = itemD
+
+const fakeList = {
+  querySelectorAll(selector) {
+    return selector === '.doc-cv-inline-sep' ? [sepAB, sepBC, sepCD] : []
+  },
+}
+const fakeRoot = {
+  querySelectorAll(selector) {
+    return selector === '.doc-cv-inline' ? [fakeList] : []
+  },
+}
+
+syncInlineSeparators(fakeRoot)
+assert.equal(sepAB.classList.has('doc-cv-inline-sep--hidden'), false)
+assert.equal(sepAB.classList.has('doc-cv-inline-sep--collapsed'), false)
+assert.equal(sepBC.classList.has('doc-cv-inline-sep--hidden'), true)
+assert.equal(sepBC.classList.has('doc-cv-inline-sep--collapsed'), false)
+assert.equal(sepCD.classList.has('doc-cv-inline-sep--hidden'), false)
+assert.equal(sepCD.classList.has('doc-cv-inline-sep--collapsed'), true)
+
+// Reflow onto one line clears both hidden and collapsed classes
+itemC.rect = { top: 0, bottom: 14, height: 14 }
+sepCD.rect = { top: 0, bottom: 14, height: 14 }
+itemD.rect = { top: 0, bottom: 14, height: 14 }
+syncInlineSeparators(fakeRoot)
+assert.equal(sepBC.classList.has('doc-cv-inline-sep--hidden'), false)
+assert.equal(sepCD.classList.has('doc-cv-inline-sep--collapsed'), false)
+
+// Collapsing a wrapped separator keeps a narrow item on the next line by filling remaining width
+{
+  const styles = new Map()
+  const narrowItem = fakeNode({ top: 18, bottom: 32, height: 14, right: 10 })
+  const prevItem = fakeNode({ top: 0, bottom: 14, height: 14, right: 192 })
+  const narrowSep = {
+    ...fakeNode({ top: 18, bottom: 32, height: 14, right: 11 }),
+    previousElementSibling: prevItem,
+    nextElementSibling: narrowItem,
+    style: {
+      set width(value) {
+        styles.set('width', value)
+      },
+      get width() {
+        return styles.get('width') ?? ''
+      },
+      removeProperty(name) {
+        styles.delete(name)
+      },
+    },
+  }
+  const origAdd = narrowSep.classList.add
+  narrowSep.classList.add = (...names) => {
+    origAdd(...names)
+    if (names.includes('doc-cv-inline-sep--collapsed')) {
+      narrowItem.rect = { top: 0, bottom: 14, height: 14, right: 199 }
+    }
+  }
+  const narrowList = {
+    getBoundingClientRect: () => ({ right: 200 }),
+    querySelectorAll: (selector) => (selector === '.doc-cv-inline-sep' ? [narrowSep] : []),
+  }
+  syncInlineSeparators({ querySelectorAll: () => [narrowList] })
+  assert.equal(narrowSep.classList.has('doc-cv-inline-sep--collapsed'), true)
+  assert.equal(narrowSep.style.width, '8px')
+}
+
+{
+  const cv = makeCv()
+  cv.headline = makeUnit('headline', 'Designed a public workshop.', {
+    original_text: 'Designed a workshop.',
+  })
+  cv.review_sources = { 'cv:work-1:b1': 'Helped design a workshop.' }
+  const accepted = setUnitReviewed(cv, 'headline')
+  assert.equal(parseCvDocument(JSON.parse(JSON.stringify(accepted))).headline.reviewed_text, cv.headline.text)
+  assert.deepEqual(parseCvDocument(accepted).review_sources, cv.review_sources)
+  const edited = updateUnitText(accepted, 'headline', 'Helped design a workshop.')
+  assert.equal(edited.headline.reviewed_text, null)
+  assert.ok(reviewUnits(edited).includes(edited.headline))
+  assert.equal(undoHistory(pushHistory(createHistory(accepted), edited)).present, accepted)
+
+  const original = restoreOriginal(edited, 'headline')
+  assert.equal(original.headline.text, 'Designed a workshop.')
+  assert.equal(original.headline.origin, 'source')
+  assert.ok(!reviewUnits(original).includes(original.headline))
+}
+
+assert.deepEqual(wordDiff('Planned a tour.', 'Led a tour.'), {
+  before: [{ text: 'Planned', changed: true }, { text: ' a tour.', changed: false }],
+  after: [{ text: 'Led', changed: true }, { text: ' a tour.', changed: false }],
+})
 
 console.log('Document editing mutations and undo/redo history passed.')

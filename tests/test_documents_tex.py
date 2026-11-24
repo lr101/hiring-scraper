@@ -11,6 +11,8 @@ from hiring_scraper.documents import (
     walk_units,
 )
 
+from hiring_scraper.documents.text import cv_text
+
 FIXTURES = Path(__file__).resolve().parent / 'fixtures' / 'documents'
 
 
@@ -25,6 +27,23 @@ def _normalize_facts(facts: dict) -> dict:
 
 
 class ImportMarkedTexTests(unittest.TestCase):
+    def test_qualification_group_preserves_ats_order_and_round_trips(self):
+        doc = import_marked_tex((FIXTURES / 'marked_de_cv.tex').read_text())
+        grouped = [section for section in doc.sections if section.group]
+        titles = ['VERÖFFENTLICHUNGEN', 'KERNKOMPETENZEN', 'TOOLS & SYSTEME',
+                  'SPRACHEN', 'ZERTIFIKATE & AUSZEICHNUNGEN']
+        self.assertEqual([section.title for section in grouped], titles)
+        self.assertEqual({section.group for section in grouped}, {'WEITERE QUALIFIKATIONEN'})
+        text = cv_text(doc)
+        self.assertEqual(text.count('WEITERE QUALIFIKATIONEN'), 1)
+        offsets = [text.index(title) for title in ['WEITERE QUALIFIKATIONEN', *titles]]
+        self.assertEqual(offsets, sorted(offsets))
+        projected = project_tex(doc)
+        rebuilt = import_marked_tex(projected)
+        self.assertEqual([(s.title, s.group) for s in rebuilt.sections if s.group],
+                         [(title, 'WEITERE QUALIFIKATIONEN') for title in titles])
+        self.assertEqual(career_facts_from_tex(projected), facts_from_document(doc))
+
     def test_imports_two_page_fixed_and_flowing_german_fixture(self):
         source = (FIXTURES / 'marked_de_cv.tex').read_text(encoding='utf-8')
         doc = import_marked_tex(source)

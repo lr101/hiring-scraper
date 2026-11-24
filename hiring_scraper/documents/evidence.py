@@ -3,10 +3,10 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from typing import Any
 
-from hiring_scraper.documents.schema import CvDocument
+from hiring_scraper.documents.schema import CvDocument, Entry, Unit
 from hiring_scraper.documents.text import unit_full_text
 
 
@@ -76,6 +76,13 @@ def _format_skill_text(skill: str, evidence_entry: Any) -> str:
     return skill
 
 
+def entry_bullets(entry: Entry) -> Iterator[tuple[str, Unit]]:
+    """Yield evidence IDs and their visible base bullets in source order."""
+    visible = (unit for unit in entry.units if not unit.hidden and unit_full_text(unit))
+    for index, unit in enumerate(visible, 1):
+        yield f'cv:{entry.id}:b{index}', unit
+
+
 def build_evidence(base_cv: CvDocument, profile: Mapping[str, Any] | None = None) -> dict[str, str]:
     """Build the evidence dictionary ``{evidence_id: text}`` from ``base_cv`` and ``profile``."""
     evidence: dict[str, str] = {}
@@ -119,14 +126,8 @@ def build_evidence(base_cv: CvDocument, profile: Mapping[str, Any] | None = None
                     if text:
                         intro_idx += 1
                         evidence[f'cv:{entry.id}:i{intro_idx}'] = text
-                bullet_idx = 0
-                for unit in entry.units:
-                    if unit.hidden:
-                        continue
-                    text = unit_full_text(unit)
-                    if text:
-                        bullet_idx += 1
-                        evidence[f'cv:{entry.id}:b{bullet_idx}'] = text
+                for source, unit in entry_bullets(entry):
+                    evidence[source] = unit_full_text(unit)
             continue
 
         u_idx = 0

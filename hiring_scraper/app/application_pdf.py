@@ -28,6 +28,7 @@ import unicodedata
 from bisect import bisect_right
 from collections import Counter
 from concurrent.futures import TimeoutError as FutureTimeout
+from contextlib import closing
 from dataclasses import dataclass, field
 from itertools import accumulate
 from pathlib import Path
@@ -50,6 +51,8 @@ _MM_TO_PX = 96 / 25.4
 _PAGE_MM = {'a4': (210.0, 297.0), 'letter': (215.9, 279.4)}
 _MIN_FIRST_PAGE_FILL = 0.80
 _PAGE_MARGIN_MM = 16.0  # @page vertical margin in classic-serif-v1.css
+# Rendering returns callers to their worker threads before text extraction.
+_PDFIUM_LOCK = threading.Lock()
 
 
 class RenderUnavailable(RuntimeError):
@@ -73,7 +76,11 @@ class RenderResult:
 
 
 def export_verified(checks: list[dict]) -> bool:
-    """Require readable text and applicant details. Layout checks are advisory."""
+    """Require readable text and applicant details.
+
+    Layout and pdfium checks are advisory: pdfium infers word gaps heuristically and
+    can join words on valid Chromium PDFs, so it must never block a download.
+    """
     required = {'text_extractable', 'glyphs', 'special_characters', 'name_present', 'contacts_present'}
     passed = {check['code'] for check in checks if check.get('status') == 'passed'}
     return required <= passed
@@ -243,32 +250,33 @@ class _Renderer:
             if payload['kind'] == 'cv':
                 from pypdf import PdfReader
 
-                if height <= printable_px * limit and len(PdfReader(io.BytesIO(pdf)).pages) > limit:
-                    # Keeping entries together can add a page even when their total height fits.
-                    await page.locator('.doc-page').evaluate("(el) => el.classList.add('doc-page--compact')")
-                    candidate = await page.pdf(**pdf_options)
-                    if len(PdfReader(io.BytesIO(candidate)).pages) <= limit:
-                        pdf, compact = candidate, True
-                    else:
-                        await page.locator('.doc-page').evaluate("(el) => el.classList.remove('doc-page--compact')")
+                doc_model = CvDocument.model_validate(payload['document'])
+                page_root = page.locator('.doc-page')
                 reader = PdfReader(io.BytesIO(pdf))
                 if len(reader.pages) > 1:
                     first_fill = _page_fill_ratios(reader)[0]
-                    if first_fill < _MIN_FIRST_PAGE_FILL:
-                        root = page.locator('.doc-page')
-                        await root.evaluate("(el) => el.classList.add('doc-page--fill-first')")
+                    if first_fill < _MIN_FIRST_PAGE_FILL or len(reader.pages) > limit:
+                        await page_root.evaluate("(el) => { el.classList.add('doc-page--fill-first'); window.__RADIUS_SYNC_LAYOUT__?.(); }")
                         candidate = await page.pdf(**pdf_options)
                         relaxed = PdfReader(io.BytesIO(candidate))
                         improved = (len(relaxed.pages) < len(reader.pages)
                                     or (len(relaxed.pages) == len(reader.pages)
                                         and _page_fill_ratios(relaxed)[0] > first_fill))
                         if improved and not _orphan_entry_breaks(
-                            CvDocument.model_validate(payload['document']),
+                            doc_model,
                             [part.extract_text() for part in relaxed.pages],
                         ):
-                            pdf = candidate
+                            pdf, reader = candidate, relaxed
                         else:
-                            await root.evaluate("(el) => el.classList.remove('doc-page--fill-first')")
+                            await page_root.evaluate("(el) => { el.classList.remove('doc-page--fill-first'); window.__RADIUS_SYNC_LAYOUT__?.(); }")
+                if height <= printable_px * limit and len(reader.pages) > limit:
+                    # Keeping entries together can add a page even when their total height fits.
+                    await page_root.evaluate("(el) => { el.classList.add('doc-page--compact'); window.__RADIUS_SYNC_LAYOUT__?.(); }")
+                    candidate = await page.pdf(**pdf_options)
+                    if len(PdfReader(io.BytesIO(candidate)).pages) <= limit:
+                        pdf, compact = candidate, True
+                    else:
+                        await page_root.evaluate("(el) => { el.classList.remove('doc-page--compact'); window.__RADIUS_SYNC_LAYOUT__?.(); }")
             telemetry = await page.evaluate(
                 """([printable, limit]) => {
                     const root = document.querySelector('.doc-page-content') || document.body;
@@ -358,7 +366,7 @@ def _reading_order_check(model: CvDocument | LetterDocument, text: str) -> dict:
 
 
 def _orphan_entry_breaks(model: CvDocument, page_texts: list[str]) -> list[str]:
-    """Find entries whose bullets cross pages without enough content beside the header."""
+    """Find entries with orphaned headings/headers, dangling intro captions, or lone trailing bullets."""
     if len(page_texts) < 2:
         return []
     runs = [_squash(page) for page in page_texts]
@@ -367,9 +375,11 @@ def _orphan_entry_breaks(model: CvDocument, page_texts: list[str]) -> list[str]:
     broken: list[str] = []
     cursor = 0
     for section in model.sections:
-        for entry in section.entries:
+        section_start = cursor
+        for entry_idx, entry in enumerate(section.entries):
             start = cursor
             first_unit = None
+            intro_ends: list[tuple[int, bool]] = []
             bullet_ends: list[int] = []
             bullets = [unit for unit in entry.units if not unit.hidden]
             intro = [unit for unit in entry.intro if not unit.hidden]
@@ -380,9 +390,11 @@ def _orphan_entry_breaks(model: CvDocument, page_texts: list[str]) -> list[str]:
                 cursor = offset + len(run)
                 if first_unit is None:
                     first_unit = offset
-                if idx >= len(intro):
+                if idx < len(intro):
+                    intro_ends.append((cursor - 1, unit_full_text(unit).rstrip().endswith(':')))
+                else:
                     bullet_ends.append(cursor - 1)
-            if first_unit is None or not bullet_ends:
+            if first_unit is None or not (intro_ends or bullet_ends):
                 continue
             # The company is the first header line. A generic import placeholder
             # may render the title in its place.
@@ -395,9 +407,31 @@ def _orphan_entry_breaks(model: CvDocument, page_texts: list[str]) -> list[str]:
             if header == -1:
                 continue
             header_page = bisect_right(boundaries, header)
+            if entry_idx == 0 and section.title.strip():
+                section_heading = extracted.rfind(_squash(section.title), section_start, header)
+                if section_heading != -1 and bisect_right(boundaries, section_heading) < header_page:
+                    broken.append(entry.id)
+                    continue
             bullet_pages = Counter(bisect_right(boundaries, end) for end in bullet_ends)
+            if not bullet_ends:
+                continue
+            first_bullet_page = bisect_right(boundaries, bullet_ends[0])
+            dangling_caption = any(
+                is_colon and bisect_right(boundaries, end) < first_bullet_page
+                for end, is_colon in intro_ends
+            )
             spills = any(page > header_page for page in bullet_pages)
-            if spills and (bullet_pages[header_page] < 2 or any(count < 2 for count in bullet_pages.values())):
+            if not spills and not dangling_caption:
+                continue
+            has_bullet_on_header = bullet_pages[header_page] >= 1
+            lone_continuation = len(bullet_ends) >= 3 and any(
+                count < 2 for page, count in bullet_pages.items() if page > header_page
+            )
+            is_project_list = entry.kind != 'study' and any(unit.lead_in.strip() for unit in bullets)
+            lone_project_split = is_project_list and len(bullet_pages) > 1 and any(
+                count < 2 for count in bullet_pages.values()
+            )
+            if not has_bullet_on_header or dangling_caption or lone_continuation or lone_project_split:
                 broken.append(entry.id)
     return broken
 
@@ -478,6 +512,77 @@ def _page_fill_ratios(reader: Any) -> list[float]:
     return ratios
 
 
+def _extract_pdfium_text(pdf: bytes) -> str:
+    import pypdfium2 as pdfium
+
+    # PDFium's native calls must not overlap, even for distinct documents.
+    with _PDFIUM_LOCK, pdfium.PdfDocument(pdf) as doc:
+        pages: list[str] = []
+        for page in doc:
+            with closing(page), closing(page.get_textpage()) as textpage:
+                pages.append(textpage.get_text_bounded())
+        return '\n'.join(pages)
+
+
+def _pdfium_merged_tokens(pypdf_text: str, pdfium_text: str) -> list[str]:
+    """Return tokens in pdfium_text that merge two or more adjacent tokens from pypdf_text."""
+    py_tokens = unicodedata.normalize('NFC', pypdf_text).split()
+    pf_tokens = unicodedata.normalize('NFC', pdfium_text).split()
+    py_set = set(py_tokens)
+    adjacent_merges = {
+        py_tokens[i] + py_tokens[i + 1]
+        for i in range(len(py_tokens) - 1)
+    }
+    merged: list[str] = []
+    for token in pf_tokens:
+        if token in py_set:
+            continue
+        if token in adjacent_merges or any(
+            token[:idx] in py_set and token[idx:] in py_set
+            for idx in range(1, len(token))
+        ):
+            merged.append(token)
+    return merged
+
+
+def _pdfium_checks(
+    model: CvDocument | LetterDocument,
+    pypdf_text: str,
+    pdfium_text: str,
+) -> tuple[list[dict], dict[str, int | bool]]:
+    ctrl_count = sum(
+        1 for ch in pdfium_text
+        if (unicodedata.category(ch) == 'Cc' and ch not in '\r\n\t') or ch == '\ufffd'
+    )
+    merged = _pdfium_merged_tokens(pypdf_text, pdfium_text)
+    order_passed = _reading_order_check(model, pdfium_text)['status'] == 'passed'
+    checks = [
+        _check(
+            'pdfium_control_chars',
+            'passed' if ctrl_count == 0 else 'failed',
+            'No control or replacement characters in PDFium text.'
+            if ctrl_count == 0 else f'{ctrl_count} control or replacement character(s) in PDFium text.',
+        ),
+        _check(
+            'pdfium_word_boundaries',
+            'passed' if order_passed and not merged else 'failed',
+            'No merged tokens detected and document units appear in order.'
+            if order_passed and not merged else (
+                f'{len(merged)} merged token(s) in PDFium text.'
+                if merged else 'PDFium reading order did not match document units.'
+            ),
+        ),
+    ]
+    return checks, {
+        'pdfium_control_chars': ctrl_count,
+        'pdfium_merged_tokens': len(merged),
+        'pdfium_text_parity': (
+            unicodedata.normalize('NFC', pypdf_text).split()
+            == unicodedata.normalize('NFC', pdfium_text).split()
+        ),
+    }
+
+
 def render_document(
     kind: Literal['cv', 'letter'],
     document: dict,
@@ -499,7 +604,7 @@ def render_document(
     if len(model.model_dump_json().encode('utf-8')) > MAX_DOCUMENT_BYTES:
         raise RenderFailed('document_too_large', 'The document exceeds the PDF input budget.')
     photo = None
-    if photo_png and kind == 'cv' and getattr(model, 'photo', False):
+    if photo_png and kind == 'cv':
         if len(photo_png) > MAX_PHOTO_BYTES:
             raise RenderFailed('photo_too_large', 'The portrait is too large.')
         mime = 'image/jpeg' if photo_png[:3] == b'\xff\xd8\xff' else 'image/png'
@@ -528,6 +633,7 @@ def render_document(
         with io.BytesIO() as output:
             writer.write(output)
             pdf = output.getvalue()
+        pdfium_text = _extract_pdfium_text(pdf)
     except RenderFailed:
         raise
     except Exception:  # noqa: BLE001 - corrupt output
@@ -535,6 +641,9 @@ def render_document(
     limit = PAGE_LIMITS[kind]
     exceeded = pages > limit
     checks = _text_checks(kind, model, text, pages, page_texts=page_texts)
+    pdfium_checks, pdfium_metrics = _pdfium_checks(model, text, pdfium_text)
+    checks.extend(pdfium_checks)
+    telemetry.update(pdfium_metrics)
     if exceeded or telemetry.get('overflow_px', 0) > 0:
         checks.append(_check('overflow', 'warning',
                              f'{telemetry.get("overflow_px", 0)} px beyond page {limit}; '
