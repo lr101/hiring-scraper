@@ -232,4 +232,16 @@ hist = pushHistory(hist, branch)
 assert.equal(hist.future.length, 0)
 assert.equal(hist.present, branch)
 
+
+const fullLetter = makeLetter()
+fullLetter.paragraphs = Array.from({ length: 20 }, (_, idx) => makeUnit(`u-paragraph-${idx}`, 'Example paragraph.'))
+assert.equal(splitUnit(fullLetter, 'u-paragraph-0', 4), null)
+
+const fullIntro = makeCv()
+fullIntro.sections[1].entries[0].intro = Array.from({ length: 20 }, (_, idx) => makeUnit(`u-intro-${idx}`, 'Example intro.'))
+assert.equal(splitUnit(fullIntro, 'u-intro-0', 4), null)
+
+const safeUnicode = updateUnitText(cv, 'u-2', 'Draft\u0000\ud800 text 📝')
+assert.equal(findUnitById(safeUnicode, 'u-2')?.text, 'Draft text 📝')
+
 console.log('Document editing mutations and undo/redo history passed.')

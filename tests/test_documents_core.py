@@ -25,6 +25,13 @@ from hiring_scraper.documents import (
 )
 
 
+class DocumentTextValidationTests(unittest.TestCase):
+    def test_rejects_characters_postgres_jsonb_cannot_store(self):
+        for character in ('\x00', '\ud800'):
+            with self.subTest(character=repr(character)), self.assertRaises(ValidationError):
+                Unit(id='u-first', text='Fictional draft' + character)
+
+
 def _sample_cv() -> CvDocument:
     return CvDocument(
         language='en',

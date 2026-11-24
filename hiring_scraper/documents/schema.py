@@ -18,6 +18,8 @@ DATE_RE = re.compile(r'^[1-9][0-9]{3}(?:-(?:0[1-9]|1[0-2]))?$')
 
 MAX_UNIT_TEXT = 1200
 MAX_SECTION_UNITS = 60
+MAX_ENTRY_INTRO_UNITS = 20
+MAX_LETTER_PARAGRAPHS = 20
 
 UnitOrigin = Literal['source', 'ai', 'user']
 UnitRole = Literal['', 'motivation', 'experience', 'education', 'bring', 'close']
@@ -50,6 +52,8 @@ SingleLineStr = Annotated[str, Field(max_length=200)]
 
 
 def _no_newlines(value: str, field_name: str) -> str:
+    if '\x00' in value or any(0xD800 <= ord(char) <= 0xDFFF for char in value):
+        raise ValueError(f'{field_name} contains an invalid Unicode character.')
     if '\n' in value or '\r' in value:
         raise ValueError(f'{field_name} must not contain newline characters.')
     return value
@@ -151,7 +155,7 @@ class Entry(BaseModel):
     kind: EntryKind
     locked: LockedEntry
     label: str = Field(default='', max_length=200)
-    intro: list[Unit] = Field(default_factory=list, max_length=20)
+    intro: list[Unit] = Field(default_factory=list, max_length=MAX_ENTRY_INTRO_UNITS)
     units: list[Unit] = Field(default_factory=list, max_length=MAX_SECTION_UNITS)
 
     @field_validator('label')
@@ -252,7 +256,7 @@ class LetterDocument(BaseModel):
     place_date: str = Field(default='', max_length=200)
     subject: Unit
     salutation: Unit
-    paragraphs: list[Unit] = Field(default_factory=list, max_length=20)
+    paragraphs: list[Unit] = Field(default_factory=list, max_length=MAX_LETTER_PARAGRAPHS)
     closing: Unit
     signature: str = Field(default='', max_length=200)
 

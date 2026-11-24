@@ -1,5 +1,8 @@
 import {
   CV_FORMAT,
+  INVALID_DOCUMENT_CHARACTER,
+  MAX_ENTRY_INTRO_UNITS,
+  MAX_LETTER_PARAGRAPHS,
   MAX_UNITS_PER_SECTION,
   MAX_UNIT_TEXT_LENGTH,
   UNIT_ID_PATTERN,
@@ -28,7 +31,9 @@ export interface HistoryState<T> {
 const DEFAULT_MAX_HISTORY = 100
 
 export function sanitizeUnitText(text: string): string {
-  return text.replace(/\r\n|\r|\n/g, ' ').slice(0, MAX_UNIT_TEXT_LENGTH)
+  const compatible = text.replace(/\r\n|\r|\n/g, ' ')
+    .replace(new RegExp(INVALID_DOCUMENT_CHARACTER, 'gu'), '')
+  return Array.from(compatible).slice(0, MAX_UNIT_TEXT_LENGTH).join('')
 }
 
 export function walkUnits(doc: ApplicationDocument): Unit[] {
@@ -263,7 +268,7 @@ export function splitUnit<T extends ApplicationDocument>(
         const entry = section.entries[eIdx]
         const splitIntro = splitInList(entry.intro, unitId, offset, createdId)
         if (splitIntro) {
-          if (sectionUnitCount >= MAX_UNITS_PER_SECTION) return null
+          if (entry.intro.length >= MAX_ENTRY_INTRO_UNITS || sectionUnitCount >= MAX_UNITS_PER_SECTION) return null
           const nextEntries = section.entries.slice()
           nextEntries[eIdx] = { ...entry, intro: splitIntro }
           const nextSections = doc.sections.slice()
@@ -291,7 +296,7 @@ export function splitUnit<T extends ApplicationDocument>(
     return null
   }
 
-  if (doc.paragraphs.length >= MAX_UNITS_PER_SECTION) return null
+  if (doc.paragraphs.length >= MAX_LETTER_PARAGRAPHS) return null
   const splitParagraphs = splitInList(doc.paragraphs, unitId, offset, createdId)
   if (!splitParagraphs) return null
   return {

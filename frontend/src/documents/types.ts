@@ -4,6 +4,9 @@ export const DEFAULT_TEMPLATE = 'classic-serif-v1' as const
 
 export const MAX_UNIT_TEXT_LENGTH = 1200
 export const MAX_UNITS_PER_SECTION = 60
+export const MAX_ENTRY_INTRO_UNITS = 20
+export const MAX_LETTER_PARAGRAPHS = 20
+export const INVALID_DOCUMENT_CHARACTER = /[\u0000\uD800-\uDFFF]/u
 export const UNIT_ID_PATTERN = /^[a-z0-9-]{1,64}$/
 const SECTION_ID_PATTERN = /^[a-z0-9_-]{1,64}$/
 const ENTRY_ID_PATTERN = /^[a-zA-Z0-9_-]{1,100}$/
@@ -182,10 +185,13 @@ function asString(value: unknown, path: string, options?: { noNewlines?: boolean
   if (typeof value !== 'string') {
     fail(path, 'must be a string')
   }
+  if (INVALID_DOCUMENT_CHARACTER.test(value)) {
+    fail(path, 'contains an invalid Unicode character')
+  }
   if (options?.noNewlines && NEWLINE_PATTERN.test(value)) {
     fail(path, 'must not contain newlines')
   }
-  if (options?.maxLength !== undefined && value.length > options.maxLength) {
+  if (options?.maxLength !== undefined && Array.from(value).length > options.maxLength) {
     fail(path, `must be at most ${options.maxLength} characters`)
   }
   if (options?.nonEmpty && value.trim().length === 0) {
@@ -329,6 +335,9 @@ function parseEntry(
       : asArray(rec.units, `${path}.units`).map((item, idx) =>
           parseUnit(item, `${path}.units[${idx}]`, seenUnitIds),
         )
+  if (intro.length > MAX_ENTRY_INTRO_UNITS) {
+    fail(`${path}.intro`, `exceeds maximum of ${MAX_ENTRY_INTRO_UNITS} units`)
+  }
   return { id, kind, locked, label, intro, units }
 }
 
@@ -455,8 +464,8 @@ export function parseLetterDocument(value: unknown): LetterDocument {
   const subject = parseUnit(rec.subject, 'subject', seenUnitIds)
   const salutation = parseUnit(rec.salutation, 'salutation', seenUnitIds)
   const paragraphsRaw = asArray(rec.paragraphs, 'paragraphs')
-  if (paragraphsRaw.length > MAX_UNITS_PER_SECTION) {
-    fail('paragraphs', `exceeds maximum of ${MAX_UNITS_PER_SECTION} paragraphs`)
+  if (paragraphsRaw.length > MAX_LETTER_PARAGRAPHS) {
+    fail('paragraphs', `exceeds maximum of ${MAX_LETTER_PARAGRAPHS} paragraphs`)
   }
   const paragraphs = paragraphsRaw.map((item, idx) =>
     parseUnit(item, `paragraphs[${idx}]`, seenUnitIds),
