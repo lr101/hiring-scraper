@@ -20,11 +20,15 @@ the server image is pinned by digest (`compose.yaml`).
    into numbered lines. The LLM writes a fixed line format, enforced by a grammar,
    that names the occupational field and industry, then each duty (`D`) and each
    requirement (`R`, with must/nice and a kind such as skill, education or language).
-   Every item must be a verbatim span of the line it cites; items that are not are
-   dropped. Benefits, company descriptions and application instructions are never
-   items, so "30 Tage Urlaub" or "strukturierte Einarbeitung" cannot count as
-   requirements. The posting is treated as data: prompt-like text inside it is
-   removed before the model sees it and the grammar allows no free-form answer.
+   Every item is stored as the contiguous span of the line it cites; items the
+   model reworded beyond small omissions, or whose span holds a negation the quote
+   left out ("not required"), are dropped. Benefits, company descriptions and
+   application instructions are never items: the prompt says so, and items from
+   lines under such headings ("Was wir bieten", "Benefits", "Kontakt") are dropped,
+   so "30 Tage Urlaub" or "strukturierte Einarbeitung" cannot count as
+   requirements. The posting is treated as data: prompt-like text and chat control
+   tokens are removed before the model sees it and the grammar allows no free-form
+   answer.
 2. **CV evidence units** (once per profile revision). Saved work history, education,
    skills and summary are split into short citable lines and embedded with E5.
 3. **Pair evidence** (once per profile and job). For each duty and requirement, E5
@@ -37,8 +41,10 @@ the server image is pinned by digest (`compose.yaml`).
 4. **Scoring** (`matching_v3`, no inference). Five components in [0, 1] (duties,
    mandatory requirements, preferred requirements, role, field) form an exact additive
    ledger; bounded penalties (work style, employment type, unverified formal
-   prerequisites, at most five points for language or work-permit flags) follow, then a
-   monotone calibration fitted on the evaluation set. Eligibility gates (CEFR minimums,
+   prerequisites, at most two points for language or work-permit flags) follow, then a
+   monotone calibration fitted on the DEV split of the evaluation set. At most 28
+   items per posting are scored, mandatory and formal requirements first; the job
+   page names any requirement left unchecked. Eligibility gates (CEFR minimums,
    excluded titles, mandatory on-site, denied work permits) are unchanged and still
    hide a job only for an explicit, cited incompatibility.
 
@@ -54,11 +60,20 @@ On four laptop cores the LLM needs about 25–50 s per posting and the reranker 
 profile's search area (and remote jobs) first, newest first, and computes their
 evidence immediately; the rest of the inventory follows in the background. Each step
 is published per job or pair, so a restart or model outage loses at most the item in
-flight. When a model container is down, the worker backs off (up to five minutes) and
-retries; matching and Journey keep serving the stored results.
+flight. When a model container is down, that stage backs off (up to five minutes)
+while the others continue; matching and Journey keep serving the stored results. A
+posting the LLM rejects as too long is retried with fewer lines, and an item that
+fails is retried later with backoff instead of being dropped.
+
+Every analysis output has its own identity (`result_hash`, from the model version and
+the output). Pair evidence refers to item positions of exactly that output, so a new
+model or prompt never attaches old evidence to different items. A result is published
+only for the request revision the worker started from: a posting or CV edit during
+inference re-queues the work instead of being acknowledged by the older result. Only
+one analysis worker runs at a time (PostgreSQL advisory lock).
 
 Both model containers have `cpu_shares: 256` so the API and crawlers stay responsive,
-and memory limits of 4.5 GB and 1.5 GB. The worker calls them one at a time, so they
+memory limits of 4.5 GB and 1.5 GB, and no extra Linux capabilities. The worker calls them one at a time, so they
 share the same cores without competing. Tune with `LLM_THREADS`,
 `LLM_MEMORY_LIMIT` and `LLM_RERANKER_MEMORY_LIMIT` in `.env`.
 

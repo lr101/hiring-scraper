@@ -173,7 +173,7 @@ never turned into a Journey New card, and shown as analysing. After an edit, the
 previous analysis (status `stale`) and evidence stay in use until replaced; evidence
 is only joined to the exact analysis revision it was computed for.
 
-Visible language and work authorization flags can deduct up to five points combined.
+Visible language and work authorization flags can deduct up to two points combined.
 The matcher hides a job only when it can cite an explicit incompatibility in both
 the posting and saved profile. Stored explanations include gate citations, the
 contribution ledger and calibration within the same 16 KiB limit. When space is

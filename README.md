@@ -117,10 +117,11 @@ subscription quotas. See [docs/local-models.md](docs/local-models.md).
 
 The score (0–100) adds duty evidence, mandatory and preferred requirements, role
 fit and occupational-field fit, then subtracts bounded penalties (work style,
-employment type, unverified formal prerequisites, and at most five points for
-language or work-permit flags) and applies a calibration fitted on the evaluation
-set. Job details show each contribution with the job quote and the CV line that
-supports it. Only explicit incompatibilities cited from both the job and the
+employment type, unverified formal prerequisites, and at most two points for
+language or work-permit flags) and applies a calibration fitted on the DEV split of
+the evaluation set. The job page shows how the score was built: earned against
+possible points per part, deductions, and a checklist of the posting's duties and
+requirements with the CV line that supports each. Only explicit incompatibilities cited from both the job and the
 profile hide a job.
 
 Jobs the models have not analysed yet show **Analysing job…** and stay out of
