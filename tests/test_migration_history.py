@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 import sys
+from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
 from uuid import uuid4
@@ -158,12 +159,12 @@ class HistoricalUpgradeTests(unittest.TestCase):
             finally:
                 engine.dispose()
 
-
     def test_application_documents_survive_entrypoint_rollback_and_reupgrade(self):
         from docker import entrypoint
 
         old_head = '0043_drop_ai_assessment'
-        command.upgrade(self.config, old_head)
+        with patch.dict(os.environ, {'DATABASE_URL': self.target}):
+            command.upgrade(self.config, old_head)
         engine = create_engine(self.target)
         self.addCleanup(engine.dispose)
         with engine.begin() as connection:
@@ -209,6 +210,17 @@ class HistoricalUpgradeTests(unittest.TestCase):
                 ), {'record': '{"kind": "prepare"}'})
 
             entrypoint._migrate(self.target, rollback_application_documents=True)
+            # Give the previous image's startup migration only the revisions
+            # it shipped, so this fails if the rollback leaves an unknown head.
+            old_config = Config()
+            migrations = Path('hiring_scraper/app/migrations').resolve()
+            old_config.set_main_option('script_location', str(migrations))
+            with TemporaryDirectory() as folder, patch.dict(os.environ, {'DATABASE_URL': self.target}):
+                for file in (migrations / 'versions').glob('*.py'):
+                    if not file.name.startswith('0044_'):
+                        (Path(folder) / file.name).symlink_to(file)
+                old_config.set_main_option('version_locations', folder)
+                command.upgrade(old_config, 'head')
             with engine.connect() as connection:
                 self.assertEqual(connection.scalar(text('SELECT version_num FROM alembic_version')), old_head)
                 connection.execute(text('SET LOCAL ROLE hiring_app'))

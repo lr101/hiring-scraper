@@ -8,7 +8,8 @@ import unittest
 from unittest.mock import Mock, patch
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, text
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import application_documents_v2 as documents, auto_preparation, codex_runtime, profiles
@@ -110,6 +111,17 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
             documents.put_cv_structure(1, documents.StructureRequest(
                 document=base['document'], expected_revision=base['revision']), 'en', session)
         self.assertEqual(conflict.exception.status_code, 409)
+
+    def test_publication_lock_waits_for_a_job_source_writer(self):
+        from hiring_scraper.app.models import reserve_job_source_rows
+
+        with self.sessions.begin() as writer:
+            reserve_job_source_rows(writer, [2])
+            with self.sessions() as publisher:
+                publisher.execute(text("SET LOCAL lock_timeout = '100ms'"))
+                with self.assertRaises(OperationalError) as blocked:
+                    documents._hold_publication(publisher, 1, 2)
+                self.assertEqual(blocked.exception.orig.sqlstate, '55P03')
 
     def test_saved_documents_become_stale_after_job_changes(self):
         from hiring_scraper.app import source_changes

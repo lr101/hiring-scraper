@@ -86,12 +86,12 @@ hard cap. The recommended limits remain two pages for a CV and one for a letter.
 
 ## Roll back the application image
 
-Stop all Radius application containers before switching versions. Keep the database
-running and leave the volumes in place. With the **v2 image still configured**, run:
+Stop Radius before switching versions and leave the volumes in place. With the
+**v2 image still configured**, start just the database before running the rollback:
 
 ```sh
 docker compose stop
-docker compose up -d db
+docker compose up -d --wait db
 docker compose run --rm --no-deps migrate --rollback-application-documents
 ```
 
