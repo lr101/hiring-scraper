@@ -87,13 +87,6 @@ class VersionMathTests(unittest.TestCase):
         self.assertEqual(localized['application_details']['preferences'], {'start': 'sofort'})
         self.assertEqual(documents.localized_preferences(preferences, 'en')['summary'], 'English')
 
-    def test_pipeline_switch_defaults_to_v2(self):
-        with patch.dict('os.environ', {}, clear=True):
-            self.assertEqual(documents.pipeline_version(), 'v2')
-        with patch.dict('os.environ', {'RADIUS_APPLICATION_PIPELINE': 'V1'}):
-            self.assertEqual(documents.pipeline_version(), 'v1')
-
-
 class QueuePolicyTests(unittest.TestCase):
     def test_backoff_is_two_then_ten_minutes_for_three_attempts(self):
         self.assertEqual(queue.MAX_ATTEMPTS, 3)
@@ -180,7 +173,7 @@ class QueuePolicyTests(unittest.TestCase):
 
     def run_failing(self, error, record):
         updates = []
-        with patch.object(queue, '_claim', return_value=((1, 2), 'token', record)), \
+        with patch.object(queue, '_claim', return_value=((1, 2), 'token', {'request': {}, **record})), \
                 patch.object(queue.Progress, '_update', lambda self, **changes: updates.append(changes) or True):
             self.assertTrue(queue.process_once(lambda *_args: (_ for _ in ()).throw(error)))
         return updates[-1]
@@ -196,10 +189,12 @@ class QueuePolicyTests(unittest.TestCase):
         permanent = self.run_failing(queue.TaskError('job_closed', 'Closed.'), {'id': 't', 'kind': 'revise', 'attempts': 1})
         self.assertEqual((permanent['state'], permanent['error_code']), ('failed', 'job_closed'))
 
-    def test_legacy_tasks_never_retry_automatically(self):
-        legacy = self.run_failing(queue.TaskError('busy', 'Busy.', retryable=True), {'id': 't', 'attempts': 1})
-        self.assertEqual(legacy['state'], 'failed')
-        http = self.run_failing(HTTPException(502, 'Bad AI output.'), {'id': 't', 'attempts': 1})
+    def test_old_queue_records_require_a_fresh_preparation(self):
+        legacy = self.run_failing(AssertionError('Must not call the worker'), {'id': 't', 'attempts': 1})
+        self.assertEqual((legacy['state'], legacy['error_code']), ('failed', 'obsolete_preparation'))
+
+    def test_http_failure_is_reported_without_retry(self):
+        http = self.run_failing(HTTPException(502, 'Bad AI output.'), {'id': 't', 'kind': 'prepare', 'attempts': 1})
         self.assertEqual((http['state'], http['error'], http['error_code']), ('failed', 'Bad AI output.', 'http_502'))
 
 
@@ -281,11 +276,17 @@ class RouterValidationTests(unittest.TestCase):
                             {'unit_id': 'u-p1', 'instruction': 'x' * 501}, b'job_id=1')
         self.assertEqual(status, 422)
 
-    def test_prepare_is_refused_when_the_v1_pipeline_is_selected(self):
-        with patch.dict('os.environ', {'RADIUS_APPLICATION_PIPELINE': 'v1'}):
-            status, payload, _ = call('POST', '/api/v1/profiles/1/application-documents/prepare', {'job_id': 1})
-        self.assertEqual(status, 409)
-        self.assertIn('turned off', payload['detail'])
+    def test_companion_status_omits_private_task_payloads(self):
+        record = {'id': 't', 'kind': 'prepare', 'state': 'running', 'stage': 'cv',
+                  'held': {'cv': {'body': {'text': 'Fictional draft'}}},
+                  'result': {'cv': 'Fictional result'}}
+        with patch.object(queue, 'status', return_value=record):
+            status, payload, headers = call(
+                'GET', '/api/v1/profiles/1/application-documents/task',
+                query=b'job_id=2&summary=true')
+        self.assertEqual(status, 200)
+        self.assertEqual(payload, {'task': {'kind': 'prepare', 'state': 'running', 'stage': 'cv', 'error': None}})
+        self.assertEqual(headers.get(b'cache-control'), b'no-store')
 
     def test_cv_structure_rejects_invalid_documents_before_storage(self):
         status, _, _ = call('PUT', '/api/v1/profiles/1/cv/structure', {'document': {'format': 'radius-cv-v2'}},

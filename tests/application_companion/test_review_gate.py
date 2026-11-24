@@ -23,10 +23,10 @@ class ReviewGateTests(JourneyBrowserTests):
 
     def test_popup_shows_running_preparation_status(self):
         self.seed(False)
-        self.worker.evaluate("""() => {const previous = globalThis.fetch; globalThis.fetch = (input, options) => String(input).includes('/preparation-job?') ? Promise.resolve(new Response(JSON.stringify({job:{state:'running',stage:'drafting'}}), {headers:{'Content-Type':'application/json'}})) : previous(input, options)}""")
+        self.worker.evaluate("""() => {const previous = globalThis.fetch; globalThis.fetch = (input, options) => String(input).includes('/application-documents/task?') ? Promise.resolve(new Response(JSON.stringify({task:{kind:'prepare',state:'running',stage:'cv'}}), {headers:{'Content-Type':'application/json'}})) : previous(input, options)}""")
         self.page.goto(LISTING)
         popup = self.popup()
-        expect(popup.locator('#job-entries')).to_contain_text('Drafting documents')
+        expect(popup.locator('#job-entries')).to_contain_text('Preparing CV')
 
     def test_review_confirmation_rejects_changed_package(self):
         self.seed(True)

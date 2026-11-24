@@ -3,9 +3,7 @@
 Two lanes share one worker process:
 
 * **Inference lane** (``application_preparation_tasks``): at most one active
-  task per (profile, job). ``record.kind`` is ``prepare`` or ``revise`` for v2
-  tasks; records without ``kind`` are legacy v1 preparations and keep their
-  original behavior (no automatic retries) so queued work drains after deploys.
+  task per (profile, job), for preparation or a unit revision.
 * **Render lane** (``application_render_tasks``): one row per document version
   and template. PDF exports are claimed by their own worker thread, so a
   render never waits behind a model call that runs for minutes.
@@ -132,29 +130,6 @@ def _check_capacity(session):
         raise HTTPException(429, 'Too many applications are being prepared. Please try again shortly.')
 
 
-def enqueue(profile_id, job_id, request, revision, *, automatic=False):
-    """Queue a legacy v1 preparation (record without ``kind``)."""
-    with SessionLocal.begin() as session:
-        # Serialize the global capacity check and first insert.
-        session.execute(text('SELECT pg_advisory_xact_lock(85793011, 8)'))
-        row = session.get(Task, (profile_id, job_id), with_for_update=True, populate_existing=True)
-        previous = row.record if row else {}
-        same_inputs = (previous.get('kind') is None and previous.get('request') == request
-                       and previous.get('revision') == revision)
-        if row and row.state in ACTIVE:
-            if not same_inputs:
-                raise HTTPException(409, 'Another preparation is already running with different options.')
-            return previous
-        _check_capacity(session)
-        row = _reset_row(session, row, profile_id, job_id)
-        checkpoints = previous.get('checkpoints', {}) if same_inputs and previous.get('state') in (
-            'failed', 'cancelled'
-        ) else {}
-        _store(row, id=uuid4().hex, state='running', stage='starting', started_at=time.time(),
-               request=request, revision=revision, automatic=automatic, checkpoints=checkpoints)
-        return row.record
-
-
 def enqueue_task(profile_id, job_id, kind, request, *, extra=None, automatic=False):
     """Queue a v2 ``prepare`` or ``revise`` task; one active task per (profile, job).
 
@@ -235,10 +210,7 @@ def _claim():
         candidate.lease_token = uuid4().hex
         candidate.lease_until = now + LEASE
         candidate.next_attempt_at = None
-        changes = {'attempts': attempts + 1}
-        if record.get('kind') in V2_KINDS:
-            changes |= {'next_attempt_at': None, 'stage': 'starting'}
-        _store(candidate, **changes)
+        _store(candidate, attempts=attempts + 1, next_attempt_at=None, stage='starting')
         return (candidate.profile_id, candidate.job_id), candidate.lease_token, candidate.record
 
 
@@ -297,15 +269,10 @@ class Progress:
 
     def __call__(self, stage):
         self.stages[stage] = time.time()
-        changes = {'stage': stage}
-        if self.kind in V2_KINDS:
-            changes['stages'] = self.stages
-        if not self._update(**changes):
+        if not self._update(stage=stage, stages=self.stages):
             raise HTTPException(409, 'Preparation cancelled.')
 
     def checkpoint(self, name, value):
-        if name == 'draft':
-            self.checkpoints.pop('review', None)
         self.checkpoints[name] = value
         if not self._update(checkpoints=self.checkpoints):
             raise HTTPException(409, 'Preparation cancelled.')
@@ -331,7 +298,7 @@ class Progress:
 
 
 def process_once(run):
-    """Claim one inference task and run ``run(profile_id, request, revision, progress)``."""
+    """Claim one inference task and run ``run(profile_id, request, progress)``."""
     claimed = _claim()
     if claimed is None:
         return False
@@ -339,7 +306,9 @@ def process_once(run):
     progress = Progress(key, token, record.get('checkpoints') or {}, task_id=record['id'], record=record)
     v2 = record.get('kind') in V2_KINDS
     try:
-        result = run(key[0], record.get('request'), record.get('revision'), progress)
+        if not v2:
+            raise TaskError('obsolete_preparation', 'Start a new preparation to use the current document editor.')
+        result = run(key[0], record['request'], progress)
     except HTTPException as error:
         detail = error.detail if isinstance(error.detail, str) else 'Could not prepare this application.'
         code = 'cancelled' if error.status_code == 409 and detail == 'Preparation cancelled.' else f'http_{error.status_code}'
@@ -347,7 +316,7 @@ def process_once(run):
     except Exception as error:  # noqa: BLE001 - every failure must finish the task
         code, retryable, message = classify(error)
         attempts = int(record.get('attempts') or 1)
-        delay = retry_delay(attempts) if v2 and retryable else None
+        delay = retry_delay(attempts) if retryable else None
         if delay is not None:
             LOG.warning('Application task %s attempt %s failed (%s); retrying in %s',
                         record.get('kind'), attempts, code, delay)

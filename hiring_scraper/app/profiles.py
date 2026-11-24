@@ -1,6 +1,5 @@
 """Single-workspace profile preferences and explicitly saved CV attachments."""
 import json
-import base64
 import re
 from datetime import date
 from pathlib import Path
@@ -392,14 +391,9 @@ def update_profile(profile_id: int, request: ProfileRequest, session: Session = 
 
 @router.delete('/{profile_id}')
 def delete_profile(profile_id: int, session: Session = Depends(get_session)):
-    from hiring_scraper.app import application_generation_jobs, codex_runtime
-    root = codex_runtime._root()
-    with application_generation_jobs.profile_lock(root, profile_id):
-        session.delete(require_profile(profile_id, session))
-        source_changes.profile_changed(session, profile_id)  # cascade removed its derived rows
-        session.commit()
-        application_generation_jobs.delete_profile(root, profile_id)
-        application_generation_jobs.delete_profile(root / 'document-revisions', profile_id)
+    session.delete(require_profile(profile_id, session))
+    source_changes.profile_changed(session, profile_id)  # cascade removed its derived rows
+    session.commit()
     return {'deleted': True}
 
 
@@ -416,9 +410,9 @@ def store_profile_photo(session, profile_id, filename, data):
         raise HTTPException(422, 'Choose a PNG photo with a simple filename.')
     if len(data) > MAX_PHOTO_BYTES:
         raise HTTPException(413, 'Choose a PNG photo under 2 MiB.')
-    from hiring_scraper.app.latex_documents import photo_bytes
+    from hiring_scraper.app.profile_photo import validate_png
     try:
-        photo_bytes('data:image/png;base64,' + base64.b64encode(data).decode('ascii'))
+        validate_png(data)
     except ValueError as error:
         raise HTTPException(422, str(error)) from None
     require_profile(profile_id, session)
@@ -566,26 +560,15 @@ def download_cv(profile_id: int, session: Session = Depends(get_session), langua
 
 @router.delete('/{profile_id}/cv', status_code=204)
 def delete_cv(profile_id: int, session: Session = Depends(get_session)):
-    from hiring_scraper.app import application_generation_jobs, codex_runtime
-    root = codex_runtime._root()
-    with application_generation_jobs.profile_lock(root, profile_id):
-        profile = session.get(UserProfile, profile_id, with_for_update=True, populate_existing=True)
-        if profile is None:
-            raise HTTPException(404, 'Profile not found.')
-        had_facts = bool(profile.cv is not None and _cv_career_facts(profile.cv))
-        profile.cv = None
-        from hiring_scraper.app.application_preparation_queue import clear
-        source_changes.profile_changed(session, profile_id, career_facts_changed=had_facts)
-        clear(session, profile_id)
-        # Render tasks and cached PDFs cascade with their document versions.
-        session.execute(delete(ApplicationDocument).where(ApplicationDocument.profile_id == profile_id))
-        session.commit()
-        application_generation_jobs.delete_profile(root, profile_id)
-        application_generation_jobs.delete_profile(root / 'document-revisions', profile_id)
+    profile = session.get(UserProfile, profile_id, with_for_update=True, populate_existing=True)
+    if profile is None:
+        raise HTTPException(404, 'Profile not found.')
+    had_facts = bool(profile.cv is not None and _cv_career_facts(profile.cv))
+    profile.cv = None
+    from hiring_scraper.app.application_preparation_queue import clear
+    source_changes.profile_changed(session, profile_id, career_facts_changed=had_facts)
+    clear(session, profile_id)
+    # Render tasks and cached PDFs cascade with their document versions.
+    session.execute(delete(ApplicationDocument).where(ApplicationDocument.profile_id == profile_id))
+    session.commit()
     return Response(status_code=204)
-
-
-class TemplateChange(BaseModel):
-    model_config = ConfigDict(extra='forbid')
-    id: int = Field(ge=0)
-    text: str = Field(max_length=5000)

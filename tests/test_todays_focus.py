@@ -1,5 +1,4 @@
 """Today's focus offers three achievable next steps instead of the whole Journey."""
-import tempfile
 import unittest
 from datetime import timedelta
 from unittest.mock import patch
@@ -16,11 +15,6 @@ class TodaysFocusTests(unittest.TestCase):
         self.engine = pg.engine(self)
         models.Base.metadata.create_all(self.engine)
         self.session = Session(self.engine)
-        self.state = tempfile.TemporaryDirectory()
-        self.addCleanup(self.state.cleanup)
-        environment = patch.dict('os.environ', {'RADIUS_CODEX_STATE_DIR': self.state.name})
-        environment.start()
-        self.addCleanup(environment.stop)
         self.profile = profiles.create_profile(profiles.ProfileRequest(name='Developer'), self.session)
         company = models.Company(source='test', source_id='employer', name='Employer')
         feed = models.JobFeed(company=company, provider='html_jobs', feed_url='https://example.test/jobs',
@@ -93,15 +87,29 @@ class TodaysFocusTests(unittest.TestCase):
         self.session.commit()
         self.assertEqual(self.focus()['sent_today'], 0)
 
-    def test_saved_draft_counts_as_ready(self):
-        from hiring_scraper.app import application_generation_jobs as jobs
+    def test_both_current_structured_documents_count_as_ready(self):
+        from pathlib import Path
+        from hiring_scraper.app import application_documents_v2 as documents
+        from hiring_scraper.documents import import_marked_tex
+        from tests.test_application_documents_v2_unit import letter
 
         self.track(self.jobs[0], score=10)
         self.track(self.jobs[1], score=95)
-        root = focus.codex_runtime._root()
-        jobs._directory(root)
-        jobs.save_draft(root, self.profile['id'], self.jobs[0].id, {'cv': 'draft'}, None)
-        self.assertEqual(self.focus()['items'][0]['job_id'], self.jobs[0].id)
+        profile_id = self.profile['id']
+        job_id = self.jobs[0].id
+        documents.save_version(self.session, profile_id, job_id, 'letter', letter(), expected_version=0, origin='user')
+        self.session.commit()
+        self.assertEqual(self.focus()['items'][0]['job_id'], self.jobs[1].id)
+
+        source = Path(__file__).with_name('fixtures') / 'documents' / 'flowing_en_cv.tex'
+        cv = import_marked_tex(source.read_text()).model_dump()
+        documents.save_version(self.session, profile_id, job_id, 'cv', cv, expected_version=0, origin='user')
+        self.session.commit()
+        self.assertEqual(self.focus()['items'][0]['job_id'], job_id)
+
+        documents.mark_stale(self.session, profile_id, job_id)
+        self.session.commit()
+        self.assertEqual(self.focus()['items'][0]['job_id'], self.jobs[1].id)
 
     def test_unknown_profile_is_rejected(self):
         with self.assertRaises(HTTPException):

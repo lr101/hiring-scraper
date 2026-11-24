@@ -13,10 +13,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 
-from hiring_scraper.app import application_generation_jobs, application_preparation_queue, codex_runtime
 from hiring_scraper.app.applications import canonical_application_states
 from hiring_scraper.app.database import get_session
-from hiring_scraper.app.models import ApplicationMomentumEvent, Job, JobFeed, JobVacancyGroup, utcnow
+from hiring_scraper.app.models import ApplicationDocument, ApplicationMomentumEvent, Job, JobFeed, JobVacancyGroup, utcnow
 from hiring_scraper.app.profiles import require_profile
 from hiring_scraper.app.board_scope import expiry
 
@@ -28,15 +27,16 @@ POSSIBLE_MATCH_SCORE = 30
 
 
 def _documents_ready(session: Session, profile_id: int, job_id: int) -> bool:
-    """Whether a reviewed-ready draft or completed preparation already exists."""
-    try:
-        record = application_preparation_queue.status(session, profile_id, job_id)
-        if record and record.get('state') == 'completed':
-            return True
-        root = codex_runtime._root()
-        return root.exists() and bool(application_generation_jobs.load_draft(root, profile_id, job_id))
-    except (OSError, ValueError):
-        return False
+    """Whether both latest document versions use current inputs."""
+    for kind in ('cv', 'letter'):
+        stale = session.scalar(select(ApplicationDocument.stale_inputs).where(
+            ApplicationDocument.profile_id == profile_id,
+            ApplicationDocument.job_id == job_id,
+            ApplicationDocument.kind == kind,
+        ).order_by(ApplicationDocument.version.desc()).limit(1))
+        if stale is not False:
+            return False
+    return True
 
 
 def _sent_today(session: Session) -> int:

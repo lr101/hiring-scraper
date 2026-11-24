@@ -94,9 +94,7 @@ class ProductionHarness(ExtensionHarness):
 class ProductionPreparationTests(ProductionHarness):
     def upload_base(self, changed=False):
         from .test_tex_extension import tex_source
-        template = json.loads((ROOT.parents[1] / 'hiring_scraper/app/latex_template.json').read_text())
-        body = tex_source().split('\\begin{document}\n', 1)[1].split('\\end{document}', 1)[0]
-        self.cv_source = template['preamble'] + body + template['ending']
+        self.cv_source = tex_source()
         if changed:
             self.cv_source = self.cv_source.replace('Built research tools.', 'Built new research tools.')
         uploaded = self.context.request.put(self.origin + '/api/v1/profiles/1/cv?filename=base.tex&language=en',
@@ -107,7 +105,7 @@ class ProductionPreparationTests(ProductionHarness):
     def setup_preparation(self):
         version = self.upload_base()
         self.page.goto(self.origin + '/jobs/1574/apply?profile_id=1')
-        expect(self.page.get_by_role('button', name='Continue with ChatGPT')).to_be_enabled()
+        expect(self.page.get_by_role('heading', name='Prepare your application')).to_be_visible()
         options = self.context.new_page()
         options.goto(f'chrome-extension://{self.extension_id}/options.html')
         options.locator('#radius-origin').fill(self.origin)

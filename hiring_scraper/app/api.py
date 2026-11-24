@@ -20,10 +20,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from hiring_scraper.app.companion import router as companion_router
-from hiring_scraper.app.application_documents import router as application_documents_router
 from hiring_scraper.app.application_documents_v2 import router as application_documents_v2_router
 from hiring_scraper.app.application_generation import router as application_generation_router
-from hiring_scraper.app.document_revision import router as document_revision_router
 from hiring_scraper.app.focus import router as focus_router
 from hiring_scraper.app.journey import (  # noqa: F401 - re-exported for existing callers
     APPLICATION_WEEKLY_GOAL, ApplicationRequest, _application_momentum_json, get_application_momentum,
@@ -528,10 +526,8 @@ app.add_middleware(CORSMiddleware, allow_origins=cors_origins,
 
 app.include_router(profiles_router)
 app.include_router(companion_router)
-app.include_router(application_documents_router)
 app.include_router(application_documents_v2_router)
 app.include_router(application_generation_router)
-app.include_router(document_revision_router)
 app.include_router(focus_router)
 app.include_router(journey_router)
 

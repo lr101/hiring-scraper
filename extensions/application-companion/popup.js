@@ -241,11 +241,7 @@ function entry(item, continuation = false) {
       letter: "Preparing cover letter",
       review: "Reviewing documents",
       retry_wait: "Waiting to retry",
-      waiting: "Waiting for ChatGPT",
-      drafting: "Drafting documents",
-      reviewing: "Reviewing draft",
-      revising: "Revising documents",
-      checking: "Checking documents",
+      finalize: "Finishing documents",
       cancelling: "Cancelling",
     };
     const refresh = async () => {

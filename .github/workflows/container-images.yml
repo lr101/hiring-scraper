@@ -126,7 +126,7 @@ jobs:
       - name: Use Ubuntu HTTPS package mirrors
         run: |
           # The runner's Azure mirror can trickle downloads without triggering failover.
-          # Both Playwright and the PDF runtime install packages through this list.
+          # Playwright installs Chromium dependencies through this list.
           printf '%s\tpriority:%s\n' \
             'https://archive.ubuntu.com/ubuntu/' 1 \
             'https://security.ubuntu.com/ubuntu/' 2 \
@@ -137,13 +137,6 @@ jobs:
           uv sync --locked
           npm --prefix frontend ci
           uv run python -m playwright install --with-deps chromium
-
-      - name: Install PDF export runtime
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libreoffice-writer fonts-liberation texlive-luatex texlive-latex-recommended
-          libreoffice --version
-          lualatex --version
 
       - name: Install pinned Codex subscription runtime
         run: |

@@ -17,7 +17,6 @@ from __future__ import annotations
 
 from datetime import date
 import logging
-import os
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -68,12 +67,6 @@ Language = Literal['en', 'de']
 
 class VersionConflict(Exception):
     """Another save created the version this save expected to create."""
-
-
-def pipeline_version() -> str:
-    """``v2`` (default) runs structured preparation; ``v1`` keeps only the legacy pipeline."""
-    value = os.environ.get('RADIUS_APPLICATION_PIPELINE', 'v2').strip().lower()
-    return value if value in ('v1', 'v2') else 'v2'
 
 
 # --- Pure helpers -----------------------------------------------------------------
@@ -476,8 +469,6 @@ def _base_versions(session, profile_id, job_id):
 @router.post('/{profile_id}/application-documents/prepare', status_code=202)
 def start_preparation(profile_id: int, request: PrepareRequest, session: Session = Depends(get_session)):
     from hiring_scraper.app import codex_runtime
-    if pipeline_version() != 'v2':
-        raise HTTPException(409, 'Structured application documents are turned off on this server.')
     if not codex_runtime.status()['enabled']:
         raise HTTPException(503, 'Connect ChatGPT in Radius settings before preparing documents.')
     require_profile(profile_id, session)
@@ -494,9 +485,16 @@ def start_preparation(profile_id: int, request: PrepareRequest, session: Session
 
 
 @router.get('/{profile_id}/application-documents/task')
-def preparation_task(profile_id: int, job_id: int, session: Session = Depends(get_session)):
+def preparation_task(profile_id: int, job_id: int, summary: bool = False,
+                     session: Session = Depends(get_session)):
     require_profile(profile_id, session)
-    return _json({'task': public_task(queue.status(session, profile_id, job_id))})
+    record = queue.status(session, profile_id, job_id)
+    if summary:
+        task = ({key: record.get(key) for key in ('kind', 'state', 'stage', 'error')}
+                if record and record.get('kind') == 'prepare' else None)
+    else:
+        task = public_task(record)
+    return _json({'task': task})
 
 
 @router.post('/{profile_id}/application-documents/task/cancel')

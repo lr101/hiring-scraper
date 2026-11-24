@@ -13,7 +13,6 @@ COPY extensions/application-companion /extensions/application-companion
 COPY frontend/package.json frontend/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 COPY frontend/ ./
-COPY hiring_scraper/app/latex_template.json /hiring_scraper/app/latex_template.json
 RUN npm run build
 
 FROM ghcr.io/astral-sh/uv:0.13.9@sha256:d3b601f0c7b118bc1753febf7c41cc80981df678445e0254284eecf84db79a7d AS uv
@@ -29,7 +28,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     HF_HUB_DISABLE_TELEMETRY=1
 WORKDIR /app
 # Playwright ships its own Node runtime, which links against libatomic.
-RUN apt-get update && apt-get install -y --no-install-recommends libatomic1 libreoffice-writer fonts-liberation texlive-luatex texlive-xetex texlive-fonts-recommended texlive-latex-extra texlive-latex-recommended fonts-dejavu-core \
+RUN apt-get update && apt-get install -y --no-install-recommends libatomic1 fonts-liberation fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=uv /uv /uvx /bin/
 COPY --from=codex-build /codex-runtime /opt/radius-codex

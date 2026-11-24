@@ -495,9 +495,9 @@ export async function preparationStatus(jobId) {
     return null;
   const result = await radiusJSON(
     vault.settings,
-    `/api/v1/profiles/${vault.settings.profile_id}/preparation-job?job_id=${jobId}&summary=true`,
+    `/api/v1/profiles/${vault.settings.profile_id}/application-documents/task?job_id=${jobId}&summary=true`,
   );
-  return result.job || null;
+  return result.task || null;
 }
 
 export async function captureQuestions(

@@ -1,6 +1,6 @@
 """Run queued application preparation outside the HTTP process.
 
-The inference lane (prepare/revise, legacy v1 preparations) runs on the main
+The inference lane (prepare/revise) runs on the main
 thread; the render lane runs on its own thread so PDF exports never wait
 behind a model call. Each lane uses short database sessions.
 """
@@ -9,28 +9,15 @@ import threading
 import time
 
 from hiring_scraper.app import application_preparation_queue as queue
-from hiring_scraper.app.database import SessionLocal, log_worker_failure
+from hiring_scraper.app.database import log_worker_failure
 
 LOG = logging.getLogger(__name__)
 
 
-def _run_legacy(profile_id, payload, revision, progress):
-    from hiring_scraper.app.application_generation import PrepareApplicationRequest, _prepare_application
-    with SessionLocal() as session:
-        return _prepare_application(
-            profile_id, PrepareApplicationRequest.model_validate(payload), session,
-            progress=progress, expected_revision=revision,
-        )
-
-
-def run(profile_id, payload, revision, progress):
+def run(profile_id, payload, progress):
     from hiring_scraper.app import application_documents_v2 as documents
     kind = getattr(progress, 'kind', None)
-    if kind is None:
-        return _run_legacy(profile_id, payload, revision, progress)
     if kind == 'prepare':
-        if documents.pipeline_version() != 'v2':
-            raise queue.TaskError('pipeline_disabled', 'Structured application documents are turned off on this server.')
         return documents.run_prepare(profile_id, payload, progress)
     if kind == 'revise':
         return documents.run_revise(profile_id, payload, progress)

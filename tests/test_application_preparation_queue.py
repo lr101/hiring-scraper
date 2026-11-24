@@ -29,8 +29,8 @@ class ApplicationPreparationQueueTests(unittest.TestCase):
         self.addCleanup(factory.stop)
 
     def test_expired_worker_is_fenced_and_replacement_resumes_checkpoints(self):
-        record = queue.enqueue(1, 2, {'job_id': 2}, 'rev')
-        self.assertEqual(queue.enqueue(1, 2, {'job_id': 2}, 'rev')['id'], record['id'])
+        record = queue.enqueue_task(1, 2, 'prepare', {'job_id': 2})
+        self.assertEqual(queue.enqueue_task(1, 2, 'prepare', {'job_id': 2})['id'], record['id'])
         key, token, _ = queue._claim()
         expired = queue.Progress(key, token, {})
         expired.checkpoint('draft', {'title': 'Saved work'})
@@ -38,8 +38,8 @@ class ApplicationPreparationQueueTests(unittest.TestCase):
         with self.sessions.begin() as session:
             session.get(ApplicationPreparationTask, key).lease_until = utcnow() - timedelta(seconds=1)
 
-        def run(profile_id, request, revision, progress):
-            self.assertEqual((profile_id, request, revision), (1, {'job_id': 2}, 'rev'))
+        def run(profile_id, request, progress):
+            self.assertEqual((profile_id, request), (1, {'job_id': 2}))
             self.assertEqual(progress.load('draft'), {'title': 'Saved work'})
             self.assertTrue(expired.cancelled())
             self.assertFalse(expired._update(finish=True, state='failed'))
@@ -52,7 +52,7 @@ class ApplicationPreparationQueueTests(unittest.TestCase):
         self.assertEqual(final['result'], {'package': 'replacement result'})
 
     def test_unclaimed_cancellation_prevents_execution(self):
-        record = queue.enqueue(1, 2, {'job_id': 2}, 'rev')
+        record = queue.enqueue_task(1, 2, 'prepare', {'job_id': 2})
         with self.sessions() as session:
             cancelled = queue.cancel(session, 1, 2, record['id'])
         self.assertEqual(cancelled['state'], 'cancelled')
