@@ -215,6 +215,61 @@ def _analysis_backlog(session, profile_ids) -> int:
     return int(session.scalar(select(func.count()).select_from(waiting)) or 0)
 
 
+def analysis_progress(session, profile_ids) -> dict[str, Any]:
+    """Local model progress over active postings: postings read by the LLM and
+    profile matches scored by the reranker, with last-hour throughput for an ETA."""
+    from sqlalchemy import exists
+    from hiring_scraper.app.match_documents import USABLE_ANALYSIS_STATUSES
+    from hiring_scraper.app.models import Job, JobAnalysis, MatchEvidence, MatchEvidenceQueue, utcnow
+    now = utcnow()
+    hour_ago = now - timedelta(hours=1)
+    active = Job.is_active.is_(True)
+
+    in_queue = exists().where(JobAnalysisQueue.job_id == JobAnalysis.job_id)
+    analysed = session.execute(
+        select(func.count().filter(JobAnalysis.status.in_(USABLE_ANALYSIS_STATUSES), ~in_queue),
+               func.count().filter(JobAnalysis.status == 'failed', ~in_queue),
+               func.count().filter(JobAnalysis.analysed_at >= hour_ago,
+                                   JobAnalysis.status.in_(USABLE_ANALYSIS_STATUSES)))
+        .select_from(JobAnalysis).join(Job, Job.id == JobAnalysis.job_id).where(active)).one()
+    waiting = session.execute(
+        select(func.count().filter(or_(JobAnalysisQueue.retry_at.is_(None), JobAnalysisQueue.retry_at <= now)),
+               func.count().filter(JobAnalysisQueue.retry_at > now))
+        .select_from(JobAnalysisQueue).join(Job, Job.id == JobAnalysisQueue.job_id).where(active)).one()
+    postings = {'done': int(analysed[0]), 'queued': int(waiting[0]), 'retrying': int(waiting[1]),
+                'failed': int(analysed[1]), 'last_hour': int(analysed[2])}
+
+    ids = list(profile_ids)
+    pair_queued = exists().where(MatchEvidenceQueue.profile_id == MatchEvidence.profile_id,
+                                 MatchEvidenceQueue.job_id == MatchEvidence.job_id)
+    scored = session.execute(
+        select(func.count().filter(~pair_queued), func.count().filter(MatchEvidence.computed_at >= hour_ago))
+        .select_from(MatchEvidence).join(Job, Job.id == MatchEvidence.job_id)
+        .where(active, MatchEvidence.profile_id.in_(ids))).one()
+    pending = session.execute(
+        select(func.count().filter(or_(MatchEvidenceQueue.retry_at.is_(None), MatchEvidenceQueue.retry_at <= now)),
+               func.count().filter(MatchEvidenceQueue.retry_at > now))
+        .select_from(MatchEvidenceQueue).join(Job, Job.id == MatchEvidenceQueue.job_id)
+        .where(active, MatchEvidenceQueue.profile_id.in_(ids))).one()
+    matches = {'done': int(scored[0]), 'queued': int(pending[0]), 'retrying': int(pending[1]),
+               'last_hour': int(scored[1])}
+    return {'profile_ids': ids, 'postings': postings, 'matches': matches, 'checked_at': now.isoformat()}
+
+
+@router.get('/api/v1/analysis-progress')
+def get_analysis_progress(profile_ids: str = Query(..., max_length=1200),
+                          session: Session = Depends(get_session)) -> dict[str, Any]:
+    try:
+        selected_ids = list(dict.fromkeys(int(value) for value in profile_ids.split(',') if value))
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail='profile_ids must be a comma-separated list of IDs') from error
+    if not selected_ids or len(selected_ids) > 100 or any(value < 1 for value in selected_ids):
+        raise HTTPException(status_code=422, detail='Select between 1 and 100 valid profiles')
+    for value in selected_ids:
+        require_profile(value, session)
+    return analysis_progress(session, selected_ids)
+
+
 @router.get('/api/v1/applications')
 def list_applications(profile_ids: str = Query(..., max_length=1200),
                       statuses: str | None = Query(None, max_length=160),
