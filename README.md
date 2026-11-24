@@ -245,6 +245,15 @@ docker compose pull
 docker compose up -d --no-build
 ```
 
+Compose publishes Radius on `127.0.0.1:8080` by default. All clients with
+access to the API share the workspace, including its profile data, application
+drafts and connected ChatGPT subscription. For remote access, keep the default
+bind and use an SSH tunnel or a trusted reverse proxy that authenticates all
+requests to Radius, including its API. If the proxy runs in Compose, keep the
+application port private and let the proxy reach `app:8000` on the internal
+network. Check existing `.env` files for an older `APP_BIND=0.0.0.0` setting
+when upgrading.
+
 If startup is already failing with `extension "vector" is not available`, pull the published database image and recreate the database and app containers:
 
 ```bash
