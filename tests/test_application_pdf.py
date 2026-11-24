@@ -78,6 +78,18 @@ class RenderTests(unittest.TestCase):
     def _passed(self, result, code):
         return next(c for c in result.checks if c['code'] == code)['status']
 
+    def test_review_metadata_never_appears_in_the_pdf(self):
+        doc = fictional_cv()
+        doc.headline.origin = 'ai'
+        doc.headline.original_text = 'Superseded fictional wording'
+        doc.headline.reviewed_text = doc.headline.text
+        doc.headline.sources = ['cv:headline']
+        doc.review_sources = {'cv:headline': 'Fictional evidence for review only'}
+        result = application_pdf.render_document('cv', doc.model_dump())
+        self.assertIn(doc.headline.text, result.text)
+        self.assertNotIn(doc.headline.original_text, result.text)
+        self.assertNotIn(doc.review_sources['cv:headline'], result.text)
+
     def test_cv_renders_with_contacts_and_umlauts(self):
         result = application_pdf.render_document('cv', fictional_cv().model_dump(mode='json'), photo_png=PIXEL)
         self.assertTrue(result.pdf.startswith(b'%PDF'))
@@ -443,7 +455,7 @@ class RenderTests(unittest.TestCase):
         self.assertFalse(any(line == '(NPIASE)' for line in lines), f'Short tail stranded: {lines!r}')
         self.assertTrue(any('Northampton, UK' in line for line in lines))
 
-    def test_labelled_education_projects_stay_together_instead_of_splitting_one_and_two(self):
+    def test_underfilled_page_keeps_first_education_project_with_header(self):
         from pypdf import PdfReader
 
         doc = fictional_cv(bullets=13)
@@ -470,14 +482,18 @@ class RenderTests(unittest.TestCase):
         self.assertEqual(len(pages), 2)
         p1_projects = [n for n in range(1, 4) if f'Project Alpha {n}:' in pages[0]]
         p2_projects = [n for n in range(1, 4) if f'Project Alpha {n}:' in pages[1]]
-        self.assertEqual(p1_projects, [])
-        self.assertEqual(p2_projects, [1, 2, 3])
+        self.assertEqual(p1_projects, [1])
+        self.assertEqual(p2_projects, [2, 3])
+        for marker in ('EDUCATION', 'EXAMPLE TECHNICAL COLLEGE', 'Focused on thermal storage',
+                       'Selected Engineering Projects:'):
+            self.assertIn(marker, pages[0])
+        self.assertGreaterEqual(result.telemetry['page_fill_ratios'][0], 0.80)
         self.assertEqual(self._passed(result, 'entry_pagination'), 'passed')
 
     def test_education_entry_does_not_strand_header_and_degree_note_without_bullets_on_page_one(self):
         from pypdf import PdfReader
 
-        doc = fictional_cv(bullets=13)
+        doc = fictional_cv(bullets=15)
         doc.language = 'en'
         doc.sections[1].title = 'EXPERIENCE'
         doc.sections.insert(2, Section(
@@ -651,11 +667,11 @@ class PaginationCheckTests(unittest.TestCase):
         ]
         self.assertEqual(application_pdf._orphan_entry_breaks(doc, orphan_heading), ['work-1'])
 
-    def test_project_list_requires_at_least_two_items_per_page_when_split(self):
+    def test_study_entry_can_start_with_one_project_before_a_page_break(self):
         for count, on_first, expected in [
-            (3, 1, ['study-1']),
+            (3, 1, []),
             (3, 2, ['study-1']),
-            (4, 1, ['study-1']),
+            (4, 1, []),
             (4, 2, []),
             (4, 3, ['study-1']),
         ]:

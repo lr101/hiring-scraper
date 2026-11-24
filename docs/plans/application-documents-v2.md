@@ -47,12 +47,16 @@ Unit {
   "origin": "source" | "ai" | "user",
   "sources": ["cv:work-1:b2", "evidence:3"],   // evidence ids, may be empty for origin=source/user
   "role": "",                  // letter paragraphs: motivation|experience|education|bring|close
-  "hidden": false              // hidden units are kept but not rendered
+  "hidden": false,             // hidden units are kept but not rendered
+  "original_text": null,       // exact pre-rewrite body, without the retained lead-in
+  "ai_edited": false,          // user-edited wording that started as an AI change
+  "reviewed_text": null        // accepted wording, cleared on edit
 }
 CvDocument {
   "format": "radius-cv-v2", "language": "de" | "en", "template": "classic-serif-v1",
   "page": "a4" | "letter", "photo": true | false,  // legacy field; show the profile portrait when available
   "header": { "name": "…", "contacts": [{"kind": "phone|email|location|link", "text": "…", "href": ""}] },
+  "review_sources": {"cv:work-1:b2": "…"},  // cited source snapshots for this document version
   "headline": Unit,
   "sections": [Section]
 }
@@ -73,6 +77,7 @@ Entry {
 }
 LetterDocument {
   "format": "radius-letter-v2", "language": "de" | "en", "template": "classic-serif-v1", "page": "a4" | "letter",
+  "review_sources": {"job": "…"},
   "sender": { "name": "…", "lines": ["…"] },        // locked, from profile
   "recipient_lines": ["…"], "place_date": "…",
   "subject": Unit, "salutation": Unit, "paragraphs": [Unit], "closing": Unit, "signature": "…"
@@ -80,7 +85,9 @@ LetterDocument {
 Finding {
   "id": "f-…", "document": "cv" | "letter", "unit_id": "u-…" | null,
   "code": "unsupported_number|unsupported_term|misattributed|sensitive_fact|placeholder|language_mix|repetition|overflow|extra_page|review_grounding|review_coverage|review_style|review_format",
-  "severity": "high" | "medium" | "info", "message": "…", "suggestion": ""
+  "severity": "high" | "medium" | "info", "message": "…", "suggestion": "",
+  "claim": "",                 // exact affected wording when available
+  "replacement": ""            // complete replacement for the unit, when offered
 }
 ```
 
@@ -136,7 +143,15 @@ Frontend (`frontend/src/documents/`):
 - `DocumentEditor.tsx` — renders the view with `contenteditable="plaintext-only"` per unit,
   Enter splits a bullet, Backspace on empty removes, hide/restore, undo/redo, debounced
   autosave with `expected_version`, findings badges, page guides + overflow indicator,
-  "Download PDF".
+  "Download PDF". The review panel steps through visible AI changes in document order.
+  It compares current wording with versioned citations, shows a word diff for rewrites,
+  and presents unit findings with actionable replacements when available. Accept, edit,
+  restore and apply suggestion use the same undo history and versioned autosave. A change
+  to the text clears acceptance and preserves the evidence for another pass. Alt+Shift+Left
+  and Alt+Shift+Right navigate, Alt+Enter accepts, and Escape returns from inline editing
+  to the review panel. The PDF action offers review or download when changes are pending.
+  Older versions open with the same editing tools and display available source snapshots.
+  Review metadata and controls are excluded from the rendered PDF.
 - `ApplicationPreparationPage.tsx` — uses the editor for v2 documents; removes the manual
   ChatGPT handoff (brief copy, paste/import result) and the raw LaTeX textarea.
 
@@ -153,6 +168,10 @@ two to four core-duty bullets at the source's exact scope, applying posting voca
 where equivalent. Skills can only be reordered. The profile has two required sentence
 slots and one nullable third slot, each with a separate evidence list limited to one
 entry plus general facts. Entry-scoped facts identify work and study contexts explicitly.
+The profile opens with a verified professional identity, connects to the strongest
+work evidence, and adds a distinct technical or analytical strength when relevant.
+Each sentence has its own evidence, and the sequence avoids restating bullet wording.
+The headline uses the posting’s role-family language for verified functional work.
 The German profile uses implicit first person
 and the English profile uses noun-led or subject-less CV prose.
 
@@ -166,9 +185,11 @@ allowed source per sentence.
 The closing uses an idiomatic interview invitation in the target language.
 Subjects are formatted deterministically from the posting title (`Bewerbung als <Titel>` in
 German, `Application for <title>` in English). The tailored CV is available during review,
-where textual overlap and claim-scope issues can be surfaced as findings. Review can
-suggest changes to generated bullets for the applicant to consider. In PDF rendering, list-label intros stay with
-their first bullet and an entry header/intro is never stranded on a page with zero bullets.
+where textual overlap and claim-scope issues can be surfaced as findings. Wording drift
+is advisory and can carry an exact quote plus a proposed replacement. These findings
+never initiate a generation retry. In PDF rendering, the heading, entry header, intro
+and first project stay together. If a two-page CV underfills the first page, education
+can start there with one complete project and continue on page two.
 
 ## Work packages
 
@@ -191,5 +212,5 @@ Focused unit and node tests during development; frontend build; Chromium render 
 when no browser is installed. PostgreSQL migration and queue tests run in CI. Real profile
 data, outputs and judge transcripts stay in gitignored `data/private/`.
 
-Pipeline version `application-documents-v2.13` invalidates earlier draft checkpoints for
-the relevance-based CV contract and revised letter and review prompts.
+Pipeline version `application-documents-v2.14` invalidates earlier draft checkpoints for
+the review evidence contract, revised prompts and CV pagination.

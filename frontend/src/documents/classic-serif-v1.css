@@ -533,14 +533,15 @@
 
   /* Keep the first two bullets with the header when page one is already full, and avoid a lone trailing bullet. */
   .doc-page:not(.doc-page--fill-first) .doc-cv-entry .doc-cv-bullet:nth-child(1):not(:last-child),
-  .doc-cv-entry--projects .doc-cv-bullet:nth-child(1):not(:last-child),
+  .doc-cv-section:not(.doc-cv-section--education) .doc-cv-entry--projects .doc-cv-bullet:nth-child(1):not(:last-child),
   .doc-cv-entry .doc-cv-bullet:nth-last-child(2):not(:first-child) {
     break-after: avoid;
     page-break-after: avoid;
   }
 
-  /* Keep education/labelled project lists intact when fewer than four projects cannot split 2+2. */
-  .doc-cv-entry--projects .doc-cv-bullets:not(:has(.doc-cv-bullet:nth-child(4))) {
+  /* Let education start with one project in the fill-first pass. */
+  .doc-page:not(.doc-page--fill-first) .doc-cv-entry--projects .doc-cv-bullets:not(:has(.doc-cv-bullet:nth-child(4))),
+  .doc-cv-section:not(.doc-cv-section--education) .doc-cv-entry--projects .doc-cv-bullets:not(:has(.doc-cv-bullet:nth-child(4))) {
     break-inside: avoid;
     page-break-inside: avoid;
   }

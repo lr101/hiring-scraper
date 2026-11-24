@@ -427,7 +427,7 @@ def _orphan_entry_breaks(model: CvDocument, page_texts: list[str]) -> list[str]:
             lone_continuation = len(bullet_ends) >= 3 and any(
                 count < 2 for page, count in bullet_pages.items() if page > header_page
             )
-            is_project_list = entry.kind == 'study' or any(unit.lead_in.strip() for unit in bullets)
+            is_project_list = entry.kind != 'study' and any(unit.lead_in.strip() for unit in bullets)
             lone_project_split = is_project_list and len(bullet_pages) > 1 and any(
                 count < 2 for count in bullet_pages.values()
             )

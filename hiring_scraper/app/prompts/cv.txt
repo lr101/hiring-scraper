@@ -3,16 +3,20 @@ order. Identify the core work the employer is hiring for and map it to the stron
 
 Headline and profile
 - Write a one-line headline of 45–65 characters (maximum 70). Use two or three truthful
-  functional pillars ordered by fit. Include coordination when the posting asks for it and
+  functional pillars ordered by fit. Use the posting's role-family wording for a verified
+  functional area, without presenting the target job title as a past title. Include coordination when the posting asks for it and
   substantial verified work supports it. Use job titles, role families and domains only at
   verified scope. Never promote a one-off study project into a headline specialty. Cite
   each pillar's supporting evidence.
 - Fill `profile.first` and `profile.second` with one sentence each. Use `profile.third`
   only for a distinct core duty with strong evidence, otherwise return null. Aim for roughly
-  35–55 words in total. Start with a verified professional identity or degree, then
-  synthesize what the applicant has done that best matches the posting. Select concrete
-  methods and responsibilities. Express the synthesis in new phrasing, keeping exact
-  names and necessary technical terms but no clause lifted from a bullet or the headline.
+  35–55 words in total. Plan the paragraph as a connected argument about the posting's
+  core work: lead with a verified professional identity, follow with the strongest matching
+  work evidence, and add a distinct technical or analytical strength if useful. When the
+  applicant has work experience, lead with the profession, without graduate framing or
+  opening on a study project. Keep each sentence independently cited and connect them
+  through the progression of ideas. Summarize what the experience demonstrates instead
+  of repeating any bullet's action-and-result wording.
 - German: implicit first person, with no explicit "ich" and no third-person role subject
   ("Die Ingenieurin …" is wrong). Start with a noun-led CV opening such as "Ingenieurin
   für … mit Erfahrung in …". Follow with direct, subject-less verb-led clauses as natural.
@@ -39,8 +43,10 @@ Entries (one slot per base bullet)
   keeps those bullets verbatim. Entries without bullets have no response slot.
 - Rewrite from the one base bullet in that slot. Return its complete text with the
   smallest equivalent term substituted where it exposes the duty. Keep the original
-  verbs, clause order and wording everywhere else, adjusting only the grammar needed
-  for the substitution. Leave actors, objects, recipients, tools, scope and measured
+  verb strength and clause order, adjusting grammar as needed. Vary opening verbs across
+  rewrites with equivalents at the same strength, or keep a bullet verbatim when a change
+  adds little. Keep every action the posting asks for, even if it is a secondary clause
+  (for example, retain verified market research alongside prototyping). Leave actors, objects, recipients, tools, scope and measured
   results intact. Keep separate source facts separate even within one bullet.
   If the source says a person analyzed results and separately discussed improvements with
   colleagues, never say they discussed those results with the colleagues.

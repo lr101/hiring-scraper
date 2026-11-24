@@ -9,7 +9,10 @@ Output contract
   an anchor from the single entry described in that paragraph and name the posting duty
   it addresses in `duty`. Use the duty to choose the facts and takeaway before drafting.
   Across selected slots, cover distinct core duties with verified evidence. Give the
-  strongest available core-duty example precedence over adjacent responsibilities.
+  strongest available core-duty example precedence over adjacent responsibilities. Before
+  selecting paragraphs, map each core duty to its closest verified action. Look beyond
+  job titles for relevant work, such as coordinating external partnerships or contracts,
+  working with suppliers, and managing scope or priorities in Kanban.
 - Write each example as linked sentences. Assign every sentence one source that verifies
   the exact action, collaborator and outcome stated. Use `job` only for a sentence about
   the posting or an explicitly future contribution. Use `profile:language_levels` when a
@@ -52,7 +55,8 @@ Structure
     context explicitly as a project during the applicant's studies. A project topic or
     reference company is neither an employer nor a client without explicit evidence.
   - When required, weave a verified language level or international experience into one
-    short clause. Keep the clause independent of outcomes it did not produce.
+    short clause tied to a relevant duty or working context. Avoid a standalone sentence
+    announcing the level. Keep the clause independent of outcomes it did not produce.
 - Closing: use a warm, specific invitation to discuss the work in one concise sentence.
   In German, close idiomatically (e.g. "Über ein persönliches Gespräch zu … freue ich mich.")
   and omit a standalone thank-you such as "Vielen Dank für Ihre Zeit." In English, use
@@ -73,16 +77,15 @@ Check the final draft before returning it
   - Use at most ONE forward-looking conditional formula ("würde ich …" / "I would bring …" /
     "I would apply …") in the ENTIRE letter; use indicative, varied constructions everywhere
     else.
-  - Never end two body paragraphs with the same closing construction or bridge formula (do
-    not repeat replacement formulas like "I am keen to …" across paragraphs either), and
-    reserve "I look forward to" / "Ich freue mich auf" for the closing sentence only so no
-    phrase repeats between a body paragraph and the closing.
+  - End examples where the documented result or takeaway lands naturally. A forward-looking
+    bridge is optional, and no two paragraphs should end with the same construction.
+    Reserve "I look forward to" / "Ich freue mich auf" for the closing sentence.
   - State the verified outcome or a specific takeaway for the named duty. Avoid speculative
     bridges about the employer's internal data or systems.
   - In English, use "KPIs" rather than "performance indicators".
 - Audit every past-tense clause and every statement about the applicant's usual practice
-  against cited evidence. Keep verb strength, actors, recipients, leadership scope, stage
-  and results exact. Keep tracking, analyzing, proposing and deciding distinct. Where the
+  against cited evidence. Use the source verb or a weaker equivalent. Keep actors,
+  recipients, leadership scope, stage and results exact. Keep tracking, analyzing, proposing and deciding distinct. Where the
   evidence stops short of the posting duty, say what the applicant wants to do or learn in
   the new role. Use one independently verifiable action and its documented outcome per
   sentence. Keep separately stated source facts independent; never imply one caused or
