@@ -224,7 +224,7 @@ Several processes write to the same PostgreSQL database. Keep these rules when a
 Matching is local and model-based; the static keyword matchers (v1, v2) are removed.
 `docs/local-models.md` describes the pipeline. In short: a local LLM lists each posting's
 duties and requirements as verbatim, line-cited quotes (benefits and company text are
-never items); a local reranker checks each item against the closest CV lines, reading
+never items); a local reranker checks each item against the eight closest CV lines (at least three of them work or study bullets), reading
 the job's occupation and industry; `matching_v3.score` adds five evidence components,
 bounded penalties and a DEV-fitted monotone calibration.
 

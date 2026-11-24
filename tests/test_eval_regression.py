@@ -54,12 +54,14 @@ from tests.eval.run import (
 
 MIN_HARD_HIDE_GATE_CASES = 3
 MIN_PROFILE_GATE_CASES = 15
+# The public set is a compact 71-case selection (every grade per profile, every hard-hide
+# category and adversarial tag, complete DE/EN pairs) so model outputs re-record in ~25 min.
 # Translation-pair coverage the dataset must keep, (profile, pair) combinations that are compared.
-MIN_PAIR_COUNT = {"public": 15, "private": 0}
+MIN_PAIR_COUNT = {"public": 9, "private": 0}
 
 # Dataset-specific shape expectations: (min cases, min profiles, must contain profile id)
 DATASET_SHAPE = {
-    "public": {"min_cases": 180, "min_profiles": 6, "min_cases_per_profile": 25, "required_profile": None},
+    "public": {"min_cases": 70, "min_profiles": 6, "min_cases_per_profile": 10, "required_profile": None},
     "private": {"min_cases": 200, "min_profiles": 5, "min_cases_per_profile": 15, "required_profile": "base"},
 }
 

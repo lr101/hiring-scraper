@@ -191,9 +191,11 @@ try {
       prerequisite_conditions: [
         { kind: 'language_cefr', status: 'unknown', reason: 'Verify German level', job_quote: 'Deutsch C1' },
       ],
+      soft_requirements: [{ text: 'Strukturierte und selbstständige Arbeitsweise', modality: 'must' }],
     },
   }))
   assert.match(breakdown, /aria-label="How the match score was built"/)
+  assert.match(breakdown, /aria-label="Personal qualities"[\s\S]*Strukturierte und selbstständige Arbeitsweise[\s\S]*cover letter/)
   assert.match(breakdown, /<strong>57<\/strong>/)
   assert.match(breakdown, /Main duties/)
   assert.match(breakdown, /3 of 5 shown in your CV/)

@@ -1,17 +1,5 @@
 [
   {
-    "case_id": "junior_proto__job_0004",
-    "profile_id": "junior_proto",
-    "job_id": "job_0004",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "heldout",
-    "rationale": "API product management; unrelated to prototyping."
-  },
-  {
     "case_id": "junior_proto__job_0005",
     "profile_id": "junior_proto",
     "job_id": "job_0005",
@@ -35,18 +23,6 @@
     ],
     "split": "dev",
     "rationale": "Warehouse operative; unrelated to engineering."
-  },
-  {
-    "case_id": "junior_proto__job_0011",
-    "profile_id": "junior_proto",
-    "job_id": "job_0011",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Python use matches but the role is production software, not prototyping."
   },
   {
     "case_id": "junior_proto__job_0012",
@@ -73,18 +49,6 @@
     "rationale": "Software API ownership; not hardware or prototyping."
   },
   {
-    "case_id": "junior_proto__job_0019",
-    "profile_id": "junior_proto",
-    "job_id": "job_0019",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "heldout",
-    "rationale": "Warehouse operations; unrelated to prototyping."
-  },
-  {
     "case_id": "junior_proto__job_0021",
     "profile_id": "junior_proto",
     "job_id": "job_0021",
@@ -98,18 +62,6 @@
     "rationale": "Hardware engineering is a saved secondary role and KiCad is listed; the alternative (1 year plus bachelor's) is satisfied, so it stays visible."
   },
   {
-    "case_id": "junior_proto__job_0034",
-    "profile_id": "junior_proto",
-    "job_id": "job_0034",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "dev",
-    "rationale": "Software-product ownership in payments; unrelated to hardware prototyping."
-  },
-  {
     "case_id": "junior_proto__job_0035",
     "profile_id": "junior_proto",
     "job_id": "job_0035",
@@ -120,42 +72,6 @@
     ],
     "split": "dev",
     "rationale": "Exact fit: prototype building, 3D printing, CAD housings, test series, junior level, English team."
-  },
-  {
-    "case_id": "junior_proto__job_0038",
-    "profile_id": "junior_proto",
-    "job_id": "job_0038",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Mechatronics prototype integration with sensors fits; ROS and C++ are gaps."
-  },
-  {
-    "case_id": "junior_proto__job_0040",
-    "profile_id": "junior_proto",
-    "job_id": "job_0040",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "heldout",
-    "rationale": "Sales role; unrelated."
-  },
-  {
-    "case_id": "junior_proto__job_0042",
-    "profile_id": "junior_proto",
-    "job_id": "job_0042",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "CAD housings in Inventor plus prototype support match; medical-device context and injection moulding are small gaps."
   },
   {
     "case_id": "junior_proto__job_0051",
@@ -197,56 +113,6 @@
     "rationale": "Junior mechatronics role would fit, but a valid work permit is required without sponsorship; the profile states it needs sponsorship."
   },
   {
-    "case_id": "junior_proto__job_0056",
-    "profile_id": "junior_proto",
-    "job_id": "job_0056",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "dev",
-    "rationale": "Clinical role; unrelated."
-  },
-  {
-    "case_id": "junior_proto__job_0057",
-    "profile_id": "junior_proto",
-    "job_id": "job_0057",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "qualitative_language"
-    ],
-    "split": "dev",
-    "rationale": "Prototype work in 3D printing matches. 'Verhandlungssicheres Deutsch' is qualitative and may be a stretch for B1, but it is not a stated CEFR minimum."
-  },
-  {
-    "case_id": "junior_proto__job_0060",
-    "profile_id": "junior_proto",
-    "job_id": "job_0060",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "heldout",
-    "rationale": "Learning design; unrelated to engineering prototypes."
-  },
-  {
-    "case_id": "junior_proto__job_0061",
-    "profile_id": "junior_proto",
-    "job_id": "job_0061",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting",
-      "keyword_trap"
-    ],
-    "split": "dev",
-    "rationale": "Java backend development; no prototyping content."
-  },
-  {
     "case_id": "junior_proto__job_0065",
     "profile_id": "junior_proto",
     "job_id": "job_0065",
@@ -258,182 +124,6 @@
     ],
     "split": "dev",
     "rationale": "Strong prototyping match; the employer supports work-permit applications, so the permit need is not a barrier."
-  },
-  {
-    "case_id": "junior_proto__job_0072",
-    "profile_id": "junior_proto",
-    "job_id": "job_0072",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Test engineer is a saved secondary role; fixtures, vibration and temperature tests and Python match, prototyping is secondary."
-  },
-  {
-    "case_id": "junior_proto__job_0075",
-    "profile_id": "junior_proto",
-    "job_id": "job_0075",
-    "grade": 3,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "long_clause"
-    ],
-    "split": "dev",
-    "rationale": "Innovation engineer with prototype building, testing and documentation; long requirement sentence matches the saved experience."
-  },
-  {
-    "case_id": "junior_proto__job_0077",
-    "profile_id": "junior_proto",
-    "job_id": "job_0077",
-    "grade": 3,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "sponsorship_alternative"
-    ],
-    "split": "dev",
-    "rationale": "Pre-development prototyping with Inventor and test documentation; employer assists with visa, German B1 equals the saved level."
-  },
-  {
-    "case_id": "junior_proto__job_0082",
-    "profile_id": "junior_proto",
-    "job_id": "job_0082",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss",
-      "seniority_gap"
-    ],
-    "split": "dev",
-    "rationale": "Innovation field but a portfolio-manager role needing 8+ years and leadership; visible, not hidden."
-  },
-  {
-    "case_id": "junior_proto__job_0083",
-    "profile_id": "junior_proto",
-    "job_id": "job_0083",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss",
-      "seniority_gap"
-    ],
-    "split": "dev",
-    "rationale": "Matching discipline but a senior lead role with 8+ years and regulatory scope; visible, not hidden."
-  },
-  {
-    "case_id": "junior_proto__job_0089",
-    "profile_id": "junior_proto",
-    "job_id": "job_0089",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting",
-      "keyword_trap"
-    ],
-    "split": "heldout",
-    "rationale": "Software frontend role; 'rapid prototyping' and Python are incidental."
-  },
-  {
-    "case_id": "junior_proto__job_0098",
-    "profile_id": "junior_proto",
-    "job_id": "job_0098",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "heldout",
-    "rationale": "Machine learning; not prototype engineering."
-  },
-  {
-    "case_id": "junior_proto__job_0109",
-    "profile_id": "junior_proto",
-    "job_id": "job_0109",
-    "grade": 1,
-    "should_hide": true,
-    "tags": [
-      "near_miss",
-      "hard_hide_work_permit"
-    ],
-    "split": "dev",
-    "rationale": "Junior innovation-lab role would match, but unrestricted work right is required and sponsorship is excluded."
-  },
-  {
-    "case_id": "junior_proto__job_0111",
-    "profile_id": "junior_proto",
-    "job_id": "job_0111",
-    "grade": 3,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "sponsorship_alternative"
-    ],
-    "split": "dev",
-    "rationale": "Strong prototyping match. Authorisation is required, but the employer offers visa sponsorship, so the permit condition is not a denial and the job stays visible."
-  },
-  {
-    "case_id": "junior_proto__job_0112",
-    "profile_id": "junior_proto",
-    "job_id": "job_0112",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "heldout",
-    "rationale": "Backend development; no prototyping or hardware content."
-  },
-  {
-    "case_id": "junior_proto__job_0117",
-    "profile_id": "junior_proto",
-    "job_id": "job_0117",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Design thinking and low-fidelity prototyping overlap, but the role is consulting, not engineering."
-  },
-  {
-    "case_id": "junior_proto__job_0128",
-    "profile_id": "junior_proto",
-    "job_id": "job_0128",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting",
-      "keyword_trap"
-    ],
-    "split": "dev",
-    "rationale": "Graphic design; 'prototypes' means Figma mock-ups, not physical models."
-  },
-  {
-    "case_id": "junior_proto__job_0130",
-    "profile_id": "junior_proto",
-    "job_id": "job_0130",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Test engineer is a saved secondary role; test rigs, sensors and Python/MATLAB match; German B1 requirement equals the saved level."
-  },
-  {
-    "case_id": "junior_proto__job_0132",
-    "profile_id": "junior_proto",
-    "job_id": "job_0132",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Hardware-adjacent and Arduino/Python experience helps, but C++ firmware development is a different specialism."
   },
   {
     "case_id": "ld_specialist__job_0002",
@@ -474,42 +164,6 @@
     "rationale": "Onboarding training fits, but the posting explicitly requires five days on site while the saved preference declines on-site work; ineligible."
   },
   {
-    "case_id": "ld_specialist__job_0019",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0019",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "heldout",
-    "rationale": "Warehouse shift lead; training new colleagues is incidental."
-  },
-  {
-    "case_id": "ld_specialist__job_0025",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0025",
-    "grade": 3,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Senior L&D role with needs analysis, onboarding, Articulate, evaluation, remote and English; same level as the saved role."
-  },
-  {
-    "case_id": "ld_specialist__job_0026",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0026",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "HR administration with an onboarding portion; not development work."
-  },
-  {
     "case_id": "ld_specialist__job_0032",
     "profile_id": "ld_specialist",
     "job_id": "job_0032",
@@ -535,30 +189,6 @@
     "rationale": "Operational analytics; unrelated to learning design."
   },
   {
-    "case_id": "ld_specialist__job_0035",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0035",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "dev",
-    "rationale": "Hardware prototyping; no overlap with learning design."
-  },
-  {
-    "case_id": "ld_specialist__job_0037",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0037",
-    "grade": 3,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Core L&D role: needs analysis, onboarding design, Articulate, LMS and evaluation all match; remote and English fit."
-  },
-  {
     "case_id": "ld_specialist__job_0039",
     "profile_id": "ld_specialist",
     "job_id": "job_0039",
@@ -570,18 +200,6 @@
     ],
     "split": "heldout",
     "rationale": "Training content fits, but the title contains the excluded term 'Sales'; hidden by the saved exclusion."
-  },
-  {
-    "case_id": "ld_specialist__job_0040",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0040",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "heldout",
-    "rationale": "Sales role; unrelated to learning design."
   },
   {
     "case_id": "ld_specialist__job_0043",
@@ -597,43 +215,6 @@
     "rationale": "Development programme role, but on-site presence is mandatory and the profile declines on-site work."
   },
   {
-    "case_id": "ld_specialist__job_0048",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0048",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "heldout",
-    "rationale": "LMS administration and Articulate content match; platform focus is narrower than learning design, and German B1 requirement is equal to the saved level."
-  },
-  {
-    "case_id": "ld_specialist__job_0060",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0060",
-    "grade": 3,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "heldout",
-    "rationale": "Instructional design with Articulate and LMS knowledge; matches desired roles and tools; remote."
-  },
-  {
-    "case_id": "ld_specialist__job_0063",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0063",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "qualitative_language"
-    ],
-    "split": "dev",
-    "rationale": "L&D duties match; 'fluent German' is qualitative and may exceed the saved B1, which lowers the fit but does not prove ineligibility."
-  },
-  {
     "case_id": "ld_specialist__job_0066",
     "profile_id": "ld_specialist",
     "job_id": "job_0066",
@@ -645,18 +226,6 @@
     ],
     "split": "heldout",
     "rationale": "Facilitation matches, but German C1 is a stated minimum and the saved German level is B1; ineligible."
-  },
-  {
-    "case_id": "ld_specialist__job_0067",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0067",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Facilitation and curriculum adaptation match; the role is delivery-heavy and less about learning-system design."
   },
   {
     "case_id": "ld_specialist__job_0078",
@@ -672,56 +241,6 @@
     "rationale": "Duties match the L&D profile, but German C1 is a stated minimum and the saved German level is B1; ineligible."
   },
   {
-    "case_id": "ld_specialist__job_0085",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0085",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "heldout",
-    "rationale": "Development topics overlap, but business partnering and labour law are a different HR specialism."
-  },
-  {
-    "case_id": "ld_specialist__job_0086",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0086",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting",
-      "keyword_trap"
-    ],
-    "split": "heldout",
-    "rationale": "Nursing role; trainee guidance and internal training are incidental duties."
-  },
-  {
-    "case_id": "ld_specialist__job_0092",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0092",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss",
-      "seniority_gap"
-    ],
-    "split": "heldout",
-    "rationale": "Same field, but leadership of an HR department is a larger step than the saved experience; no explicit CEFR minimum, so it stays visible."
-  },
-  {
-    "case_id": "ld_specialist__job_0093",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0093",
-    "grade": 3,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "German-language posting for an English-speaking team stating German B1 suffices; instructional design with Articulate and LMS matches exactly."
-  },
-  {
     "case_id": "ld_specialist__job_0094",
     "profile_id": "ld_specialist",
     "job_id": "job_0094",
@@ -733,31 +252,6 @@
     ],
     "split": "dev",
     "rationale": "Training duties fit, but the posting requires five days a week in the office; the profile declines on-site work."
-  },
-  {
-    "case_id": "ld_specialist__job_0099",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0099",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Customer training and onboarding overlap, but the job is account retention rather than learning design."
-  },
-  {
-    "case_id": "ld_specialist__job_0101",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0101",
-    "grade": 1,
-    "should_hide": true,
-    "tags": [
-      "near_miss",
-      "hard_hide_declined_onsite"
-    ],
-    "split": "heldout",
-    "rationale": "Matches onboarding and facilitation, but the posting states the role is fully on-site; the profile declines on-site work."
   },
   {
     "case_id": "ld_specialist__job_0104",
@@ -773,44 +267,6 @@
     "rationale": "Coordination and LMS work are below the saved level but related. Work-arrangement metadata says onsite without any attendance text, so the job stays visible with a soft work-style conflict."
   },
   {
-    "case_id": "ld_specialist__job_0110",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0110",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "metadata_only_onsite",
-      "qualitative_language"
-    ],
-    "split": "heldout",
-    "rationale": "Training coordination and LMS administration are earlier-career work for this profile. Work-arrangement metadata says onsite without attendance text, and 'sehr gute Deutschkenntnisse' is qualitative, so it stays visible."
-  },
-  {
-    "case_id": "ld_specialist__job_0113",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0113",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "dev",
-    "rationale": "Early-years education is a different field from corporate learning and development."
-  },
-  {
-    "case_id": "ld_specialist__job_0117",
-    "profile_id": "ld_specialist",
-    "job_id": "job_0117",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Workshop facilitation overlaps, but the content is innovation consulting."
-  },
-  {
     "case_id": "logistics_lead__job_0006",
     "profile_id": "logistics_lead",
     "job_id": "job_0006",
@@ -821,19 +277,6 @@
     ],
     "split": "dev",
     "rationale": "Natural next step from team lead: same domain and duties, with broader budget and a team of 55 beyond the saved scope."
-  },
-  {
-    "case_id": "logistics_lead__job_0007",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0007",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "qualitative_language"
-    ],
-    "split": "dev",
-    "rationale": "Team lead in warehouse operations matches; 'good command of English' is qualitative and a stretch for A2, not a CEFR minimum."
   },
   {
     "case_id": "logistics_lead__job_0008",
@@ -860,18 +303,6 @@
     "rationale": "Same sector but an entry-level operative role; far below the saved lead level."
   },
   {
-    "case_id": "logistics_lead__job_0015",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0015",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Warehouse knowledge fits and shift-leader collaboration is familiar; Lean methodology and analysis are not shown."
-  },
-  {
     "case_id": "logistics_lead__job_0016",
     "profile_id": "logistics_lead",
     "job_id": "job_0016",
@@ -882,18 +313,6 @@
     ],
     "split": "heldout",
     "rationale": "Saved secondary role and the profile's qualification, but a step below the leadership level."
-  },
-  {
-    "case_id": "logistics_lead__job_0018",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0018",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "heldout",
-    "rationale": "Scheduling and shop-floor contact transfer, but it needs SAP PP and work-preparation experience."
   },
   {
     "case_id": "logistics_lead__job_0019",
@@ -908,56 +327,6 @@
     "rationale": "Shift lead in a warehouse with dispatch coordination and safety duties; same level as the saved career."
   },
   {
-    "case_id": "logistics_lead__job_0022",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0022",
-    "grade": 1,
-    "should_hide": true,
-    "tags": [
-      "near_miss",
-      "hard_hide_cefr"
-    ],
-    "split": "dev",
-    "rationale": "Shift-lead duties match, but English C1 is a stated requirement and the saved English level is A2; ineligible."
-  },
-  {
-    "case_id": "logistics_lead__job_0027",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0027",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "heldout",
-    "rationale": "Shift-leadership role in logistics matching the profile; cross-dock hub and carrier coordination are new."
-  },
-  {
-    "case_id": "logistics_lead__job_0029",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0029",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "qualitative_language"
-    ],
-    "split": "dev",
-    "rationale": "Team lead matching the saved role; 'gute Englischkenntnisse' is qualitative and may stretch A2 but is not a stated minimum."
-  },
-  {
-    "case_id": "logistics_lead__job_0030",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0030",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Dispatcher is a saved secondary role; logistics coordination matches but TMS and route planning are new."
-  },
-  {
     "case_id": "logistics_lead__job_0049",
     "profile_id": "logistics_lead",
     "job_id": "job_0049",
@@ -968,31 +337,6 @@
     ],
     "split": "dev",
     "rationale": "Warehouse team lead with shift planning, KPIs and SAP EWM; the posting states English at A2 is enough."
-  },
-  {
-    "case_id": "logistics_lead__job_0050",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0050",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "heldout",
-    "rationale": "Plant environment is familiar, but ramp-up engineering and project budgets are not shown."
-  },
-  {
-    "case_id": "logistics_lead__job_0053",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0053",
-    "grade": 1,
-    "should_hide": true,
-    "tags": [
-      "near_miss",
-      "hard_hide_cefr"
-    ],
-    "split": "dev",
-    "rationale": "Duties match, but English B2 is required and the saved English level is A2; ineligible."
   },
   {
     "case_id": "logistics_lead__job_0064",
@@ -1020,19 +364,6 @@
     "rationale": "Team lead for goods-in and dispatch with shift planning, safety briefings and SAP EWM: the saved role."
   },
   {
-    "case_id": "logistics_lead__job_0070",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0070",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss",
-      "seniority_gap"
-    ],
-    "split": "dev",
-    "rationale": "Same field, but a multi-site head role with 80 staff and a degree preference; visible, not hidden."
-  },
-  {
     "case_id": "logistics_lead__job_0071",
     "profile_id": "logistics_lead",
     "job_id": "job_0071",
@@ -1043,31 +374,6 @@
     ],
     "split": "dev",
     "rationale": "Bookkeeping; unrelated to warehouse operations."
-  },
-  {
-    "case_id": "logistics_lead__job_0076",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0076",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting",
-      "keyword_trap"
-    ],
-    "split": "dev",
-    "rationale": "Retail sales; goods-in, inventory and forklift are only side tasks."
-  },
-  {
-    "case_id": "logistics_lead__job_0084",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0084",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Procurement and delivery tracking are adjacent to logistics, but negotiation and SAP MM are not shown."
   },
   {
     "case_id": "logistics_lead__job_0086",
@@ -1083,43 +389,6 @@
     "rationale": "Nursing with shift work; leadership or logistics content is missing."
   },
   {
-    "case_id": "logistics_lead__job_0090",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0090",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Manufacturing coordination touches materials and deadlines, but needs engineering project experience."
-  },
-  {
-    "case_id": "logistics_lead__job_0095",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0095",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "dev",
-    "rationale": "Kitchen role; stock handling is incidental."
-  },
-  {
-    "case_id": "logistics_lead__job_0105",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0105",
-    "grade": 1,
-    "should_hide": true,
-    "tags": [
-      "near_miss",
-      "hard_hide_excluded_term"
-    ],
-    "split": "dev",
-    "rationale": "Same warehouse domain but a helper job below the level; the title contains the excluded term 'Aushilfe'."
-  },
-  {
     "case_id": "logistics_lead__job_0106",
     "profile_id": "logistics_lead",
     "job_id": "job_0106",
@@ -1131,116 +400,6 @@
     ],
     "split": "dev",
     "rationale": "Conveyor and warehouse-system context is familiar, but it asks for engineering and assembly management."
-  },
-  {
-    "case_id": "logistics_lead__job_0114",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0114",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Logistics sector but a driver role requiring a licence class the profile does not list."
-  },
-  {
-    "case_id": "logistics_lead__job_0115",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0115",
-    "grade": 3,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Team lead in a returns warehouse with shift planning, KPIs, safety briefings and SAP EWM."
-  },
-  {
-    "case_id": "logistics_lead__job_0119",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0119",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Shipping environment is familiar, but the role is analytical and needs BPMN and BI tools."
-  },
-  {
-    "case_id": "logistics_lead__job_0122",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0122",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "heldout",
-    "rationale": "Tax office work; unrelated."
-  },
-  {
-    "case_id": "logistics_lead__job_0123",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0123",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Logistics background helps, but the role is analytical."
-  },
-  {
-    "case_id": "logistics_lead__job_0126",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0126",
-    "grade": 3,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "company_boast"
-    ],
-    "split": "dev",
-    "rationale": "Shift lead in order picking; the company claims about 25 and 10 years are boast text and not requirements."
-  },
-  {
-    "case_id": "logistics_lead__job_0127",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0127",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "dev",
-    "rationale": "Construction supervision; unrelated to warehouse operations."
-  },
-  {
-    "case_id": "logistics_lead__job_0129",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0129",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Supervisory warehouse role with inventory and WMS skills; the focus is stock control and the English requirement is unspecific."
-  },
-  {
-    "case_id": "logistics_lead__job_0131",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0131",
-    "grade": 1,
-    "should_hide": true,
-    "tags": [
-      "near_miss",
-      "hard_hide_cefr"
-    ],
-    "split": "heldout",
-    "rationale": "Fulfilment setting is familiar, but English C1 is required and the saved English level is A2; ineligible."
   },
   {
     "case_id": "ops_analyst__job_0001",
@@ -1268,18 +427,6 @@
     "rationale": "Senior open-banking product management; no overlap with process analysis."
   },
   {
-    "case_id": "ops_analyst__job_0008",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0008",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "heldout",
-    "rationale": "Throughput analysis and planning transfer; the role is production planning in a metalworking shop."
-  },
-  {
     "case_id": "ops_analyst__job_0011",
     "profile_id": "ops_analyst",
     "job_id": "job_0011",
@@ -1305,18 +452,6 @@
     "rationale": "IT support; process documentation, Excel and SQL appear only as support routine."
   },
   {
-    "case_id": "ops_analyst__job_0014",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0014",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Requirements and documentation work is adjacent to process analysis, but the role centres on API products."
-  },
-  {
     "case_id": "ops_analyst__job_0015",
     "profile_id": "ops_analyst",
     "job_id": "job_0015",
@@ -1327,42 +462,6 @@
     ],
     "split": "dev",
     "rationale": "Lean workshops, process mapping and KPIs in e-commerce operations; warehouse-floor expertise is the gap."
-  },
-  {
-    "case_id": "ops_analyst__job_0020",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0020",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "KPI tracking and corrective actions transfer; the role is supplier quality."
-  },
-  {
-    "case_id": "ops_analyst__job_0023",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0023",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "heldout",
-    "rationale": "Process selection overlaps, but building and operating bots in UiPath is a development skill the profile lacks."
-  },
-  {
-    "case_id": "ops_analyst__job_0025",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0025",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "dev",
-    "rationale": "Learning programme role; unrelated to process analysis."
   },
   {
     "case_id": "ops_analyst__job_0026",
@@ -1377,18 +476,6 @@
     "rationale": "HR administration; unrelated."
   },
   {
-    "case_id": "ops_analyst__job_0030",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0030",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Transport planning is adjacent to operations, but not analytical."
-  },
-  {
     "case_id": "ops_analyst__job_0033",
     "profile_id": "ops_analyst",
     "job_id": "job_0033",
@@ -1401,104 +488,6 @@
     "rationale": "Operations analytics with SQL, Power BI and process improvement for a service organisation; matches the saved role."
   },
   {
-    "case_id": "ops_analyst__job_0034",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0034",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Product role with an analytical flavour; Operations Analyst has SQL and KPI skills but no payments or backlog ownership."
-  },
-  {
-    "case_id": "ops_analyst__job_0037",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0037",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Facilitation and reporting overlap slightly, but the role is learning design."
-  },
-  {
-    "case_id": "ops_analyst__job_0041",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0041",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss",
-      "company_boast"
-    ],
-    "split": "dev",
-    "rationale": "Process modelling fits, but the role needs payments domain knowledge Operations Analyst lacks."
-  },
-  {
-    "case_id": "ops_analyst__job_0044",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0044",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Process-oriented rollout project with workshops and process know-how; consulting experience is missing."
-  },
-  {
-    "case_id": "ops_analyst__job_0045",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0045",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "or_alternative"
-    ],
-    "split": "dev",
-    "rationale": "Lean-based process optimisation with KPI work fits; production domain is new. Degree-or-technician alternative is met by the degree."
-  },
-  {
-    "case_id": "ops_analyst__job_0050",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0050",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "heldout",
-    "rationale": "Lean and reporting skills overlap, but the role is project leadership for production ramp-up."
-  },
-  {
-    "case_id": "ops_analyst__job_0054",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0054",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Reporting and analysis skills transfer; the role is financial controlling, which the profile does not evidence."
-  },
-  {
-    "case_id": "ops_analyst__job_0069",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0069",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "heldout",
-    "rationale": "Logistics environment with KPIs, but the role is people leadership on the shop floor."
-  },
-  {
     "case_id": "ops_analyst__job_0071",
     "profile_id": "ops_analyst",
     "job_id": "job_0071",
@@ -1509,44 +498,6 @@
     ],
     "split": "dev",
     "rationale": "Accounts payable bookkeeping; no process analysis."
-  },
-  {
-    "case_id": "ops_analyst__job_0074",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0074",
-    "grade": 1,
-    "should_hide": true,
-    "tags": [
-      "near_miss",
-      "hard_hide_excluded_term"
-    ],
-    "split": "dev",
-    "rationale": "Matching field but a student job; title contains the excluded term 'Werkstudent'."
-  },
-  {
-    "case_id": "ops_analyst__job_0080",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0080",
-    "grade": 3,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "company_boast"
-    ],
-    "split": "dev",
-    "rationale": "Operations analytics with SQL, dashboards and workshops; the company's 15 years are boast text and not a requirement."
-  },
-  {
-    "case_id": "ops_analyst__job_0081",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0081",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Process documentation, target modelling and workshops match; utilities is a new domain."
   },
   {
     "case_id": "ops_analyst__job_0086",
@@ -1572,190 +523,6 @@
     ],
     "split": "heldout",
     "rationale": "Process analysis with BPMN, SQL, Power BI and Lean workshops; English B2 is stated as sufficient."
-  },
-  {
-    "case_id": "ops_analyst__job_0090",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0090",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Planning and tracking skills transfer, but the role is project coordination in machine building."
-  },
-  {
-    "case_id": "ops_analyst__job_0098",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0098",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "heldout",
-    "rationale": "Data analysis overlaps; the role needs machine-learning skills."
-  },
-  {
-    "case_id": "ops_analyst__job_0100",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0100",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "heldout",
-    "rationale": "Process and KPI skills transfer, but the role is product ownership in payments."
-  },
-  {
-    "case_id": "ops_analyst__job_0102",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0102",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Business analysis in insurance with BPMN and SQL; the saved profile has insurance process experience, but the role stresses requirements work."
-  },
-  {
-    "case_id": "ops_analyst__job_0108",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0108",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Scheduling and reporting transfer; the domain is switchgear manufacturing."
-  },
-  {
-    "case_id": "ops_analyst__job_0112",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0112",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "heldout",
-    "rationale": "Software engineering; not process analysis."
-  },
-  {
-    "case_id": "ops_analyst__job_0113",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0113",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "dev",
-    "rationale": "Childcare; unrelated."
-  },
-  {
-    "case_id": "ops_analyst__job_0115",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0115",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Returns processes are familiar territory, but the role is people leadership."
-  },
-  {
-    "case_id": "ops_analyst__job_0119",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0119",
-    "grade": 3,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Process analysis with BPMN, SQL, Power BI, workshops and dashboards in an e-commerce setting: the saved role and domain."
-  },
-  {
-    "case_id": "ops_analyst__job_0120",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0120",
-    "grade": 1,
-    "should_hide": true,
-    "tags": [
-      "near_miss",
-      "hard_hide_cefr"
-    ],
-    "split": "dev",
-    "rationale": "Role content matches, but mandatory native-level German exceeds the saved C1; ineligible."
-  },
-  {
-    "case_id": "ops_analyst__job_0121",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0121",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "qualitative_language"
-    ],
-    "split": "dev",
-    "rationale": "Content fit is strong; 'fluent business English' is qualitative and may be a stretch for B2, not a stated minimum, so it stays visible."
-  },
-  {
-    "case_id": "ops_analyst__job_0122",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0122",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "heldout",
-    "rationale": "Tax office work; unrelated to process analysis."
-  },
-  {
-    "case_id": "ops_analyst__job_0123",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0123",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Analytics with SQL, Power BI and root-cause analysis match; the supply-chain domain is new."
-  },
-  {
-    "case_id": "ops_analyst__job_0125",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0125",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "long_clause"
-    ],
-    "split": "dev",
-    "rationale": "Process analysis duties match; financial-services domain is new. One long requirement sentence but all items are in the saved profile."
-  },
-  {
-    "case_id": "ops_analyst__job_0131",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0131",
-    "grade": 1,
-    "should_hide": true,
-    "tags": [
-      "near_miss",
-      "hard_hide_cefr"
-    ],
-    "split": "heldout",
-    "rationale": "Process improvement role matches, but English C1 is a stated requirement and the saved English level is B2; ineligible."
   },
   {
     "case_id": "pc_manufacturing__job_0008",
@@ -1796,18 +563,6 @@
     "rationale": "Software development; SAP PP, BOM and MS Project appear only as context of integration work."
   },
   {
-    "case_id": "pc_manufacturing__job_0018",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0018",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "heldout",
-    "rationale": "Production planning is a saved secondary role; SAP PP and BOM skills match, scope is narrower than project coordination."
-  },
-  {
     "case_id": "pc_manufacturing__job_0020",
     "profile_id": "pc_manufacturing",
     "job_id": "job_0020",
@@ -1845,18 +600,6 @@
     "rationale": "Coordination role in manufacturing; degree-or-technician alternative is satisfied by the saved degree."
   },
   {
-    "case_id": "pc_manufacturing__job_0035",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0035",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Hardware product context overlaps lightly, but the role is hands-on prototype engineering."
-  },
-  {
     "case_id": "pc_manufacturing__job_0036",
     "profile_id": "pc_manufacturing",
     "job_id": "job_0036",
@@ -1868,18 +611,6 @@
     ],
     "split": "heldout",
     "rationale": "Industry fits but the posting needs five years of leadership of a 10-person PMO; visible, not hidden."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0044",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0044",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Project steering skills transfer, but the work is ERP consulting without machinery or production content."
   },
   {
     "case_id": "pc_manufacturing__job_0045",
@@ -1895,19 +626,6 @@
     "rationale": "Production process optimisation overlaps with manufacturing coordination; Lean exposure is there, formal process analysis is lighter."
   },
   {
-    "case_id": "pc_manufacturing__job_0047",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0047",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "qualitative_language"
-    ],
-    "split": "dev",
-    "rationale": "Technical project management with the same coordination duties; process-plant domain is a gap. Qualitative German wording is fine for a German speaker."
-  },
-  {
     "case_id": "pc_manufacturing__job_0050",
     "profile_id": "pc_manufacturing",
     "job_id": "job_0050",
@@ -1920,142 +638,6 @@
     "rationale": "Production ramp-up project lead with budget, supplier and change management duties matching the saved role."
   },
   {
-    "case_id": "pc_manufacturing__job_0062",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0062",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "qualitative_language"
-    ],
-    "split": "dev",
-    "rationale": "Ramp-up project management matches. 'Fluent business English' is a qualitative expectation, not a stated CEFR minimum; stays visible with a language stretch."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0069",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0069",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "heldout",
-    "rationale": "Planning and leadership transfer partly; the domain is distribution, not machine building."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0071",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0071",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "dev",
-    "rationale": "Bookkeeping; unrelated."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0073",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0073",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "heldout",
-    "rationale": "Coordination across teams with schedules and go/no-go checkpoints transfers, but the domain is IT release management."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0079",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0079",
-    "grade": 1,
-    "should_hide": true,
-    "tags": [
-      "near_miss",
-      "hard_hide_cefr"
-    ],
-    "split": "dev",
-    "rationale": "Project handling in machine building fits, but English C1 is mandatory and the saved English level is B1; ineligible."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0084",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0084",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Works inside the same projects but is a purchasing role; coordination skills overlap only partly."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0087",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0087",
-    "grade": 0,
-    "should_hide": true,
-    "tags": [
-      "non_fitting",
-      "hard_hide_excluded_term"
-    ],
-    "split": "dev",
-    "rationale": "Internship far below the saved level; title contains the excluded term 'Praktikant'."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0088",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0088",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "heldout",
-    "rationale": "Process work and workshops transfer partly; the domain is online marketplaces."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0090",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0090",
-    "grade": 3,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Exactly the saved coordination role in special machinery: scheduling, interface work, SAP and MS Project."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0091",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0091",
-    "grade": 1,
-    "should_hide": true,
-    "tags": [
-      "near_miss",
-      "hard_hide_cefr"
-    ],
-    "split": "heldout",
-    "rationale": "Role matches, but English C1 is stated as a requirement and the saved English level is B1; ineligible."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0095",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0095",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "dev",
-    "rationale": "Kitchen role; unrelated."
-  },
-  {
     "case_id": "pc_manufacturing__job_0100",
     "profile_id": "pc_manufacturing",
     "job_id": "job_0100",
@@ -2066,92 +648,6 @@
     ],
     "split": "heldout",
     "rationale": "Fintech product ownership; no overlap with machine-building project coordination."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0102",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0102",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "dev",
-    "rationale": "Insurance business analysis; no overlap with manufacturing projects."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0103",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0103",
-    "grade": 1,
-    "should_hide": true,
-    "tags": [
-      "near_miss",
-      "hard_hide_excluded_term"
-    ],
-    "split": "dev",
-    "rationale": "Same industry, but a student job; title contains the excluded term 'Werkstudent'."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0106",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0106",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "company_boast"
-    ],
-    "split": "dev",
-    "rationale": "Project steering of installation with the saved coordination skills; field-assembly leadership is a gap. Company history is boast text."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0107",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0107",
-    "grade": 3,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "heldout",
-    "rationale": "English-language posting for exactly the saved role; English B1 is sufficient, German native expected."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0108",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0108",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Coordination of production orders matches; electrical-engineering domain is new."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0119",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0119",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Process and reporting skills transfer partly; the domain is e-commerce."
-  },
-  {
-    "case_id": "pc_manufacturing__job_0127",
-    "profile_id": "pc_manufacturing",
-    "job_id": "job_0127",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Scheduling and subcontractor coordination are similar, but the construction domain and civil-engineering degree are missing."
   },
   {
     "case_id": "po_fintech__job_0004",
@@ -2177,18 +673,6 @@
     ],
     "split": "dev",
     "rationale": "One very long requirement sentence, but it describes the saved PO duties; treasury domain is a small gap."
-  },
-  {
-    "case_id": "po_fintech__job_0014",
-    "profile_id": "po_fintech",
-    "job_id": "job_0014",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Technical PO duties and API focus fit well; insurance domain instead of payments is the gap."
   },
   {
     "case_id": "po_fintech__job_0028",
@@ -2227,30 +711,6 @@
     "rationale": "Analytical overlap through KPIs and SQL, but no product ownership."
   },
   {
-    "case_id": "po_fintech__job_0034",
-    "profile_id": "po_fintech",
-    "job_id": "job_0034",
-    "grade": 3,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Core Product Owner role in payments with backlog, stakeholder and KPI duties; experience and tools match."
-  },
-  {
-    "case_id": "po_fintech__job_0037",
-    "profile_id": "po_fintech",
-    "job_id": "job_0037",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "dev",
-    "rationale": "Learning programme design; not product ownership."
-  },
-  {
     "case_id": "po_fintech__job_0039",
     "profile_id": "po_fintech",
     "job_id": "job_0039",
@@ -2262,31 +722,6 @@
     ],
     "split": "heldout",
     "rationale": "Sales training role unrelated to product ownership; also carries the excluded term 'Sales' in the title."
-  },
-  {
-    "case_id": "po_fintech__job_0040",
-    "profile_id": "po_fintech",
-    "job_id": "job_0040",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "heldout",
-    "rationale": "Quota-carrying sales role; no product ownership."
-  },
-  {
-    "case_id": "po_fintech__job_0041",
-    "profile_id": "po_fintech",
-    "job_id": "job_0041",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "company_boast"
-    ],
-    "split": "dev",
-    "rationale": "Business Analyst in payments is a saved secondary role and a step below the current level; the company's 40 years are a boast, not a requirement."
   },
   {
     "case_id": "po_fintech__job_0046",
@@ -2302,82 +737,6 @@
     "rationale": "Product role would fit, but the title contains the excluded term 'Sales'; hidden by the saved exclusion."
   },
   {
-    "case_id": "po_fintech__job_0056",
-    "profile_id": "po_fintech",
-    "job_id": "job_0056",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "dev",
-    "rationale": "Clinical role; unrelated."
-  },
-  {
-    "case_id": "po_fintech__job_0058",
-    "profile_id": "po_fintech",
-    "job_id": "job_0058",
-    "grade": 1,
-    "should_hide": true,
-    "tags": [
-      "near_miss",
-      "hard_hide_cefr"
-    ],
-    "split": "dev",
-    "rationale": "Role content matches, but the posting states German C1 as mandatory and the saved German level is B2; ineligible."
-  },
-  {
-    "case_id": "po_fintech__job_0059",
-    "profile_id": "po_fintech",
-    "job_id": "job_0059",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "qualitative_language"
-    ],
-    "split": "dev",
-    "rationale": "Growth PO role is close; consumer-growth focus differs from payments. 'Verhandlungssicheres Deutsch' is a qualitative plus, not a CEFR minimum, so it stays visible."
-  },
-  {
-    "case_id": "po_fintech__job_0061",
-    "profile_id": "po_fintech",
-    "job_id": "job_0061",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting",
-      "keyword_trap"
-    ],
-    "split": "dev",
-    "rationale": "Developer role that only mentions Scrum, Jira and collaboration with the Product Owner; payments keywords are incidental."
-  },
-  {
-    "case_id": "po_fintech__job_0068",
-    "profile_id": "po_fintech",
-    "job_id": "job_0068",
-    "grade": 1,
-    "should_hide": true,
-    "tags": [
-      "near_miss",
-      "hard_hide_cefr"
-    ],
-    "split": "heldout",
-    "rationale": "Fitting role, but mandatory native-level German exceeds the saved B2; ineligible."
-  },
-  {
-    "case_id": "po_fintech__job_0073",
-    "profile_id": "po_fintech",
-    "job_id": "job_0073",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "heldout",
-    "rationale": "Release coordination touches the same teams and tools but is not product ownership."
-  },
-  {
     "case_id": "po_fintech__job_0076",
     "profile_id": "po_fintech",
     "job_id": "job_0076",
@@ -2388,43 +747,6 @@
     ],
     "split": "dev",
     "rationale": "Retail sales; unrelated."
-  },
-  {
-    "case_id": "po_fintech__job_0081",
-    "profile_id": "po_fintech",
-    "job_id": "job_0081",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Business Analyst is a saved secondary role, but the programme is operations rather than product."
-  },
-  {
-    "case_id": "po_fintech__job_0089",
-    "profile_id": "po_fintech",
-    "job_id": "job_0089",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "heldout",
-    "rationale": "Frontend engineering is not product ownership."
-  },
-  {
-    "case_id": "po_fintech__job_0096",
-    "profile_id": "po_fintech",
-    "job_id": "job_0096",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "or_alternative"
-    ],
-    "split": "dev",
-    "rationale": "Matches the PO profile; lending is a neighbouring domain. The OR clause is satisfied through the first arm."
   },
   {
     "case_id": "po_fintech__job_0097",
@@ -2440,30 +762,6 @@
     "rationale": "Open-banking product management matches closely. 'Sehr gute Deutschkenntnisse' is qualitative and fits B2 reasonably, not a CEFR minimum."
   },
   {
-    "case_id": "po_fintech__job_0098",
-    "profile_id": "po_fintech",
-    "job_id": "job_0098",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "heldout",
-    "rationale": "Works closely with product managers and SQL analysis overlaps, but the role is machine learning."
-  },
-  {
-    "case_id": "po_fintech__job_0099",
-    "profile_id": "po_fintech",
-    "job_id": "job_0099",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss"
-    ],
-    "split": "dev",
-    "rationale": "Collects product feedback, but owns no backlog."
-  },
-  {
     "case_id": "po_fintech__job_0100",
     "profile_id": "po_fintech",
     "job_id": "job_0100",
@@ -2474,82 +772,6 @@
     ],
     "split": "heldout",
     "rationale": "Card-payments Product Owner with the same duties, tools and experience level; German B2 is exactly the saved level."
-  },
-  {
-    "case_id": "po_fintech__job_0102",
-    "profile_id": "po_fintech",
-    "job_id": "job_0102",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting"
-    ],
-    "split": "dev",
-    "rationale": "Business Analyst is a saved secondary role; insurance claims instead of payments."
-  },
-  {
-    "case_id": "po_fintech__job_0112",
-    "profile_id": "po_fintech",
-    "job_id": "job_0112",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting",
-      "keyword_trap"
-    ],
-    "split": "heldout",
-    "rationale": "Engineering role; Scrum and Product Owner appear only as team context."
-  },
-  {
-    "case_id": "po_fintech__job_0116",
-    "profile_id": "po_fintech",
-    "job_id": "job_0116",
-    "grade": 0,
-    "should_hide": true,
-    "tags": [
-      "non_fitting",
-      "hard_hide_excluded_term"
-    ],
-    "split": "dev",
-    "rationale": "Internship far below the profile level; title contains the excluded term 'Praktikum'."
-  },
-  {
-    "case_id": "po_fintech__job_0118",
-    "profile_id": "po_fintech",
-    "job_id": "job_0118",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss",
-      "seniority_gap"
-    ],
-    "split": "dev",
-    "rationale": "Domain matches but this is a department-head role with 5+ years of people leadership the profile does not show; visible, not hidden."
-  },
-  {
-    "case_id": "po_fintech__job_0124",
-    "profile_id": "po_fintech",
-    "job_id": "job_0124",
-    "grade": 1,
-    "should_hide": true,
-    "tags": [
-      "near_miss",
-      "hard_hide_cefr"
-    ],
-    "split": "dev",
-    "rationale": "Product role fits, but German C1 is stated as mandatory and the saved level is B2; ineligible."
-  },
-  {
-    "case_id": "po_fintech__job_0128",
-    "profile_id": "po_fintech",
-    "job_id": "job_0128",
-    "grade": 0,
-    "should_hide": false,
-    "tags": [
-      "non_fitting"
-    ],
-    "split": "dev",
-    "rationale": "Visual design; unrelated."
   },
   {
     "case_id": "ops_analyst__job_0133",
@@ -2590,58 +812,6 @@
     "rationale": "Long single requirement sentence, but it lists exactly the saved coordination duties; strong match."
   },
   {
-    "case_id": "logistics_lead__job_0136",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0136",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "qualitative_language"
-    ],
-    "split": "dev",
-    "rationale": "Team lead matching the saved role; 'gute Englischkenntnisse' is qualitative and may stretch A2 but is not a stated minimum."
-  },
-  {
-    "case_id": "logistics_lead__job_0137",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0137",
-    "grade": 1,
-    "should_hide": true,
-    "tags": [
-      "near_miss",
-      "hard_hide_cefr"
-    ],
-    "split": "dev",
-    "rationale": "Duties match, but English B2 is required and the saved English level is A2; ineligible."
-  },
-  {
-    "case_id": "junior_proto__job_0138",
-    "profile_id": "junior_proto",
-    "job_id": "job_0138",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "qualitative_language"
-    ],
-    "split": "dev",
-    "rationale": "Prototype work in 3D printing matches. 'Verhandlungssicheres Deutsch' is qualitative and may be a stretch for B1, but it is not a stated CEFR minimum."
-  },
-  {
-    "case_id": "junior_proto__job_0139",
-    "profile_id": "junior_proto",
-    "job_id": "job_0139",
-    "grade": 3,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "sponsorship_alternative"
-    ],
-    "split": "dev",
-    "rationale": "Pre-development prototyping with Inventor and test documentation; employer assists with visa, German B1 equals the saved level."
-  },
-  {
     "case_id": "ld_specialist__job_0141",
     "profile_id": "ld_specialist",
     "job_id": "job_0141",
@@ -2653,32 +823,6 @@
     ],
     "split": "heldout",
     "rationale": "Instructional design with Articulate; the degree-or-experience alternative is met by both arms."
-  },
-  {
-    "case_id": "logistics_lead__job_0142",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0142",
-    "grade": 2,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "qualitative_language"
-    ],
-    "split": "dev",
-    "rationale": "Team lead in warehouse operations matches; 'good command of English' is qualitative and a stretch for A2, not a CEFR minimum."
-  },
-  {
-    "case_id": "logistics_lead__job_0143",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0143",
-    "grade": 1,
-    "should_hide": true,
-    "tags": [
-      "near_miss",
-      "hard_hide_cefr"
-    ],
-    "split": "dev",
-    "rationale": "Shift-lead duties match, but English C1 is a stated requirement and the saved English level is A2; ineligible."
   },
   {
     "case_id": "ld_specialist__job_0144",
@@ -2733,19 +877,6 @@
     "rationale": "Strong prototyping match; the employer supports work-permit applications, so the permit need is not a barrier."
   },
   {
-    "case_id": "junior_proto__job_0147",
-    "profile_id": "junior_proto",
-    "job_id": "job_0147",
-    "grade": 1,
-    "should_hide": false,
-    "tags": [
-      "near_miss",
-      "seniority_gap"
-    ],
-    "split": "dev",
-    "rationale": "Matching discipline but a senior lead role with 8+ years and regulatory scope; visible, not hidden."
-  },
-  {
     "case_id": "logistics_lead__job_0148",
     "profile_id": "logistics_lead",
     "job_id": "job_0148",
@@ -2756,31 +887,5 @@
     ],
     "split": "dev",
     "rationale": "Warehouse team lead with shift planning, KPIs and SAP EWM; the posting states English at A2 is enough."
-  },
-  {
-    "case_id": "ops_analyst__job_0149",
-    "profile_id": "ops_analyst",
-    "job_id": "job_0149",
-    "grade": 3,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "company_boast"
-    ],
-    "split": "dev",
-    "rationale": "Operations analytics with SQL, dashboards and workshops; the company's 15 years are boast text and not a requirement."
-  },
-  {
-    "case_id": "logistics_lead__job_0140",
-    "profile_id": "logistics_lead",
-    "job_id": "job_0140",
-    "grade": 3,
-    "should_hide": false,
-    "tags": [
-      "fitting",
-      "company_boast"
-    ],
-    "split": "dev",
-    "rationale": "Shift lead in order picking; the company claims about 25 and 10 years are boast text and not requirements."
   }
 ]

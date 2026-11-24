@@ -21,6 +21,8 @@ export type ProfileMatch = {
     kind: string; requirement: string; status: string; job_quote: string
     evidence_source: string; evidence_quote: string; modality?: string; strength?: 'direct' | 'partial' | 'none'
   }[]
+  /** Personal traits from the posting; not scored because no CV line can prove them. */
+  soft_requirements?: { text: string; modality?: string }[]
   duty_evidence?: { score: number | null; coverage: number; duties: {
     job_quote: string; status: 'direct' | 'transferable' | 'unverified'; evidence_source: string
     evidence_quote: string; evidence_reference?: string; evidence_context?: string
