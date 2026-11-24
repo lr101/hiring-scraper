@@ -16,6 +16,7 @@ user to compare and adopt with an ordinary save. Document text is never logged.
 from __future__ import annotations
 
 from datetime import date
+from hashlib import sha256
 import logging
 from typing import Literal
 
@@ -395,6 +396,16 @@ def _photo(session, profile_id):
     return photo.data if photo is not None else None
 
 
+def render_key(session, profile_id, kind, body):
+    template = body.get('template', 'classic-serif-v1')
+    if kind != 'cv' or not body.get('photo'):
+        return template
+    # The existing template column is the render discriminator. Include the
+    # exact portrait bytes (or absence) in that key for portrait-enabled CVs.
+    photo = _photo(session, profile_id) or b''
+    return sha256(template.encode() + b'\x00' + photo).hexdigest()[:40]
+
+
 def render_for_worker(profile_id, kind, body):
     from hiring_scraper.app import application_pdf
     photo = None
@@ -588,13 +599,15 @@ def revise_document(profile_id: int, kind: Kind, job_id: int, request: ReviseReq
 def document_pdf(profile_id: int, kind: Kind, job_id: int, version: int = Query(gt=0), retry: bool = False,
                  session: Session = Depends(get_session)):
     require_profile(profile_id, session)
+    if kind == 'cv':
+        hold_profiles(session, [profile_id])
     # Queue inserts reference this version. Keep it through enqueue so a concurrent
     # prune or CV deletion cannot leave the render task without its parent.
     document = session.get(ApplicationDocument, (profile_id, job_id, kind, version),
                            with_for_update={'read': True, 'key_share': True})
     if document is None:
         raise HTTPException(404, 'This document version is no longer stored.')
-    template = document.body.get('template', 'classic-serif-v1')
+    template = render_key(session, profile_id, kind, document.body)
     cached = get_render(session, profile_id, job_id, kind, version, template)
     if cached is not None:
         return Response(cached.pdf, media_type='application/pdf', headers={

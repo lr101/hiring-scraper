@@ -29,7 +29,7 @@ from sqlalchemy import delete, func, or_, select, text
 from hiring_scraper.app.database import SessionLocal, is_transient_database_error
 from hiring_scraper.app.models import (
     ApplicationDocument, ApplicationDocumentRender, ApplicationPreparationTask as Task,
-    ApplicationRenderTask as RenderTask, ProfileIndexChanged, utcnow,
+    ApplicationRenderTask as RenderTask, ProfileIndexChanged, hold_profiles, utcnow,
 )
 
 LOG = logging.getLogger(__name__)
@@ -382,6 +382,10 @@ def _claim_render():
                               .with_for_update(skip_locked=True)).first()
         if row is None:
             return None
+        key = (row.profile_id, row.job_id, row.kind, row.version, row.template)
+        if session.get(ApplicationDocumentRender, key) is not None:
+            session.delete(row)
+            return None
         if row.attempts >= MAX_ATTEMPTS:
             row.state, row.available_at, row.lease_token = 'failed', None, None
             row.error_code, row.updated_at = 'lease_expired', now
@@ -391,7 +395,6 @@ def _claim_render():
         row.lease_token = uuid4().hex
         row.available_at = now + RENDER_LEASE
         row.updated_at = now
-        key = (row.profile_id, row.job_id, row.kind, row.version, row.template)
         return key, row.lease_token, row.attempts, document.body
 
 
@@ -399,6 +402,8 @@ def _finish_render(key, token, result=None, *, retry_at=None, error_code=None):
     from hiring_scraper.app.database import dialect_insert
     with SessionLocal.begin() as session:
         if result is not None:
+            if key[2] == 'cv' and not hold_profiles(session, [key[0]]):
+                return False
             # The PDF FK points to the document. Take that lock before the
             # render task so cascading CV deletion and version pruning agree.
             document = session.get(ApplicationDocument, key[:4],
@@ -409,6 +414,11 @@ def _finish_render(key, token, result=None, *, retry_at=None, error_code=None):
         if row is None or row.lease_token != token:
             return False
         if result is not None:
+            from hiring_scraper.app.application_documents_v2 import render_key
+
+            if render_key(session, key[0], key[2], document.body) != key[4]:
+                session.delete(row)
+                return False
             insert = dialect_insert(session)
             profile_id, job_id, kind, version, template = key
             session.execute(insert(ApplicationDocumentRender).values(

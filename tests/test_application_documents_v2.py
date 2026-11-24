@@ -14,7 +14,7 @@ from hiring_scraper.app import application_documents_v2 as documents, auto_prepa
 from hiring_scraper.app import application_preparation_queue as queue
 from hiring_scraper.app.models import (
     ApplicationDocument, ApplicationDocumentRender, ApplicationPreparationTask, ApplicationRenderTask,
-    Company, Job, JobFeed, ProfileCV, UserProfile, utcnow,
+    Company, Job, JobFeed, ProfileCV, ProfilePhoto, UserProfile, utcnow,
 )
 from tests import pg
 from tests.test_application_documents_v2_unit import letter
@@ -210,6 +210,31 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
         self.assertEqual(record['held']['letter']['body']['paragraphs'][0]['text'], 'AI reviewed.')
 
     # --- render lane -------------------------------------------------------------
+
+    def test_removing_portrait_purges_cached_cv_and_fences_a_claimed_render(self):
+        from hiring_scraper.documents.import_tex import import_marked_tex
+
+        body = import_marked_tex(FIXTURE.read_text(), language='en').model_dump(mode='json')
+        body['photo'] = True
+        portrait = b'fictional portrait data'
+        with self.sessions.begin() as session:
+            session.add(ProfilePhoto(profile_id=1, filename='fixture.png', size_bytes=len(portrait), data=portrait))
+            documents.save_version(session, 1, 2, 'cv', body, expected_version=0, origin='user')
+            documents.save_version(session, 1, 2, 'cv', body, expected_version=1, origin='user')
+            session.flush()
+            key = documents.render_key(session, 1, 'cv', body)
+            queue.enqueue_render(session, 1, 2, 'cv', 1, key)
+            queue.enqueue_render(session, 1, 2, 'cv', 2, key)
+        result = types.SimpleNamespace(pdf=b'fictional PDF with portrait', pages=1, checks=[])
+        self.assertTrue(queue.process_render_once(lambda *_args: result))
+        claimed_key, token, *_ = queue._claim_render()
+        with self.sessions() as session:
+            profiles.delete_photo(1, session)
+        self.assertFalse(queue._finish_render(claimed_key, token, result))
+        with self.sessions() as session:
+            self.assertEqual(session.scalars(select(ApplicationDocumentRender)).all(), [])
+            self.assertEqual(session.scalars(select(ApplicationRenderTask)).all(), [])
+            self.assertNotEqual(documents.render_key(session, 1, 'cv', body), key)
 
     def test_render_lane_caches_pdfs_and_stops_after_failures(self):
         self.save(0)

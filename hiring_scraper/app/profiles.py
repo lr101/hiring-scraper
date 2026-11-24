@@ -15,7 +15,10 @@ from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 from hiring_scraper.app import source_changes
 from hiring_scraper.app.database import dialect_insert, get_session
-from hiring_scraper.app.models import ApplicationDocument, ProfileCV, ProfilePhoto, UserProfile, utcnow
+from hiring_scraper.app.models import (
+    ApplicationDocument, ApplicationDocumentRender, ApplicationRenderTask,
+    ProfileCV, ProfilePhoto, UserProfile, hold_profiles, utcnow,
+)
 from hiring_scraper.app.cv_documents import MAX_BYTES, TYPES
 from hiring_scraper.app.job_search import (
     _profile_index_version,
@@ -405,6 +408,12 @@ def photo_metadata(photo):
                                       'size_bytes': photo.size_bytes, 'updated_at': photo.updated_at.isoformat()}
 
 
+def _purge_cv_renders(session, profile_id):
+    """Called under the exclusive profile lock shared by photo writers."""
+    for table in (ApplicationDocumentRender, ApplicationRenderTask):
+        session.execute(delete(table).where(table.profile_id == profile_id, table.kind == 'cv'))
+
+
 def store_profile_photo(session, profile_id, filename, data):
     if not filename or len(filename) > 200 or any(char in filename for char in '/\\\r\n\x00') or Path(filename).suffix.lower() != '.png':
         raise HTTPException(422, 'Choose a PNG photo with a simple filename.')
@@ -417,11 +426,12 @@ def store_profile_photo(session, profile_id, filename, data):
         raise HTTPException(422, str(error)) from None
     require_profile(profile_id, session)
     insert = dialect_insert(session)
-    # Two tabs can both upload the first photo. Let the database serialize
-    # creation/replacement instead of relying on a previously read relationship.
+    # Serialize portrait changes against PDF cache reads and publication.
+    hold_profiles(session, [profile_id], exclusive=True)
     values = {'filename': filename, 'size_bytes': len(data), 'data': data, 'updated_at': utcnow()}
     session.execute(insert(ProfilePhoto).values(profile_id=profile_id, **values).on_conflict_do_update(
         index_elements=['profile_id'], set_=values))
+    _purge_cv_renders(session, profile_id)
     session.commit()
     return photo_metadata(session.get(ProfilePhoto, profile_id))
 
@@ -449,8 +459,10 @@ def download_photo(profile_id: int, session: Session = Depends(get_session)):
 
 @router.delete('/{profile_id}/photo', status_code=204)
 def delete_photo(profile_id: int, session: Session = Depends(get_session)):
-    profile = require_profile(profile_id, session)
-    profile.photo = None
+    require_profile(profile_id, session)
+    hold_profiles(session, [profile_id], exclusive=True)
+    session.execute(delete(ProfilePhoto).where(ProfilePhoto.profile_id == profile_id))
+    _purge_cv_renders(session, profile_id)
     session.commit()
     return Response(status_code=204)
 
