@@ -316,8 +316,13 @@ class ProductionPreparationTests(ProductionHarness):
                 timeout=30000,
             ) as rendered,
         ):
+            # The fixture letter is AI-written and unreviewed, so download first
+            # offers the review; continuing must still start the render.
+            application.get_by_role('button', name='Download PDF', exact=True).click()
+            notice = application.get_by_role('group', name='Download review notice')
+            expect(notice).to_contain_text('not reviewed yet')
             with application.expect_response(lambda response: '/letter/pdf?' in response.url) as first:
-                application.get_by_role('button', name='Download PDF', exact=True).click()
+                notice.get_by_role('button', name='Download anyway', exact=True).click()
             self.assertEqual(first.value.status, 202)
             # Claim the real queue row and run the shipped renderer without
             # starting the long-lived inference worker or touching a subscription.
