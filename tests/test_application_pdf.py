@@ -403,7 +403,8 @@ class RenderTests(unittest.TestCase):
                 any(item in line for line in lines),
                 f'Inline skill broke across lines: {item!r} not intact in {lines!r}',
             )
-        self.assertFalse(any(line.startswith(('•', '/')) for line in lines))
+        self.assertFalse(any(line.endswith('•') for line in lines))
+        self.assertFalse(any(line.startswith('/') for line in lines))
 
         # An item longer than the line still wraps cleanly without failing verification.
         doc.sections[2].units.append(Unit(
@@ -413,6 +414,65 @@ class RenderTests(unittest.TestCase):
         long_result = application_pdf.render_document('cv', doc.model_dump())
         self.assertEqual(long_result.pages, 1)
         self.assertEqual(self._passed(long_result, 'reading_order'), 'passed')
+
+    def test_long_institution_header_avoids_lone_short_tail_line(self):
+        from pypdf import PdfReader
+
+        doc = fictional_cv(bullets=1)
+        doc.sections.insert(2, Section(
+            id='s-education', kind='education', title='EDUCATION', entries=[
+                Entry(
+                    id='study-long', kind='study',
+                    locked=LockedEntry(
+                        company='Northern Polytechnic Institute of Applied Sciences and Engineering (NPIASE)',
+                        title='B.S. Systems Engineering',
+                        location='Northampton, UK',
+                        start='2018', end='2022',
+                    ),
+                    units=[Unit(id='u-st-b1', text='Built bench rigs for sensor verification.')],
+                ),
+            ],
+        ))
+        result = application_pdf.render_document('cv', doc.model_dump())
+        lines = [
+            ' '.join(line.split())
+            for page in PdfReader(BytesIO(result.pdf)).pages
+            for line in (page.extract_text() or '').splitlines()
+            if line.strip()
+        ]
+        self.assertFalse(any(line == '(NPIASE)' for line in lines), f'Short tail stranded: {lines!r}')
+        self.assertTrue(any('Northampton, UK' in line for line in lines))
+
+    def test_labelled_education_projects_stay_together_instead_of_splitting_one_and_two(self):
+        from pypdf import PdfReader
+
+        doc = fictional_cv(bullets=13)
+        doc.sections.insert(2, Section(
+            id='s-education', kind='education', title='EDUCATION', entries=[
+                Entry(
+                    id='study-1', kind='study',
+                    locked=LockedEntry(company='Example Technical College', title='B.S. Mechanical Engineering',
+                                       location='Bristol, UK', start='2018', end='2022'),
+                    intro=[
+                        Unit(id='u-study-i1', text='Focused on thermal storage and prototype fabrication.'),
+                        Unit(id='u-study-i2', text='Selected Engineering Projects:'),
+                    ],
+                    units=[
+                        Unit(id=f'u-study-b{n}', lead_in=f'Project Alpha {n}:',
+                             text='Built a compact test rig, logged thermal stability readings, and validated component tolerances. ' * 4)
+                        for n in range(1, 4)
+                    ],
+                ),
+            ],
+        ))
+        result = application_pdf.render_document('cv', doc.model_dump())
+        pages = [page.extract_text() or '' for page in PdfReader(BytesIO(result.pdf)).pages]
+        self.assertEqual(len(pages), 2)
+        p1_projects = [n for n in range(1, 4) if f'Project Alpha {n}:' in pages[0]]
+        p2_projects = [n for n in range(1, 4) if f'Project Alpha {n}:' in pages[1]]
+        self.assertEqual(p1_projects, [])
+        self.assertEqual(p2_projects, [1, 2, 3])
+        self.assertEqual(self._passed(result, 'entry_pagination'), 'passed')
 
     def test_invalid_document_fails_cleanly(self):
         with self.assertRaises(application_pdf.RenderFailed) as ctx:
@@ -461,6 +521,32 @@ class PaginationCheckTests(unittest.TestCase):
             '\n'.join([entry.locked.company, entry.locked.title, entry.intro[0].text, entry.intro[1].text, *bullets]),
         ]
         self.assertEqual(application_pdf._orphan_entry_breaks(doc, orphan_heading), ['work-1'])
+
+    def test_project_list_requires_at_least_two_items_per_page_when_split(self):
+        for count, on_first, expected in [
+            (3, 1, ['study-1']),
+            (3, 2, ['study-1']),
+            (4, 1, ['study-1']),
+            (4, 2, []),
+            (4, 3, ['study-1']),
+        ]:
+            with self.subTest(count=count, on_first=on_first):
+                doc = fictional_cv(bullets=1)
+                entry = Entry(
+                    id='study-1', kind='study',
+                    locked=LockedEntry(company='Beispielhochschule', title='B.Sc. Technik', start='2018', end='2022'),
+                    units=[
+                        Unit(id=f'u-st-{n}', lead_in=f'Projekt {n}:', text=f'Messaufbau {n} validiert.')
+                        for n in range(1, count + 1)
+                    ],
+                )
+                doc.sections.append(Section(id='s-edu', kind='education', title='AUSBILDUNG', entries=[entry]))
+                rendered = [f'Projekt {n}: Messaufbau {n} validiert.' for n in range(1, count + 1)]
+                pages = [
+                    '\n'.join([entry.locked.company, entry.locked.title, *rendered[:on_first]]),
+                    '\n'.join(rendered[on_first:]),
+                ]
+                self.assertEqual(application_pdf._orphan_entry_breaks(doc, pages), expected)
 
     def test_stylesheet_left_aligns_letter_and_protects_inline_items(self):
         from pathlib import Path

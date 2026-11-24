@@ -250,36 +250,46 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 8pt;
+  gap: 5pt;
 }
 
 .doc-cv-entry-company {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 9.5pt;
   font-weight: 700;
+  letter-spacing: -0.01em;
   text-transform: uppercase;
+  text-wrap: balance;
 }
 
 .doc-cv-entry-location {
+  flex: 0 0 auto;
+  font-size: 9.5pt;
   text-align: right;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .doc-cv-entry-title {
+  flex: 1 1 auto;
+  min-width: 0;
   font-weight: 700;
   font-style: italic;
 }
 
 .doc-cv-entry-dates {
+  flex: 0 0 auto;
+  font-size: 9.5pt;
   text-align: right;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .doc-cv-entry-intro {
   margin: 2pt 0;
 }
 
-.doc-cv-entry-intro:has(+ .doc-cv-bullets) {
+.doc-cv-entry-intro:has(+ .doc-cv-bullets),
+.doc-cv-entry-intro:has(+ .doc-cv-bullets) > .doc-cv-paragraph:last-child {
   break-after: avoid;
   page-break-after: avoid;
 }
@@ -333,6 +343,10 @@
 /* ---------- Inline Skills & Columns ---------- */
 
 .doc-cv-inline {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 7pt;
+  row-gap: 1.5pt;
   margin: 0;
   text-align: left;
 }
@@ -343,8 +357,10 @@
   overflow-wrap: break-word;
 }
 
-.doc-cv-inline-sep {
-  white-space: pre;
+.doc-cv-inline-entry::before {
+  content: '\2022';
+  margin-right: 3.5pt;
+  color: #000000;
 }
 
 .doc-cv-columns {
@@ -499,9 +515,16 @@
 
   /* Keep the first two bullets with the header when page one is already full, and avoid a lone trailing bullet. */
   .doc-page:not(.doc-page--fill-first) .doc-cv-entry .doc-cv-bullet:nth-child(1):not(:last-child),
+  .doc-cv-entry--projects .doc-cv-bullet:nth-child(1):not(:last-child),
   .doc-cv-entry .doc-cv-bullet:nth-last-child(2):not(:first-child) {
     break-after: avoid;
     page-break-after: avoid;
+  }
+
+  /* Keep education/labelled project lists intact when fewer than four projects cannot split 2+2. */
+  .doc-cv-entry--projects .doc-cv-bullets:not(:has(.doc-cv-bullet:nth-child(4))) {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   /* Keep compact sections together so a continuation starts with its section heading. */

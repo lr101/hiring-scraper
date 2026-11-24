@@ -108,29 +108,25 @@ function renderSectionUnits(
     return (
       <p className="doc-cv-inline">
         {items.map((unit, index) => (
-          <Fragment key={unit.id}>
-            {index > 0 ? ' ' : null}
-            <span className="doc-cv-inline-entry">
-              <span
-                className="doc-cv-inline-item"
-                data-unit-id={unit.id}
-                data-unit-hidden={unit.hidden ? 'true' : undefined}
-              >
-                {renderUnitContent(renderUnit, {
-                  unit,
-                  kind: 'inline',
-                  splittable: true,
-                  sectionId: section.id,
-                  index,
-                })}
-              </span>
-              {index < items.length - 1 ? (
-                <span className="doc-cv-inline-sep" aria-hidden="true">
-                  {'\u00A0\u2022'}
-                </span>
-              ) : null}
+          <span
+            key={unit.id}
+            className="doc-cv-inline-entry"
+            data-unit-hidden={unit.hidden ? 'true' : undefined}
+          >
+            <span
+              className="doc-cv-inline-item"
+              data-unit-id={unit.id}
+              data-unit-hidden={unit.hidden ? 'true' : undefined}
+            >
+              {renderUnitContent(renderUnit, {
+                unit,
+                kind: 'inline',
+                splittable: true,
+                sectionId: section.id,
+                index,
+              })}
             </span>
-          </Fragment>
+          </span>
         ))}
       </p>
     )
@@ -242,8 +238,11 @@ function renderEntry(
     : ''
   const titleText = showTitle ? localizedRoleLabel(trimmedTitle, language) || title : fallbackRoleTitle
 
+  const hasProjectList = entry.kind === 'study' || bulletUnits.some((unit) => Boolean(unit.lead_in.trim()))
+  const entryClass = hasProjectList ? 'doc-cv-entry doc-cv-entry--projects' : 'doc-cv-entry'
+
   return (
-    <article key={entry.id} className="doc-cv-entry" data-entry-id={entry.id}>
+    <article key={entry.id} className={entryClass} data-entry-id={entry.id}>
       {label && !genericEntryLabel.test(label) ? <p className="doc-cv-entry-label">{label}</p> : null}
       <div className="doc-cv-entry-header">
         <div className="doc-cv-entry-row">

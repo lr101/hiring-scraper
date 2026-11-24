@@ -419,7 +419,11 @@ def _orphan_entry_breaks(model: CvDocument, page_texts: list[str]) -> list[str]:
             lone_continuation = len(bullet_ends) >= 3 and any(
                 count < 2 for page, count in bullet_pages.items() if page > header_page
             )
-            if not has_content_on_header or dangling_caption or lone_continuation:
+            is_project_list = entry.kind == 'study' or any(unit.lead_in.strip() for unit in bullets)
+            lone_project_split = is_project_list and len(bullet_pages) > 1 and any(
+                count < 2 for count in bullet_pages.values()
+            )
+            if not has_content_on_header or dangling_caption or lone_continuation or lone_project_split:
                 broken.append(entry.id)
     return broken
 
