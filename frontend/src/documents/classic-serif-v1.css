@@ -373,11 +373,16 @@
   user-select: none;
 }
 
-.doc-cv-inline-sep--hidden {
+.doc-cv-inline-sep--hidden .doc-cv-inline-sep-mark {
   visibility: hidden;
 }
 
 .doc-cv-inline-sep--collapsed {
+  display: inline-block;
+  width: 0;
+}
+
+.doc-cv-inline-sep--collapsed .doc-cv-inline-sep-mark {
   display: none;
 }
 

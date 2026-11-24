@@ -117,7 +117,8 @@ function renderSectionUnits(
           <Fragment key={unit.id}>
             {index > 0 ? (
               <span className="doc-cv-inline-sep" aria-hidden="true">
-                {' \u2022 '}
+                <span className="doc-cv-inline-sep-space">{' '}</span>
+                <span className="doc-cv-inline-sep-mark">{'\u2022 '}</span>
               </span>
             ) : null}
             <span

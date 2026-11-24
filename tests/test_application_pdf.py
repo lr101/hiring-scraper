@@ -589,16 +589,41 @@ class RenderTests(unittest.TestCase):
         self.assertIn('Markt- und', pdfium_text)
         self.assertIn('ADDITIONAL QUALIFICATIONS', pdfium_text)
         self.assertIn('BEISPIELWERK GMBH', pdfium_text)
+        from pypdf import PdfReader
+        import re
+
         for label, extracted in [('pypdf', result.text), ('pdfium', pdfium_text)]:
             lines = [line.strip() for line in extracted.splitlines() if line.strip()]
             self.assertFalse(
                 any(line.startswith('•') or line.endswith('•') for line in lines),
                 f'{label} had leading or trailing inline separator bullet: {lines}',
             )
+            skills_section = extracted[extracted.index('ADDITIONAL QUALIFICATIONS'):]
+            skill_lines = [line.strip() for line in skills_section.splitlines()[1:] if line.strip()]
+            self.assertGreaterEqual(len(skill_lines), 2, f'{label} did not wrap inline skills: {skill_lines}')
+            for left, right in zip(skills, skills[1:]):
+                self.assertNotIn(f'{left}{right}', skills_section, f'{label} merged wrapped skills')
+
+        raw_chunks: list[str] = []
+        for page in PdfReader(BytesIO(result.pdf)).pages:
+            page.extract_text(visitor_text=lambda text, _cm, _tm, _fd, _fs: raw_chunks.append(text))
+        raw_stream = ''.join(chunk for chunk in raw_chunks if chunk not in ('\n', '\r'))
+        raw_skills = raw_stream[raw_stream.index('ADDITIONAL QUALIFICATIONS'):]
+        for left, right in zip(skills, skills[1:]):
+            self.assertNotIn(f'{left}{right}', raw_skills, f'PDF text layer merged {left!r} and {right!r}')
+            self.assertRegex(
+                raw_skills,
+                rf'{re.escape(left)}(?:[ \t]+•[ \t]+|[ \t]+){re.escape(right)}',
+                f'PDF text layer lacked whitespace boundary between {left!r} and {right!r}: {raw_skills!r}',
+            )
+
         plain = cv_text(doc)
         skills_plain = plain[plain.index('ADDITIONAL QUALIFICATIONS'):]
         positions = [skills_plain.index(name) for name in skills]
         self.assertEqual(positions, sorted(positions))
+        for left, right in zip(skills, skills[1:]):
+            self.assertNotIn(f'{left}{right}', skills_plain)
+            self.assertIn(f'{left} • {right}', skills_plain)
 
     def test_pdfium_preserves_a_compound_at_the_wrap_boundary(self):
         doc = fictional_cv(bullets=1)

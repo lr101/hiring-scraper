@@ -309,6 +309,43 @@ syncInlineSeparators(fakeRoot)
 assert.equal(sepBC.classList.has('doc-cv-inline-sep--hidden'), false)
 assert.equal(sepCD.classList.has('doc-cv-inline-sep--collapsed'), false)
 
+// Collapsing a wrapped separator keeps a narrow item on the next line by filling remaining width
+{
+  const styles = new Map()
+  const narrowItem = fakeNode({ top: 18, bottom: 32, height: 14, right: 10 })
+  const prevItem = fakeNode({ top: 0, bottom: 14, height: 14, right: 192 })
+  const narrowSep = {
+    ...fakeNode({ top: 18, bottom: 32, height: 14, right: 11 }),
+    previousElementSibling: prevItem,
+    nextElementSibling: narrowItem,
+    style: {
+      set width(value) {
+        styles.set('width', value)
+      },
+      get width() {
+        return styles.get('width') ?? ''
+      },
+      removeProperty(name) {
+        styles.delete(name)
+      },
+    },
+  }
+  const origAdd = narrowSep.classList.add
+  narrowSep.classList.add = (...names) => {
+    origAdd(...names)
+    if (names.includes('doc-cv-inline-sep--collapsed')) {
+      narrowItem.rect = { top: 0, bottom: 14, height: 14, right: 199 }
+    }
+  }
+  const narrowList = {
+    getBoundingClientRect: () => ({ right: 200 }),
+    querySelectorAll: (selector) => (selector === '.doc-cv-inline-sep' ? [narrowSep] : []),
+  }
+  syncInlineSeparators({ querySelectorAll: () => [narrowList] })
+  assert.equal(narrowSep.classList.has('doc-cv-inline-sep--collapsed'), true)
+  assert.equal(narrowSep.style.width, '8px')
+}
+
 {
   const cv = makeCv()
   cv.headline = makeUnit('headline', 'Designed a public workshop.', {

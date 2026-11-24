@@ -7,7 +7,9 @@ export function syncInlineSeparators(root: ParentNode | null | undefined): void 
     const separators = Array.from(list.querySelectorAll<HTMLElement>('.doc-cv-inline-sep'))
     for (const sep of separators) {
       sep.classList.remove('doc-cv-inline-sep--hidden', 'doc-cv-inline-sep--collapsed')
+      sep.style?.removeProperty('width')
     }
+    const listRect = typeof list.getBoundingClientRect === 'function' ? list.getBoundingClientRect() : null
     for (const sep of separators) {
       const prev = sep.previousElementSibling as HTMLElement | null
       const next = sep.nextElementSibling as HTMLElement | null
@@ -20,6 +22,13 @@ export function syncInlineSeparators(root: ParentNode | null | undefined): void 
       if (wrapped) {
         if (sepRect.top >= prevRect.bottom - LINE_TOLERANCE_PX) {
           sep.classList.add('doc-cv-inline-sep--collapsed')
+          const nextAfter = next.getBoundingClientRect()
+          if (nextAfter.top < prevRect.bottom - LINE_TOLERANCE_PX && listRect && sep.style) {
+            const remaining = Math.max(0, Math.floor(listRect.right - prevRect.right))
+            if (remaining > 0) {
+              sep.style.width = `${remaining}px`
+            }
+          }
         } else {
           sep.classList.add('doc-cv-inline-sep--hidden')
         }
