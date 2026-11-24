@@ -13,10 +13,10 @@ _ANALYSIS = {
     'requirements': [{'line': 2, 'text': 'Experience as a Product Owner', 'need': 'must', 'kind': 'experience'}],
 }
 _EVIDENCE = {
-    'items': [{'ref': 'd0', 'support': 0.8, 'quote': 'Owned product backlog', 'source': 'summary'},
-              {'ref': 'r0', 'support': 0.8, 'quote': 'Product Owner with 5 years', 'source': 'summary'}],
-    'role': {'support': 0.9, 'role': 'Product Owner'},
-    'domain': {'support': 0.8, 'quote': 'Product Owner', 'source': 'summary', 'field': 'product management'},
+    'items': [{'ref': 'd0', 'support': 0.999, 'quote': 'Owned product backlog', 'source': 'summary'},
+              {'ref': 'r0', 'support': 0.999, 'quote': 'Product Owner with 5 years', 'source': 'summary'}],
+    'role': {'support': 0.999, 'role': 'Product Owner'},
+    'domain': {'support': 0.999, 'quote': 'Product Owner', 'source': 'summary', 'field': 'product management'},
 }
 
 

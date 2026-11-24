@@ -28,7 +28,7 @@ def fake_embed(texts, kind):
 
 
 def fake_rerank(query, documents):
-    return [0.95 if 'python' in doc.casefold() or 'postgres' in doc.casefold() or 'developer' in doc.casefold()
+    return [0.999 if 'python' in doc.casefold() or 'postgres' in doc.casefold() or 'developer' in doc.casefold()
             else 0.01 for doc in documents]
 
 

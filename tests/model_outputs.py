@@ -52,7 +52,7 @@ def embed(texts: list[str], kind: str) -> list[list[float]]:
 def rerank(query: str, documents: list[str]) -> list[float]:
     item = query.split(': ', 2)[-1] if ': ' in query else query
     wanted = words(item)
-    return [0.7 if wanted & words(document) else 0.01 for document in documents]
+    return [0.98 if wanted & words(document) else 0.01 for document in documents]
 
 
 def run_analysis_worker(max_rounds: int = 2000) -> bool:

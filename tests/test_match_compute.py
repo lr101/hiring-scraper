@@ -29,12 +29,12 @@ ANALYSIS = {
                      {'line': 6, 'text': 'English C1 required.', 'need': 'must', 'kind': 'language'}],
 }
 EVIDENCE = {
-    'items': [{'ref': 'd0', 'support': 0.97, 'quote': 'Built Python services, maintained SQL databases',
+    'items': [{'ref': 'd0', 'support': 0.999, 'quote': 'Built Python services, maintained SQL databases',
                'source': 'summary'},
-              {'ref': 'd1', 'support': 0.9, 'quote': 'deployed Docker containers', 'source': 'summary'},
-              {'ref': 'r0', 'support': 0.6, 'quote': 'Built Python services', 'source': 'summary'}],
-    'role': {'support': 0.85, 'role': 'Software developer'},
-    'domain': {'support': 0.9, 'quote': 'Built Python services', 'source': 'summary',
+              {'ref': 'd1', 'support': 0.998, 'quote': 'deployed Docker containers', 'source': 'summary'},
+              {'ref': 'r0', 'support': 0.99, 'quote': 'Built Python services', 'source': 'summary'}],
+    'role': {'support': 0.999, 'role': 'Software developer'},
+    'domain': {'support': 0.999, 'quote': 'Built Python services', 'source': 'summary',
                'field': 'backend software development; software'},
 }
 
