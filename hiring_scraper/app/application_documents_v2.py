@@ -138,11 +138,12 @@ def public_task(record: dict | None) -> dict | None:
 
 # --- Storage ----------------------------------------------------------------------
 
-def document_json(row: ApplicationDocument | None) -> dict | None:
+def document_json(row: ApplicationDocument | None, *, fresh_digest=None) -> dict | None:
     if row is None:
         return None
     return {'version': row.version, 'language': row.language, 'body': row.body, 'findings': row.findings or [],
-            'origin': row.origin, 'stale_inputs': row.stale_inputs, 'created_at': row.created_at.isoformat()}
+            'origin': row.origin, 'stale_inputs': _is_stale(row.stale_inputs, row.input_digest, fresh_digest),
+            'created_at': row.created_at.isoformat()}
 
 
 def latest(session, profile_id, job_id, kind) -> ApplicationDocument | None:
@@ -152,8 +153,19 @@ def latest(session, profile_id, job_id, kind) -> ApplicationDocument | None:
     ).order_by(ApplicationDocument.version.desc()).limit(1)).first()
 
 
+def _is_stale(stale, digest, fresh_digest):
+    return stale or (digest is not None and digest != fresh_digest)
+
+
 def latest_pair(session, profile_id, job_id) -> dict:
-    return {kind: document_json(latest(session, profile_id, job_id, kind)) for kind in KINDS}
+    digests = {}
+    documents = {}
+    for kind in KINDS:
+        row = latest(session, profile_id, job_id, kind)
+        if row and row.input_digest and not row.stale_inputs and row.language not in digests:
+            digests[row.language] = _fresh_digest(session, profile_id, job_id, row.language)
+        documents[kind] = document_json(row, fresh_digest=digests.get(row.language) if row else None)
+    return documents
 
 
 def get_version(session, profile_id, job_id, kind, version) -> ApplicationDocument | None:
@@ -163,11 +175,14 @@ def get_version(session, profile_id, job_id, kind, version) -> ApplicationDocume
 def list_versions(session, profile_id, job_id, kind) -> list[dict]:
     rows = session.execute(select(
         ApplicationDocument.version, ApplicationDocument.origin, ApplicationDocument.language,
-        ApplicationDocument.stale_inputs, ApplicationDocument.created_at,
+        ApplicationDocument.stale_inputs, ApplicationDocument.created_at, ApplicationDocument.input_digest,
     ).where(ApplicationDocument.profile_id == profile_id, ApplicationDocument.job_id == job_id,
             ApplicationDocument.kind == kind).order_by(ApplicationDocument.version.desc())).all()
-    return [{'version': version, 'origin': origin, 'language': language, 'stale_inputs': stale,
-             'created_at': created.isoformat()} for version, origin, language, stale, created in rows]
+    digests = {language: _fresh_digest(session, profile_id, job_id, language)
+               for language in {row.language for row in rows if row.input_digest and not row.stale_inputs}}
+    return [{'version': version, 'origin': origin, 'language': language,
+             'stale_inputs': _is_stale(stale, digest, digests.get(language)), 'created_at': created.isoformat()}
+            for version, origin, language, stale, created, digest in rows]
 
 
 def save_version(session, profile_id, job_id, kind, body, *, expected_version, origin,
@@ -297,32 +312,31 @@ def _preparation_input(fields):
     return PreparationInput(**fields)
 
 
-def _fresh_digest(profile_id, job_id, language, mode):
+def _fresh_digest(session, profile_id, job_id, language):
     from hiring_scraper.app.application_pipeline import input_digest
-    with SessionLocal() as session:
-        fields, version = snapshot_inputs(session, profile_id, job_id, language, mode)
-    return input_digest(_preparation_input(fields)), version
+    try:
+        fields, _ = snapshot_inputs(session, profile_id, job_id, language)
+    except queue.TaskError:
+        return None  # The job closed or the source CV was removed.
+    return input_digest(_preparation_input(fields))
 
 
-def _hold_publication(session, profile_id, job_id, expected_profile_version=None):
+def _hold_publication(session, profile_id, job_id):
     """Lock order jobs -> profiles; the caller then writes derived rows."""
-    session.execute(select(Job.id).where(Job.id == job_id).with_for_update(read=True, key_share=True))
-    hold_profiles(session, {profile_id: expected_profile_version} if expected_profile_version is not None
-                  else [profile_id], wait=False)
+    # FOR SHARE conflicts with the crawler's FOR NO KEY UPDATE.
+    session.execute(select(Job.id).where(Job.id == job_id).with_for_update(read=True))
+    hold_profiles(session, [profile_id], wait=False)
 
 
 # --- Worker: prepare --------------------------------------------------------------
 
 def _publish_prepared(profile_id, job_id, progress, digest, request, kind, body, findings):
-    language, mode = request['language'], request.get('mode', 'full')
+    language = request['language']
 
     def attempt():
-        try:
-            fresh, profile_version = _fresh_digest(profile_id, job_id, language, mode)
-        except queue.TaskError:
-            fresh, profile_version = None, None  # closed job or removed CV: publish, flagged stale
         with SessionLocal.begin() as session:
-            _hold_publication(session, profile_id, job_id, profile_version)
+            _hold_publication(session, profile_id, job_id)
+            fresh = _fresh_digest(session, profile_id, job_id, language)
             row = progress.fenced(session)
             if row is None:
                 raise HTTPException(409, 'Preparation cancelled.')

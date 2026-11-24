@@ -235,6 +235,11 @@ def _input_digest(inp: PreparationInput, base: CvDocument, evidence: dict) -> st
         'version': PIPELINE_VERSION,
         'base_cv': base.model_dump(),
         'evidence': evidence,
+        'voice': _voice(inp),
+        'grounding_profile': {key: inp.profile.get(key) for key in (
+            'language_levels', 'application_details', 'experiences', 'cv_career_facts',
+            'skills', 'certifications', 'skill_evidence', 'localized_content',
+        )},
         'job': inp.job,
         'language': inp.language,
     })

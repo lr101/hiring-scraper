@@ -1,6 +1,7 @@
 import json
 import unittest
 from copy import deepcopy
+from dataclasses import replace
 from datetime import date
 from unittest.mock import Mock, patch
 
@@ -85,6 +86,17 @@ class PipelineTests(unittest.TestCase):
         replies = iter((cv if cv is not None else cv_reply(), letter or letter_reply(),
                         review or {'findings': [], 'patches': []}))
         return pipeline.prepare_documents(self.inp, lambda prompt, schema: next(replies), self.hooks, render)
+
+    def test_input_digest_changes_with_effective_voice(self):
+        initial = pipeline.input_digest(self.inp)
+        for personalization in (
+            {'voice_notes': 'Fictional preference for short sentences'},
+            {'wording_to_avoid': ['rock star']},
+            {'style_exemplars': [{'language': 'en', 'kind': 'letter', 'text': 'Fictional sample.'}]},
+        ):
+            with self.subTest(personalization=personalization):
+                changed = replace(self.inp, profile={'application_personalization': personalization})
+                self.assertNotEqual(pipeline.input_digest(changed), initial)
 
     def test_stage_order_checkpoints_and_publication(self):
         expected = iter([('cv', cv_reply()), ('letter', letter_reply()),
@@ -617,7 +629,7 @@ class PipelineTests(unittest.TestCase):
         }
         variant = deepcopy(self.inp)
         variant.profile['application_personalization']['voice_notes'] = 'Other voice.'
-        self.assertEqual(pipeline.input_digest(self.inp), pipeline.input_digest(variant))
+        self.assertNotEqual(pipeline.input_digest(self.inp), pipeline.input_digest(variant))
 
         def generate(prompt, schema):
             self.assertIn('tone only', prompt)

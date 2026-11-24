@@ -72,6 +72,28 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
         with self.sessions() as session:
             self.assertEqual(session.scalars(select(ApplicationDocument)).all(), [])
 
+    def test_saved_documents_become_stale_after_job_changes(self):
+        from hiring_scraper.app import source_changes
+        from hiring_scraper.documents.import_tex import import_marked_tex
+
+        source = FIXTURE.read_text()
+        body = import_marked_tex(source, language='en').model_dump(mode='json')
+        with self.sessions.begin() as session:
+            session.add(ProfileCV(profile_id=1, filename='cv.tex', content_type='application/x-tex', size_bytes=1,
+                                  data=b'x', extracted_text=source, variants={'en': {'document': body}}))
+        with self.sessions.begin() as session:
+            digest = documents._fresh_digest(session, 1, 2, 'en')
+            self.assertIsNotNone(digest)
+            documents.save_version(session, 1, 2, 'letter', letter(), expected_version=0,
+                                   origin='ai', input_digest=digest)
+            self.assertFalse(documents.latest_pair(session, 1, 2)['letter']['stale_inputs'])
+        with self.sessions.begin() as session:
+            session.get(Job, 2).description = 'The fictional role now involves operational reporting.'
+            source_changes.jobs_changed(session, [2])
+        with self.sessions() as session:
+            self.assertTrue(documents.latest_pair(session, 1, 2)['letter']['stale_inputs'])
+            self.assertTrue(documents.list_versions(session, 1, 2, 'letter')[0]['stale_inputs'])
+
     def test_cv_structure_imports_then_stores_projected_text_and_declares_the_change(self):
         source = FIXTURE.read_text()
         with self.sessions.begin() as session:
@@ -196,7 +218,7 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
                            extra={'base_versions': {'cv': 0, 'letter': 1}})
         key, token, record = queue._claim()
         progress = queue.Progress(key, token, {}, task_id=record['id'], record=record)
-        with patch.object(documents, '_fresh_digest', return_value=('digest', None)):
+        with patch.object(documents, '_fresh_digest', return_value='digest'):
             documents._publish_prepared(1, 2, progress, 'digest', {'language': 'en'}, 'letter',
                                         letter(paragraph='AI one.'), [])
             self.save(2, paragraph='User edit.')  # the user saves while the review stage runs
