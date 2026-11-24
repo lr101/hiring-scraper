@@ -254,9 +254,11 @@ function entry(item, continuation = false) {
             ? "Documents ready to review in Radius"
             : jobState?.state === "failed"
               ? `Preparation failed: ${jobState.error || "Open Radius to retry"}`
-              : jobState?.state === "cancelled"
-                ? "Preparation cancelled"
-                : labels[jobState?.stage] || "";
+              : jobState?.state === "partial"
+                ? "Drafts available. Open Radius to retry preparation."
+                : jobState?.state === "cancelled"
+                  ? "Preparation cancelled"
+                  : labels[jobState?.stage] || "";
         if (["running", "cancelling"].includes(jobState?.state))
           setTimeout(refresh, 3000);
       } catch {
