@@ -29,8 +29,7 @@ Radius flags changed inputs, regenerate to update the tailoring. Radius leaves s
 The companion fills saved profile facts after you start a fill, and can
 capture the current form's question labels and constraints. Download v2 PDFs
 in Radius and attach them on the employer's form. Existing v1 packages retained
-by the companion can still be used through its legacy package tools. Older
-server-side working drafts require a fresh preparation in the editor.
+by the companion can still be used through its legacy package tools.
 
 ## Data and deployment
 
@@ -49,6 +48,24 @@ server-side working drafts require a fresh preparation in the editor.
   base CV also removes these documents, their render cache and queued work.
 - The worker needs Chromium and the built `frontend/dist/print.html` entry
   for PDF rendering. See the architecture guide for queue and worker details.
+
+## Recover a v1 working draft
+
+Before starting v2, stop the v1 API and preparation worker so all saved files
+stay stable. With the v2 image configured, export each profile that has legacy
+edits. Replace `1` with its Radius profile ID and run this in a private directory:
+
+```sh
+umask 077
+docker compose run --rm --no-deps -T --user 10001:10001 --entrypoint python app \
+  -m hiring_scraper.app.legacy_application_drafts 1 > radius-v1-drafts-1.zip
+```
+
+The ZIP includes saved working drafts and revision records from the private
+Codex volume. Use the job ID in each filename to locate the draft. Copy any
+edits you want to keep into the corresponding v2 editor after preparation.
+Keep the archive private. Removing a profile or its base CV also removes its
+legacy records from the Radius volume.
 
 ## Private evaluation
 

@@ -91,8 +91,9 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
         with self.sessions() as session:
             initial = documents.latest_pair(session, 1, 2)['letter']
             base = json.loads(documents.get_cv_structure(1, 'en', session).body)
-        with self.sessions() as session:
-            profiles.delete_cv(1, session)
+        with TemporaryDirectory() as folder, patch.object(codex_runtime, '_root', return_value=Path(folder)):
+            with self.sessions() as session:
+                profiles.delete_cv(1, session)
         attach_cv()
         self.save(0, paragraph='New fictional draft.')
         with self.sessions() as session, self.assertRaises(HTTPException) as conflict:
@@ -170,8 +171,13 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
         queue.enqueue_task(1, 2, 'prepare', {'job_id': 2, 'language': 'en'})
 
         with TemporaryDirectory() as folder, patch.object(codex_runtime, '_root', return_value=Path(folder)):
+            jobs = Path(folder) / 'application-jobs'
+            jobs.mkdir()
+            legacy = jobs / '1-2.draft.json'
+            legacy.write_text('{"draft":"Fictional legacy edit"}')
             with self.sessions() as session:
                 self.assertEqual(profiles.delete_cv(1, session).status_code, 204)
+            self.assertFalse(legacy.exists())
         with self.sessions() as session:
             for model in (ProfileCV, ApplicationDocument, ApplicationDocumentRender,
                           ApplicationRenderTask, ApplicationPreparationTask):
@@ -186,9 +192,9 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
         with self.sessions() as session:
             self.assertFalse(auto_preparation._queue_structured(
                 session, session.get(UserProfile, 1), session.get(Job, 2), 'en', None))
-            payload = documents.get_cv_structure(1, 'en', session)
-            documents.put_cv_structure(
-                1, documents.StructureRequest(document=json.loads(payload.body)['document']), 'en', session)
+            payload = json.loads(documents.get_cv_structure(1, 'en', session).body)
+            documents.put_cv_structure(1, documents.StructureRequest(
+                document=payload['document'], expected_revision=payload['revision']), 'en', session)
         with self.sessions() as session, patch.object(codex_runtime, 'selected_model', return_value=None):
             self.assertTrue(auto_preparation._queue_structured(
                 session, session.get(UserProfile, 1), session.get(Job, 2), 'en', None))

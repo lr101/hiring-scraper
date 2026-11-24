@@ -10,7 +10,7 @@ from typing import Annotated, Any, Literal
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, text
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 from hiring_scraper.app import source_changes
@@ -392,10 +392,17 @@ def update_profile(profile_id: int, request: ProfileRequest, session: Session = 
     return _save(require_profile(profile_id, session), request, session)
 
 
+def _delete_legacy_drafts(profile_id):
+    from hiring_scraper.app import codex_runtime, legacy_application_drafts
+
+    legacy_application_drafts.delete_profile(codex_runtime._root(), profile_id)
+
+
 @router.delete('/{profile_id}')
 def delete_profile(profile_id: int, session: Session = Depends(get_session)):
     session.delete(require_profile(profile_id, session))
     source_changes.profile_changed(session, profile_id)  # cascade removed its derived rows
+    _delete_legacy_drafts(profile_id)
     session.commit()
     return {'deleted': True}
 
@@ -580,6 +587,9 @@ def delete_cv(profile_id: int, session: Session = Depends(get_session)):
     from hiring_scraper.app.application_preparation_queue import clear
     source_changes.profile_changed(session, profile_id, career_facts_changed=had_facts)
     clear(session, profile_id)
+    session.execute(text('DELETE FROM application_preparation_tasks WHERE profile_id = :profile_id'),
+                    {'profile_id': profile_id})
+    _delete_legacy_drafts(profile_id)
     # Render tasks and cached PDFs cascade with their document versions.
     session.execute(delete(ApplicationDocument).where(ApplicationDocument.profile_id == profile_id))
     session.commit()
