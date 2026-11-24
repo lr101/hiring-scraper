@@ -39,7 +39,7 @@ from hiring_scraper.documents.schema import (
 )
 from hiring_scraper.documents.text import unit_full_text
 
-PIPELINE_VERSION = 'application-documents-v2.9'
+PIPELINE_VERSION = 'application-documents-v2.10'
 SLEEP = time.sleep
 PROMPTS = Path(__file__).with_name('prompts')
 DocumentKind = Literal['cv', 'letter']
@@ -101,13 +101,16 @@ class _SourcedText(_Text):
     sources: list[str]
 
 
-class _Bullet(_SourcedText):
+class _KeepBullet(_Response):
+    action: Literal['keep']
+
+
+class _RewriteBullet(_SourcedText):
+    action: Literal['rewrite']
+
+
+class _RewriteProjectBullet(_RewriteBullet):
     lead_in: str
-
-
-class _EntryBullets(_Response):
-    entry_id: str
-    bullets: list[_Bullet]
 
 
 class _Skills(_Response):
@@ -117,10 +120,9 @@ class _Skills(_Response):
     additions: list[_SourcedText]
 
 
-class _CvResponse(_Response):
+class _CvSlots(_Response):
     headline: _SourcedText
-    profile: list[_SourcedText]
-    entries: list[_EntryBullets]
+    profile: _SourcedText
     skills: list[_Skills]
 
 
@@ -139,15 +141,9 @@ class _LetterExample(_Response):
     priority: int
 
 
-class _LetterFit(_Text):
-    uses_language_level: bool
-
-
 class _LetterSlots(_Response):
     subject: _Text
     contact_name: str
-    motivation: _Text
-    fit: _LetterFit | None
     closing: _Text
 
 
@@ -388,10 +384,10 @@ def _plain(text: str, limit: int = MAX_UNIT_TEXT) -> str:
     return text
 
 
-def _ai(unit_id: str, text: _Text, *, role: UnitRole = '', hidden: bool = False) -> Unit:
+def _ai(unit_id: str, text: _Text, *, role: UnitRole = '', hidden: bool = False, lead_in: str = '') -> Unit:
     return Unit(
         id=unit_id, text=_plain(text.text), origin='ai', role=role, hidden=hidden,
-        lead_in=' '.join(text.lead_in.split()) if isinstance(text, _Bullet) else '',
+        lead_in=' '.join(lead_in.split()),
         sources=text.sources if isinstance(text, _SourcedText) else [],
     )
 
@@ -411,16 +407,52 @@ def _issues_to_findings(kind: DocumentKind, issues: tuple[_ProseIssue, ...] | li
     ]
 
 
-def _cv_entries(base: CvDocument) -> list[dict]:
-    entries = []
+def _cv_contract(base: CvDocument) -> tuple[list[dict], type[_CvSlots], dict[str, dict[str, tuple[str, Unit]]]]:
+    """Build per-base-bullet keep/rewrite slots so no base bullet can be dropped."""
+    entries_prompt: list[dict] = []
+    entry_fields: dict[str, tuple] = {}
+    slot_map: dict[str, dict[str, tuple[str, Unit]]] = {}
+    entry_index = 0
     for section in base.sections:
         for entry in section.entries:
             intro = editorial.study_project_intro(entry)
-            bank = [source for source, unit in entry_bullets(entry) if unit is not intro]
-            if bank:
-                entries.append({'entry_id': entry.id, 'kind': entry.kind, **entry.locked.model_dump(),
-                                'base_count': len(bank), 'bullet_bank': bank})
-    return entries
+            bank = [(source, unit) for source, unit in entry_bullets(entry) if unit is not intro]
+            if not bank:
+                continue
+            entry_index += 1
+            prompt_bullets = []
+            bullet_fields: dict[str, tuple] = {}
+            entry_slots: dict[str, tuple[str, Unit]] = {}
+            for bullet_index, (source, unit) in enumerate(bank, 1):
+                entry_slots[unit.id] = (source, unit)
+                item = {'bullet_id': unit.id, 'source': source, 'text': unit.text}
+                if unit.lead_in.strip():
+                    item['lead_in'] = unit.lead_in.strip()
+                    rewrite_model = _RewriteProjectBullet
+                else:
+                    rewrite_model = _RewriteBullet
+                prompt_bullets.append(item)
+                bullet_fields[f'b{bullet_index}'] = (
+                    Union[_KeepBullet, rewrite_model], Field(alias=unit.id),
+                )
+            ids = tuple(unit.id for _, unit in bank)
+            bullets_model = create_model(f'CvBullets{entry_index}', __base__=_Response, **bullet_fields)
+            entry_model = create_model(
+                f'CvEntry{entry_index}', __base__=_Response,
+                order=(list[Literal[ids]], ...),
+                bullets=(bullets_model, ...),
+            )
+            entry_fields[f'e{entry_index}'] = (entry_model, Field(alias=entry.id))
+            slot_map[entry.id] = entry_slots
+            entries_prompt.append({
+                'entry_id': entry.id,
+                'kind': entry.kind,
+                **entry.locked.model_dump(),
+                'bullets': prompt_bullets,
+            })
+    entries_model = create_model('CvEntries', __base__=_Response, **entry_fields)
+    response = create_model('CvDraft', __base__=_CvSlots, entries=(entries_model, ...))
+    return entries_prompt, response, slot_map
 
 
 def _mentions(text: str, name: str) -> bool:
@@ -506,25 +538,20 @@ def _show_named_skills(doc: CvDocument) -> None:
                     unit.hidden = False
 
 
-def _cv_draft(
-    output: dict, base: CvDocument, entries: list[dict], evidence: dict[str, str], posting: str,
+def _cv_from_slots(
+    output: dict, response: type[_CvSlots], slot_map: dict[str, dict[str, tuple[str, Unit]]],
+    base: CvDocument, evidence: dict[str, str], posting: str,
 ) -> tuple[CvDocument, list[Finding]]:
-    reply = _CvResponse.model_validate(output)
-    entry_ids = {entry['entry_id'] for entry in entries}
+    reply = response.model_validate(output).model_dump(by_alias=True)
     findings: list[Finding] = []
     issues: list[_ProseIssue] = []
 
     def unknown(message: str) -> None:
         issues.append(_ProseIssue('cv_unknown_id', message, 'review_format', message))
 
-    if len(reply.profile) != 1:
-        issues.append(_ProseIssue(
-            'cv_profile_count',
-            f'Profile returned {len(reply.profile)} units; return exactly one profile unit integrating the strongest evidence.',
-            'review_format',
-            'The CV profile should contain one summary unit.',
-        ))
-    if not reply.headline.sources:
+    headline = _SourcedText.model_validate(reply['headline'])
+    profile_reply = _SourcedText.model_validate(reply['profile'])
+    if not headline.sources:
         issues.append(_ProseIssue(
             'cv_missing_sources',
             'Headline is missing evidence ids; cite the evidence supporting the headline.',
@@ -532,60 +559,25 @@ def _cv_draft(
             'The rewritten CV headline lacked evidence source citations.',
             unit_id=base.headline.id,
         ))
-    if any(not unit.sources for unit in reply.profile):
+    if not profile_reply.sources:
         issues.append(_ProseIssue(
             'cv_missing_sources',
-            'One or more profile units are missing evidence ids; cite the evidence supporting each profile unit.',
+            'Profile is missing evidence ids; cite the evidence supporting the profile.',
             'review_grounding',
-            'A rewritten CV profile unit lacked evidence source citations.',
+            'The rewritten CV profile lacked evidence source citations.',
         ))
 
-    base_entries = {entry.id: entry for section in base.sections for entry in section.entries}
-    edits = {}
-    for proposed in reply.entries:
-        entry_id = proposed.entry_id
-        if entry_id not in entry_ids:
-            unknown('The CV response referred to an entry outside the supplied bullet banks.')
-            continue
-        if entry_id in edits:
-            raise _InvalidResponse(
-                f'Entry {entry_id} appeared more than once; return each listed entry exactly once.',
-                code='cv_duplicate_entry',
-            )
-        if any(not bullet.sources for bullet in proposed.bullets):
-            issues.append(_ProseIssue(
-                'cv_missing_sources',
-                f'Entry {entry_id} has a bullet without evidence ids; cite evidence supporting every rewritten CV bullet.',
-                'review_grounding',
-                f'A rewritten bullet in {entry_id} lacked evidence source citations.',
-            ))
-        base_entry = base_entries.get(entry_id)
-        base_visible = [u for u in base_entry.units if not u.hidden] if base_entry else []
-        all_base_labelled = bool(base_visible) and all(u.lead_in.strip() for u in base_visible)
-        if any(
-            previous.lead_in.strip()
-            and not bullet.lead_in.strip()
-            and (all_base_labelled or bool(set(previous.sources) & set(bullet.sources)))
-            for previous, bullet in zip(proposed.bullets, proposed.bullets[1:], strict=False)
-        ):
-            issues.append(_ProseIssue(
-                'cv_split_project',
-                f'Entry {entry_id}: keep each labelled project in one bullet with its lead-in and merge unlabelled continuations.',
-                'review_format',
-                f'Entry {entry_id} splits a labelled project across an unlabelled continuation bullet.',
-            ))
-        edits[entry_id] = proposed.bullets
-
     skill_sections = {s.id for s in base.sections if s.kind == 'skills'}
-    skills = {}
-    if sum(len(section.additions) for section in reply.skills) > 4:
+    skills: dict[str, _Skills] = {}
+    parsed_skills = [_Skills.model_validate(section) for section in reply['skills']]
+    if sum(len(section.additions) for section in parsed_skills) > 4:
         issues.append(_ProseIssue(
             'cv_skills_additions_limit',
             'Add at most four evidence-backed competencies across all skills sections.',
             'review_format',
             'The CV proposed more than four new competency items.',
         ))
-    for proposed in reply.skills:
+    for proposed in parsed_skills:
         if proposed.section_id not in skill_sections:
             unknown('The CV response referred to an unknown skills section.')
         elif proposed.section_id in skills:
@@ -608,21 +600,52 @@ def _cv_draft(
         used_ids.add(candidate)
         return candidate
 
-    doc.headline = _ai(doc.headline.id, reply.headline, hidden=doc.headline.hidden)
+    doc.headline = _ai(doc.headline.id, headline, hidden=doc.headline.hidden)
     profile = next((s for s in doc.sections if s.kind == 'profile'), None)
     if profile is not None:
         profile.units = [
-            *(_ai(new_id(f'u-ai-profile-{i}'), unit) for i, unit in enumerate(reply.profile[:1], 1)),
+            _ai(new_id('u-ai-profile-1'), profile_reply),
             *(unit for unit in profile.units if unit.hidden),
         ]
 
+    entries_reply = reply['entries']
     for section in doc.sections:
         for entry in section.entries:
-            if entry.id in edits:
-                slug = re.sub('[^a-z0-9-]', '-', entry.id.lower())[:40]
+            if entry.id in slot_map:
+                entry_slots = slot_map[entry.id]
+                entry_reply = entries_reply[entry.id]
+                bullet_choices = entry_reply['bullets']
+                ordered_ids = list(dict.fromkeys(
+                    [bid for bid in entry_reply['order'] if bid in entry_slots] + list(entry_slots),
+                ))
+                built_units: list[Unit] = []
+                for bullet_id in ordered_ids:
+                    base_source, base_unit = entry_slots[bullet_id]
+                    choice = bullet_choices[bullet_id]
+                    if choice['action'] == 'keep':
+                        built_units.append(base_unit.model_copy(update={
+                            'origin': 'source',
+                            'sources': [base_source],
+                        }))
+                        continue
+                    text = _plain(choice['text'])
+                    extra_sources = [s for s in choice['sources'] if isinstance(s, str) and s.strip()]
+                    sources = list(dict.fromkeys([base_source, *extra_sources]))
+                    lead_in = ''
+                    if base_unit.lead_in.strip():
+                        lead_in = ' '.join(str(choice.get('lead_in') or '').split()) or base_unit.lead_in.strip()
+                        if not lead_in.endswith(':'):
+                            lead_in = f'{lead_in}:'
+                        if text.casefold().startswith(lead_in.casefold()):
+                            stripped = text[len(lead_in):].lstrip(' -–—')
+                            if stripped:
+                                text = stripped
+                    built_units.append(Unit(
+                        id=base_unit.id, text=text, lead_in=lead_in, origin='ai',
+                        role=base_unit.role, hidden=False, sources=sources,
+                    ))
                 entry.units = [
-                    *(_ai(new_id(f'u-ai-{slug}-b{i}'), bullet)
-                      for i, bullet in enumerate(edits[entry.id], 1)),
+                    *built_units,
                     *(unit for unit in entry.units if unit.hidden),
                 ]
         if section.id in skills:
@@ -1027,10 +1050,11 @@ def _letter_prose_issues(
                 unit_id=unit.id,
             ))
         groups: set[str] = set()
-        for source in unit.sources:
-            match = re.fullmatch(r'cv:([^:]+):[bi]\d+', source)
-            if match and match[1] in companies:
-                groups.add(companies[match[1]])
+        if unit.role != 'motivation':
+            for source in unit.sources:
+                match = re.fullmatch(r'cv:([^:]+):[bi]\d+', source)
+                if match and match[1] in companies:
+                    groups.add(companies[match[1]])
         overlap_prev = sorted({first_seen[group] for group in groups if group in first_seen})
         if overlap_prev:
             prev = overlap_prev[0]
@@ -1135,6 +1159,7 @@ def _letter_contract(base: CvDocument, evidence: dict[str, str]) -> tuple[dict, 
             group['entries'][entry.id] = {
                 'organization': entry.locked.company,
                 'title': entry.locked.title,
+                'location': entry.locked.location,
                 'role': 'education' if entry.kind == 'study' else 'experience',
                 'facts': facts,
             }
@@ -1150,23 +1175,37 @@ def _letter_contract(base: CvDocument, evidence: dict[str, str]) -> tuple[dict, 
                 if len(group['entries']) == 1:
                     group['supplemental'][source] = fact
 
+    lang_sources = ('profile:language_levels',) if 'profile:language_levels' in evidence else ()
+    all_sources: list[str] = []
     fields = {}
     index = 0
-    for slot, group in groups.items():
+    for slot_idx, (slot, group) in enumerate(groups.items(), 1):
         options = []
         for entry in group['entries'].values():
             index += 1
             direct = tuple(entry['facts'])
-            allowed = direct + tuple(group['supplemental']) + ('job',)
+            all_sources.extend(direct)
+            allowed = direct + tuple(group['supplemental']) + lang_sources + ('job',)
             sentence = create_model(f'LetterSentence{index}', __base__=_Text, source=(Literal[allowed], ...))
             options.append(create_model(
                 f'LetterExample{index}', __base__=_LetterExample,
                 anchor=(Literal[direct], ...),
                 sentences=(list[sentence], ...),
             ))
-        fields[slot] = (Union[tuple(options)] | None, ...)
+        all_sources.extend(group['supplemental'])
+        fields[f's{slot_idx}'] = (Union[tuple(options)] | None, Field(alias=slot))
+    all_sources.extend(lang_sources)
+    all_sources.append('job')
+    allowed_all = tuple(dict.fromkeys(all_sources))
+    motivation = create_model('LetterMotivation', __base__=_Text, sources=(list[Literal[allowed_all]], ...))
+    fit = create_model('LetterFit', __base__=_Text, sources=(list[Literal[allowed_all]], ...))
     examples = create_model('LetterExamples', __base__=_Response, **fields)
-    response = create_model('LetterDraft', __base__=_LetterSlots, examples=(examples, ...))
+    response = create_model(
+        'LetterDraft', __base__=_LetterSlots,
+        motivation=(motivation, ...),
+        fit=(fit | None, ...),
+        examples=(examples, ...),
+    )
     return groups, response
 
 
@@ -1174,12 +1213,17 @@ def _letter_from_slots(
     output: dict, response: type[_LetterSlots], groups: dict, evidence: dict[str, str],
     inp: PreparationInput, base: CvDocument, cv: CvDocument,
 ) -> LetterDocument:
-    reply = response.model_validate(output).model_dump()
+    reply = response.model_validate(output).model_dump(by_alias=True)
     examples = sorted(
         ((slot, example) for slot, example in reply.pop('examples').items() if example is not None),
         key=lambda item: item[1]['priority'],
     )
-    paragraphs = [{'role': 'motivation', 'text': reply.pop('motivation')['text'], 'sources': ['job']}]
+    motivation = reply.pop('motivation')
+    paragraphs = [{
+        'role': 'motivation',
+        'text': motivation['text'],
+        'sources': list(dict.fromkeys([*motivation['sources'], 'job'])),
+    }]
     for slot, example in examples:
         anchor = example['anchor']
         entry = groups[slot]['entries'][anchor.split(':')[1]]
@@ -1189,10 +1233,11 @@ def _letter_from_slots(
             'sources': list(dict.fromkeys([anchor, *(sentence['source'] for sentence in example['sentences']), 'job'])),
         })
     if fit := reply.pop('fit'):
-        sources = ['job']
-        if fit['uses_language_level'] and 'profile:language_levels' in evidence:
-            sources.append('profile:language_levels')
-        paragraphs.append({'role': 'bring', 'text': fit['text'], 'sources': sources})
+        paragraphs.append({
+            'role': 'bring',
+            'text': fit['text'],
+            'sources': list(dict.fromkeys([*fit['sources'], 'job'])),
+        })
     return _letter_draft({**reply, 'paragraphs': paragraphs}, inp, base, cv, sparse=len(groups) < 2)
 
 
@@ -1219,8 +1264,10 @@ def _letter_draft(
     if inp.language == 'de' and paragraphs:
         paragraphs[0].text = editorial.normalize_de_salutation_opening(salutation_text, paragraphs[0].text)
     title = ' '.join(str(inp.job.get('title') or '').split())
-    if inp.language == 'en' and title:
-        subject = Unit(id='u-letter-subject', text=f'Application for {title}'[:MAX_UNIT_TEXT], sources=['job'])
+    if title:
+        prefix = 'Bewerbung als ' if inp.language == 'de' else 'Application for '
+        subject_text = title if title.casefold().startswith(prefix.casefold()) else f'{prefix}{title}'
+        subject = Unit(id='u-letter-subject', text=subject_text[:MAX_UNIT_TEXT], sources=['job'])
     else:
         subject = _ai('u-letter-subject', _SourcedText(text=reply.subject.text, sources=['job']))
     letter = LetterDocument(
@@ -1349,9 +1396,23 @@ def _valid_review_edit(
     def blocking_keys(issues):
         return {(issue.code, issue.unit_id) for issue in issues if issue.code in _BLOCKING_PROSE_CODES}
 
-    old_cv_issues = blocking_keys(_cv_prose_issues(docs['cv']))
-    new_cv_issues = blocking_keys(_cv_prose_issues(cv))
-    if new_cv_issues - old_cv_issues:
+    old_cv_all = _cv_prose_issues(docs['cv'])
+    new_cv_all = _cv_prose_issues(cv)
+    if blocking_keys(new_cv_all) - blocking_keys(old_cv_all):
+        return False
+    _cv_no_regress = frozenset({
+        'cv_profile_voice',
+        'cv_profile_repetition',
+        'cv_profile_duplicate',
+        'cv_profile_run_on',
+        'cv_third_person',
+        'cv_de_compound_hyphen',
+        'cv_de_awkward_verb',
+        'cv_repeated_opening_verb',
+    })
+    old_cv_style = {(issue.code, issue.unit_id) for issue in old_cv_all if issue.code in _cv_no_regress}
+    new_cv_style = {(issue.code, issue.unit_id) for issue in new_cv_all if issue.code in _cv_no_regress}
+    if new_cv_style - old_cv_style:
         return False
     old_letter_all = _letter_prose_issues(docs['letter'], docs['cv'], base, company)
     new_letter_all = _letter_prose_issues(letter, cv, base, company)
@@ -1508,7 +1569,7 @@ def prepare_documents(
         cv_state = 'fallback' if checkpoint.fallback else 'completed'
         resume(stats, checkpoint)
     else:
-        entries = _cv_entries(base)
+        entries, cv_response, slot_map = _cv_contract(base)
         skills = [{'section_id': s.id, 'title': s.title, 'units': [u.model_dump() for u in s.units]}
                   for s in base.sections if s.kind == 'skills']
         prompt = _prompt('cv', inp, evidence, entries=entries, skills=skills)
@@ -1517,7 +1578,7 @@ def prepare_documents(
         def accept_cv(output: dict):
             nonlocal last_render
             doc, findings = accept_grounded(
-                lambda reply: _cv_draft(reply, base, entries, evidence, posting), output,
+                lambda reply: _cv_from_slots(reply, cv_response, slot_map, base, evidence, posting), output,
             )
             telemetry, render_findings = _render('cv', doc, render)
             last_render = (doc, telemetry, render_findings)
@@ -1533,7 +1594,7 @@ def prepare_documents(
                                        candidate=(doc, findings), issues=(issue,))
             return doc, findings
 
-        cv_outcome = _generate(generate, prompt, _CvResponse, accept_cv,
+        cv_outcome = _generate(generate, prompt, cv_response, accept_cv,
                                stats, hooks.cancelled, return_best=True)
         if isinstance(cv_outcome, _Fallback):
             cv, base_draft_findings = cv_outcome.candidate

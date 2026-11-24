@@ -2,59 +2,77 @@ Task: write a cover letter for the specific work in the posting. The application
 sender, recipient, date, salutation, sign-off and signature.
 
 Output contract
-- EXAMPLE SLOTS contains original evidence grouped by employer or institution. Select the
-  best two or three distinct slots for the core duties. Each slot takes one paragraph or
-  null. Set priority 1 for the most relevant paragraph and number the rest in reading order.
-  Give each selected slot an anchor from the single entry described in that paragraph.
+- EXAMPLE SLOTS contains original evidence grouped by employer or institution (including
+  organization, title, location and facts). Select the best two or three distinct slots
+  for the posting's core duties. Each slot takes one paragraph or null. Set priority 1 for
+  the most relevant paragraph and number the rest in reading order. Give each selected slot
+  an anchor from the single entry described in that paragraph.
 - Write each example as linked sentences. Assign every sentence one source that verifies
-  the exact action, collaborator and outcome stated. Use job only for a sentence about
-  the posting or an explicitly future contribution. Use the slot's supplemental facts
+  the exact action, collaborator and outcome stated. Use `job` only for a sentence about
+  the posting or an explicitly future contribution. Use `profile:language_levels` when a
+  sentence integrates a required verified language level. Use the slot's supplemental facts
   only when they concern the chosen entry. If no single source supports the complete
   sentence, split or narrow it. The application joins the sentences and retains their ids.
-- Use motivation for interest and fit for an optional future contribution or a verified
-  language clause. Keep past work in the example slots. Set fit.uses_language_level only
-  when the fit paragraph includes a level explicitly requested by the posting and verified
-  by EVIDENCE. Use fit=null when it adds no distinct point. Use at most four body
-  paragraphs including motivation and fit; use fewer when evidence is sparse.
+- `motivation` (`text` + `sources`): open with specific interest in the posting's work.
+  The opening paragraph may ONLY make experience or capability claims that cite exact source
+  ids in `motivation.sources`; use `["job"]` if it states interest in the role without past
+  claims. Save detailed past actions, collaborators and results for the example slots.
+- `fit` (`text` + `sources`, or `null`): use for a distinct closing argument (such as a
+  short clause on a required verified language level + international work from an entry not
+  already used as an example slot, or a focused future contribution). Cite every source id
+  used (including `profile:language_levels` when mentioning a required language level, and
+  `job` for future-oriented statements). Use `fit=null` when it adds no distinct point. Use
+  at most four body paragraphs including `motivation` and `fit`; use fewer when evidence is
+  sparse.
 
 Structure
 - Write three body paragraphs and a short closing by default. Add a fourth body paragraph
   when a core requirement otherwise lacks a verified example. Aim for 270–310 words in
   English or 260–320 in German, including the closing.
-- Motivation: connect a duty stated in the posting to a concrete verified capability.
-  State interest directly and warmly in the applicant's voice; use the company's name in the
-  opening and, if natural, in the closing. Ground any description of the employer in the
-  posting. Save the past action, collaborators and result for the example paragraph.
-- Examples: choose and order examples strictly by the posting's core duties. In each
+- Motivation: connect a core duty stated in the posting directly and warmly to the
+  applicant's interest (and, if cited in `motivation.sources`, a concrete verified
+  capability). Use the company's name in the opening and, if natural, in the closing. Ground
+  every statement about the employer strictly in the posting — never speculate about the
+  employer's internal data, tools, or processes that the posting does not state. Use exact
+  team names, product names and role titles as written in JOB.
+- Examples: choose and order example slots strictly by the posting's core duties. In each
   experience or education paragraph, name one core duty and connect it to the closest
   verified example:
-  - For a software or SaaS product role, prefer verified software platform development,
-    collaboration with developers on technical feasibility and iterative/agile delivery,
-    KPI/data work paired with a verified operational result (such as an onboarding-time
-    reduction), and research-to-prototype work over unrelated physical-product concepts.
-    If iterative delivery is central, name the verified method and the applicant's actual
-    collaboration with developers.
+  - For a software or SaaS product role, centre the letter on the software platform work
+    (prioritization with developers, Figma prototypes, Kanban iterations, and how
+    stakeholder feedback changed scope or priorities where documented). Keep unrelated
+    consumer-product study work to at most one sentence — or omit it if stronger software,
+    platform or operations evidence fills the slots.
+  - When the posting lists training or enablement duties and the evidence has a verified
+    training or onboarding result, include that verified result.
   - For a hardware or industrial product role, prefer verified CAD/BOM/costing work,
     market or benchmark analysis, and partner or customer collaboration. Use verified
     external collaboration for a core partnership duty, keeping the actual partner type
-    and nature of the collaboration. A short verified example involving an adjacent
-    partner type is useful evidence for this duty.
-  Where the evidence links feedback or analysis to a choice, explain what it helped the
-  applicant or team decide. Where the source gives only an action and purpose, use those.
-  Name the discipline for study examples. Keep each paragraph to three or four sentences.
-- Mention a verified level only if the posting explicitly requires that language. Use one
-  short, natural clause about communication or collaboration that the level supports. Keep
-  any past collaboration at its documented scope, including which language was used if
-  known. Keep the clause out of sentences about unrelated duties or outcomes.
-- Closing: invite a personal conversation or interview in one warm, concise sentence.
-  Name a concrete topic from the role that the applicant wants to discuss. A thank-you is
-  optional. Introduce no new claims or qualifications.
+    and nature of the collaboration.
+  - When the posting requires a language and/or travel or international collaboration,
+    include one short, natural clause combining the verified language level (only when that
+    language is explicitly required by the posting) with verified international work or
+    study experience at its documented scope. Keep the clause out of unrelated outcomes.
+  Where the evidence links feedback or analysis to a change in scope, priorities or a
+  decision, show what the applicant did with that feedback or result. Where the source gives
+  only an action and purpose, use those. Name the discipline for study examples. Keep each
+  paragraph to three or four sentences.
+- Closing: combine a brief thank-you with a specific invitation to a personal conversation
+  or interview in one warm, concise sentence (or two short sentences), naming a concrete
+  topic from the role that the applicant wants to discuss. Introduce no new claims or
+  qualifications.
 
 Check the final draft before returning it
-- Give each paragraph a different duty or argument. Merge sentences that restate the same
-  point. Avoid recycling an action/object phrase or the same bridge verb across examples.
-  Compose in fresh first-person prose from the evidence; do not quote source sentences.
+- Write fresh first-person active narrative prose throughout — do NOT restate CV bullets
+  or copy evidence wording verbatim. Paraphrase slot facts into natural narrative showing
+  what the applicant did, how they worked with collaborators, and what changed from feedback
+  or results. Give each paragraph a different duty or argument. Merge sentences that restate
+  the same point, and avoid recycling an action/object phrase or bridge verb across examples.
 - Formula and rhythm checks:
+  - Keep active first-person voice throughout, while varying sentence openings so three or
+    more consecutive sentences never start with "I <verb>" or the same opening pattern
+    (lead some sentences with context, purpose, tools, collaborators or outcomes before the
+    first-person subject).
   - Use at most ONE forward-looking conditional formula ("würde ich …" / "I would bring …" /
     "I would apply …") in the ENTIRE letter; use indicative, varied constructions everywhere
     else.
@@ -63,27 +81,23 @@ Check the final draft before returning it
     reserve "I look forward to" / "Ich freue mich auf" for the closing sentence only so no
     phrase repeats between a body paragraph and the closing.
   - Once the connection to the role is clear, land the paragraph on a verified action,
-    outcome or specific question. A stock sentence about transferring the experience
-    adds little, especially when another paragraph already makes the connection.
-  - Never start three or more consecutive sentences with "I <verb>" or the same opening
-    pattern; vary openings by leading with context, purpose, tools, collaborators or outcomes.
+    outcome or specific question. Avoid speculative bridges about what the employer's
+    internal data or systems look like.
   - In English, use "KPIs" rather than "performance indicators".
 - Audit every past-tense clause and every statement about the applicant's usual practice
-  against cited evidence. Keep tracking, analyzing, proposing and deciding distinct.
-  Match leadership scope, stage and results exactly. Where the evidence stops short of
-  the posting duty, say what the applicant wants to do or learn in the new role.
-  Use one independently verifiable action and its documented outcome per sentence.
-  Skip a detail if saying what was measured, improved or decided would require guessing.
-  Check causal links too: when evidence supports two
-  contributions separately, write them as independent actions. Do not imply one produced or
-  informed the other unless the source says so. Do not claim unsupported tenure, releases,
-  or decisions. Use job as the source of sentences about the posting and future plans.
+  against cited evidence. Keep verb strength, actors, recipients, leadership scope, stage
+  and results exact. Keep tracking, analyzing, proposing and deciding distinct. Where the
+  evidence stops short of the posting duty, say what the applicant wants to do or learn in
+  the new role. Use one independently verifiable action and its documented outcome per
+  sentence. Keep separately stated source facts independent; never imply one caused or
+  informed another unless the source says so. Use `job` as the source of sentences about
+  the posting and future plans.
 - Spell out English contractions. In German, keep formal Sie-Form throughout ("Sie"/"Ihr",
   matching the voice notes) and start lowercase after the comma-ended salutation unless the
   first word is a noun, proper name or formal Sie/Ihr.
 
-Use "Application for <job title>" in the English subject. Use the role in the German subject,
-with a reference number only if the posting explicitly provides it.
+Use "Application for <job title>" in the English subject and "Bewerbung als <Titel>" in
+the German subject.
 In "contact_name", copy the name explicitly identified as the vacancy contact, without titles
 or honorifics. In English, use the first name alone if that is all the posting gives. In German,
 return a full name only. Return an empty string for an email-only or unnamed contact. Do not
