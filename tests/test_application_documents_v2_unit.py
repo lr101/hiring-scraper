@@ -79,6 +79,22 @@ class VersionMathTests(unittest.TestCase):
         self.assertEqual(task['stages'], {})
         self.assertEqual(documents.public_task({'id': 'b', 'state': 'running'})['kind'], 'legacy')
 
+    def test_preparation_uses_the_hiring_organization(self):
+        from hiring_scraper.app.models import Company, Job, JobFeed, ProfileCV, UserProfile
+
+        profile = UserProfile(id=1, name='Alex Example', preferences={})
+        board = Company(name='Fictional Job Board')
+        job = Job(title='Role', is_active=True, url='https://example.test/job',
+                  feed=JobFeed(company=board),
+                  raw_metadata={'hiring_organization': {'name': ' Fictional Hiring Org '}})
+        session = types.SimpleNamespace(get=lambda model, _id: {UserProfile: profile, Job: job, ProfileCV: None}[model])
+        with patch.object(documents, 'base_cv_document', return_value=({'language': 'en'}, 'stored', [])):
+            fields, _ = documents.snapshot_inputs(session, 1, 2, 'en')
+            self.assertEqual(fields['job']['company_name'], 'Fictional Hiring Org')
+            job.employer_company = Company(name='Resolved Fictional Employer')
+            fields, _ = documents.snapshot_inputs(session, 1, 2, 'en')
+            self.assertEqual(fields['job']['company_name'], 'Resolved Fictional Employer')
+
     def test_localized_preferences_apply_the_language_translation(self):
         preferences = {'summary': 'English', 'localized_content': {'de': {'summary': 'Deutsch',
                        'application_preferences': {'start': 'sofort'}}}}

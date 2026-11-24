@@ -279,7 +279,9 @@ def snapshot_inputs(session, profile_id, job_id, language, mode='full') -> tuple
     document, _, errors = base_cv_document(session.get(ProfileCV, profile_id), language)
     if document is None:
         raise queue.TaskError('base_cv_unavailable', errors[0] if errors else 'Attach a base CV first.')
-    company = job.feed.company.name if job.feed is not None and job.feed.company is not None else ''
+    from hiring_scraper.app.search_snapshots import job_employer_name
+
+    company = job_employer_name(job)
     return {
         'base_cv': document,
         'profile': localized_preferences(profile.preferences, language),
