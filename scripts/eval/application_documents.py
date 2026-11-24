@@ -119,8 +119,11 @@ def run(args: argparse.Namespace) -> None:
         latest_render[kind] = (body, result)
         return result
 
-    hooks = StageHooks(checkpoints.get, checkpoints.__setitem__, lambda *_: None,
-                       lambda _: None, lambda: False)
+    def commit_stage(key, checkpoint, _outputs):
+        if checkpoint is not None:
+            checkpoints[key] = checkpoint
+
+    hooks = StageHooks(checkpoints.get, commit_stage, lambda _: None, lambda: False)
     with TemporaryDirectory(prefix='.run-', dir=out) as directory:
         workspace = Path(directory)
         result = prepare_documents(inp, cli_generate(args.model, workspace, state), hooks, render)

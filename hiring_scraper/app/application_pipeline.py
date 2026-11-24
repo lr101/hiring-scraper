@@ -66,8 +66,7 @@ class GenerationError(Exception):
 @dataclass
 class StageHooks:
     load: Callable[[str], dict | None]
-    save: Callable[[str, dict], None]
-    publish: Callable[[str, dict, list[dict]], None]
+    commit: Callable[[str, dict | None, list[tuple[DocumentKind, dict, list[dict]]]], None]
     stage: Callable[[str], None]
     cancelled: Callable[[], bool]
 
@@ -1232,9 +1231,11 @@ def prepare_documents(
         require_grounding(result[0] if isinstance(result, tuple) else result)
         return result
 
-    def publish(kind: DocumentKind, doc: Document, findings: list[Finding]) -> None:
+    def commit(key, checkpoint: _Checkpoint | None, docs, findings) -> None:
         _check_cancelled(hooks.cancelled)
-        hooks.publish(kind, doc.model_dump(), _numbered([f for f in findings if f.document == kind]))
+        outputs = [(kind, doc.model_dump(), _numbered([f for f in findings if f.document == kind]))
+                   for kind, doc in docs.items()]
+        hooks.commit(key, checkpoint.model_dump() if checkpoint is not None else None, outputs)
 
     def start(stage: str) -> tuple[float, str, dict]:
         _check_cancelled(hooks.cancelled)
@@ -1292,12 +1293,10 @@ def prepare_documents(
             + ground(cv)
             + render_findings
         )
-        publish('cv', cv, cv_findings)
         timing = complete(stats, started, cv_state)
-        if cv_state == 'completed':
-            hooks.save(key, _CvCheckpoint(document=cv, findings=cv_findings, draft_findings=draft_findings,
-                                          render=renders['cv'],
-                                          **timing).model_dump())
+        saved = _CvCheckpoint(document=cv, findings=cv_findings, draft_findings=draft_findings,
+                              render=renders['cv'], **timing) if cv_state == 'completed' else None
+        commit(key, saved, {'cv': cv}, cv_findings)
 
     started, key, stats = start('letter')
     cv_digest = _digest(cv.model_dump())
@@ -1331,11 +1330,10 @@ def prepare_documents(
             + ground(letter)
             + render_findings
         )
-        publish('letter', letter, letter_findings)
         timing = complete(stats, started, letter_state)
-        if letter_state == 'completed':
-            hooks.save(key, _LetterCheckpoint(document=letter, cv_digest=cv_digest, findings=letter_findings,
-                                              render=renders['letter'], **timing).model_dump())
+        saved = _LetterCheckpoint(document=letter, cv_digest=cv_digest, findings=letter_findings,
+                                  render=renders['letter'], **timing) if letter_state == 'completed' else None
+        commit(key, saved, {'letter': letter}, letter_findings)
 
     docs = {'cv': cv, 'letter': letter}
     findings = cv_findings + letter_findings
@@ -1384,14 +1382,12 @@ def prepare_documents(
                         )
             docs = reviewed
             findings = final_findings['cv'] + final_findings['letter'] + review_findings
-            for kind, doc in docs.items():
-                publish(kind, doc, findings)
             timing = complete(stats, started, state)
-            if state == 'completed':
-                hooks.save(key, _ReviewCheckpoint(cv=docs['cv'], letter=docs['letter'], findings=findings,
-                                                  upstream_digest=upstream_digest, render=renders,
-                                                  applied_patches=applied, malformed_items=malformed,
-                                                  **timing).model_dump())
+            saved = _ReviewCheckpoint(cv=docs['cv'], letter=docs['letter'], findings=findings,
+                                      upstream_digest=upstream_digest, render=renders,
+                                      applied_patches=applied, malformed_items=malformed,
+                                      **timing) if state == 'completed' else None
+            commit(key, saved, docs, findings)
 
     _check_cancelled(hooks.cancelled)
     hooks.stage('finalize')

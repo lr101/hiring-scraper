@@ -26,7 +26,7 @@ from uuid import uuid4
 from fastapi import HTTPException
 from sqlalchemy import delete, func, or_, select, text
 
-from hiring_scraper.app.database import SessionLocal, is_transient_database_error
+from hiring_scraper.app.database import SessionLocal, is_transient_database_error, retry_transient
 from hiring_scraper.app.models import (
     ApplicationDocument, ApplicationDocumentRender, ApplicationPreparationTask as Task,
     ApplicationRenderTask as RenderTask, ProfileIndexChanged, hold_profiles, utcnow,
@@ -150,10 +150,19 @@ def enqueue_task(profile_id, job_id, kind, request, *, extra=None, automatic=Fal
             return previous
         _check_capacity(session)
         row = _reset_row(session, row, profile_id, job_id)
-        checkpoints = previous.get('checkpoints', {}) if same and previous.get('state') in ('failed', 'cancelled') else {}
-        _store(row, **(extra or {}), id=uuid4().hex, kind=kind, state='running', stage='queued',
+        old_request = previous.get('request') or {}
+        same_inputs = same or (kind == previous.get('kind') == 'prepare'
+                               and {k: v for k, v in old_request.items() if k != 'mode'}
+                               == {k: v for k, v in request.items() if k != 'mode'})
+        resume = same_inputs and previous.get('state') in ('failed', 'cancelled')
+        resumed = {}
+        if resume:
+            resumed = {key: previous.get(key) or {} for key in (
+                'checkpoints', 'held', 'published', 'published_revisions', 'base_revisions',
+            )}
+        _store(row, **{**(extra or {}), **resumed}, id=uuid4().hex, kind=kind, state='running', stage='queued',
                started_at=time.time(), request=request, automatic=automatic, attempts=0,
-               next_attempt_at=None, error_code=None, error=None, stages={}, checkpoints=checkpoints)
+               next_attempt_at=None, error_code=None, error=None, stages={})
         return row.record
 
 
@@ -247,6 +256,10 @@ class Progress:
             return True
 
     def _update(self, *, finish=False, retry_at=None, **changes):
+        return retry_transient(lambda: self._update_once(finish, retry_at, dict(changes)),
+                               action='saving application task progress')
+
+    def _update_once(self, finish, retry_at, changes):
         with SessionLocal.begin() as session:
             row = session.get(Task, self.key, with_for_update=True, populate_existing=True)
             if not self._owns(row):
@@ -439,7 +452,6 @@ def _finish_render(key, token, result=None, *, retry_at=None, error_code=None):
 
 def process_render_once(render):
     """Claim one render and run ``render(profile_id, kind, body) -> RenderResult``."""
-    from hiring_scraper.app.database import retry_transient
     claimed = _claim_render()
     if claimed is None:
         return False

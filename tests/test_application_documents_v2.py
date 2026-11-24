@@ -237,6 +237,22 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
             record = queue.status(session, 1, 2)
         self.assertEqual((record['state'], record['error_code'], record['attempts']), ('failed', 'busy', 3))
 
+    def test_retry_retains_held_outputs_and_checkpoint(self):
+        request = {'job_id': 2, 'language': 'en', 'mode': 'fast'}
+        self.save(0)
+        queue.enqueue_task(1, 2, 'prepare', request)
+        key, token, record = queue._claim()
+        progress = queue.Progress(key, token, {}, task_id=record['id'], record=record)
+        checkpoint = {'fictional': 'checkpoint'}
+        body = letter(paragraph='Generated fictional draft.')
+        documents._publish_stage(1, 2, progress, 'digest', request, 'letter:digest', checkpoint,
+                                 [('letter', body, [])])
+        progress._update(finish=True, state='failed', stage='failed')
+        retried = queue.enqueue_task(1, 2, 'prepare', request)
+        self.assertEqual(retried['checkpoints']['letter:digest'], checkpoint)
+        self.assertEqual(retried['held']['letter']['body']['paragraphs'][0]['text'], 'Generated fictional draft.')
+        self.assertNotEqual(retried['id'], record['id'])
+
     def test_expired_owner_cannot_publish_or_renew(self):
         queue.enqueue_task(1, 2, 'prepare', {'job_id': 2, 'language': 'en'})
         key, token, record = queue._claim()
@@ -258,11 +274,11 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
         key, token, record = queue._claim()
         progress = queue.Progress(key, token, {}, task_id=record['id'], record=record)
         with patch.object(documents, '_fresh_digest', return_value='digest'):
-            documents._publish_prepared(1, 2, progress, 'digest', {'language': 'en'}, 'letter',
-                                        letter(paragraph='AI one.'), [])
+            documents._publish_stage(1, 2, progress, 'digest', {'language': 'en'}, 'draft', None,
+                                     [('letter', letter(paragraph='AI one.'), [])])
             self.save(2, paragraph='User edit.')  # the user saves while the review stage runs
-            documents._publish_prepared(1, 2, progress, 'digest', {'language': 'en'}, 'letter',
-                                        letter(paragraph='AI reviewed.'), [])
+            documents._publish_stage(1, 2, progress, 'digest', {'language': 'en'}, 'review', None,
+                                     [('letter', letter(paragraph='AI reviewed.'), [])])
         with self.sessions() as session:
             current = documents.latest(session, 1, 2, 'letter')
             record = queue.status(session, 1, 2)

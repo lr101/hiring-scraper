@@ -334,7 +334,7 @@ def _hold_publication(session, profile_id, job_id):
 
 # --- Worker: prepare --------------------------------------------------------------
 
-def _publish_prepared(profile_id, job_id, progress, digest, request, kind, body, findings):
+def _publish_stage(profile_id, job_id, progress, digest, request, key, checkpoint, outputs):
     language = request['language']
 
     def attempt():
@@ -345,24 +345,33 @@ def _publish_prepared(profile_id, job_id, progress, digest, request, kind, body,
             if row is None:
                 raise HTTPException(409, 'Preparation cancelled.')
             record = row.record
+            checkpoints = dict(record.get('checkpoints') or {})
+            if checkpoint is not None and checkpoints.get(key) == checkpoint:
+                return checkpoints  # A previous commit can succeed before its connection drops.
             published = dict(record.get('published') or {})
-            current = latest(session, profile_id, job_id, kind)
-            base = (record.get('base_revisions') or {}).get(kind)
             published_revisions = dict(record.get('published_revisions') or {})
-            if should_publish(current.revision if current else None, base, published_revisions.get(kind)):
-                published[kind] = save_version(
-                    session, profile_id, job_id, kind, body, expected_version=current.version if current else 0,
-                    origin='ai', findings=findings, stale_inputs=fresh != digest, input_digest=digest)
-                published_revisions[kind] = get_version(session, profile_id, job_id, kind, published[kind]).revision
-                held = {key: value for key, value in (record.get('held') or {}).items() if key != kind}
-            else:
-                held = {**(record.get('held') or {}),
-                        kind: {'body': validate_body(kind, body), 'findings': list(findings or []),
-                               'latest_version': current.version, 'stale_inputs': fresh != digest,
-                               'input_digest': digest}}
-            progress.store(session, row, published=published, published_revisions=published_revisions, held=held)
+            held = dict(record.get('held') or {})
+            for kind, body, findings in outputs:
+                current = latest(session, profile_id, job_id, kind)
+                base = (record.get('base_revisions') or {}).get(kind)
+                if should_publish(current.revision if current else None, base, published_revisions.get(kind)):
+                    published[kind] = save_version(
+                        session, profile_id, job_id, kind, body, expected_version=current.version if current else 0,
+                        origin='ai', findings=findings, stale_inputs=fresh != digest, input_digest=digest)
+                    published_revisions[kind] = get_version(session, profile_id, job_id, kind, published[kind]).revision
+                    held.pop(kind, None)
+                else:
+                    held[kind] = {'body': validate_body(kind, body), 'findings': list(findings or []),
+                                  'latest_version': current.version, 'stale_inputs': fresh != digest,
+                                  'input_digest': digest}
+            if checkpoint is not None:
+                checkpoints[key] = checkpoint
+            progress.store(session, row, published=published, published_revisions=published_revisions,
+                           held=held, checkpoints=checkpoints)
+            return checkpoints
 
-    retry_transient(attempt, action='publishing an application document', retry_on=(ProfileIndexChanged, VersionConflict))
+    progress.checkpoints = retry_transient(
+        attempt, action='publishing an application document stage', retry_on=(ProfileIndexChanged, VersionConflict))
 
 
 def run_prepare(profile_id, request, progress):
@@ -379,9 +388,9 @@ def run_prepare(profile_id, request, progress):
         def render(kind, document):
             return application_pdf.render_document(kind, document, photo_png=photo if kind == 'cv' else None)
     hooks = pipeline.StageHooks(
-        load=progress.load, save=progress.checkpoint, stage=progress, cancelled=progress.cancelled,
-        publish=lambda kind, body, findings: _publish_prepared(
-            profile_id, job_id, progress, digest, request, kind, body, findings),
+        load=progress.load, stage=progress, cancelled=progress.cancelled,
+        commit=lambda key, checkpoint, outputs: _publish_stage(
+            profile_id, job_id, progress, digest, request, key, checkpoint, outputs),
     )
     generate = pipeline.codex_generate(model=request.get('model') or None, cancelled=progress.cancelled)
     result = pipeline.prepare_documents(inputs, generate, hooks, render)

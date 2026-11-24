@@ -78,9 +78,13 @@ class PipelineTests(unittest.TestCase):
         self.checkpoints = {}
         self.published = []
         self.stages = []
-        self.hooks = pipeline.StageHooks(self.checkpoints.get, self.checkpoints.__setitem__,
-                                         lambda *args: self.published.append(args),
+        self.hooks = pipeline.StageHooks(self.checkpoints.get, self.commit_stage,
                                          self.stages.append, lambda: False)
+
+    def commit_stage(self, key, checkpoint, outputs):
+        self.published.extend(outputs)
+        if checkpoint is not None:
+            self.checkpoints[key] = checkpoint
 
     def run_with(self, cv=None, letter=None, review=None, render=None):
         replies = iter((cv if cv is not None else cv_reply(), letter or letter_reply(),
