@@ -199,12 +199,24 @@ function EditableUnitText({
     }
   }, [text, readOnly])
 
+  useLayoutEffect(() => {
+    const el = spanRef.current
+    if (!el || readOnly) return
+    function preventRichInput(event: InputEvent) {
+      if (/^(insertFrom(Paste|Drop|Yank)|insertHTML|insertLineBreak|insertParagraph|format)/.test(event.inputType)) {
+        event.preventDefault()
+      }
+    }
+    el.addEventListener('beforeinput', preventRichInput)
+    return () => el.removeEventListener('beforeinput', preventRichInput)
+  }, [readOnly])
+
   const handleInput = useCallback(() => {
     const el = spanRef.current
     if (!el || readOnly) return
     const raw = el.textContent ?? ''
     const sanitized = sanitizeUnitText(raw)
-    if (sanitized !== raw) {
+    if (sanitized !== raw || Array.from(el.childNodes).some(node => node.nodeType !== Node.TEXT_NODE)) {
       const { offset } = getCaretOffset(el)
       el.textContent = sanitized
       setCaretPosition(el, Math.min(offset, sanitized.length))
@@ -281,6 +293,7 @@ function EditableUnitText({
       data-placeholder={splittable ? 'Type here…' : 'Empty'}
       onInput={handleInput}
       onPaste={handlePaste}
+      onDrop={event => event.preventDefault()}
       onKeyDown={handleKeyDown}
     />
   )

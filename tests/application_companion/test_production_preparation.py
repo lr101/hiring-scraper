@@ -294,6 +294,34 @@ class ProductionPreparationTests(ProductionHarness):
         expect(prepared.get_by_text('1 questions captured by the application companion.', exact=False)).to_be_visible()
 
 
+    def test_document_editor_blocks_rich_drops_and_removes_rich_nodes(self):
+        from tests.test_application_documents_v2_unit import letter
+
+        self.upload_base()
+        endpoint = self.origin + '/api/v1/profiles/1/application-documents/letter?job_id=1574'
+        saved = self.context.request.put(endpoint, data={'body': letter(), 'expected_version': 0})
+        self.assertTrue(saved.ok, saved.text())
+        # Force the same editor path used by browsers without plaintext-only.
+        self.page.add_init_script("""(() => {
+          const property = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'contentEditable');
+          Object.defineProperty(HTMLElement.prototype, 'contentEditable', {
+            ...property,
+            set(value) { property.set.call(this, value === 'plaintext-only' ? 'true' : value); }
+          });
+        })();""")
+        self.page.goto(self.origin + '/jobs/1574/apply?profile_id=1')
+        paragraph = self.page.locator('[data-editable-unit="u-p1"]')
+        expect(paragraph).to_have_attribute('contenteditable', 'true')
+        result = paragraph.evaluate("""el => {
+          const drop = new DragEvent('drop', {bubbles: true, cancelable: true, dataTransfer: new DataTransfer()});
+          drop.dataTransfer.setData('text/html', '<b>Fictional drop</b>');
+          el.dispatchEvent(drop);
+          el.append(document.createElement('b'));
+          el.dispatchEvent(new InputEvent('input', {bubbles: true}));
+          return [drop.defaultPrevented, el.childElementCount, el.textContent];
+        }""")
+        self.assertEqual(result, [True, 0, 'I build reliable services.'])
+
     def test_structured_document_conflict_preserves_the_local_edit(self):
         from tests.test_application_documents_v2_unit import letter
 
