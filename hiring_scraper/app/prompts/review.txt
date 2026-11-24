@@ -32,8 +32,9 @@ Patches: for AI-written units only, propose replacement text with a kind:
   Keep the underlying facts and leave out assertions about work the applicant did not do.
 - shorten: same facts, fewer words (use when RENDER shows overflow).
 - content: adds, removes or changes facts. These are shown to the applicant, not applied.
-A patch keeps the unit's cited facts and cites nothing new. Return empty lists when the drafts
-are already good.
+A patch keeps the unit's cited facts, cites nothing new, and does not introduce repeated
+phrases across paragraphs (such as "I look forward to" in both a body paragraph and the
+closing). Return empty lists when the drafts are already good.
 
 Check that:
 - CV headline is at most 70 characters and names only 2–3 verified functional areas the

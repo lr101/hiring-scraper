@@ -21,7 +21,8 @@ Headline and profile
   (CAD, BOM/costing, prototyping, KPI analysis, iterative workflows), cross-functional,
   supplier, or developer collaboration, training design with its verified quantified result,
   external partnerships, and a verified language level when the posting explicitly requires
-  that language. Do NOT repeat any experience or project bullet's wording and do NOT retell
+  that language (weave it smoothly into one of the 2–3 sentences rather than adding a choppy
+  4-word standalone sentence). Do NOT repeat any experience or project bullet's wording and do NOT retell
   an individual employer or student project in detail (keep project specifics in their entry
   bullets). Keep active, concrete phrasing with no explicit first-person (I/ich) or
   third-person (she/he/sie/er) pronouns, no bare verb-first openings, and no agentless
@@ -64,10 +65,12 @@ Entries
     needless reflexive "sich" constructions, clunky multi-noun compounds, repeated word stems
     within a bullet, and abrupt endings. For joint work, use "Wirkte an … mit" or "Trug zu …
     bei". Use suspension hyphens in coordinated compounds (e.g. "Markt- und Nutzerbedürfnisse").
-  - In English, rotate direct active verbs (e.g. Led, Defined, Translated, Mapped, Coordinated,
-    Facilitated, Prototyped, Evaluated, Structured, Prepared, Synthesized, Managed, Delivered,
-    Revised, Built). Rewrite passive filler lines (such as "Explored emerging technologies…")
-    into the concrete verified action, domain, or deliverable from the cited source.
+  - In English, rotate direct active verbs (e.g. Led, Directed, Defined, Translated, Mapped,
+    Coordinated, Facilitated, Prototyped, Evaluated, Structured, Prepared, Synthesized,
+    Managed, Delivered, Revised, Built) and avoid redundant verb-noun phrases like "Led
+    coordination of" (write "Directed" or "Coordinated"). Rewrite passive filler lines (such
+    as "Explored emerging technologies…") into the concrete verified action, domain, or
+    deliverable from the cited source.
 - Preserve exact authorship and ownership: if the source says the applicant revised SOPs or
   built a guide, state that they revised or built it — never weaken it to merely "using" it.
 - Aim for 16–24 words for most bullets and 22–32 for project bullets that need context. Use

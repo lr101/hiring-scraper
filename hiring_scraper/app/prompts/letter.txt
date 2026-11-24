@@ -47,7 +47,9 @@ Check the final draft before returning it
   - Use at most ONE forward-looking conditional formula ("würde ich …" / "I would bring …" /
     "I would apply …") in the ENTIRE letter; use indicative, varied constructions everywhere
     else.
-  - Never end two body paragraphs with the same closing construction or bridge formula.
+  - Never end two body paragraphs with the same closing construction or bridge formula, and
+    reserve "I look forward to" / "Ich freue mich auf" for the closing sentence only so no
+    phrase repeats between a body paragraph and the closing.
   - Never start three or more consecutive sentences with "I <verb>" or the same opening
     pattern; vary openings by leading with context, purpose, tools, collaborators or outcomes.
   - In English, use "KPIs" rather than "performance indicators".
