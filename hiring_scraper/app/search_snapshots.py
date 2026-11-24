@@ -151,9 +151,9 @@ def _sort_jobs(jobs: list[Job], sort: str) -> list[Job]:
         undated.sort(key=lambda job: (job.title.casefold(), job.id))
         return dated + undated
     if sort == "title":
-        return sorted(jobs, key=lambda job: (job.title.casefold(), _job_employer(job).casefold(), job.id))
+        return sorted(jobs, key=lambda job: (job.title.casefold(), job_employer_name(job).casefold(), job.id))
     if sort == "company":
-        return sorted(jobs, key=lambda job: (_job_employer(job).casefold(), job.title.casefold(), job.id))
+        return sorted(jobs, key=lambda job: (job_employer_name(job).casefold(), job.title.casefold(), job.id))
     return sorted(jobs, key=lambda job: (not job.is_remote, job.title.casefold(), job.id))
 
 
@@ -171,14 +171,14 @@ def _job_date_rank(value: Any) -> float:
         return float("-inf")
 
 
-def _job_employer(job: Job) -> str:
+def job_employer_name(job: Job) -> str:
     if job.employer_company is not None:
         return job.employer_company.name
     metadata = job.raw_metadata if isinstance(job.raw_metadata, dict) else {}
     organization = metadata.get("hiring_organization")
     if isinstance(organization, dict) and isinstance(organization.get("name"), str) and organization["name"].strip():
         return organization["name"].strip()
-    return job.feed.company.name
+    return job.feed.company.name if job.feed is not None and job.feed.company is not None else ''
 
 
 def job_json(job: Job, *, include_description: bool = False) -> dict[str, Any]:
@@ -191,8 +191,7 @@ def job_json(job: Job, *, include_description: bool = False) -> dict[str, Any]:
     employer_url = organization.get("url") if isinstance(organization.get("url"), str) else None
     employer_host = urlsplit(employer_url).hostname if employer_url else None
     source_company_name = source_company.name
-    resolved_employer_name = (company.name if job.employer_company is not None else
-                              employer_name.strip() if employer_name and employer_name.strip() else source_company.name)
+    resolved_employer_name = job_employer_name(job)
     locations = [{"label": location.label, "latitude": location.latitude,
                   "longitude": location.longitude, "precision": location.precision,
                   "country_code": location.country_code,
@@ -682,7 +681,7 @@ def _search_page(session: Session, candidate_ids: list[int], profiles: list[Any]
             'posted_rank': _job_date_rank(job.date_posted),
             'discovered_rank': _job_date_rank(job.first_seen_at),
             'title_sort': job.title.casefold(),
-            'company_sort': _job_employer(job).casefold(),
+            'company_sort': job_employer_name(job).casefold(),
             'remote_sort': not job.is_remote,
         } for job in jobs]
         for profile in search_profiles:

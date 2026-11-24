@@ -10,12 +10,14 @@ import time
 from fastapi import HTTPException
 from sqlalchemy import select
 
-from hiring_scraper.app import application_generation as generation, application_generation_jobs as jobs, application_preparation_queue, codex_runtime
+from hiring_scraper.app import (
+    application_documents_v2 as documents,
+    application_preparation_queue, codex_runtime,
+)
 from hiring_scraper.app.applications import canonical_application_states
 from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.job_search import profile_match_index_stale
 from hiring_scraper.app.models import Job, UserProfile
-from hiring_scraper.app.profiles import cv_metadata
 
 LOG = logging.getLogger(__name__)
 RETRY_SECONDS = 3600
@@ -37,9 +39,34 @@ def document_language(posting, variants):
     return language
 
 
+def _queue_structured(session, profile, job, language, current):
+    if not (profile.cv.variants or {}).get(language, {}).get('document'):
+        return False  # Let the applicant review the imported base CV first.
+    if current and not current.get('automatic'):
+        return False
+    from hiring_scraper.app.application_pipeline import PreparationInput, input_digest
+
+    fields, _ = documents.snapshot_inputs(session, profile.id, job.id, language)
+    digest = input_digest(PreparationInput(**fields))
+    latest = {kind: documents.latest(session, profile.id, job.id, kind) for kind in documents.KINDS}
+    if any(row and row.origin != 'ai' for row in latest.values()):
+        return False
+    if all(row and row.input_digest == digest and not row.stale_inputs for row in latest.values()):
+        return False
+    profile_id, job_id = profile.id, job.id
+    revisions = {kind: row.revision for kind, row in latest.items() if row}
+    session.rollback()
+    application_preparation_queue.enqueue_task(
+        profile_id, job_id, 'prepare',
+        {'job_id': job_id, 'language': language, 'mode': 'full', 'model': codex_runtime.selected_model() or ''},
+        automatic=True, extra={'base_revisions': revisions},
+    )
+    return True
+
+
 def prepare_once():
     root = codex_runtime._root()
-    jobs._directory(root)
+    codex_runtime._prepare(root)
     fd = os.open(root / 'automatic-preparation.lock', os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
     try:
         try:
@@ -66,41 +93,23 @@ def prepare_once():
                 rows = sorted((row for row in rows if row.status == 'new'),
                               key=lambda row: (row.match_rank, row.discovered_rank, row.posted_rank, row.id), reverse=True)[:25]
                 for row in rows:
-                    if jobs.load_draft(root, profile.id, row.job_id):
-                        continue
                     current = status(profile.id, row.job_id)
+                    if current and current.get('kind') not in application_preparation_queue.V2_KINDS:
+                        current = None
                     if current and (current['state'] in ('running', 'cancelling', 'cancelled') or
                                     (current['state'] == 'completed' and not current.get('automatic')) or
-                                    (current['state'] == 'failed' and time.time() - current.get('updated_at', 0) < RETRY_SECONDS)):
+                                    (current['state'] in ('failed', 'partial') and time.time() - current.get('updated_at', 0) < RETRY_SECONDS)):
                         continue
                     job = session.get(Job, row.job_id)
                     if not job:
                         continue
-                    request = generation.PrepareApplicationRequest(job_id=job.id,
-                        cv_updated_at=cv_metadata(profile.cv)['updated_at'], profile_updated_at=profile.updated_at.isoformat(),
-                        language=document_language(job.description or job.title, profile.cv.variants or {}),
-                        model=codex_runtime.selected_model())
+                    language = document_language(job.description or job.title, profile.cv.variants or {})
                     try:
-                        with jobs.profile_lock(root, profile.id):
-                            # A manual draft or job may have appeared since the scan.
-                            if jobs.load_draft(root, profile.id, job.id):
-                                continue
-                            current = status(profile.id, job.id)
-                            if current and (current['state'] in ('running', 'cancelling', 'cancelled') or
-                                            (current['state'] == 'completed' and not current.get('automatic'))):
-                                continue
-                            _, revision = generation._snapshot(profile.id, request, session)
-                            if current and current['state'] == 'completed' and current.get('revision') == revision and current.get('request') == request.model_dump():
-                                continue
-                            profile_id = profile.id
-                            session.rollback()
-                            application_preparation_queue.enqueue(
-                                profile_id, request.job_id, request.model_dump(), revision, automatic=True,
-                            )
+                        if _queue_structured(session, profile, job, language, current):
                             return True
-                    except HTTPException as exc:
-                        LOG.info('Automatic preparation skipped profile=%s job=%s: %s', profile.id, row.job_id, exc.status_code)
-                        continue
+                    except (HTTPException, application_preparation_queue.TaskError) as error:
+                        LOG.info('Automatic preparation skipped profile=%s job=%s (%s)',
+                                 profile.id, row.job_id, type(error).__name__)
         return False
     finally:
         os.close(fd)

@@ -1,0 +1,82 @@
+Task: tailor the CV to the posting. Preserve verified employers, titles, dates and section
+order. Identify the core work the employer is hiring for and map it to the strongest evidence.
+
+Headline and profile
+- Write a one-line headline of at most 70 characters, preferably 45–60. Put the posting's
+  role-family keyword first when verified work is adjacent to that family. Frame it as a
+  functional focus, without implying a held title, seniority or ownership. Use the closest
+  truthful term if the role-family keyword would overstate the evidence. Add up to two
+  short, complementary focuses supported by the evidence. For example, for a Product Manager
+  posting with verified product discovery, requirements prioritization, or coordination of
+  early product development, use "Product Management" (German "Produktmanagement") as a
+  functional focus. Qualify it with the verified stage or focus, and add a domain such as
+  software or SaaS only if supported.
+- Return exactly one profile unit with 2–3 concise sentences. Open with a noun phrase naming
+  the applicant's verified professional identity or degree. Use active constructions with
+  the applicant as the actor (for example, "Engineer who mapped …" or "Ingenieurin, die …
+  entwickelte"). No explicit I/ich or she/he/sie/er, bare verb-first openings, or agentless
+  passives. Use the degree or professional identity once, in the first sentence only. Name
+  the project or deliverable that best proves a core duty near the start of the profile.
+  Include a second example only if it proves a different core duty.
+  Mention each once, even if its entry falls on page 2. Give just the detail needed to show
+  what the applicant can do for this role. Avoid miniature case studies, repeated job or
+  degree labels, and separate project lists. Choose precise terms when repeating a noun would distract.
+  Save motivation for the letter.
+- Cite the actual work supporting each claim. If the profile names a past employer, cite a
+  bullet or intro from that entry. Keep any evidence gap visible in the scope of the wording.
+
+Entries
+- For each listed entry, select and reorder its bullets by relevance to the posting's CORE
+  responsibilities, including education projects. Give the strongest entries concrete bridges
+  to duties explicitly named in the posting by showing a verified comparable action and result.
+  Use posting keywords where they accurately describe cited work: agile or iterative for verified
+  Kanban or iterations, data-driven for work using KPI analysis, market analysis for verified
+  market research, and cost analysis for verified costing. Name the underlying method and
+  keep its scope exact. Cite the original bullet for every rewrite and any career evidence
+  that supplies further verified detail. Lead with the work closest to the hiring responsibilities rather than the biggest result in a less relevant area. Use only
+  evidence from the same employer or project.
+- Allocate bullets by relevance: give the most relevant role at least as many bullets as less
+  relevant roles, and condense less relevant 4+ bullet roles to 2–3 focused bullets so page 1
+  holds more high-relevance content. Omit low-relevance filler. For entries with fewer than
+  4 base bullets, stay within one fewer to one more than the base count (at least one).
+  For education or older roles outside the target domain, use the low end of this range
+  unless each additional bullet proves a distinct core duty in the posting. Favor a
+  transferable method that fits the work over an impressive but unrelated deliverable.
+- Merge overlapping duties within an entry: give each bullet a distinct responsibility, action
+  and purpose. Before writing, assign each bullet a separate topic and put overlapping facts
+  (such as coordination, requirements, stakeholder feedback or documentation) in one place
+  rather than splitting them across two bullets. Vary phrasing where it helps readability.
+- Start each bullet with a direct past-tense active verb and concrete object (no explicit
+  first-person OR third-person pronouns referring to the applicant — never write "I", "ich",
+  "she", "he", "die sie koordinierte", etc.). Vary opening verbs when the work calls for different actions.
+  - In German, rotate direct active verbs (e.g. Erarbeitete, Analysierte, Konzipierte,
+    Koordinierte, Steuerte, Begleitete, Erstellte, Strukturierte, Moderierte, Prüfte,
+    Übersetzte, Entwickelte, Organisierte, Stimmte … ab); avoid awkward verb-noun phrases like
+    "Leitete die Koordination" (write "Koordinierte") and avoid needless reflexive "sich"
+    constructions. For joint work, use "Wirkte an … mit" or "Trug zu … bei". Use suspension
+    hyphens in coordinated compounds (e.g. "Markt- und Nutzerbedürfnisse").
+  - In English, rotate direct active verbs (e.g. Defined, Translated, Mapped, Coordinated,
+    Facilitated, Prototyped, Evaluated, Structured, Prepared, Synthesized, Managed, Delivered).
+- Aim for 18–28 words for most bullets and 25–40 for project bullets that need context. Use
+  parallel objects and concise clauses. Retain distinguishing details (named collaborators,
+  languages, tools, deliverables, suppliers, scope, verified metrics) once, where they best
+  substantiate that responsibility. Preserve every verified quantified result with the action
+  it measures, even when shortening or merging bullets. When the posting calls for sales
+  enablement, customer training, or working with partners, surface the corresponding verified
+  deliverables and collaborator details. Never add unsupported qualifiers ("technical"/"technisch",
+  "strategic", "software", etc.) not present in the cited source.
+- Use one self-contained bullet per labelled project. Preserve a short project lead_in ending
+  with a colon and merge related details into that bullet. Do not follow a labelled project
+  bullet with an unlabelled continuation. Keep only the themes of selected education projects
+  in their intro label. Use an empty lead_in for ordinary work bullets.
+- Keep degree names in education headings. Do not repeat the degree in project bullets.
+
+Skills
+- Tailor competencies deliberately: return existing unit ids in relevance order in `unit_ids`
+  and put clearly irrelevant or low-value items in `hidden_ids` so the section stays sharp and
+  targeted. Keep tools explicitly named in visible bullets. Keep relevant basic skills
+  qualified, self-contained, and last.
+- Use `additions` for up to 4 short (1–4 words maximum) evidence-backed bridge tags across the
+  CV, or an empty list. Build each label from concrete terms in the cited evidence. Use a
+  posting term when that wording is supported by the evidence. Cite every supporting evidence
+  id. Omit duplicates and use the verified method or deliverable as the label.

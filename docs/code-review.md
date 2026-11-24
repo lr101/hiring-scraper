@@ -83,66 +83,21 @@ production error when the hold is switched back to `FOR UPDATE`.
   It now commits in chunks of 500 and reloads task rows per chunk, so claimers don't queue
   behind it.
 
-## Structural observations
+## Known risks
 
-| Area | Observation | Risk |
-| --- | --- | --- |
-| Consistency model | Derived data (matches, Journey "New" rows, snapshots, vectors) was kept consistent with **pessimistic cross-table locks** ordered by hand (job → profile, advisory locks, savepoints). Correctness depended on every writer following comments like "lock X before Y". | High: one missed lock order became a production deadlock or timeout. Partly addressed: ingestion no longer participates. |
-| Hidden side effects | Eight SQLAlchemy `before_flush`/`after_flush` listeners in `models.py` took locks, deleted caches and enqueued work on *any* flush. | Fixed: write sites declare changes through `source_changes`; a detector fails tests on undeclared writes. |
-| Two databases, two code paths | 60+ `IS_SQLITE` / dialect branches and a ~300-line SQLite schema upgrader beside Alembic. | Fixed: PostgreSQL only; every test runs on it. |
-| PostgreSQL tests not in CI | `test_postgres_*.py` only ran when an agent remembered `postgres-local.sh`. | Fixed: container CI now runs them against the deployed database image. |
-| Periodic full scans | The indexer, the AI reconciliation and the profile backfill each scan the inventory from a poll loop. | Medium: the indexer is fixed and the AI sync is chunked; the reconciliation is still O(inventory) CPU per minute. |
-| Module size | `api.py` (2.2k lines), `matching.py` (1.9k), `discovery_worker.py` (1.5k), `search_snapshots.py` (1.2k). | Medium: slows review and makes ownership unclear. |
-| Logging | Contention logged as ERROR with tracebacks hid real bugs. | Fixed for the worker loops. |
+| Area | Observation |
+| --- | --- |
+| Shared database | Writers still rely on the job → profile → derived-row order. The PostgreSQL concurrency and idle-cost suites cover the common publication paths. |
+| Chromium memory | The PDF worker reuses a browser with bounded concurrency and fresh contexts. Large documents or concurrent reviews and exports can still increase peak memory. Monitor worker memory and render retries. |
+| Grounding | Number, qualifier and attribution checks use deterministic heuristics. A valid paraphrase can be flagged and a plausible unsupported claim can evade detection. Applicants review the source references and final text. |
+| Pagination | Very long units or a three-bullet entry can leave unused space when a safe split is unavailable. Verify extracted text and page fill when adjusting the print layout. |
+| Module size | Search, feeds and discovery still share `api.py`. Matching and discovery workers also have large modules. |
 
-## Local testing options
+## Local verification
 
-| Option | Fidelity | Effort per run | Verdict |
-| --- | --- | --- | --- |
-| Former SQLite unit suite | Low for locking, triggers, pgvector, queues | Seconds | Removed: the whole suite now runs on PostgreSQL through `tests/pg.py` in about three minutes. |
-| **`scripts/dev/postgres-sandbox.sh`** (new): throwaway PostgreSQL cluster, no root, no Docker | High (real PG 17, PostGIS, pgvector, migrations) | About 1 min | **Recommended default before any change to workers, locking, queues or migrations.** Needs server binaries with PostGIS and pgvector installed. |
-| `scripts/ci/postgres-local.sh` against an existing server | High | Requires a configured server | Kept; the sandbox wraps it. |
-| `scripts/ci/run.sh` (Docker) | Highest: production images, smoke test, and now the PostgreSQL suite against the db image | Several minutes | Run before pushing. |
-| Volume reproduction (seed 100k+ jobs, `EXPLAIN (ANALYZE, BUFFERS)`) | Exposes O(n) behavior | Manual | **Recommended next:** add a seeded performance smoke test that fails when an idle worker cycle touches more than N buffers. |
-| Testcontainers / pytest fixtures | High | Adds dependencies | Not needed now; the sandbox covers it without new packages. |
-
-## Architecture options
-
-### A. Keep pessimistic locking, tighten discipline (status quo plus this review)
-
-Smallest change, already applied: ingestion locks only job rows, profiles use FK-compatible
-locks, writers retry. Remaining risk: listeners and hand-ordered locks still guard
-match publication.
-
-### B. Event-driven derived data with optimistic publication (recommended direction)
-
-Treat everything derived (matches, Journey "New", AI tasks, search snapshots, vectors) as
-**projections** rebuilt from queues:
-
-1. Source writers only write source tables and append a dirty marker (already true for
-   `match_dirty_jobs`, `semantic_search_refreshes` and `job_search_refreshes`).
-2. Workers compute outside transactions, then publish with a **version check**
-   (`UPDATE ... WHERE source_hash = :seen`) instead of holding locks across reads.
-   A conflict simply re-queues the item.
-3. Replace flush listeners with explicit calls at the few write sites (`mark_jobs_dirty(session, ids)`).
-4. The UI reads projections plus a "pending" count, which Journey already shows.
-
-Benefits: no cross-process lock ordering, no deadlocks, horizontal workers, identical
-semantics on SQLite (drain inline) and PostgreSQL (drain in a worker).
-Cost: incremental refactor of `job_search._refresh_application_matches_for_jobs`,
-`profile_llm` publication and the listeners in `models.py`, guarded by the PostgreSQL suite.
-
-### C. PostgreSQL everywhere
-
-Drop the SQLite runtime path and use the sandbox or Compose for development. This removes
-the 60+ dialect branches and the hand-written SQLite migrator, so tests exercise the
-production engine. Cost: contributors need PostgreSQL locally (the sandbox or Docker).
-**Recommended together with B**, since B makes the SQLite inline path cheap during the transition.
-
-### D. External queue (Redis, RabbitMQ)
-
-Not recommended yet. The database-backed queues are adequate at single-user scale.
-The problems were locking and unbounded scans, not queue throughput.
+Run focused tests during development. Use the PostgreSQL sandbox or a dedicated
+disposable local server for queue, migration and concurrency changes. The Docker
+suite verifies the deployed database and app images. See the [CI guide](ci.md).
 
 ## Roadmap and status
 

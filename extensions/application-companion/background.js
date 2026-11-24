@@ -1,4 +1,3 @@
-import { profileStamp } from "./vault.js";
 import { withCVLanguage } from "./tex-cv.js";
 import {
   pageState,
@@ -26,8 +25,6 @@ import {
   lookupPage,
   captureQuestions,
   attachPreparedDocuments,
-  prepareCurrentJob,
-  importCurrentResult,
   downloadCurrentDocument,
   saveConnectedApplicant,
   removeConnectedCVs,
@@ -102,10 +99,6 @@ async function handle(message) {
       message.jobId,
       message.reviewToken,
     );
-  if (message.type === "prepare-current-job")
-    return prepareCurrentJob(tabId, message.jobId, message.language);
-  if (message.type === "import-current-result")
-    return importCurrentResult(tabId, message.jobId, message.input);
   if (message.type === "download-current-document")
     return downloadCurrentDocument(
       tabId,
@@ -134,22 +127,8 @@ async function handle(message) {
     const saved = (await chrome.storage.session.get(`report:${tabId}`))[
       `report:${tabId}`
     ];
-    const brief = (await chrome.storage.session.get(`brief:${tabId}`))[
-      `brief:${tabId}`
-    ];
-    const { applicant } = await chrome.storage.local.get("applicant");
-    const currentBrief =
-      brief &&
-      brief.expires > Date.now() &&
-      brief.profile_id === catalog.settings?.profile_id &&
-      brief.cv_updated_at === catalog.settings?.cv_updated_at &&
-      brief.profile_stamp === (await profileStamp(applicant)) &&
-      catalog.items.some((item) => item.exact && item.job.id === brief.job_id)
-        ? brief
-        : null;
     return {
       ...info,
-      brief: currentBrief,
       catalog,
       lastReport: saved?.documentId === info.documentId ? saved.report : null,
     };
@@ -345,8 +324,6 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
       "open-application",
       "scan-form",
       "attach-documents",
-      "prepare-current-job",
-      "import-current-result",
       "save-connected-applicant",
       "remove-connected-cvs",
       "download-current-document",
@@ -374,8 +351,6 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
             "open-application",
             "scan-form",
             "attach-documents",
-            "prepare-current-job",
-            "import-current-result",
             "save-connected-applicant",
             "remove-connected-cvs",
             "download-current-document",

@@ -198,16 +198,12 @@ class StructuredBrowserTests(ExtensionHarness):
                             '% radius:end'])
         return '\\documentclass{article}\n\\begin{document}\n'+'\n'.join(entries)+'\n\\end{document}'
 
-    def test_editor_preserves_facts_and_generates_id_based_bullet_request(self):
+    def test_editor_preserves_facts_from_the_marked_base_cv(self):
         self.save_example();options=self.context.new_page();options.goto(f'chrome-extension://{self.extension_id}/options.html')
         expect(options.locator('#available_from')).to_have_value('2026-12-01')
         source=self.history_source('Karlsruhe, Germany')
         options.locator('#cv_text').fill(source)
         options.locator('#sponsorship_required').select_option('false')
-        options.get_by_text('Ask ChatGPT for tailored work bullets',exact=True).click()
-        options.get_by_role('button',name='Prepare bullet-point request',exact=True).click()
-        self.assertIn('"experience_id": "job-1"',options.locator('#bullet-prompt').input_value())
-        self.assertIn('Karlsruhe, Germany',options.locator('#bullet-prompt').input_value())
         options.get_by_role('button',name='Save profile',exact=True).click()
         expect(options.locator('#status')).to_have_text('Profile saved in this browser.')
         options.reload();expect(options.locator('#cv_text')).to_have_value(source)

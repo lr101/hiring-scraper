@@ -35,7 +35,7 @@ def migrate(database_url: str) -> None:
     spec = importlib.util.spec_from_file_location('radius_entrypoint', ROOT / 'docker' / 'entrypoint.py')
     entrypoint = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(entrypoint)
-    entrypoint._ensure_profile_vote_weight(database_url)
+    entrypoint.ensure_rollback_safe_schema(database_url)
 
 
 if __name__ == '__main__':

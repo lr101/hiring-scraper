@@ -1,11 +1,7 @@
-"""English/German marked base CV upload, selection, return and actual PDF preview."""
-import base64
-import json
+"""English/German marked base CV upload, language selection and structured review."""
 import os
 from pathlib import Path
-import zlib
 from playwright.sync_api import expect, sync_playwright
-from test_tex_cv import source
 
 web = os.environ['APPLICATION_TEST_WEB_URL'].rstrip('/')
 api = os.environ['APPLICATION_TEST_API_URL'].rstrip('/')
@@ -22,8 +18,9 @@ with sync_playwright() as pw:
         page = context.new_page()
         page.route(f'{api}/api/v1/jobs/{jid}', lambda route: route.fulfill(json=job))
         page.goto(f'{web}/profile/{pid}/edit')
-        en = source().replace('Built research tools.', 'English base responsibility.')
-        de = source().replace('Built research tools.', 'Deutsche Basisaufgabe.')
+        source = (Path(__file__).parent / 'fixtures/documents/flowing_en_cv.tex').read_text()
+        en = source.replace('Operations Analyst | SQL', 'English operations analyst | SQL')
+        de = source.replace('Operations Analyst | SQL', 'Deutsche Betriebsanalyse | SQL')
         page.get_by_label('English base CV', exact=True).set_input_files({'name': 'cv-en.tex', 'mimeType': 'application/x-tex', 'buffer': en.encode()})
         page.get_by_role('tab', name='Deutsch', exact=True).click()
         page.get_by_label('German base CV', exact=True).set_input_files({'name': 'cv-de.tex', 'mimeType': 'application/x-tex', 'buffer': de.encode()})
@@ -35,32 +32,16 @@ with sync_playwright() as pw:
         expect(page.get_by_role('link', name='Download cv-de.tex', exact=True)).to_be_visible()
         expect(page.get_by_text('Application work history', exact=True)).to_have_count(0)
         page.goto(f'{web}/jobs/{jid}/apply?profile_id={pid}')
-        ready = page.locator('[data-original-cv-text]')
-        expect(ready).to_have_attribute('data-original-cv-text', de.strip())
-        page.get_by_text('Options', exact=True).click()
-        page.get_by_role('button', name='Show brief', exact=True).click()
-        prompt = page.get_by_role('textbox', name='Prepared application prompt')
-        expect(prompt).to_contain_text('Deutsche Basisaufgabe.')
-        page.get_by_text('Options', exact=True).click()
-        page.get_by_role('combobox', name='Document language').select_option('English')
-        expect(ready).to_have_attribute('data-original-cv-text', en.strip())
-        expect(prompt).to_contain_text('English base responsibility.')
-        payload = json.loads(prompt.input_value().split('SOURCE PAYLOAD (quoted data):')[-1])
-        assert payload['cv_history']['experiences'][0]['description'] == 'English base responsibility.'
-        page.get_by_role('button', name='I already have a result', exact=True).click()
-        profiles = context.request.get(f'{api}/api/v1/profiles').json()['items']
-        metadata = next(item for item in profiles if item['id'] == pid)['cv']
-        pack = {'format': 'radius-application-v1', 'job_id': jid, 'profile_id': pid, 'cv_updated_at': metadata['updated_at'], 'cv': 'Alex Example\nEnglish base responsibility.', 'cover_letter': 'Dear team,\nI build research tools.', 'application_answers': 'None', 'review_notes': 'Reviewed', 'latex_documents': {'cv': en}}
-        token = base64.urlsafe_b64encode(zlib.compress(json.dumps(pack).encode())).decode().rstrip('=')
-        page.goto(f'{web}/jobs/{jid}/apply?profile_id={pid}#applicationz={token}')
-        expect(page.get_by_text('Your documents are ready.', exact=True)).to_be_visible(timeout=15000)
-        expect(page.get_by_role('button', name='Download editable DOCX', exact=True)).to_have_count(0)
-        expect(page.locator('.template-pdf-preview canvas').first).to_be_visible(timeout=30000)
-        with page.expect_download() as downloaded:
-            page.get_by_role('button', name='Download LaTeX source', exact=True).click()
-        assert Path(downloaded.value.path()).read_text() == en
-        page.screenshot(path='/tmp/tex-cv-browser.png', full_page=True)
-        print('Both language sources persisted; automatic German and explicit English selection, marked return, PDF preview and exact source download passed.')
+        expect(page.get_by_role('combobox', name='Document language')).to_have_value('de')
+        expect(page.get_by_text('Deutsche Betriebsanalyse', exact=False)).to_be_visible()
+        page.get_by_role('combobox', name='Document language').select_option('en')
+        expect(page.get_by_text('English operations analyst', exact=False)).to_be_visible()
+        page.get_by_role('button', name='Confirm and save base CV').click()
+        expect(page.get_by_text('Review or edit base CV', exact=True)).to_be_visible()
+        structure = context.request.get(f'{api}/api/v1/profiles/{pid}/cv/structure?language=en').json()
+        assert structure['source'] == 'stored'
+        assert structure['document']['headline']['text'].startswith('English operations analyst')
+        print('Both language sources persisted and the structured CV was confirmed.')
     finally:
         context.request.delete(f'{api}/api/v1/profiles/{pid}')
         browser.close()

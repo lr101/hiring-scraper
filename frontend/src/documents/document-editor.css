@@ -1,0 +1,469 @@
+.doc-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #29343c;
+  font-family: 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+}
+
+.doc-editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  padding: 10px 14px;
+  border: 1px solid #dfe5dc;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgb(38 54 44 / 4%);
+}
+
+.doc-editor-toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.doc-editor-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 5px 11px;
+  border: 1px solid #d5ded1;
+  border-radius: 7px;
+  background: #f6f8f5;
+  color: #2e3d46;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.doc-editor-btn:hover:not(:disabled) {
+  background: #ecf2e8;
+  border-color: #aebfa5;
+}
+
+.doc-editor-btn:focus-visible {
+  outline: 2px solid #4e626c;
+  outline-offset: 2px;
+}
+
+.doc-editor-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.doc-editor-btn--primary {
+  border-color: #46614d;
+  background: #46614d;
+  color: #ffffff;
+}
+
+.doc-editor-btn--primary:hover:not(:disabled) {
+  border-color: #38503e;
+  background: #38503e;
+}
+
+.doc-editor-btn--active {
+  border-color: #6c8578;
+  background: #e6efe8;
+  color: #264033;
+}
+
+.doc-editor-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 26px;
+  padding: 3px 9px;
+  border: 1px solid #dce4d8;
+  border-radius: 999px;
+  background: #f4f6f3;
+  color: #465850;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.doc-editor-pill--warning {
+  border-color: #e6c6a0;
+  background: #fdf4e7;
+  color: #8a5010;
+}
+
+.doc-editor-pill--high {
+  border-color: #ebbdb3;
+  background: #fdf0ed;
+  color: #9e2f1d;
+}
+
+.doc-editor-pill--medium {
+  border-color: #e8d2a6;
+  background: #fdf7ea;
+  color: #8a5a12;
+}
+
+.doc-editor-pill--info {
+  border-color: #c7d9ec;
+  background: #eef5fc;
+  color: #24527a;
+}
+
+.doc-editor-save-state {
+  font-size: 12px;
+  color: #5b6d62;
+}
+
+.doc-editor-save-state--error {
+  color: #9e2f1d;
+  font-weight: 600;
+}
+
+.doc-editor-doc-findings {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 14px;
+  border: 1px solid #e6d8c3;
+  border-radius: 9px;
+  background: #fcf8f1;
+  font-size: 12px;
+}
+
+.doc-editor-doc-finding {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+  color: #3a454c;
+}
+
+.doc-editor-doc-finding-severity {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.doc-editor-doc-finding-severity--high {
+  background: #fae2dc;
+  color: #9e2f1d;
+}
+
+.doc-editor-doc-finding-severity--medium {
+  background: #f9ebd0;
+  color: #8a5a12;
+}
+
+.doc-editor-doc-finding-severity--info {
+  background: #e1eef9;
+  color: #24527a;
+}
+
+.doc-editor-stage {
+  display: flex;
+  justify-content: center;
+  padding: 20px 14px 28px;
+  overflow-x: auto;
+  border: 1px solid #e1e6dd;
+  border-radius: 12px;
+  background: #eaede8;
+}
+
+.doc-editor-sheet {
+  box-shadow: 0 4px 18px rgb(24 34 28 / 12%), 0 1px 3px rgb(24 34 28 / 8%);
+  border-radius: 2px;
+}
+
+/* ---------- Page Guides Overlay ---------- */
+
+.doc-editor-page-guides {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.doc-editor-page-guide {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1.5px dashed #8b9a90;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 6px;
+}
+
+.doc-editor-page-guide--overflow {
+  border-top-color: #c24b31;
+}
+
+.doc-editor-page-guide-label {
+  transform: translateY(-50%);
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #f2f4f1;
+  border: 1px solid #cbd4cd;
+  color: #4f5f54;
+  font-family: 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.doc-editor-page-guide--overflow .doc-editor-page-guide-label {
+  background: #fdf0ed;
+  border-color: #e6b8ad;
+  color: #9e2f1d;
+}
+
+/* ---------- Inline Unit Wrapper & Editable Text ---------- */
+
+.doc-editor-unit {
+  position: relative;
+  display: inline;
+  border-radius: 2px;
+  transition: background 100ms ease;
+}
+
+.doc-editor-unit--block {
+  display: block;
+}
+
+.doc-editor-unit:hover {
+  background: rgb(118 153 116 / 9%);
+}
+
+.doc-editor-unit:focus-within {
+  background: rgb(118 153 116 / 13%);
+}
+
+.doc-editor-unit--hidden {
+  opacity: 0.45;
+  text-decoration: line-through;
+  background: rgb(140 148 143 / 10%);
+}
+
+.doc-editor-editable {
+  display: inline;
+  outline: none;
+  min-width: 1ch;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.doc-editor-editable:focus {
+  outline: 1.5px solid #6c8f68;
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+
+.doc-editor-editable:empty::before {
+  content: attr(data-placeholder);
+  color: #939ea5;
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* ---------- Finding Underlines & Badge/Popover ---------- */
+
+.doc-editor-unit--finding-high .doc-editor-editable {
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  text-decoration-color: #c23b22;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 2px;
+}
+
+.doc-editor-unit--finding-medium .doc-editor-editable {
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-color: #c27d1a;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 2px;
+}
+
+.doc-editor-unit--finding-info .doc-editor-editable {
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: #2b6cb0;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 2px;
+}
+
+.doc-editor-unit-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 4px;
+  vertical-align: middle;
+  font-family: 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1;
+  user-select: none;
+}
+
+.doc-editor-unit-action {
+  opacity: 0;
+  padding: 2px 5px;
+  border: 1px solid #cbd5ca;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #46574c;
+  font-size: 9.5px;
+  font-weight: 650;
+  line-height: 1.1;
+  cursor: pointer;
+  transition: opacity 100ms ease, background 100ms ease;
+}
+
+.doc-editor-unit:hover .doc-editor-unit-action,
+.doc-editor-unit:focus-within .doc-editor-unit-action,
+.doc-editor-unit--hidden .doc-editor-unit-action,
+.doc-editor-unit-action:focus-visible {
+  opacity: 1;
+}
+
+.doc-editor-unit-action:hover {
+  background: #edf3ea;
+  border-color: #93aa8d;
+}
+
+.doc-editor-unit-action:focus-visible {
+  outline: 2px solid #4e626c;
+  outline-offset: 1px;
+}
+
+.doc-editor-finding-anchor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.doc-editor-finding-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.doc-editor-finding-badge--high {
+  background: #fdf0ed;
+  border-color: #e4a99c;
+  color: #a12c19;
+}
+
+.doc-editor-finding-badge--medium {
+  background: #fdf6e8;
+  border-color: #e4c78d;
+  color: #8a560f;
+}
+
+.doc-editor-finding-badge--info {
+  background: #edf5fc;
+  border-color: #b8d2ec;
+  color: #1f5487;
+}
+
+.doc-editor-finding-popover {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  z-index: 20;
+  width: 280px;
+  max-width: 75vw;
+  padding: 9px 11px;
+  border: 1px solid #d4dcd2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #29343c;
+  box-shadow: 0 6px 20px rgb(20 30 24 / 15%);
+  text-align: left;
+  font-family: 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+  font-size: 11.5px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: normal;
+  hyphens: none;
+}
+
+.doc-editor-finding-item {
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid #eef1ec;
+}
+
+.doc-editor-finding-item:last-child {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.doc-editor-finding-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.doc-editor-finding-code {
+  font-size: 10px;
+  color: #66747d;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.doc-editor-finding-msg {
+  margin: 0;
+  color: #29343c;
+}
+
+.doc-editor-finding-suggestion {
+  margin: 3px 0 0 0;
+  color: #4b6251;
+  font-size: 11px;
+}
+
+@media print {
+  .doc-editor-toolbar,
+  .doc-editor-doc-findings,
+  .doc-editor-page-guides,
+  .doc-editor-unit-tools {
+    display: none !important;
+  }
+
+  .doc-editor-stage {
+    padding: 0;
+    border: none;
+    background: transparent;
+  }
+
+  .doc-editor-sheet {
+    box-shadow: none;
+  }
+
+  .doc-editor-unit--finding-high .doc-editor-editable,
+  .doc-editor-unit--finding-medium .doc-editor-editable,
+  .doc-editor-unit--finding-info .doc-editor-editable {
+    text-decoration: none !important;
+  }
+}

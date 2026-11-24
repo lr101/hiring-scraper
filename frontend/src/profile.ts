@@ -36,6 +36,8 @@ export type DutyEvidence = {
   reference: string
 }
 
+export type StyleExemplar = { language: 'en' | 'de'; kind: 'cover_letter' | 'cv_summary'; text: string }
+
 export type Profile = {
   duty_evidence?: DutyEvidence[]
   updated_at?: string
@@ -44,6 +46,7 @@ export type Profile = {
   application_personalization?: {
     career_evidence?: string; writing_samples?: string; cover_letter_example?: string; wording_to_avoid?: string
     career_goals?: string; work_preferences?: string
+    voice_notes?: string; style_exemplars?: StyleExemplar[]
   }
   application_details?: ApplicationDetails
   photo?: { filename: string; content_type: string; size_bytes: number; updated_at: string } | null

@@ -364,11 +364,11 @@ def _generation_failure(stderr, returncode):
     if status:
         code = status.group(1)
         if code.startswith('5'):
-            return f'ChatGPT returned HTTP {code} (server error). Try again later or use the ChatGPT handoff.'
-        return f'ChatGPT returned HTTP {code}. Try again or use the ChatGPT handoff.'
+            return f'ChatGPT returned HTTP {code} (server error). Try again later.'
+        return f'ChatGPT returned HTTP {code}. Try again.'
     if re.search(r'service unavailable|bad gateway', diagnostic):
-        return 'ChatGPT reported that the service is unavailable. Try again later or use the ChatGPT handoff.'
-    return f'ChatGPT runtime exited with code {returncode}; its error could not be classified. Try again or use the ChatGPT handoff.'
+        return 'ChatGPT reported that the service is unavailable. Try again later.'
+    return f'ChatGPT runtime exited with code {returncode}; its error could not be classified. Try again.'
 
 
 def _provider_error_detail(diagnostic, prompt):
@@ -466,7 +466,7 @@ def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None, mode
                     raise HTTPException(502, detail)
                 if not output_path.exists():
                     LOG.warning('ChatGPT preparation failed: runtime produced no output file')
-                    raise HTTPException(502, 'ChatGPT runtime produced no output file. Try again or use the ChatGPT handoff.')
+                    raise HTTPException(502, 'ChatGPT runtime produced no output file. Try again.')
                 if output_path.stat().st_size > 1024 * 1024: raise ValueError()
                 result = json.loads(output_path.read_text())
                 if not isinstance(result, dict): raise ValueError()

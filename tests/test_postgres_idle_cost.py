@@ -40,6 +40,8 @@ def _idle_cycles():
         'search snapshot refresh': search_snapshots.process_search_snapshot_refresh_once,
         'application preparation claim': lambda: application_preparation_queue.process_once(
             lambda *_args: None),
+        'application render claim': lambda: application_preparation_queue.process_render_once(
+            lambda *_args: None),
         'profile/job vectors': lambda: profile_semantics.refresh_semantic_documents_once(
             encode=lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError('idle cycle encoded'))),
     }
