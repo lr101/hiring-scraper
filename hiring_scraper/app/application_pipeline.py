@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import random
 import re
 import time
@@ -38,7 +39,7 @@ from hiring_scraper.documents.schema import (
 )
 from hiring_scraper.documents.text import unit_full_text
 
-PIPELINE_VERSION = 'application-documents-v2.14'
+PIPELINE_VERSION = 'application-documents-v2.15'
 SLEEP = time.sleep
 PROMPTS = Path(__file__).with_name('prompts')
 DocumentKind = Literal['cv', 'letter']
@@ -77,6 +78,7 @@ class PreparationInput:
     language: DocumentLanguage
     mode: Literal['full', 'fast'] = 'full'
     today: date = field(default_factory=date.today)
+    prompts_dir: Path | None = None
 
 
 @dataclass
@@ -237,8 +239,17 @@ def _digest(value) -> str:
     return hashlib.sha256(_json(value).encode()).hexdigest()
 
 
+def _resolve_prompts_dir(prompts_dir: Path | None = None) -> Path:
+    if prompts_dir is not None:
+        return Path(prompts_dir)
+    env_dir = os.environ.get('RADIUS_PROMPTS_DIR')
+    if env_dir:
+        return Path(env_dir)
+    return PROMPTS
+
+
 def _input_digest(inp: PreparationInput, base: CvDocument, evidence: dict) -> str:
-    return _digest({
+    payload = {
         'version': PIPELINE_VERSION,
         'base_cv': base.model_dump(),
         'evidence': evidence,
@@ -249,7 +260,14 @@ def _input_digest(inp: PreparationInput, base: CvDocument, evidence: dict) -> st
         )},
         'job': inp.job,
         'language': inp.language,
-    })
+    }
+    resolved = _resolve_prompts_dir(inp.prompts_dir).resolve()
+    if resolved != PROMPTS.resolve():
+        payload['prompts_digest'] = _digest([
+            (path.name, path.read_text(encoding='utf-8'))
+            for path in sorted(resolved.glob('*.txt'))
+        ])
+    return _digest(payload)
 
 
 def input_digest(inp: PreparationInput) -> str:
@@ -258,9 +276,18 @@ def input_digest(inp: PreparationInput) -> str:
 
 
 @cache
-def _instructions(stage: str) -> str:
+def _default_instructions(stage: str) -> str:
     return (PROMPTS / 'common.txt').read_text(encoding='utf-8').rstrip() + '\n\n' + (
         PROMPTS / f'{stage}.txt'
+    ).read_text(encoding='utf-8').rstrip()
+
+
+def _instructions(stage: str, prompts_dir: Path | None = None) -> str:
+    directory = _resolve_prompts_dir(prompts_dir)
+    if directory == PROMPTS:
+        return _default_instructions(stage)
+    return (directory / 'common.txt').read_text(encoding='utf-8').rstrip() + '\n\n' + (
+        directory / f'{stage}.txt'
     ).read_text(encoding='utf-8').rstrip()
 
 
@@ -291,7 +318,7 @@ def _prompt(stage: str, inp: PreparationInput, evidence: dict, **blocks) -> str:
     job = {key: inp.job.get(key) or '' for key in ('title', 'company_name', 'location', 'description')}
     job['description'] = str(job['description'])[:12000]
     return '\n\n'.join([
-        _instructions(stage),
+        _instructions(stage, inp.prompts_dir),
         f'Target language: {language} ({inp.language})',
         'VOICE (tone only, never facts)\n```json\n' + _json(_voice(inp)) + '\n```',
         'EVIDENCE\n' + _json(evidence),

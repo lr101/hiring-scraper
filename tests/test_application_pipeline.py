@@ -1511,3 +1511,48 @@ class PipelineTests(unittest.TestCase):
             result.cv['sections'][0]['units'][0]['text'],
             cv_reply()['profile']['first']['text'],
         )
+
+    def test_prompts_dir_override_and_env_var(self):
+        import os
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+
+        default_inp = inputs()
+        default_digest = pipeline.input_digest(default_inp)
+        with TemporaryDirectory() as tmp:
+            alt = Path(tmp)
+            (alt / 'common.txt').write_text('CUSTOM COMMON PROMPT', encoding='utf-8')
+            for stage in ('cv', 'letter', 'review', 'revise', 'answers'):
+                (alt / f'{stage}.txt').write_text(f'CUSTOM {stage.upper()} PROMPT', encoding='utf-8')
+
+            explicit_inp = inputs()
+            explicit_inp.prompts_dir = alt
+            self.assertNotEqual(pipeline.input_digest(explicit_inp), default_digest)
+
+            seen_prompts = []
+
+            def generate(prompt, schema):
+                seen_prompts.append(prompt)
+                if len(seen_prompts) == 1:
+                    return cv_reply()
+                if len(seen_prompts) == 2:
+                    return slot_letter_reply(schema, letter_reply())
+                return {'findings': [], 'patches': []}
+
+            hooks = pipeline.StageHooks(lambda _: None, lambda *_: None, lambda _: None, lambda: False)
+            pipeline.prepare_documents(explicit_inp, generate, hooks)
+            self.assertEqual(len(seen_prompts), 3)
+            self.assertTrue(seen_prompts[0].startswith('CUSTOM COMMON PROMPT\n\nCUSTOM CV PROMPT'))
+            self.assertTrue(seen_prompts[1].startswith('CUSTOM COMMON PROMPT\n\nCUSTOM LETTER PROMPT'))
+            self.assertTrue(seen_prompts[2].startswith('CUSTOM COMMON PROMPT\n\nCUSTOM REVIEW PROMPT'))
+
+            with patch.dict(os.environ, {'RADIUS_PROMPTS_DIR': str(alt)}):
+                env_inp = inputs()
+                self.assertEqual(pipeline.input_digest(env_inp), pipeline.input_digest(explicit_inp))
+                self.assertEqual(
+                    pipeline._instructions('cv'),
+                    'CUSTOM COMMON PROMPT\n\nCUSTOM CV PROMPT',
+                )
+            # Default remains unchanged once env var is cleared.
+            self.assertEqual(pipeline.input_digest(inputs()), default_digest)
+            self.assertNotIn('CUSTOM COMMON PROMPT', pipeline._instructions('cv'))

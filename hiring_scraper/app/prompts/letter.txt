@@ -1,103 +1,40 @@
-Task: write a cover letter for the specific work in the posting. The application fills in
-sender, recipient, date, salutation, sign-off and signature.
+Task: write a focused, one-page cover letter tailored to this posting's core duties. The
+application fills in sender, recipient, date, salutation, sign-off, and signature.
 
 Output contract
-- EXAMPLE SLOTS contains original evidence grouped by employer or institution (including
-  organization, title, location and facts). Select the best two or three distinct slots
-  for the posting's core duties. Each slot takes one paragraph or null. Set priority 1 for
-  the most relevant paragraph and number the rest in reading order. Give each selected slot
-  an anchor from the single entry described in that paragraph and name the posting duty
-  it addresses in `duty`. Use the duty to choose the facts and takeaway before drafting.
-  Across selected slots, cover distinct core duties with verified evidence. Give the
-  strongest available core-duty example precedence over adjacent responsibilities. Before
-  selecting paragraphs, map each core duty to its closest verified action. Look beyond
-  job titles for relevant work, such as coordinating external partnerships or contracts,
-  working with suppliers, and managing scope or priorities in Kanban.
-- Write each example as linked sentences. Assign every sentence one source that verifies
-  the exact action, collaborator and outcome stated. Use `job` only for a sentence about
-  the posting or an explicitly future contribution. Use `profile:language_levels` when a
-  sentence integrates a required verified language level. Use the slot's supplemental facts
-  only when they concern the chosen entry. If no single source supports the complete
-  sentence, split or narrow it. The application joins the sentences and retains their ids.
-- `motivation` (`text` + `sources`): open with specific interest in the posting's work.
-  Connect one named core duty to a concrete verified capability in the applicant's
-  background. Cite its exact source in `motivation.sources` and cite `job` for the duty.
-  Save detailed actions, collaborators and results for the example slots. If the evidence
-  is sparse, describe interest at the scope you can support.
-- `fit` (`text` + `sources`, or `null`): use for a distinct closing argument (such as a
-  short clause on a required verified language level + international work from an entry not
-  already used as an example slot, or a focused future contribution). Cite every source id
-  used (including `profile:language_levels` when mentioning a required language level, and
-  `job` for future-oriented statements). Use `fit=null` when it adds no distinct point. Use
-  at most four body paragraphs including `motivation` and `fit`; use fewer when evidence is
-  sparse.
+- `motivation` (`text` + `sources`): open with specific interest in this company and a named core
+  duty from JOB, linked to a concrete verified capability (cite its source id plus `job`). Ground
+  every statement about the employer strictly in JOB; use exact team, product, and role names.
+- `examples` (one optional slot per employer or institution in EXAMPLE SLOTS): choose 2–3 distinct
+  slots covering the posting's core duties, numbered by `priority` (1, 2, …) in reading order. For
+  each selected slot, name the posting duty in `duty`, set `anchor` to a fact from that entry, and
+  write 3–4 linked sentences (`sentences`), each citing one allowed `source` that verifies it (use
+  `job` for role or future statements, `profile:language_levels` when integrating a required
+  language level).
+- `fit` (`text` + `sources`, or `null`): use only for a distinct brief closing argument (such as a
+  required verified language level or international context from an unused entry, or a focused
+  future contribution); otherwise return `null`. Keep total body paragraphs (`motivation` +
+  selected `examples` + optional `fit`) to 3–4.
+- `closing` (`text`): one warm, specific sentence inviting a conversation about the role, with no
+  new claims. In German, close idiomatically (e.g. "Über ein persönliches Gespräch zu … freue ich
+  mich.") and omit "Vielen Dank für Ihre Zeit." In English, close naturally (e.g. "I would welcome
+  a conversation about …").
+- `subject` (`text`): "Bewerbung als <Titel>" in German or "Application for <job title>" in
+  English.
+- `contact_name`: exact named vacancy contact from JOB without titles or honorifics (full name in
+  German; first name alone is fine if that is all English gives); empty string if unnamed or
+  email-only.
 
-Structure
-- Write three body paragraphs and a short closing by default. Add a fourth body paragraph
-  when a core requirement otherwise lacks a verified example. Aim for 270–310 words in
-  English or 260–320 in German, including the closing.
-- Motivation: connect a core duty stated in the posting directly and warmly to the
-  applicant's interest (and, if cited in `motivation.sources`, a concrete verified
-  capability). Use the company's name in the opening and, if natural, in the closing. Ground
-  every statement about the employer strictly in the posting — never speculate about the
-  employer's internal data, tools, or processes that the posting does not state. Use exact
-  team names, product names and role titles as written in JOB.
-- Examples: choose and order slots to cover the posting's core duties with the closest
-  available evidence. In each paragraph select one or two strong actions and a verified
-  outcome (quantified where documented), or a concrete takeaway applying that evidence
-  to a named posting duty. Use three or four purposeful sentences and leave out secondary
-  actions. Avoid turning the paragraph into a tour of the CV.
-  - Look for evidence of each core ask, including market/user research, external
-    partnerships, requirements prioritization and Figma prototyping when applicable. Keep
-    participant and partner types and decision rights exact. Include training outcomes
-    when training is central and evidence supports them.
-  - Select a study-project slot when it provides the best evidence for a core duty. Set the
-    context explicitly as a project during the applicant's studies. A project topic or
-    reference company is neither an employer nor a client without explicit evidence.
-  - When required, weave a verified language level or international experience into one
-    short clause tied to a relevant duty or working context. Avoid a standalone sentence
-    announcing the level. Keep the clause independent of outcomes it did not produce.
-- Closing: use a warm, specific invitation to discuss the work in one concise sentence.
-  In German, close idiomatically (e.g. "Über ein persönliches Gespräch zu … freue ich mich.")
-  and omit a standalone thank-you such as "Vielen Dank für Ihre Zeit." In English, use
-  natural language (e.g. "I would welcome a conversation about …"). Introduce no new claims.
-
-Check the final draft before returning it
-- Write fresh first-person active narrative prose throughout — do NOT restate CV bullets
-  or copy evidence wording verbatim. Paraphrase slot facts into natural narrative showing
-  what the applicant did, how they worked with collaborators, and what changed from feedback
-  or results. Give each paragraph a different duty or argument. Merge sentences that restate
-  the same point, and avoid recycling an action/object phrase or bridge verb across examples.
-- Formula and rhythm checks:
-  - Keep active first-person voice and vary the rhythm. Across the whole letter, use any
-    first word to open at most two paragraphs. Keep the main verb distinct from the main
-    verb of the previous sentence, including across paragraph boundaries. Open some
-    sentences with context, purpose, collaborators or outcomes before the subject.
-    Keep verbs precise even when varying the structure.
-  - Use at most ONE forward-looking conditional formula ("würde ich …" / "I would bring …" /
-    "I would apply …") in the ENTIRE letter; use indicative, varied constructions everywhere
-    else.
-  - End examples where the documented result or takeaway lands naturally. A forward-looking
-    bridge is optional, and no two paragraphs should end with the same construction.
-    Reserve "I look forward to" / "Ich freue mich auf" for the closing sentence.
-  - State the verified outcome or a specific takeaway for the named duty. Avoid speculative
-    bridges about the employer's internal data or systems.
-  - In English, use "KPIs" rather than "performance indicators".
-- Audit every past-tense clause and every statement about the applicant's usual practice
-  against cited evidence. Use the source verb or a weaker equivalent. Keep actors,
-  recipients, leadership scope, stage and results exact. Keep tracking, analyzing, proposing and deciding distinct. Where the
-  evidence stops short of the posting duty, say what the applicant wants to do or learn in
-  the new role. Use one independently verifiable action and its documented outcome per
-  sentence. Keep separately stated source facts independent; never imply one caused or
-  informed another unless the source says so. Use `job` as the source of sentences about
-  the posting and future plans.
-- Spell out English contractions. In German, keep formal Sie-Form throughout ("Sie"/"Ihr",
-  matching the voice notes) and start lowercase after the comma-ended salutation unless the
-  first word is a noun, proper name or formal Sie/Ihr.
-
-Use "Application for <job title>" in the English subject and "Bewerbung als <Titel>" in
-the German subject.
-In "contact_name", copy the name explicitly identified as the vacancy contact, without titles
-or honorifics. In English, use the first name alone if that is all the posting gives. In German,
-return a full name only. Return an empty string for an email-only or unnamed contact. Do not
-use a name mentioned only as a colleague or inferred from an email address.
+Writing principles
+- Aim for roughly 260–320 words total (including closing) so the letter fits cleanly on one A4
+  page.
+- Write in the applicant's own voice (using VOICE notes and exemplars for tone and rhythm only) as
+  fresh first-person active prose — do not copy CV bullets verbatim.
+- In each evidence paragraph, focus on 1–2 strong verified actions and a documented outcome
+  (quantified where supported), and end by making clear what that experience means for the target
+  role's duty. State study projects explicitly as academic context.
+- Vary sentence openings, verbs, and paragraph endings naturally; avoid repeating the same closing
+  bridge formula across paragraphs.
+- English: spell out all contractions (e.g. "I have", "do not"). German: keep formal Sie-Form
+  ("Sie"/"Ihr") throughout, and start paragraph 1 lowercase after the comma-ended salutation
+  unless the first word is a noun, proper name, or Sie/Ihr.
