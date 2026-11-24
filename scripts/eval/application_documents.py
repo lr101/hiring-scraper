@@ -16,8 +16,9 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from hiring_scraper.app import codex_runtime  # noqa: E402
-from hiring_scraper.app.application_pdf import render_document  # noqa: E402
+from hiring_scraper.app.application_pdf import export_verified, render_document  # noqa: E402
 from hiring_scraper.app.application_pipeline import (  # noqa: E402
+    PIPELINE_VERSION,
     Generate,
     GenerationError,
     PreparationInput,
@@ -108,7 +109,8 @@ def run(args: argparse.Namespace) -> None:
     base = (import_marked_tex(base_path.read_text(encoding='utf-8'), language=language) if args.base_tex
             else import_docx(base_path.read_bytes(), language=language))
     photo = private_path(args.photo).read_bytes() if args.photo else None
-    inp = PreparationInput(base.model_dump(), profile, job, base.language, args.mode)
+    prompts_dir = args.prompts_dir.resolve() if args.prompts_dir else None
+    inp = PreparationInput(base.model_dump(), profile, job, base.language, args.mode, prompts_dir=prompts_dir)
 
     out.mkdir(mode=0o700, parents=True, exist_ok=True)
     checkpoints = {}
@@ -133,10 +135,12 @@ def run(args: argparse.Namespace) -> None:
         write_json(workspace / 'job.json', job)
         write_json(workspace / 'findings.json', result.findings)
         pages = {}
+        verified = {}
         photo_used = False
         for kind, body in (('cv', result.cv), ('letter', result.letter)):
             output = render(kind, body)
             pages[kind] = output.pages
+            verified[kind] = export_verified(output.checks)
             if kind == 'cv':
                 photo_used = output.telemetry['photo_used']
             write_json(workspace / f'{kind}.json', body)
@@ -144,7 +148,10 @@ def run(args: argparse.Namespace) -> None:
             (workspace / f'{kind}.txt').write_text(output.text, encoding='utf-8')
         telemetry = {
             **result.telemetry, 'stages': result.stages, 'base_path': str(base_path),
-            'model': args.model, 'mode': args.mode, 'pages': pages, 'photo_used': photo_used,
+            'pipeline_version': PIPELINE_VERSION,
+            'prompts_dir': str(prompts_dir) if prompts_dir else 'default',
+            'model': args.model, 'mode': args.mode, 'pages': pages,
+            'export_verified': verified, 'photo_used': photo_used,
             'seconds': round(monotonic() - started, 3),
             'finding_counts': dict(Counter(f['code'] for f in result.findings)),
         }
@@ -154,7 +161,8 @@ def run(args: argparse.Namespace) -> None:
             artifact.replace(out / artifact.name)
 
     print(json.dumps({
-        'out': str(out), 'pages': pages, 'seconds': telemetry['seconds'], 'photo_used': photo_used,
+        'out': str(out), 'pages': pages, 'export_verified': verified,
+        'seconds': telemetry['seconds'], 'photo_used': photo_used,
         'stage_seconds': telemetry['stage_seconds'], 'attempts': telemetry['attempts'],
         'attempt_failures': telemetry.get('attempt_failures', {}),
         'stage_states': {name: s.get('state') for name, s in result.stages.items()},
@@ -173,6 +181,7 @@ def main() -> int:
     parser.add_argument('--model', default='gpt-6.2-sol')
     parser.add_argument('--mode', choices=('full', 'fast'), default='full')
     parser.add_argument('--photo', type=Path)
+    parser.add_argument('--prompts-dir', type=Path, default=None)
     try:
         run(parser.parse_args())
     except Exception as error:
