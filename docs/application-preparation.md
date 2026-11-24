@@ -56,3 +56,20 @@ writes artifacts only under the ignored `data/private/` directory. It uses an
 authenticated evaluation runtime under `data/private/codex/` by default.
 Set `RADIUS_CODEX_STATE_DIR` to another directory inside `data/private/` to
 reuse an isolated evaluation connection.
+
+## Roll back the application image
+
+Stop all Radius application containers before switching versions. Keep the database
+running and leave the volumes in place. With the **v2 image still configured**, run:
+
+```sh
+docker compose stop
+docker compose up -d db
+docker compose run --rm --no-deps migrate --rollback-application-documents
+```
+
+Then pin the previous application image and start the stack. The rollback returns
+Alembic to revision 0043 and preserves the v2 document, PDF and queue tables. The old
+worker has its own queue. To return to v2, stop the application containers again,
+restore the v2 image pin and start the stack. The migration reuses the preserved
+tables. Use this procedure for rollback to 0043.

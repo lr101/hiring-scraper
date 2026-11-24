@@ -1,5 +1,7 @@
 """Populated databases upgrade through historical data migrations to head."""
 import os
+from pathlib import Path
+import sys
 import unittest
 from unittest.mock import patch
 from uuid import uuid4
@@ -155,6 +157,73 @@ class HistoricalUpgradeTests(unittest.TestCase):
                     ])
             finally:
                 engine.dispose()
+
+
+    def test_application_documents_survive_entrypoint_rollback_and_reupgrade(self):
+        from docker import entrypoint
+
+        old_head = '0043_drop_ai_assessment'
+        command.upgrade(self.config, old_head)
+        engine = create_engine(self.target)
+        self.addCleanup(engine.dispose)
+        with engine.begin() as connection:
+            connection.execute(text(
+                "INSERT INTO user_profiles (id, name, preferences, created_at, updated_at) "
+                "VALUES (1, 'Fictional applicant', '{}', now(), now())"))
+            connection.execute(text(
+                "INSERT INTO companies (id, source, source_id, name, career_status, discovery_attempt_count) "
+                "VALUES (1, 'manual', 'fixture', 'Fictional employer', 'not_checked', 0)"))
+            connection.execute(text(
+                "INSERT INTO job_feeds (id, company_id, provider, feed_url, status, enabled, attempt_count) "
+                "VALUES (1, 1, 'rss', 'https://example.test/feed', 'ok', TRUE, 0)"))
+            connection.execute(text(
+                "INSERT INTO jobs (id, feed_id, external_id, title, url, is_remote, raw_metadata, enrichment, "
+                "first_seen_at, last_seen_at, is_active, missing_complete_scans) "
+                "VALUES (2, 1, 'job', 'Engineer', 'https://example.test/job', FALSE, '{}', '{}', now(), now(), TRUE, 0)"))
+
+        # The disposable database already has the role. The entrypoint's role
+        # bootstrap targets the production database name.
+        executable_dir = str(Path(sys.executable).parent)
+        with patch.object(entrypoint, '_application_database_url', return_value=self.target), \
+                patch.object(entrypoint, '_application_database_password', return_value='unused'), \
+                patch.object(entrypoint, '_ensure_application_role'), \
+                patch.dict(os.environ, {'PATH': executable_dir + os.pathsep + os.environ['PATH']}):
+            entrypoint._migrate(self.target)
+            with engine.begin() as connection:
+                connection.execute(text('GRANT USAGE ON SCHEMA public TO hiring_app'))
+                connection.execute(text('SET LOCAL ROLE hiring_app'))
+                connection.execute(text(
+                    "INSERT INTO application_documents "
+                    "(profile_id, job_id, kind, version, language, body, origin, created_at) "
+                    "VALUES (1, 2, 'letter', 1, 'en', :body, 'user', now())"
+                ), {'body': '{"text": "Fictional manual edit"}'})
+                connection.execute(text(
+                    "INSERT INTO application_document_renders "
+                    "(profile_id, job_id, kind, version, template, pdf, pages, created_at) "
+                    "VALUES (1, 2, 'letter', 1, 'fixture', :pdf, 1, now())"
+                ), {'pdf': b'fictional PDF'})
+                connection.execute(text(
+                    "INSERT INTO application_document_preparation_tasks "
+                    "(profile_id, job_id, record, state, updated_at) "
+                    "VALUES (1, 2, :record, 'running', now())"
+                ), {'record': '{"kind": "prepare"}'})
+
+            entrypoint._migrate(self.target, rollback_application_documents=True)
+            with engine.connect() as connection:
+                self.assertEqual(connection.scalar(text('SELECT version_num FROM alembic_version')), old_head)
+                connection.execute(text('SET LOCAL ROLE hiring_app'))
+                self.assertEqual(connection.scalar(text(
+                    "SELECT count(*) FROM application_preparation_tasks WHERE state = 'running'")), 0)
+
+            entrypoint._migrate(self.target)
+            with engine.connect() as connection:
+                connection.execute(text('SET LOCAL ROLE hiring_app'))
+                self.assertEqual(connection.scalar(text(
+                    "SELECT body->>'text' FROM application_documents")), 'Fictional manual edit')
+                self.assertEqual(connection.scalar(text(
+                    'SELECT pdf FROM application_document_renders')), b'fictional PDF')
+                self.assertEqual(connection.scalar(text(
+                    "SELECT record->>'kind' FROM application_document_preparation_tasks")), 'prepare')
 
 
 if __name__ == '__main__':

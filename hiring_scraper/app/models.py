@@ -720,7 +720,7 @@ class ScanRun(Base):
 
 
 class ApplicationPreparationTask(Base):
-    __tablename__ = 'application_preparation_tasks'
+    __tablename__ = 'application_document_preparation_tasks'
 
     profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
     job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True)
@@ -729,8 +729,6 @@ class ApplicationPreparationTask(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     lease_token: Mapped[str | None] = mapped_column(String(32))
     lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    # Earliest claim time for a task waiting to retry. Added by the rollback-safe
-    # entrypoint step (docker/entrypoint.py), not Alembic, so older images still start.
     next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
 
 

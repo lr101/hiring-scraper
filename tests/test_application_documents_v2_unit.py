@@ -329,9 +329,10 @@ class MigrationAndEvalGuardTests(unittest.TestCase):
             migration.upgrade()
             migration.downgrade()
 
-        expected = ('application_documents', 'application_document_renders', 'application_render_tasks')
+        expected = ('application_documents', 'application_document_renders', 'application_render_tasks',
+                    'application_document_preparation_tasks')
         self.assertEqual(tuple(created_tables), expected)
-        self.assertEqual(tuple(dropped_tables), tuple(reversed(expected)))
+        self.assertEqual(dropped_tables, [])
         for table_name in expected:
             orm_columns = set(models.Base.metadata.tables[table_name].c.keys())
             self.assertEqual(created_tables[table_name], orm_columns, table_name)

@@ -87,7 +87,7 @@ high-severity grounding checks and unsupported CV qualifiers can trigger retries
 
 | Table | Key and purpose |
 | --- | --- |
-| `application_preparation_tasks` | Profile and job. One active inference task per pair, with kind `prepare` or `revise`, lease, attempts, retry timestamp and input-digest checkpoints. |
+| `application_document_preparation_tasks` | Profile and job. One active inference task per pair, with kind `prepare` or `revise`, lease, attempts, retry timestamp and input-digest checkpoints. |
 | `application_documents` | Profile, job, kind and version. Stores the document JSON, findings, provenance and staleness. Keeps the latest 20 versions per kind. |
 | `application_document_renders` | Document key and template. Stores verified PDF bytes, page count and checks. |
 | `application_render_tasks` | Document key and template. Tracks the independent render lane, with a claim time, lease token and failure code. |

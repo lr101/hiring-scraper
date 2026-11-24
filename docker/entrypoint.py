@@ -210,18 +210,18 @@ def ensure_rollback_safe_schema(migration_url: str) -> None:
     _ensure_preparation_retry_schema(migration_url)
 
 
-def _bootstrap() -> str:
+def _bootstrap(*, rollback_application_documents: bool = False) -> str:
     migration_url = _migration_database_url()
     engine = create_engine(migration_url, isolation_level="AUTOCOMMIT")
     try:
         with engine.connect() as connection:
             connection.execute(text("SELECT pg_advisory_lock(85793011, 7)"))
-            return _migrate(migration_url)
+            return _migrate(migration_url, rollback_application_documents=rollback_application_documents)
     finally:
         engine.dispose()
 
 
-def _migrate(migration_url: str) -> str:
+def _migrate(migration_url: str, *, rollback_application_documents: bool = False) -> str:
     application_url = _application_database_url()
     print("Ensuring the application database role exists", flush=True)
     _ensure_application_role(migration_url, _application_database_password())
@@ -231,7 +231,9 @@ def _migrate(migration_url: str) -> str:
     migration_environment["DATABASE_URL"] = migration_url
     migration_environment.pop("DATABASE_ADMIN_URL", None)
     migration_environment.pop("POSTGRES_PASSWORD", None)
-    subprocess.run(["alembic", "upgrade", "head"], check=True, env=migration_environment)
+    migration = (["downgrade", "0043_drop_ai_assessment"] if rollback_application_documents
+                 else ["upgrade", "head"])
+    subprocess.run(["alembic", *migration], check=True, env=migration_environment)
     del migration_environment
 
     print("Ensuring rollback-safe schema steps", flush=True)
@@ -327,6 +329,9 @@ def _serve() -> int:
 
 def main() -> int:
     arguments = sys.argv[1:]
+    if arguments == ["--rollback-application-documents"]:
+        _bootstrap(rollback_application_documents=True)
+        return 0
     if arguments == ["--migrate"]:
         _prepare_codex_state()
         _bootstrap()

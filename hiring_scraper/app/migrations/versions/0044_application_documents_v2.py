@@ -1,7 +1,7 @@
 """Store versioned structured application documents, their PDFs and the render lane.
 
-The preparation queue's ``next_attempt_at`` column is applied by the
-rollback-safe entrypoint step (``docker/entrypoint.py``), not here.
+The inference lane uses a dedicated table so the previous image can
+continue to use its own queue during an image rollback.
 """
 from alembic import op
 import sqlalchemy as sa
@@ -33,8 +33,9 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
         sa.CheckConstraint("kind IN ('cv', 'letter')", name='ck_application_documents_kind'),
         sa.CheckConstraint('version > 0', name='ck_application_documents_version'),
+        if_not_exists=True,
     )
-    op.create_index('ix_application_documents_job', 'application_documents', ['job_id'])
+    op.create_index('ix_application_documents_job', 'application_documents', ['job_id'], if_not_exists=True)
     op.create_table(
         'application_document_renders',
         sa.Column('profile_id', sa.Integer(), primary_key=True),
@@ -49,6 +50,7 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(_DOCUMENT_KEY, _DOCUMENT_REFS, ondelete='CASCADE',
                                 name='fk_application_document_renders_document'),
+        if_not_exists=True,
     )
     op.create_table(
         'application_render_tasks',
@@ -65,15 +67,46 @@ def upgrade():
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(_DOCUMENT_KEY, _DOCUMENT_REFS, ondelete='CASCADE',
                                 name='fk_application_render_tasks_document'),
+        if_not_exists=True,
     )
-    op.create_index('ix_application_render_tasks_available_at', 'application_render_tasks', ['available_at'])
-    if op.get_bind().dialect.name == 'postgresql':
-        op.execute('GRANT SELECT, INSERT, UPDATE, DELETE ON application_documents, '
-                   'application_document_renders, application_render_tasks TO hiring_app')
+    op.create_index('ix_application_render_tasks_available_at', 'application_render_tasks', ['available_at'], if_not_exists=True)
+    ensure_preparation_queue()
+    op.execute('GRANT SELECT, INSERT, UPDATE, DELETE ON application_documents, '
+               'application_document_renders, application_render_tasks TO hiring_app')
+
+
+def ensure_preparation_queue():
+    op.create_table(
+        'application_document_preparation_tasks',
+        sa.Column('profile_id', sa.Integer(), sa.ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True),
+        sa.Column('job_id', sa.Integer(), sa.ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True),
+        sa.Column('record', sa.JSON(), nullable=False),
+        sa.Column('state', sa.String(16), nullable=False),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
+        sa.Column('lease_token', sa.String(32)),
+        sa.Column('lease_until', sa.DateTime(timezone=True)),
+        sa.Column('next_attempt_at', sa.DateTime(timezone=True)),
+        if_not_exists=True,
+    )
+    for column in ('state', 'next_attempt_at'):
+        op.create_index(f'ix_application_document_preparation_tasks_{column}',
+                        'application_document_preparation_tasks', [column], if_not_exists=True)
+    op.execute('GRANT SELECT, INSERT, UPDATE, DELETE ON application_document_preparation_tasks TO hiring_app')
+    # A pre-release v2 worker may have written to the shared queue. Move its
+    # records while the deployment is stopped, releasing leases it no longer owns.
+    op.execute("""
+        WITH moved AS (
+            DELETE FROM application_preparation_tasks
+            WHERE record->>'kind' IN ('prepare', 'revise')
+            RETURNING profile_id, job_id, record, state, updated_at
+        )
+        INSERT INTO application_document_preparation_tasks (profile_id, job_id, record, state, updated_at)
+        SELECT profile_id, job_id, record, state, updated_at FROM moved
+        ON CONFLICT (profile_id, job_id) DO NOTHING
+    """)
 
 
 def downgrade():
-    op.drop_table('application_render_tasks')
-    op.drop_table('application_document_renders')
-    op.drop_index('ix_application_documents_job', table_name='application_documents')
-    op.drop_table('application_documents')
+    # Binary rollback to 0043 keeps user versions and their dependent rows.
+    # The previous image never reads these tables.
+    ensure_preparation_queue()
