@@ -477,22 +477,22 @@
     page-break-after: auto;
   }
 
-  /* Keep short entries (<= 4 bullets, with or without intro) intact so page 2 starts at an entry or section header. */
-  .doc-cv-entry:has(.doc-cv-bullet):not(:has(.doc-cv-bullet:nth-child(5))) {
+  /* Prefer a clean entry break unless it leaves too much white space on page one. */
+  .doc-page:not(.doc-page--fill-first) .doc-cv-entry:has(.doc-cv-bullet):not(:has(.doc-cv-bullet:nth-child(5))) {
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
-  /* For longer entries (>= 5 bullets), keep at least 3 bullets with the header on page 1 and at least 2 on page 2. */
+  /* Keep the first two bullets with the header and prevent a final bullet on its own. */
   .doc-cv-entry .doc-cv-bullet:nth-child(1):not(:last-child),
-  .doc-cv-entry .doc-cv-bullet:nth-child(2):not(:last-child),
   .doc-cv-entry .doc-cv-bullet:nth-last-child(2) {
     break-after: avoid;
     page-break-after: avoid;
   }
 
   /* Keep compact sections together so a continuation starts with its section heading. */
-  .doc-cv-section--education:not(:has(.doc-cv-entry ~ .doc-cv-entry ~ .doc-cv-entry)):not(:has(.doc-cv-bullet:nth-child(5))),
+  .doc-page:not(.doc-page--fill-first)
+    .doc-cv-section--education:not(:has(.doc-cv-entry ~ .doc-cv-entry ~ .doc-cv-entry)):not(:has(.doc-cv-bullet:nth-child(5))),
   .doc-cv-section--skills,
   .doc-cv-section--list:not(:has(.doc-cv-bullet:nth-child(6))) {
     break-inside: avoid;

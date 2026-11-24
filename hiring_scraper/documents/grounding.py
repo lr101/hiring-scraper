@@ -10,6 +10,7 @@ import re
 from collections.abc import Mapping
 from typing import Any
 
+from hiring_scraper.documents.editorial import employer_key
 from hiring_scraper.documents.schema import (
     CvDocument,
     DocumentLanguage,
@@ -574,12 +575,15 @@ def check_document(
                         f"Unit under entry '{owning_entry_id}' cites source from different entry '{cited_eid}'.",
                         f"Use only evidence belonging to '{owning_entry_id}'.",
                     )
-        owning_company = entry_meta.get(owning_entry_id, {}).get('company', '').casefold() if owning_entry_id else ''
+        cited_employers = {employer_key(entry_meta.get(eid, {}).get('company', ''), eid)
+                           for eid in cited_entry_ids}
+        owning_company = employer_key(entry_meta.get(owning_entry_id, {}).get('company', ''), owning_entry_id or '')
         for eid, (company_name, patterns) in company_matchers.items():
             if not any(p.search(full_text) for p in patterns):
                 continue
+            company = employer_key(company_name, eid)
             if owning_entry_id:
-                if eid == owning_entry_id or company_name.casefold() == owning_company:
+                if company == owning_company:
                     continue
                 add_finding(
                     unit.id,
@@ -589,7 +593,7 @@ def check_document(
                     'Attribute each accomplishment to the correct employer entry.',
                 )
             else:
-                if eid in cited_entry_ids:
+                if company in cited_employers:
                     continue
                 if any(p.search(cited_corpus) for p in patterns):
                     continue

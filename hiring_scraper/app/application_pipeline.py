@@ -38,38 +38,20 @@ from hiring_scraper.documents.schema import (
 )
 from hiring_scraper.documents.text import unit_full_text
 
-PIPELINE_VERSION = 'application-documents-v2.4'
+PIPELINE_VERSION = 'application-documents-v2.5'
 SLEEP = time.sleep
 PROMPTS = Path(__file__).with_name('prompts')
 DocumentKind = Literal['cv', 'letter']
 Document = CvDocument | LetterDocument
 Generate = Callable[[str, dict], dict]
 
-_CV_PROSE_CODES = frozenset({
+# Editorial signals feed review. Only the constraints below can reject prose.
+_BLOCKING_PROSE_CODES = frozenset({
     'cv_headline_too_long',
-    'cv_profile_repetition',
-    'cv_repeated_bullet_phrase',
     'cv_profile_first_person',
-    'cv_profile_voice',
-    'cv_profile_duplicate',
-    'cv_third_person',
-    'cv_repeated_opening_verb',
-    'cv_de_compound_hyphen',
-    'cv_de_awkward_verb',
-})
-_LETTER_PROSE_CODES = frozenset({
     'letter_duplicate_employer',
-    'letter_company_mentions',
-    'letter_repeated_phrase',
-    'letter_repeated_opening',
-    'letter_experience_length',
     'letter_cv_ngram_overlap',
     'letter_contraction',
-    'letter_conditional_count',
-    'letter_repeated_ending',
-    'letter_de_salutation_case',
-    'letter_de_compound_hyphen',
-    'letter_de_awkward_verb',
 })
 
 
@@ -349,7 +331,7 @@ def _generate(
             error_code = 'invalid_response'
             message = str(error)
             failure = GenerationError('invalid_response', message, retryable=True, reasons=reason_codes)
-            if error.candidate is not None and (best_candidate is None or len(error.issues) <= len(best_issues)):
+            if error.candidate is not None and (best_candidate is None or len(error.issues) < len(best_issues)):
                 best_candidate = error.candidate
                 best_issues = error.issues
         except GenerationError as error:
@@ -429,7 +411,7 @@ def _cv_draft(
     issues: list[_ProseIssue] = []
 
     def unknown(message: str) -> None:
-        findings.append(_finding('cv', 'review_format', message))
+        issues.append(_ProseIssue('cv_unknown_id', message, 'review_format', message))
 
     if len(reply.profile) != 1:
         issues.append(_ProseIssue(
@@ -582,7 +564,7 @@ def _cv_draft(
             section.units = additions + section.units
             editorial.normalize_skills(section)
     doc = CvDocument.model_validate(doc.model_dump())
-    issues.extend(_cv_prose_issues(doc))
+    issues.extend(issue for issue in _cv_prose_issues(doc) if issue.code in _BLOCKING_PROSE_CODES)
     if issues:
         codes = tuple(dict.fromkeys(issue.code for issue in issues))
         message = ' '.join(dict.fromkeys(issue.retry_message for issue in issues))
@@ -728,22 +710,15 @@ def _cv_prose_issues(doc: CvDocument) -> list[_ProseIssue]:
                             'A CV bullet uses a redundant German verb-noun construction.',
                             unit_id=unit.id,
                         ))
-    for verb, count in editorial.repeated_opening_verbs(doc, max_count=2):
+    for verb, count, unit_id in editorial.repeated_opening_verbs(doc):
         issues.append(_ProseIssue(
             'cv_repeated_opening_verb',
             f'Opening verb "{verb}" starts {count} bullets across the CV; vary bullet openings so no verb starts more than two bullets.',
             'review_style',
-            'An opening verb starts more than two bullets across the CV.',
+            f'The opening verb “{verb}” starts {count} bullets across the CV.',
+            unit_id=unit_id,
         ))
     return issues
-
-
-def _check_cv_prose(doc: CvDocument) -> None:
-    issues = _cv_prose_issues(doc)
-    if issues:
-        codes = tuple(dict.fromkeys(issue.code for issue in issues))
-        message = ' '.join(dict.fromkeys(issue.retry_message for issue in issues))
-        raise _InvalidResponse(message, code=codes[0], codes=codes, issues=tuple(issues))
 
 
 def _detail_findings(doc: CvDocument, evidence: dict[str, str]) -> list[Finding]:
@@ -993,14 +968,6 @@ def _letter_prose_issues(
     return issues
 
 
-def _check_letter_prose(letter: LetterDocument, cv: CvDocument, base: CvDocument, company: str = '') -> None:
-    issues = _letter_prose_issues(letter, cv, base, company)
-    if issues:
-        codes = tuple(dict.fromkeys(issue.code for issue in issues))
-        message = ' '.join(dict.fromkeys(issue.retry_message for issue in issues))
-        raise _InvalidResponse(message, code=codes[0], codes=codes, issues=tuple(issues))
-
-
 def _letter_draft(output: dict, inp: PreparationInput, base: CvDocument, cv: CvDocument | None = None) -> LetterDocument:
     reply = _LetterResponse.model_validate(output)
     if not reply.paragraphs:
@@ -1052,7 +1019,8 @@ def _letter_draft(output: dict, inp: PreparationInput, base: CvDocument, cv: CvD
             'review_format',
             'The letter body length is outside the 150 to 450 word range.',
         ))
-    issues.extend(_letter_prose_issues(letter, cv if cv is not None else base, base, company))
+    issues.extend(issue for issue in _letter_prose_issues(letter, cv if cv is not None else base, base, company)
+                  if issue.code in _BLOCKING_PROSE_CODES)
     if issues:
         codes = tuple(dict.fromkeys(issue.code for issue in issues))
         message = ' '.join(dict.fromkeys(issue.retry_message for issue in issues))
@@ -1142,15 +1110,22 @@ def _valid_review_edit(
 ) -> bool:
     cv = candidate if isinstance(candidate, CvDocument) else docs['cv']
     letter = candidate if isinstance(candidate, LetterDocument) else docs['letter']
-    old_cv_issues = {(issue.code, issue.unit_id) for issue in _cv_prose_issues(docs['cv'])}
-    new_cv_issues = {(issue.code, issue.unit_id) for issue in _cv_prose_issues(cv)}
+    def blocking_keys(issues):
+        return {(issue.code, issue.unit_id) for issue in issues if issue.code in _BLOCKING_PROSE_CODES}
+
+    old_cv_issues = blocking_keys(_cv_prose_issues(docs['cv']))
+    new_cv_issues = blocking_keys(_cv_prose_issues(cv))
     if new_cv_issues - old_cv_issues:
         return False
-    old_letter_issues = {(issue.code, issue.unit_id) for issue in _letter_prose_issues(docs['letter'], docs['cv'], base, company)}
-    new_letter_issues = {(issue.code, issue.unit_id) for issue in _letter_prose_issues(letter, cv, base, company)}
+    old_letter_issues = blocking_keys(_letter_prose_issues(docs['letter'], docs['cv'], base, company))
+    new_letter_issues = blocking_keys(_letter_prose_issues(letter, cv, base, company))
     if new_letter_issues - old_letter_issues:
         return False
     if isinstance(candidate, CvDocument):
+        before = {(f.unit_id, f.message) for f in _qualifier_findings(docs['cv'], evidence)}
+        after = {(f.unit_id, f.message) for f in _qualifier_findings(candidate, evidence)}
+        if after - before:
+            return False
         for section in candidate.sections:
             if section.kind == 'skills':
                 updated = next((u for u in section.units if u.id == unit.id), None)
@@ -1231,6 +1206,27 @@ def prepare_documents(
     def ground(doc: Document) -> list[Finding]:
         return _ground(doc, evidence, inp, base)
 
+    def require_grounding(doc: Document) -> None:
+        findings = [finding for finding in ground(doc) if finding.severity == 'high']
+        qualifiers = _qualifier_findings(doc, evidence) if isinstance(doc, CvDocument) else []
+        codes = tuple(dict.fromkeys([f.code for f in findings] +
+                                    (['unsupported_qualifier'] if qualifiers else [])))
+        if codes:
+            instructions = ' '.join(dict.fromkeys(f.suggestion for f in findings + qualifiers))
+            raise _InvalidResponse(instructions, codes=codes)
+
+    def accept_grounded(build: Callable, output: dict):
+        try:
+            result = build(output)
+        except _InvalidResponse as error:
+            # An imperfect but grounded draft can still be reviewed after retries.
+            if error.candidate is not None:
+                doc = error.candidate[0] if isinstance(error.candidate, tuple) else error.candidate
+                require_grounding(doc)
+            raise
+        require_grounding(result[0] if isinstance(result, tuple) else result)
+        return result
+
     def publish(kind: DocumentKind, doc: Document, findings: list[Finding]) -> None:
         _check_cancelled(hooks.cancelled)
         hooks.publish(kind, doc.model_dump(), _numbered([f for f in findings if f.document == kind]))
@@ -1262,12 +1258,13 @@ def prepare_documents(
         prompt = _prompt('cv', inp, evidence, entries=entries, skills=skills)
         try:
             cv_outcome = _generate(generate, prompt, _CvResponse,
-                                   lambda output: _cv_draft(output, base, entries, evidence, posting),
+                                   lambda output: accept_grounded(
+                                       lambda reply: _cv_draft(reply, base, entries, evidence, posting), output),
                                    stats, hooks.cancelled, return_best=True)
             if isinstance(cv_outcome, _Fallback):
                 cv, base_draft_findings = cv_outcome.candidate
                 draft_findings = base_draft_findings + _issues_to_findings(
-                    'cv', [issue for issue in cv_outcome.issues if issue.code not in _CV_PROSE_CODES],
+                    'cv', [issue for issue in cv_outcome.issues if issue.code not in _BLOCKING_PROSE_CODES],
                 )
                 stats['error'] = 'invalid_response'
                 cv_state = 'fallback'
@@ -1307,12 +1304,15 @@ def prepare_documents(
     else:
         letter_cv_source = _new_cv(base) if cv_state == 'fallback' else cv
         prompt = _prompt('letter', inp, evidence, cv_units=_units(letter_cv_source, visible_only=True))
-        letter_outcome = _generate(generate, prompt, _LetterResponse, lambda output: _letter_draft(output, inp, base, cv),
-                                   stats, hooks.cancelled, return_best=True)
+        letter_outcome = _generate(
+            generate, prompt, _LetterResponse,
+            lambda output: accept_grounded(lambda reply: _letter_draft(reply, inp, base, cv), output),
+            stats, hooks.cancelled, return_best=True,
+        )
         if isinstance(letter_outcome, _Fallback):
             letter = letter_outcome.candidate
             letter_non_prose_findings = _issues_to_findings(
-                'letter', [issue for issue in letter_outcome.issues if issue.code not in _LETTER_PROSE_CODES],
+                'letter', [issue for issue in letter_outcome.issues if issue.code not in _BLOCKING_PROSE_CODES],
             )
             stats['error'] = 'invalid_response'
             letter_state = 'fallback'

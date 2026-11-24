@@ -503,10 +503,10 @@ def profile_voice_issue(text: str, language: DocumentLanguage) -> str | None:
     return None
 
 
-def repeated_opening_verbs(doc: CvDocument, max_count: int = 2) -> list[tuple[str, int]]:
-    """Return opening verbs that start more than ``max_count`` visible experience/education bullets."""
+def repeated_opening_verbs(doc: CvDocument) -> list[tuple[str, int, str]]:
+    """Locate an AI bullet where a frequently repeated opener could be revised."""
     counts: Counter[str] = Counter()
-    has_ai: set[str] = set()
+    last_ai: dict[str, str] = {}
     for section in doc.sections:
         if section.kind not in ('experience', 'education'):
             continue
@@ -522,9 +522,9 @@ def repeated_opening_verbs(doc: CvDocument, max_count: int = 2) -> list[tuple[st
                     continue
                 counts[opener] += 1
                 if unit.origin == 'ai':
-                    has_ai.add(opener)
+                    last_ai[opener] = unit.id
     return sorted(
-        ((verb, count) for verb, count in counts.items() if count > max_count and verb in has_ai),
+        ((verb, count, last_ai[verb]) for verb, count in counts.items() if count > 2 and verb in last_ai),
         key=lambda item: (-item[1], item[0]),
     )
 

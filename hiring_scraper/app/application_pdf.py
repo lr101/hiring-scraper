@@ -26,6 +26,7 @@ import re
 import threading
 import unicodedata
 from bisect import bisect_right
+from collections import Counter
 from concurrent.futures import TimeoutError as FutureTimeout
 from dataclasses import dataclass, field
 from itertools import accumulate
@@ -46,6 +47,7 @@ MAX_PHOTO_BYTES = 5 * 1024 * 1024
 CONCURRENCY = 2
 _MM_TO_PX = 96 / 25.4
 _PAGE_MM = {'a4': (210.0, 297.0), 'letter': (215.9, 279.4)}
+_MIN_FIRST_PAGE_FILL = 0.80
 _PAGE_MARGIN_MM = 16.0  # @page vertical margin in classic-serif-v1.css
 
 
@@ -236,6 +238,24 @@ class _Renderer:
                         pdf, compact = candidate, True
                     else:
                         await page.locator('.doc-page').evaluate("(el) => el.classList.remove('doc-page--compact')")
+                reader = PdfReader(io.BytesIO(pdf))
+                if len(reader.pages) > 1:
+                    first_fill = _page_fill_ratios(reader)[0]
+                    if first_fill < _MIN_FIRST_PAGE_FILL:
+                        root = page.locator('.doc-page')
+                        await root.evaluate("(el) => el.classList.add('doc-page--fill-first')")
+                        candidate = await page.pdf(**pdf_options)
+                        relaxed = PdfReader(io.BytesIO(candidate))
+                        improved = (len(relaxed.pages) < len(reader.pages)
+                                    or (len(relaxed.pages) == len(reader.pages)
+                                        and _page_fill_ratios(relaxed)[0] > first_fill))
+                        if improved and not _orphan_entry_breaks(
+                            CvDocument.model_validate(payload['document']),
+                            [part.extract_text() for part in relaxed.pages],
+                        ):
+                            pdf = candidate
+                        else:
+                            await root.evaluate("(el) => el.classList.remove('doc-page--fill-first')")
             telemetry = await page.evaluate(
                 """([printable, limit]) => {
                     const root = document.querySelector('.doc-page-content') || document.body;
@@ -362,11 +382,9 @@ def _orphan_entry_breaks(model: CvDocument, page_texts: list[str]) -> list[str]:
             if header == -1:
                 continue
             header_page = bisect_right(boundaries, header)
-            on_header_page = sum(
-                bisect_right(boundaries, end) == header_page for end in bullet_ends
-            )
-            spills = any(bisect_right(boundaries, end) > header_page for end in bullet_ends)
-            if spills and (len(bullets) <= 4 or on_header_page < 3):
+            bullet_pages = Counter(bisect_right(boundaries, end) for end in bullet_ends)
+            spills = any(page > header_page for page in bullet_pages)
+            if spills and (bullet_pages[header_page] < 2 or any(count < 2 for count in bullet_pages.values())):
                 broken.append(entry.id)
     return broken
 

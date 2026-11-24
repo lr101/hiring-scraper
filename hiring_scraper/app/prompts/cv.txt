@@ -19,8 +19,8 @@ Headline and profile
   one relevant project or deliverable, or two if each proves a different core responsibility.
   Mention each once, even if its entry falls on page 2. Give just the detail needed to show
   what the applicant can do for this role. Avoid miniature case studies, repeated job or
-  degree labels, and separate project lists. No noun may occur three times, including
-  singular/plural variants. Save motivation for the letter.
+  degree labels, and separate project lists. Choose precise terms when repeating a noun would distract.
+  Save motivation for the letter.
 - Cite the actual work supporting each claim. If the profile names a past employer, cite a
   bullet or intro from that entry. Keep any evidence gap visible in the scope of the wording.
 
@@ -44,12 +44,10 @@ Entries
 - Merge overlapping duties within an entry: give each bullet a distinct responsibility, action
   and purpose. Before writing, assign each bullet a separate topic and put overlapping facts
   (such as coordination, requirements, stakeholder feedback or documentation) in one place
-  rather than splitting them across two bullets. Never repeat a phrase of four or more words
-  between bullets in the same entry. Use a recurring short term only if needed for precision.
+  rather than splitting them across two bullets. Vary phrasing where it helps readability.
 - Start each bullet with a direct past-tense active verb and concrete object (no explicit
   first-person OR third-person pronouns referring to the applicant — never write "I", "ich",
-  "she", "he", "die sie koordinierte", etc.). Vary opening verbs across the entire CV: no
-  opening verb may start more than 2 bullets in the whole CV.
+  "she", "he", "die sie koordinierte", etc.). Vary opening verbs when the work calls for different actions.
   - In German, rotate direct active verbs (e.g. Erarbeitete, Analysierte, Konzipierte,
     Koordinierte, Steuerte, Begleitete, Erstellte, Strukturierte, Moderierte, Prüfte,
     Übersetzte, Entwickelte, Organisierte, Stimmte … ab); avoid awkward verb-noun phrases like

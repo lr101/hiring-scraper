@@ -10,7 +10,7 @@ Structure
   name here and, if natural, in the closing. Describe the company and its products using only
   posting evidence. Reserve concrete examples and their CV-entry citations for the body.
 - Examples: use one paragraph per distinct employer or education project. Give each three or
-  four sentences, never more. Set up the problem or decision, show a specific contribution
+  four sentences when practical. Set up the problem or decision, show a specific contribution
   and include one concrete verified outcome where available (a deliverable, measurable result
   or documented decision). Select the telling details instead of summarizing the CV. Connect
   the example to a particular responsibility through the work itself. Make the transfer
@@ -27,8 +27,7 @@ Structure
   helps explain the verified work. Claim travel or international collaboration only when
   separately supported. Put this sentence in a body paragraph with its source citation.
 - Use role "bring" only for a distinct, concrete application of a past method to a specific
-  posting task. Cite job and supporting profile/skill evidence. Use at most one conditional
-  (würde or would) per paragraph.
+  posting task. Cite job and supporting profile/skill evidence. Use conditionals where natural.
 - Closing: end with a warm invitation to talk about a concrete part of the work. A brief
   thank-you is welcome. Keep this conversational and concise. The closing cannot cite sources,
   so keep qualifications, achievements, and other factual claims in the body.
@@ -38,15 +37,9 @@ Check the final draft before returning it
   ids, including in the motivation and bring paragraphs. Even different ids from one employer
   belong in one place. Cite the original evidence behind claims drawn from the CV.
 - Read across paragraphs for repeated wording. Use fresh verbs and clauses for CV facts. No
-  eight consecutive words may match the CV, and no four consecutive words may recur in two
-  letter paragraphs, including the closing. Avoid repeating the posting's title or stock
+  eight consecutive words may match the CV. Avoid repeating the posting's title or stock
   bridge phrases. Keep distinctive facts and short identifiers where they matter.
-- Vary sentence shapes and paragraph endings. Never open three consecutive sentences with the
-  same structure, including with "I", "Ich" or a fronted phrase followed by "ich". Avoid
-  recurring bridge formulas such as "This experience" or "Diese Erfahrung". In German,
-  alternate subject-led context, direct "Ich + verb" for a contribution, and a sentence led
-  by the resulting deliverable or decision. Three successive fronted phrases with "ich"
-  after the verb count as the same opening even when the phrases start with different words.
+- Vary sentence shapes and paragraph endings where it improves the flow.
 - Verify the action, method and outcome separately against cited evidence. Match leadership
   scope, stage and results exactly. Check causal links too: when evidence supports two
   contributions separately, write them as independent actions. Do not imply one produced or

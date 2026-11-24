@@ -154,13 +154,17 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(result.stages['cv']['state'], 'resumed')
         self.assertEqual([p[0] for p in self.published], ['cv', 'letter', 'cv', 'letter'])
 
+    @patch.object(pipeline, 'SLEEP', lambda _: None)
     def test_locked_facts_and_unknown_ids(self):
         cv = cv_reply()
         cv['entries'].append({'entry_id': 'invented', 'bullets': []})
         cv['skills'].append({'section_id': 's-unknown', 'unit_ids': [], 'hidden_ids': [], 'additions': []})
         cv['skills'][0]['unit_ids'].append('u-unknown')
         cv['headline']['sources'].append('cv:unknown')
-        result = self.run_with(cv=cv)
+        unknown_id = cv_reply()
+        unknown_id['entries'].append({'entry_id': 'invented', 'bullets': []})
+        replies = iter([cv, unknown_id, cv_reply(), letter_reply(), {'findings': [], 'patches': []}])
+        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
         base = self.inp.base_cv
         entry = result.cv['sections'][1]['entries'][0]
         self.assertEqual(entry['locked'], base['sections'][1]['entries'][0]['locked'])
@@ -173,8 +177,9 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(result.letter['recipient_lines'], ['Wren Museum', 'Loam Bay'])
         self.assertEqual(result.letter['place_date'], 'Port Alder, 12 March 2026')
         self.assertEqual(result.letter['closing']['origin'], 'source')
-        self.assertEqual([f['code'] for f in result.findings].count('review_format'), 3)
-        self.assertIn('review_grounding', [f['code'] for f in result.findings])
+        self.assertEqual(result.telemetry['attempts']['cv'], 3)
+        self.assertEqual([item['reasons'] for item in result.telemetry['attempt_failures']['cv']],
+                         [['review_grounding'], ['cv_unknown_id']])
 
     def test_letter_uses_posting_contact_and_cleans_sender_and_recipient(self):
         self.inp.base_cv['header']['name'] = 'DARA VON FINCH'
@@ -238,15 +243,34 @@ class PipelineTests(unittest.TestCase):
         self.assertIn('one paragraph per employer or project', prompts[3])
 
     @patch.object(pipeline, 'SLEEP', lambda _: None)
-    def test_letter_retries_excessive_conditionals_and_contractions(self):
-        self.inp.mode = 'fast'
-        conditional = letter_reply()
-        conditional['paragraphs'][2]['text'] += ' I would help.'
-        contraction = letter_reply()
-        contraction['paragraphs'][2]['text'] += ' I’d help.'
-        replies = iter([cv_reply(), conditional, contraction, letter_reply()])
-        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
-        self.assertEqual(result.telemetry['attempts']['letter'], 3)
+    def test_advisory_style_reaches_review_without_retry_and_can_be_fixed(self):
+        cv = cv_reply()
+        cv['profile'][0]['text'] = 'Workshop designer creating workshops. The workshops welcome visitors.'
+        letter = letter_reply()
+        letter['paragraphs'][2]['text'] += ' I would help.'
+        original = letter['paragraphs'][2]['text']
+        repeat = ' I would also listen.'
+        letter['paragraphs'][2]['text'] += repeat
+
+        def generate(prompt, schema):
+            stage = self.stages[-1]
+            if stage == 'cv':
+                return cv
+            if stage == 'letter':
+                return letter
+            findings = json.loads(prompt.split('\nFINDINGS\n')[1].split('\n\n')[0])
+            self.assertTrue(any(f['severity'] == 'medium' and 'repeats a content word' in f['message']
+                                for f in findings))
+            self.assertTrue(any(f['severity'] == 'medium' and 'more than one conditional' in f['message']
+                                for f in findings))
+            return {'findings': [], 'patches': [
+                {'document': 'letter', 'unit_id': 'u-letter-p3', 'kind': 'rephrase', 'text': original},
+            ]}
+
+        result = pipeline.prepare_documents(self.inp, generate, self.hooks)
+        self.assertEqual(result.telemetry['attempts'], {'cv': 1, 'letter': 1, 'review': 1})
+        self.assertEqual(result.letter['paragraphs'][2]['text'], original)
+        self.assertFalse(any('more than one conditional' in f['message'] for f in result.findings))
 
     def test_letter_checks_german_conditionals_and_english_contractions_vs_possessives(self):
         base = CvDocument.model_validate(self.inp.base_cv)
@@ -261,14 +285,15 @@ class PipelineTests(unittest.TestCase):
                 draft['paragraphs'][1]['text'] += ' ' + bad
                 with self.assertRaises(pipeline._InvalidResponse):
                     pipeline._letter_draft(draft, self.inp, base)
-        # German letter rejects two conditionals (würde / würden) in one paragraph.
         self.inp.language = 'de'
-        de_bad = letter_reply()
-        de_bad['paragraphs'][2]['text'] = (
-            'Ich würde gern prüfen, wie Besucher die Stationen nutzen, und wir würden das Feedback auswerten.'
+        reply = letter_reply()
+        reply['paragraphs'][2]['text'] += (
+            ' Ich würde prüfen, wie Besucher die Stationen nutzen, und wir würden das Feedback auswerten.'
         )
-        with self.assertRaises(pipeline._InvalidResponse):
-            pipeline._letter_draft(de_bad, self.inp, base)
+        letter = pipeline._letter_draft(reply, self.inp, base)
+        issues = pipeline._letter_prose_issues(letter, base, base, 'Wren Museum')
+        self.assertTrue({'letter_conditional_count'} <= {issue.code for issue in issues})
+
 
     def test_competencies_require_posting_keywords_and_cited_support(self):
         self.inp.job['description'] = 'Workshop design and tracking. Experience with Rust.'
@@ -439,35 +464,38 @@ class PipelineTests(unittest.TestCase):
         reply = letter_reply()
         reply['paragraphs'][1]['text'] += ' Wren Museum would benefit from clear instructions for visitors.'
         reply['paragraphs'][2]['text'] += ' For Wren Museum, I could write clear instructions for visitors.'
-        with self.assertRaises(pipeline._InvalidResponse) as ctx:
-            pipeline._letter_draft(reply, self.inp, base)
-        self.assertIn('letter_company_mentions', ctx.exception.codes)
-        self.assertIn('letter_repeated_phrase', ctx.exception.codes)
+        letter = pipeline._letter_draft(reply, self.inp, base)
+        issues = pipeline._letter_prose_issues(letter, base, base, 'Wren Museum')
+        self.assertTrue({'letter_company_mentions', 'letter_repeated_phrase'} <= {issue.code for issue in issues})
+
 
     def test_letter_checks_consecutive_openings_and_experience_length(self):
         base = CvDocument.model_validate(self.inp.base_cv)
         reply = letter_reply()
         reply['paragraphs'][1]['text'] = (
             'I planned a workshop. I invited librarians. I demonstrated the first activity. '
-            'The group then tried it. Everyone finished a small model.'
+            'The group then tried the activity independently, with sheets of paper and samples laid out '
+            'on tables near the entrance to the public gallery. Everyone finished a small model to take home, '
+            'where they could try the same activity with friends.'
         )
-        with self.assertRaises(pipeline._InvalidResponse) as ctx:
-            pipeline._letter_draft(reply, self.inp, base)
-        self.assertIn('letter_repeated_opening', ctx.exception.codes)
-        self.assertIn('letter_experience_length', ctx.exception.codes)
+        letter = pipeline._letter_draft(reply, self.inp, base)
+        issues = pipeline._letter_prose_issues(letter, base, base, 'Wren Museum')
+        self.assertTrue({'letter_repeated_opening', 'letter_experience_length'} <= {issue.code for issue in issues})
+
 
     def test_german_letter_checks_repeated_fronted_first_person_openings(self):
         self.inp.language = 'de'
         base = CvDocument.model_validate(self.inp.base_cv)
         reply = letter_reply()
-        reply['paragraphs'][1]['text'] = (
-            'Mit zwei Werkstätten plante ich eine Ausstellung. '
+        reply['paragraphs'][1]['text'] += (
+            ' Mit zwei Werkstätten plante ich eine Ausstellung. '
             'Im Anschluss erstellte ich Modelle. '
             'Für die Eröffnung lud ich die Nachbarschaft ein.'
         )
-        with self.assertRaises(pipeline._InvalidResponse) as ctx:
-            pipeline._letter_draft(reply, self.inp, base)
-        self.assertIn('letter_repeated_opening', ctx.exception.codes)
+        letter = pipeline._letter_draft(reply, self.inp, base)
+        issues = pipeline._letter_prose_issues(letter, base, base, 'Wren Museum')
+        self.assertTrue({'letter_repeated_opening'} <= {issue.code for issue in issues})
+
 
     def test_cv_rejects_a_separate_projects_summary(self):
         base = CvDocument.model_validate(self.inp.base_cv)
@@ -489,10 +517,10 @@ class PipelineTests(unittest.TestCase):
             for text in ('Designed activities for library visitors after hours.',
                          'Prepared a guide for library visitors after hours.')
         ]
-        with self.assertRaises(pipeline._InvalidResponse) as ctx:
-            pipeline._cv_draft(reply, base, [{'entry_id': 'work-1', 'base_count': 1}], {}, '')
-        self.assertIn('cv_profile_repetition', ctx.exception.codes)
-        self.assertIn('cv_repeated_bullet_phrase', ctx.exception.codes)
+        doc, _ = pipeline._cv_draft(reply, base, [{'entry_id': 'work-1', 'base_count': 1}], {}, '')
+        codes = {issue.code for issue in pipeline._cv_prose_issues(doc)}
+        self.assertTrue({'cv_profile_repetition', 'cv_repeated_bullet_phrase'} <= codes)
+
 
     def test_cv_normalizes_legacy_internship_titles_and_puts_qualified_skills_last(self):
         for language, label, qualifier in [('en', 'Internship', 'Basics'), ('de', 'Praktikum', 'Grundlagen')]:
@@ -521,7 +549,8 @@ class PipelineTests(unittest.TestCase):
         cv = cv_reply()
         cv['entries'][0]['entry_id'] = 'invented'
         with patch.object(pipeline, 'SLEEP', lambda _: None):
-            result = self.run_with(cv=cv)
+            replies = iter([cv, cv, cv, letter_reply(), {'findings': [], 'patches': []}])
+            result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
         self.assertEqual(result.cv['sections'][1], self.inp.base_cv['sections'][1])
         self.assertEqual([f['code'] for f in result.findings], ['review_format'])
 
@@ -734,7 +763,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(result.telemetry['attempts']['letter'], 3)
         self.assertEqual(result.telemetry['attempt_failures']['letter'], [
             {'attempt': 1, 'code': 'invalid_response', 'reasons': ['letter_contraction']},
-            {'attempt': 2, 'code': 'invalid_response', 'reasons': ['letter_contraction', 'letter_conditional_count']},
+            {'attempt': 2, 'code': 'invalid_response', 'reasons': ['letter_contraction']},
             {'attempt': 3, 'code': 'timeout', 'reasons': ['timeout']},
         ])
         # Review stage was allowed to fix the fallback prose issue and clear the prose finding.
@@ -810,7 +839,7 @@ class PipelineTests(unittest.TestCase):
             'Relevante Projekte: Orientierungssystem und Werkstattreihe.', 'de',
         ))
 
-    def test_repeated_opening_verbs_rejected_above_two_bullets(self):
+    def test_repeated_opening_verbs_anchor_a_finding_to_an_ai_bullet(self):
         self.inp.base_cv['sections'][1]['entries'][0]['units'] = [
             {'id': f'u-w1-b{i}', 'text': f'Built museum exhibit guide {i} with librarians.'}
             for i in range(1, 5)
@@ -823,9 +852,9 @@ class PipelineTests(unittest.TestCase):
         base = CvDocument.model_validate(self.inp.base_cv)
         evidence = pipeline.build_evidence(base, self.inp.profile)
         entries = [{'entry_id': 'work-1', 'base_count': 4}]
-        with self.assertRaises(pipeline._InvalidResponse) as ctx:
-            pipeline._cv_draft(bad_cv, base, entries, evidence, self.inp.job['description'])
-        self.assertIn('cv_repeated_opening_verb', ctx.exception.codes)
+        drafted, _ = pipeline._cv_draft(bad_cv, base, entries, evidence, self.inp.job['description'])
+        findings = [issue for issue in pipeline._cv_prose_issues(drafted) if issue.code == 'cv_repeated_opening_verb']
+        self.assertEqual([issue.unit_id for issue in findings], ['u-ai-work-1-b3'])
 
         # Condensing a 4-bullet base entry down to 2 distinct-verb bullets is accepted.
         good_cv = cv_reply()
@@ -861,18 +890,24 @@ class PipelineTests(unittest.TestCase):
             'Koordinierte die Zusammenarbeit zwischen Werkstatt und Kuratorium.',
         ))
 
-    def test_unsupported_qualifier_emits_info_grounding_finding(self):
+    @patch.object(pipeline, 'SLEEP', lambda _: None)
+    def test_new_qualifiers_and_unsupported_numbers_require_corrected_drafts(self):
         self.inp.mode = 'fast'
-        reply = cv_reply()
-        reply['entries'][0]['bullets'][0]['text'] = (
+        cv = cv_reply()
+        cv['entries'][0]['bullets'][0]['text'] = (
             'Designed a technical software workshop with librarians for public exhibits.'
         )
-        result = self.run_with(cv=reply)
-        self.assertTrue(any(
-            f['code'] == 'review_grounding' and f['severity'] == 'info'
-            and f['unit_id'] == 'u-ai-work-1-b1'
-            for f in result.findings
-        ))
+        letter = letter_reply()
+        letter['paragraphs'][1]['text'] += ' The workshop attracted 860 visitors.'
+        replies = iter([cv, cv_reply(), letter, letter_reply()])
+        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
+        self.assertEqual(result.telemetry['attempts'], {'cv': 2, 'letter': 2})
+        self.assertEqual(result.telemetry['attempt_failures'], {
+            'cv': [{'attempt': 1, 'code': 'invalid_response', 'reasons': ['unsupported_qualifier']}],
+            'letter': [{'attempt': 1, 'code': 'invalid_response', 'reasons': ['unsupported_number']}],
+        })
+        self.assertNotIn('860', self.published[1][1]['paragraphs'][1]['text'])
+
 
     def test_competency_supports_german_compounds_and_rejects_long_phrases(self):
         from hiring_scraper.documents import editorial
@@ -904,7 +939,7 @@ class PipelineTests(unittest.TestCase):
             pipeline._cv_draft(long_tag_cv, base, [{'entry_id': 'work-1', 'base_count': 1}], evidence, self.inp.job['description'])
         self.assertIn('cv_competency_too_long', ctx.exception.codes)
 
-    def test_letter_rejects_repeated_endings_and_normalizes_german_salutation_case(self):
+    def test_letter_flags_repeated_endings_and_normalizes_german_salutation_case(self):
         from hiring_scraper.documents import editorial
 
         self.assertEqual(
@@ -930,27 +965,13 @@ class PipelineTests(unittest.TestCase):
         )
 
         base = CvDocument.model_validate(self.inp.base_cv)
-        dup_ending = letter_reply()
-        dup_ending['paragraphs'] = [
-            {
-                'role': 'motivation',
-                'text': 'Wren Museum builds participatory exhibits that align with my studio background.',
-                'sources': ['job', 'cv:work-1:b1'],
-            },
-            {
-                'role': 'experience',
-                'text': 'At River Studio I ran gallery workshops with librarians. This experience prepares me for your program team.',
-                'sources': ['cv:work-1:b1'],
-            },
-            {
-                'role': 'bring',
-                'text': 'Using visitor walkthroughs helps uncover friction early. This experience supports your launch schedule.',
-                'sources': ['job', 'profile:skill:s1'],
-            },
-        ]
-        with self.assertRaises(pipeline._InvalidResponse) as ctx:
-            pipeline._letter_draft(dup_ending, self.inp, base)
-        self.assertIn('letter_repeated_ending', ctx.exception.codes)
+        reply = letter_reply()
+        reply['paragraphs'][1]['text'] += ' This experience prepares me for your program team.'
+        reply['paragraphs'][2]['text'] += ' This experience supports your launch schedule.'
+        letter = pipeline._letter_draft(reply, self.inp, base)
+        issues = pipeline._letter_prose_issues(letter, base, base, 'Wren Museum')
+        self.assertTrue({'letter_repeated_ending'} <= {issue.code for issue in issues})
+
 
     def test_third_person_cv_pronouns_rejected_and_distinct_labelled_reordering_allowed(self):
         from hiring_scraper.documents import editorial

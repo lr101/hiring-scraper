@@ -210,7 +210,7 @@ class RenderTests(unittest.TestCase):
         self.assertEqual(len(pages), 2)
         p1_items = [n for n in range(1, 7) if f'Messreihe {n}:' in pages[0]]
         p2_items = [n for n in range(1, 7) if f'Messreihe {n}:' in pages[1]]
-        self.assertTrue(len(p1_items) == 0 or len(p1_items) >= 3)
+        self.assertTrue(len(p1_items) == 0 or len(p1_items) >= 2)
         self.assertGreaterEqual(len(p2_items), 2)
 
     def test_long_cv_reports_overflow(self):
@@ -289,7 +289,7 @@ class RenderTests(unittest.TestCase):
                 self.assertIn(expected, result.text)
                 self.assertEqual(result.text.upper().count('APPLIED CRAFT FELLOWSHIP'), 1)
 
-    def test_four_bullet_entry_moves_whole_and_telemetry_reports_page_fill_ratios(self):
+    def test_four_bullet_entry_splits_to_fill_page_one(self):
         from pypdf import PdfReader
 
         doc = fictional_cv(bullets=13)
@@ -308,12 +308,12 @@ class RenderTests(unittest.TestCase):
         self.assertEqual(len(pages), 2)
         p1_items = [n for n in range(1, 5) if f'Messreihe {n}:' in pages[0]]
         p2_items = [n for n in range(1, 5) if f'Messreihe {n}:' in pages[1]]
-        self.assertEqual(p1_items, [])
-        self.assertEqual(p2_items, [1, 2, 3, 4])
-        self.assertIn('FIKTIVLABOR', pages[1])
+        self.assertEqual(p1_items, [1, 2])
+        self.assertEqual(p2_items, [3, 4])
+        self.assertIn('FIKTIVLABOR', pages[0])
         ratios = result.telemetry['page_fill_ratios']
         self.assertEqual(len(ratios), 2)
-        self.assertGreater(ratios[0], 0.75)
+        self.assertGreaterEqual(ratios[0], 0.80)
         self.assertLessEqual(ratios[0], 1.0)
 
     def test_invalid_document_fails_cleanly(self):
@@ -325,8 +325,8 @@ class RenderTests(unittest.TestCase):
 class PaginationCheckTests(unittest.TestCase):
     def test_checks_bullets_against_the_actual_header_page(self):
         for count, on_first, expected in [
-            (4, 0, ['work-1']), (4, 3, ['work-1']),
-            (5, 2, ['work-1']), (5, 3, []), (5, 5, []),
+            (3, 2, ['work-1']), (4, 0, ['work-1']), (4, 2, []), (4, 3, ['work-1']),
+            (5, 1, ['work-1']), (5, 2, []), (5, 3, []), (5, 5, []),
         ]:
             with self.subTest(count=count, on_first=on_first):
                 doc = fictional_cv(bullets=count)
