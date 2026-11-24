@@ -91,7 +91,7 @@ type Job = {
   application?: Application | null
   profile_id?: number
   profile_name?: string
-  match_kind?: 'remote' | 'in_area' | 'work_location' | 'employer_in_state' | 'employer_in_country'
+  match_kind?: 'remote' | 'in_area' | 'work_location' | 'location_unknown' | 'employer_in_state' | 'employer_in_country'
 }
 
 type JobsPage = { items: Job[]; total: number; total_is_upper_bound?: boolean; application_counts?: Record<ApplicationStatus, number>; snapshot_id?: string; snapshot_stale?: boolean; search_mode?: 'semantic' | 'keyword' | 'browse' | 'warming' }

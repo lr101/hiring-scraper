@@ -11,6 +11,7 @@ from sqlalchemy.orm import aliased, sessionmaker
 
 from hiring_scraper.app import job_location_scope, models, search_snapshots, source_changes
 from hiring_scraper.app.board_scope import german_state_bounds
+from hiring_scraper.app.discovery_jobs import german_company_filter
 from hiring_scraper.app.job_location_scope import (
     GERMANY_COUNTRY_CODE_PATTERNS,
     LOCATION_SCOPE_VERSION,
@@ -77,8 +78,7 @@ def _legacy_scoped_job_rows_statement(
     work_style: str,
     posting_status: str,
 ):
-    """Pre-refactor candidate/source query for Germany and state scopes, minus the
-    retired employer-country/state fallback (scope now follows the work location only)."""
+    """Exact pre-refactor candidate/source query for Germany and state scopes."""
     employer_company = aliased(Company)
     filters = [search_snapshots.posting_status_filter(posting_status)]
     if company_id is not None:
@@ -99,6 +99,9 @@ def _legacy_scoped_job_rows_statement(
         filters.append(Job.work_arrangement == work_style)
     if employer_country:
         clauses = [
+            german_company_filter(Company),
+            Company.source == "default_job_feed",
+            german_company_filter(employer_company),
             Job.locations.any(func.lower(JobLocation.country_code) == "de"),
             _legacy_germany_text_candidates(),
         ]
@@ -107,6 +110,8 @@ def _legacy_scoped_job_rows_statement(
         filters.append(or_(*clauses))
     elif state:
         clauses = [
+            Company.state == state,
+            employer_company.state == state,
             _legacy_state_text_candidates(state),
         ]
         if location_scope in {"remote", "area_remote"} or work_style == "remote":

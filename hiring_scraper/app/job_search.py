@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 
 from hiring_scraper.app import source_changes
 from hiring_scraper.app.database import dialect_insert, SessionLocal
-from hiring_scraper.app.board_scope import geographic_scope
+from hiring_scraper.app.board_scope import geographic_scope, unknown_location_scope
 from hiring_scraper.app.application_deduplication import (
     consolidate_application_duplicates, index_vacancy_identities, reserve_vacancy_identity_writer,
 )
@@ -268,10 +268,15 @@ def application_match_allowed(job: Job, profile: UserProfile, result: dict) -> b
         radius_km = float(area.get("radius_km", 15))
     except (TypeError, ValueError):
         latitude, longitude, radius_km = 49.0068705, 8.4034195, 15
+    area_country = area.get("country_code") or "DE"
     scope = geographic_scope(
         job, latitude, longitude, radius_km,
-        area.get("city"), area.get("country_code") or "DE",
+        area.get("city"), area_country,
     )
+    if scope.get("reason") == "outside_area":
+        # A posting that states no workplace is shown in Journey, flagged as
+        # location unknown, when its employer is in the profile's country.
+        scope = unknown_location_scope(job, country=area_country) or scope
     defaults = preferences.get("matching_defaults") or {}
     min_score = defaults.get("min_match_score", 0)
     try:
