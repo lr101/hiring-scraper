@@ -51,6 +51,18 @@ class ApplicationPreparationQueueTests(unittest.TestCase):
         self.assertEqual(final['state'], 'completed')
         self.assertEqual(final['result'], {'package': 'replacement result'})
 
+    def test_old_automatic_tasks_expire_without_affecting_pending_work(self):
+        queue.enqueue_task(1, 2, 'prepare', {'job_id': 2}, automatic=True)
+        self.assertTrue(queue.process_once(lambda *_: {}))
+        queue.enqueue_task(1, 3, 'prepare', {'job_id': 3}, automatic=True)
+        with self.sessions.begin() as session:
+            for job_id in (2, 3):
+                session.get(ApplicationPreparationTask, (1, job_id)).updated_at = utcnow() - timedelta(days=8)
+        queue.prune_finished()
+        with self.sessions() as session:
+            self.assertIsNone(queue.status(session, 1, 2))
+            self.assertEqual(queue.status(session, 1, 3)['state'], 'running')
+
     def test_unclaimed_cancellation_prevents_execution(self):
         record = queue.enqueue_task(1, 2, 'prepare', {'job_id': 2})
         with self.sessions() as session:

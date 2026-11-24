@@ -359,7 +359,6 @@ def prune_finished():
     with SessionLocal.begin() as session:
         session.execute(delete(Task).where(
             Task.state.not_in(ACTIVE), Task.updated_at < utcnow() - RETENTION,
-            or_(Task.state != 'completed', Task.record['automatic'].as_boolean().is_not(True)),
         ))
         session.execute(delete(RenderTask).where(
             RenderTask.state == 'failed', RenderTask.updated_at < utcnow() - RETENTION))
