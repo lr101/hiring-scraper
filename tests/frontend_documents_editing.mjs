@@ -20,6 +20,7 @@ import {
   undoHistory,
   updateUnitText,
 } from '../frontend/src/documents/editing.ts'
+import { syncInlineSeparators } from '../frontend/src/documents/inlineSeparators.ts'
 
 function makeUnit(id, text, overrides = {}) {
   return {
@@ -243,5 +244,65 @@ assert.equal(splitUnit(fullIntro, 'u-intro-0', 4), null)
 
 const safeUnicode = updateUnitText(cv, 'u-2', 'Draft\u0000\ud800 text 📝')
 assert.equal(findUnitById(safeUnicode, 'u-2')?.text, 'Draft text 📝')
+
+// 7. Inline skill separators hide/collapse across wrapped lines and reset on reflow
+function fakeNode(rect) {
+  const classes = new Set()
+  return {
+    rect,
+    previousElementSibling: null,
+    nextElementSibling: null,
+    classList: {
+      add: (...names) => names.forEach((n) => classes.add(n)),
+      remove: (...names) => names.forEach((n) => classes.delete(n)),
+      has: (name) => classes.has(name),
+    },
+    getBoundingClientRect() {
+      return this.rect
+    },
+  }
+}
+
+const itemA = fakeNode({ top: 0, bottom: 14, height: 14 })
+const sepAB = fakeNode({ top: 0, bottom: 14, height: 14 })
+const itemB = fakeNode({ top: 0, bottom: 14, height: 14 })
+const sepBC = fakeNode({ top: 0, bottom: 14, height: 14 }) // trailing before wrap -> hidden
+const itemC = fakeNode({ top: 18, bottom: 32, height: 14 })
+const sepCD = fakeNode({ top: 36, bottom: 50, height: 14 }) // wrapped onto next line -> collapsed
+const itemD = fakeNode({ top: 36, bottom: 50, height: 14 })
+
+sepAB.previousElementSibling = itemA
+sepAB.nextElementSibling = itemB
+sepBC.previousElementSibling = itemB
+sepBC.nextElementSibling = itemC
+sepCD.previousElementSibling = itemC
+sepCD.nextElementSibling = itemD
+
+const fakeList = {
+  querySelectorAll(selector) {
+    return selector === '.doc-cv-inline-sep' ? [sepAB, sepBC, sepCD] : []
+  },
+}
+const fakeRoot = {
+  querySelectorAll(selector) {
+    return selector === '.doc-cv-inline' ? [fakeList] : []
+  },
+}
+
+syncInlineSeparators(fakeRoot)
+assert.equal(sepAB.classList.has('doc-cv-inline-sep--hidden'), false)
+assert.equal(sepAB.classList.has('doc-cv-inline-sep--collapsed'), false)
+assert.equal(sepBC.classList.has('doc-cv-inline-sep--hidden'), true)
+assert.equal(sepBC.classList.has('doc-cv-inline-sep--collapsed'), false)
+assert.equal(sepCD.classList.has('doc-cv-inline-sep--hidden'), false)
+assert.equal(sepCD.classList.has('doc-cv-inline-sep--collapsed'), true)
+
+// Reflow onto one line clears both hidden and collapsed classes
+itemC.rect = { top: 0, bottom: 14, height: 14 }
+sepCD.rect = { top: 0, bottom: 14, height: 14 }
+itemD.rect = { top: 0, bottom: 14, height: 14 }
+syncInlineSeparators(fakeRoot)
+assert.equal(sepBC.classList.has('doc-cv-inline-sep--hidden'), false)
+assert.equal(sepCD.classList.has('doc-cv-inline-sep--collapsed'), false)
 
 console.log('Document editing mutations and undo/redo history passed.')

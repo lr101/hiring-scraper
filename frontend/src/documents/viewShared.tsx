@@ -24,16 +24,71 @@ export interface UnitRenderContext {
 
 export type RenderUnit = (context: UnitRenderContext) => ReactNode
 
+const HYPHEN_TOKEN_RE =
+  /([A-Za-z0-9\u00C0-\u024F]{2,24}-\s+(?:und|oder|sowie|and|or)\b|[A-Za-z0-9\u00C0-\u024F]{1,20}(?:-[A-Za-z0-9\u00C0-\u024F]{1,20}){1,3})/gu
+
+function surroundingWhitespaceToken(text: string, start: number, end: number): string {
+  let left = start
+  while (left > 0 && !/\s/.test(text[left - 1])) left -= 1
+  let right = end
+  while (right < text.length && !/\s/.test(text[right])) right += 1
+  return text.slice(left, right)
+}
+
+export function renderPrintText(text: string): ReactNode {
+  if (!text.includes('-')) {
+    return text
+  }
+  const nodes: ReactNode[] = []
+  let lastIndex = 0
+  HYPHEN_TOKEN_RE.lastIndex = 0
+  let match: RegExpExecArray | null
+  while ((match = HYPHEN_TOKEN_RE.exec(text)) !== null) {
+    const token = match[0]
+    const start = match.index
+    const end = start + token.length
+    const prevChar = start > 0 ? text[start - 1] : ''
+    const nextChar = end < text.length ? text[end] : ''
+    const validBoundary =
+      (!prevChar || /[\s([{"'„“«»–—/]/.test(prevChar)) &&
+      (!nextChar || /[\s.,;:!?)}\]"'”»«–—/]/.test(nextChar))
+    if (!validBoundary || token.length > 36) {
+      continue
+    }
+    const word = surroundingWhitespaceToken(text, start, end)
+    if (word.includes('://') || word.includes('@')) {
+      continue
+    }
+    if (start > lastIndex) {
+      nodes.push(text.slice(lastIndex, start))
+    }
+    nodes.push(
+      <span key={start} className="doc-nowrap">
+        {token}
+      </span>,
+    )
+    lastIndex = end
+  }
+  if (nodes.length === 0) {
+    return text
+  }
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex))
+  }
+  return nodes
+}
+
 export function renderDefaultUnitContent(unit: Unit): ReactNode {
   if (!unit.lead_in) {
-    return unit.text
+    return renderPrintText(unit.text)
   }
   if (!unit.text) {
-    return <strong className="doc-unit-lead-in">{unit.lead_in}</strong>
+    return <strong className="doc-unit-lead-in">{renderPrintText(unit.lead_in)}</strong>
   }
   return (
     <>
-      <strong className="doc-unit-lead-in">{unit.lead_in}</strong> {unit.text}
+      <strong className="doc-unit-lead-in">{renderPrintText(unit.lead_in)}</strong>{' '}
+      {renderPrintText(unit.text)}
     </>
   )
 }

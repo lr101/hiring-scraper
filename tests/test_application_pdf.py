@@ -522,6 +522,78 @@ class RenderTests(unittest.TestCase):
             application_pdf.render_document('cv', {'format': 'radius-cv-v2'})
         self.assertEqual(ctx.exception.code, 'invalid_document')
 
+    def test_pdfium_word_boundaries_hyphenated_compounds_and_inline_skill_separators(self):
+        from hiring_scraper.documents import cv_text
+
+        doc = fictional_cv(bullets=2)
+        doc.sections[0].units[0].text = (
+            'Ingenieurin für Batteriespeicher mit Fokus auf Markt- und Wettbewerbsanalysen. '
+            'Analysierte Messreihen und verifizierte CAD-Entwürfe für Prüfstände. '
+            'Steuerte interdisziplinäre Entwicklungsteams in Serienprojekten.'
+        )
+        doc.sections[1].title = 'PROFESSIONAL EXPERIENCE'
+        doc.sections[1].entries[0].locked.company = 'BEISPIELWERK GMBH'
+        doc.sections[1].entries[0].units = [
+            Unit(
+                id='u-work-1-b1',
+                text=(
+                    'Erstellte detaillierte technische Spezifikationen und überprüfte komplexe '
+                    'CAD-Entwürfe sowie 3D-CAD Modelle für den Prüfstand. '
+                    'Auswertung der Messreihen und Abstimmung mit Partnern.'
+                ),
+            ),
+            Unit(
+                id='u-work-1-b2',
+                text=(
+                    'Führte umfassende Markt- und Wettbewerbsanalysen für modulare Speichersysteme '
+                    'durch. Steuerung der Qualitätssicherung über alle Meilensteine.'
+                ),
+            ),
+        ]
+        skills = [
+            'Python', 'Messtechnik', 'Prüfstandsautomatisierung', 'Anforderungsanalyse',
+            'CAD-Konstruktion', 'Produktentwicklung', 'Qualitätssicherung', 'Datenauswertung',
+            'Stakeholder-Kommunikation', 'Systemintegration', 'Versuchsplanung',
+            'Technische Dokumentation', 'Kostenanalyse', 'Projektsteuerung',
+        ]
+        doc.sections[2] = Section(
+            id='s-skills', kind='skills', title='ADDITIONAL QUALIFICATIONS', layout='inline',
+            group='QUALIFICATIONS',
+            units=[Unit(id=f'u-skill-{idx}', text=name) for idx, name in enumerate(skills, start=1)],
+        )
+
+        result = application_pdf.render_document('cv', doc.model_dump(mode='json'))
+        pdfium_text = application_pdf._extract_pdfium_text(result.pdf)
+        self.assertTrue(application_pdf.export_verified(result.checks), result.checks)
+        self.assertEqual(result.telemetry['pdfium_control_chars'], 0)
+        self.assertEqual(result.telemetry['pdfium_merged_tokens'], 0)
+        self.assertTrue(result.telemetry['pdfium_text_parity'])
+        self.assertIn('CAD-Entwürfe', pdfium_text)
+        self.assertIn('3D-CAD', pdfium_text)
+        self.assertIn('Markt- und', pdfium_text)
+        self.assertIn('ADDITIONAL QUALIFICATIONS', pdfium_text)
+        self.assertIn('BEISPIELWERK GMBH', pdfium_text)
+        for label, extracted in [('pypdf', result.text), ('pdfium', pdfium_text)]:
+            lines = [line.strip() for line in extracted.splitlines() if line.strip()]
+            self.assertFalse(
+                any(line.startswith('•') or line.endswith('•') for line in lines),
+                f'{label} had leading or trailing inline separator bullet: {lines}',
+            )
+        plain = cv_text(doc)
+        skills_plain = plain[plain.index('ADDITIONAL QUALIFICATIONS'):]
+        positions = [skills_plain.index(name) for name in skills]
+        self.assertEqual(positions, sorted(positions))
+
+    def test_pdfium_preserves_a_compound_at_the_wrap_boundary(self):
+        doc = fictional_cv(bullets=1)
+        # Position the hyphen at a line break with the unprotected print layout.
+        compound = 'CAD-Entwürfe'
+        doc.sections[1].entries[0].units[0].text = 'Messung ' * 10 + compound + ' in einer Testreihe.'
+        output = application_pdf.render_document('cv', doc.model_dump())
+        self.assertEqual(output.telemetry['pdfium_control_chars'], 0)
+        self.assertIn(compound, output.text)
+        self.assertIn(compound, application_pdf._extract_pdfium_text(output.pdf))
+
 
 class PaginationCheckTests(unittest.TestCase):
     def test_checks_bullets_against_the_actual_header_page(self):
@@ -689,6 +761,44 @@ class ExportVerificationTests(unittest.TestCase):
             broken = [dict(check) for check in checks]
             broken[index]['status'] = 'failed'
             self.assertFalse(application_pdf.export_verified(broken))
+
+    def test_pdfium_checks_flag_control_chars_and_merged_tokens(self):
+        doc = fictional_cv(bullets=1)
+        clean = '\n'.join([
+            doc.headline.text,
+            doc.sections[0].units[0].text,
+            doc.sections[1].entries[0].units[0].text,
+            'Python • Messtechnik',
+        ])
+        ok_checks, ok_metrics = application_pdf._pdfium_checks(doc, clean, clean)
+        self.assertEqual([(c['code'], c['status']) for c in ok_checks], [
+            ('pdfium_control_chars', 'passed'),
+            ('pdfium_word_boundaries', 'passed'),
+        ])
+        self.assertEqual(ok_metrics, {
+            'pdfium_control_chars': 0, 'pdfium_merged_tokens': 0, 'pdfium_text_parity': True,
+        })
+
+        with_ctrl = clean.replace('Prüfständen', 'Prüf\x02ständen')
+        ctrl_checks, ctrl_metrics = application_pdf._pdfium_checks(doc, clean, with_ctrl)
+        self.assertEqual(ctrl_metrics['pdfium_control_chars'], 1)
+        self.assertIn(('pdfium_control_chars', 'failed'), [(c['code'], c['status']) for c in ctrl_checks])
+
+        merged = clean.replace('Projektingenieur Energiespeicher', 'ProjektingenieurEnergiespeicher')
+        merged_checks, merged_metrics = application_pdf._pdfium_checks(doc, clean, merged)
+        self.assertEqual(merged_metrics['pdfium_merged_tokens'], 1)
+        self.assertIn(('pdfium_word_boundaries', 'failed'), [(c['code'], c['status']) for c in merged_checks])
+
+        base_passed = [
+            {'code': 'text_extractable', 'status': 'passed'},
+            {'code': 'glyphs', 'status': 'passed'},
+            {'code': 'special_characters', 'status': 'passed'},
+            {'code': 'name_present', 'status': 'passed'},
+            {'code': 'contacts_present', 'status': 'passed'},
+        ]
+        self.assertTrue(application_pdf.export_verified(base_passed + ok_checks))
+        self.assertFalse(application_pdf.export_verified(base_passed + ctrl_checks))
+        self.assertFalse(application_pdf.export_verified(base_passed + merged_checks))
 
 
 if __name__ == '__main__':

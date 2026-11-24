@@ -69,10 +69,14 @@
   line-height: 1.15;
   font-synthesis: none;
   hyphens: manual;
-  text-rendering: optimizeLegibility;
+  text-rendering: geometricPrecision;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
   page: doc-a4;
+}
+
+.doc-nowrap {
+  white-space: nowrap;
 }
 
 .doc-page *,
@@ -136,6 +140,7 @@
   line-height: 1.2;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  word-spacing: 0.14em;
   color: #000000;
 }
 
@@ -187,6 +192,7 @@
   line-height: 1.15;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  word-spacing: 0.14em;
   color: #000000;
   display: flow-root;
   break-after: avoid;
@@ -198,6 +204,7 @@
   font-size: 10pt;
   font-weight: 700;
   line-height: 1.15;
+  word-spacing: 0.10em;
   break-after: avoid;
   page-break-after: avoid;
 }
@@ -233,6 +240,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  word-spacing: 0.14em;
   color: #000000;
   break-after: avoid;
   page-break-after: avoid;
@@ -259,6 +267,7 @@
   font-size: 9.5pt;
   font-weight: 700;
   letter-spacing: -0.01em;
+  word-spacing: 0.10em;
   text-transform: uppercase;
   text-wrap: balance;
 }
@@ -346,7 +355,7 @@
 .doc-cv-inline {
   display: flex;
   flex-wrap: wrap;
-  column-gap: 7pt;
+  align-items: baseline;
   row-gap: 1.5pt;
   margin: 0;
   text-align: left;
@@ -358,10 +367,18 @@
   overflow-wrap: break-word;
 }
 
-.doc-cv-inline-entry::before {
-  content: '\2022';
-  margin-right: 3.5pt;
+.doc-cv-inline-sep {
+  white-space: pre;
   color: #000000;
+  user-select: none;
+}
+
+.doc-cv-inline-sep--hidden {
+  visibility: hidden;
+}
+
+.doc-cv-inline-sep--collapsed {
+  display: none;
 }
 
 .doc-cv-columns {
