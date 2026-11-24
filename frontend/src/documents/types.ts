@@ -105,6 +105,7 @@ export interface Section {
   id: string
   kind: SectionKind
   title: string
+  group?: string
   layout: SectionLayout
   units: Unit[]
   entries: Entry[]
@@ -348,7 +349,7 @@ function parseSection(
   seenSectionIds: Set<string>,
   seenEntryIds: Set<string>,
 ): Section {
-  const rec = asRecord(value, path, ['id', 'kind', 'title', 'layout', 'units', 'entries'])
+  const rec = asRecord(value, path, ['id', 'kind', 'title', 'group', 'layout', 'units', 'entries'])
   const id = asString(rec.id, `${path}.id`)
   if (!SECTION_ID_PATTERN.test(id)) {
     fail(`${path}.id`, 'must match /^[a-z0-9_-]{1,64}$/')
@@ -360,6 +361,8 @@ function parseSection(
 
   const kind = asLiteral(rec.kind, `${path}.kind`, SECTION_KINDS)
   const title = asString(rec.title, `${path}.title`, { noNewlines: true, maxLength: 200 })
+  const group = rec.group === undefined ? '' :
+    asString(rec.group, `${path}.group`, { noNewlines: true, maxLength: 200 })
   const layout = asLiteral(rec.layout, `${path}.layout`, SECTION_LAYOUTS)
   const units =
     rec.units === undefined
@@ -384,7 +387,7 @@ function parseSection(
     fail(path, `section exceeds maximum of ${MAX_UNITS_PER_SECTION} units (got ${totalUnits})`)
   }
 
-  return { id, kind, title, layout, units, entries }
+  return { id, kind, title, group, layout, units, entries }
 }
 
 export function parseCvDocument(value: unknown): CvDocument {

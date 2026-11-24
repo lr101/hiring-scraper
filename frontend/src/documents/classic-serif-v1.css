@@ -193,6 +193,15 @@
   page-break-after: avoid;
 }
 
+.doc-cv-subsection-title {
+  margin: 0 0 3pt;
+  font-size: 10pt;
+  font-weight: 700;
+  line-height: 1.15;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
 .doc-cv-paragraphs {
   margin: 0;
 }

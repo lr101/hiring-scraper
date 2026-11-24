@@ -302,17 +302,20 @@ function renderEntry(
   )
 }
 
+function isVisibleSection(section: Section, showHidden: boolean): boolean {
+  return showHidden || section.entries.length > 0 || visibleUnits(section.units, false).length > 0
+}
+
 function renderSection(
   section: Section,
   language: CvDocument['language'],
   showHidden: boolean,
   renderUnit?: RenderUnit,
+  previousGroup = '',
 ): ReactNode {
-  const hasVisibleSectionUnits = visibleUnits(section.units, showHidden).length > 0
-  const hasEntries = section.entries.length > 0
-  if (!showHidden && !hasVisibleSectionUnits && !hasEntries) {
-    return null
-  }
+  const group = section.group?.trim() ?? ''
+  const Title = group ? 'h3' : 'h2'
+  const titleClass = group ? 'doc-cv-subsection-title' : 'doc-cv-section-title'
 
   return (
     <section
@@ -321,7 +324,8 @@ function renderSection(
       data-section-id={section.id}
       data-section-kind={section.kind}
     >
-      {section.title.trim() ? <h2 className="doc-cv-section-title">{section.title}</h2> : null}
+      {group && group !== previousGroup ? <h2 className="doc-cv-section-title">{group}</h2> : null}
+      {section.title.trim() ? <Title className={titleClass}>{section.title}</Title> : null}
       {renderSectionUnits(section, showHidden, renderUnit)}
       {section.entries.map((entry) =>
         renderEntry(entry, section.id, language, showHidden, renderUnit),
@@ -340,10 +344,12 @@ export function CvView({
   contentRef,
   overlay,
 }: CvViewProps) {
-  const showPhoto = doc.photo && Boolean(photoUrl && photoUrl.trim())
+  const showPhoto = Boolean(photoUrl?.trim())
   const showHeadline = showHidden || !doc.headline.hidden
-  const leadingProfile = doc.sections[0]?.kind === 'profile' ? doc.sections[0] : null
-  const remainingSections = leadingProfile ? doc.sections.slice(1) : doc.sections
+  const profile = doc.sections[0]?.kind === 'profile' ? doc.sections[0] : null
+  const leadingProfile = profile && isVisibleSection(profile, showHidden) ? profile : null
+  const remainingSections = (profile ? doc.sections.slice(1) : doc.sections)
+    .filter((section) => isVisibleSection(section, showHidden))
 
   const pageClasses = [
     'doc-page',
@@ -429,8 +435,9 @@ export function CvView({
           </div>
         </div>
 
-        {remainingSections.map((section) =>
-          renderSection(section, doc.language, showHidden, renderUnit),
+        {remainingSections.map((section, index) =>
+          renderSection(section, doc.language, showHidden, renderUnit,
+            (index ? remainingSections[index - 1] : leadingProfile)?.group?.trim()),
         )}
       </div>
     </div>

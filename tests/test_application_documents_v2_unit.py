@@ -79,7 +79,7 @@ class VersionMathTests(unittest.TestCase):
         self.assertEqual(task['stages'], {})
         self.assertEqual(documents.public_task({'id': 'b', 'state': 'running'})['kind'], 'legacy')
 
-    def test_portrait_changes_render_key_only_for_portrait_enabled_cvs(self):
+    def test_portrait_changes_render_key_for_legacy_cvs(self):
         class Session:
             photo = b'fictional first portrait'
 
@@ -87,14 +87,13 @@ class VersionMathTests(unittest.TestCase):
                 return types.SimpleNamespace(data=self.photo) if self.photo else None
 
         session = Session()
-        body = {'template': 'classic-serif-v1', 'photo': True}
+        body = {'template': 'classic-serif-v1', 'photo': False}
         first = documents.render_key(session, 1, 'cv', body)
         session.photo = b'fictional second portrait'
         second = documents.render_key(session, 1, 'cv', body)
         session.photo = None
         removed = documents.render_key(session, 1, 'cv', body)
         self.assertEqual(len({first, second, removed}), 3)
-        self.assertEqual(documents.render_key(session, 1, 'cv', {**body, 'photo': False}), 'classic-serif-v1')
         self.assertEqual(documents.render_key(session, 1, 'letter', body), 'classic-serif-v1')
 
     def test_preparation_uses_the_hiring_organization(self):

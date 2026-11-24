@@ -80,10 +80,15 @@ def cv_text(doc: CvDocument) -> str:
         header_lines.append(' | '.join(contacts))
     blocks.append('\n'.join(header_lines))
 
+    previous_group = ''
     for section in doc.sections:
         block = _section_block(section, doc.language)
         if block:
+            group = section.group.strip()
+            if group and group != previous_group:
+                block = f'{group}\n{block}'
             blocks.append(block)
+            previous_group = group
     return '\n\n'.join(blocks).strip()
 
 

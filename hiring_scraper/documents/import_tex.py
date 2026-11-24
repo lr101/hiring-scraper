@@ -106,6 +106,7 @@ class _SectionDraft:
     title: str
     kind: SectionKind
     layout: SectionLayout = 'bullets'
+    group: str = ''
     units: list[tuple[str, str]] = field(default_factory=list)  # (lead_in, text)
     entries: list[_EntryDraft] = field(default_factory=list)
 
@@ -653,22 +654,21 @@ class _DocumentBuilder:
     def _start_section(self, title: str, kind: SectionKind | None = None, layout: SectionLayout = 'bullets') -> _SectionDraft:
         self.current_entry = None
         self.pending_label = ''
-        # Replace an empty wrapper heading (e.g., \CVSection{...} followed immediately by a subsection).
-        if (
-            self.current_section is not None
-            and not self.current_section.units
-            and not self.current_section.entries
-            and self.current_section.kind not in ('profile', 'experience', 'education')
-        ):
-            self.current_section.title = title
-            self.current_section.kind = kind or _classify_section_kind(title, default='text')
-            self.current_section.layout = layout
-            return self.current_section
         resolved_kind = kind or _classify_section_kind(title, default='text')
         sec = _SectionDraft(title=title, kind=resolved_kind, layout=layout)
         self.sections.append(sec)
         self.current_section = sec
         return sec
+
+    def _start_subsection(self, title: str) -> None:
+        parent = self.current_section
+        group = (parent.group or parent.title) if parent is not None else ''
+        if parent is not None and not parent.group:
+            if parent.units or parent.entries:
+                parent.group, parent.title = group, ''
+            else:
+                self.sections.pop()
+        self._start_section(title).group = group
 
     def _ensure_entry(self, entry_id: str) -> _EntryDraft:
         if entry_id in self.entry_drafts:
@@ -892,7 +892,16 @@ class _DocumentBuilder:
                     ):
                         self.pending_label = heading_text
                         return
-                    self._start_section(heading_text)
+                    parent = self.current_section
+                    if parent is not None and (
+                        parent.group or (
+                            parent.title and not parent.units and not parent.entries
+                            and parent.kind not in ('profile', 'experience', 'education')
+                        )
+                    ):
+                        self._start_subsection(heading_text)
+                    else:
+                        self._start_section(heading_text)
                     return
 
             # Header handling for pure flowing CVs (no Page 1 picture)
@@ -1030,7 +1039,10 @@ class _DocumentBuilder:
                 open_brace = i + sec_match.end() - 1
                 close = _find_matching_brace(content, open_brace, base_line)
                 title = _unescape_tex(content[open_brace + 1:close])
-                self._start_section(title)
+                if 'subsection' in sec_match[1].lower():
+                    self._start_subsection(title)
+                else:
+                    self._start_section(title)
                 i = close + 1
                 continue
 
@@ -1309,6 +1321,7 @@ class _DocumentBuilder:
                     id=sec_id,
                     kind=sec.kind,
                     title=sec.title,
+                    group=sec.group,
                     layout=sec.layout,
                     units=built_units,
                     entries=built_entries,

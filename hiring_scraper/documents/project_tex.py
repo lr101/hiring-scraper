@@ -177,14 +177,25 @@ def project_tex(doc: CvDocument) -> str:
         contact_tex = r' \textbar\ '.join(_format_contact_tex(c) for c in doc.header.contacts)
         lines.append(f'{contact_tex}\\par')
 
+    previous_group = ''
+
+    def emit_heading(section: Section) -> None:
+        nonlocal previous_group
+        title, group = section.title.strip(), section.group.strip()
+        if group and group != previous_group:
+            lines.append(f'\\section*{{{escape_tex(group)}}}')
+        if title:
+            command = 'subsection' if group else 'section'
+            lines.append(f'\\{command}*{{{escape_tex(title)}}}')
+        previous_group = group
+
     profile_emitted = False
     for section in doc.sections:
         if section.kind == 'profile':
             if not profile_macros or profile_emitted:
                 continue
             profile_emitted = True
-            if section.title.strip():
-                lines.append(f'\\section*{{{escape_tex(section.title.strip())}}}')
+            emit_heading(section)
             for macro_name in profile_macros:
                 lines.append(f'\\{macro_name}{{}}\\par')
             continue
@@ -192,8 +203,7 @@ def project_tex(doc: CvDocument) -> str:
         if section.kind in ('experience', 'education'):
             if not section.entries and not any(not u.hidden and unit_full_text(u) for u in section.units):
                 continue
-            if section.title.strip():
-                lines.append(f'\\section*{{{escape_tex(section.title.strip())}}}')
+            emit_heading(section)
             for unit in section.units:
                 if not unit.hidden and unit_full_text(unit):
                     lines.append(f'{_format_unit_tex(unit)}\\par')
@@ -222,8 +232,7 @@ def project_tex(doc: CvDocument) -> str:
         if not visible_units:
             continue
         title = section.title.strip()
-        if title:
-            lines.append(f'\\section*{{{escape_tex(title)}}}')
+        emit_heading(section)
         is_language_section = title.casefold() in _LANGUAGE_SECTION_TITLES
         if is_language_section:
             for unit in visible_units:

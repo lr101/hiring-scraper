@@ -51,13 +51,14 @@ Unit {
 }
 CvDocument {
   "format": "radius-cv-v2", "language": "de" | "en", "template": "classic-serif-v1",
-  "page": "a4" | "letter", "photo": true | false,
+  "page": "a4" | "letter", "photo": true | false,  // legacy field; show the profile portrait when available
   "header": { "name": "…", "contacts": [{"kind": "phone|email|location|link", "text": "…", "href": ""}] },
   "headline": Unit,
   "sections": [Section]
 }
 Section {
   "id": "s-…", "kind": "profile|experience|education|skills|list|text", "title": "…",
+  "group": "",                   // optional major heading shared by consecutive subsections
   "layout": "paragraphs|bullets|inline|columns",   // units presentation
   "units": [Unit],              // profile paragraphs, skills, list items, free text
   "entries": [Entry]            // experience/education only

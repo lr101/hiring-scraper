@@ -91,6 +91,25 @@ class RenderTests(unittest.TestCase):
             self.assertEqual(self._passed(result, code), 'passed', code)
         self.assertIn('content_height_px', result.telemetry)
 
+    def test_legacy_cv_renders_portrait_when_available(self):
+        body = fictional_cv().model_dump()
+        body['photo'] = False
+        self.assertTrue(application_pdf.render_document('cv', body, photo_png=PIXEL).telemetry['photo_used'])
+        self.assertFalse(application_pdf.render_document('cv', body).telemetry['photo_used'])
+
+    def test_qualification_heading_precedes_its_subheadings_in_pdf(self):
+        doc = fictional_cv()
+        doc.sections[2].group = 'WEITERE QUALIFIKATIONEN'
+        doc.sections.append(Section(id='s-languages', title='Sprachen', kind='list',
+                                    group='WEITERE QUALIFIKATIONEN',
+                                    units=[Unit(id='u-language', text='Englisch – B2')]))
+        result = application_pdf.render_document('cv', doc.model_dump())
+        self.assertEqual(self._passed(result, 'reading_order'), 'passed')
+        self.assertEqual(result.text.count('WEITERE QUALIFIKATIONEN'), 1)
+        headings = ['WEITERE QUALIFIKATIONEN', doc.sections[2].title.upper(), 'Sprachen', 'Englisch']
+        offsets = [result.text.index(heading) for heading in headings]
+        self.assertEqual(offsets, sorted(offsets))
+
     def test_over_budget_pdf_is_rejected_instead_of_truncated(self):
         from unittest.mock import patch
 

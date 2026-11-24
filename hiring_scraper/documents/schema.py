@@ -9,7 +9,7 @@ import re
 from collections.abc import Iterator
 from typing import Annotated, Literal, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator, model_validator
 
 UNIT_ID_RE = re.compile(r'^[a-z0-9-]{1,64}$')
 ENTRY_ID_RE = re.compile(r'^[a-zA-Z0-9_-]{1,100}$')
@@ -170,14 +170,15 @@ class Section(BaseModel):
     id: str = Field(min_length=1, max_length=64, pattern=UNIT_ID_RE.pattern)
     kind: SectionKind
     title: str = Field(max_length=200)
+    group: str = Field(default='', max_length=200)
     layout: SectionLayout = 'bullets'
     units: list[Unit] = Field(default_factory=list, max_length=MAX_SECTION_UNITS)
     entries: list[Entry] = Field(default_factory=list, max_length=20)
 
-    @field_validator('title')
+    @field_validator('title', 'group')
     @classmethod
-    def _validate_title(cls, value: str) -> str:
-        return _no_newlines(value, 'title')
+    def _validate_heading(cls, value: str, info: ValidationInfo) -> str:
+        return _no_newlines(value, info.field_name)
 
     @model_validator(mode='after')
     def _validate_section(self) -> Section:
@@ -196,7 +197,7 @@ class CvDocument(BaseModel):
     language: DocumentLanguage
     template: DocumentTemplate = 'classic-serif-v1'
     page: PageSize = 'a4'
-    photo: bool = False
+    photo: bool = True
     header: Header
     headline: Unit
     sections: list[Section] = Field(default_factory=list, max_length=30)

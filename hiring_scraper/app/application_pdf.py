@@ -499,7 +499,7 @@ def render_document(
     if len(model.model_dump_json().encode('utf-8')) > MAX_DOCUMENT_BYTES:
         raise RenderFailed('document_too_large', 'The document exceeds the PDF input budget.')
     photo = None
-    if photo_png and kind == 'cv' and getattr(model, 'photo', False):
+    if photo_png and kind == 'cv':
         if len(photo_png) > MAX_PHOTO_BYTES:
             raise RenderFailed('photo_too_large', 'The portrait is too large.')
         mime = 'image/jpeg' if photo_png[:3] == b'\xff\xd8\xff' else 'image/png'
