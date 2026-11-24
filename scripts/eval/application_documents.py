@@ -46,7 +46,7 @@ def write_json(path: Path, value) -> None:
     path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
 
 
-def cli_generate(model: str, workspace: Path, state: Path) -> Generate:
+def cli_generate(model: str, workspace: Path, state: Path | None) -> Generate:
     def generate(prompt: str, schema: dict) -> dict:
         with TemporaryDirectory(prefix='codex-', dir=workspace) as directory:
             cwd = Path(directory)
@@ -67,7 +67,7 @@ def cli_generate(model: str, workspace: Path, state: Path) -> Generate:
             try:
                 # CLI output can contain application text. Capture it in memory and report fixed codes.
                 result = subprocess.run(command, input=prompt, encoding='utf-8', errors='replace',
-                                        cwd=cwd, env=codex_runtime._environment(state, cwd),
+                                        cwd=cwd, env=codex_runtime._environment(state, cwd) if state else None,
                                         capture_output=True, timeout=300)
                 if result.returncode:
                     error = (result.stderr[-65536:] + result.stdout[-65536:]).lower()
@@ -94,7 +94,10 @@ def run(args: argparse.Namespace) -> None:
     job = case['job']
     profile = read_json(private_path(args.profile))
     out = private_path(args.out)
-    state = private_path(Path(os.environ.get('RADIUS_CODEX_STATE_DIR', ROOT / 'data' / 'private' / 'codex')))
+    # Default: the operator's own Codex CLI login (no credential copies). An explicit
+    # RADIUS_CODEX_STATE_DIR selects an isolated Radius-style state inside data/private/.
+    state_dir = os.environ.get('RADIUS_CODEX_STATE_DIR')
+    state = private_path(Path(state_dir)) if state_dir else None
     base_path = private_path(args.base_tex or args.base_docx)
     language = case.get('language')
     base = (import_marked_tex(base_path.read_text(encoding='utf-8'), language=language) if args.base_tex
