@@ -825,11 +825,15 @@ class CheaperInvalidationTests(unittest.TestCase):
         class FakeSession:
             def __init__(self):
                 self.added = []
+                self.executed = []
                 self.flushed = 0
                 self.committed = 0
 
             def add(self, obj):
                 self.added.append(obj)
+
+            def execute(self, statement):
+                self.executed.append(statement)
 
             def flush(self):
                 self.flushed += 1
@@ -873,6 +877,7 @@ class CheaperInvalidationTests(unittest.TestCase):
         mock_clear.assert_not_called()
         mock_declared.assert_called_once_with(session, profile.id, presentation_only=True)
         mock_reeval.assert_called_once_with(session, profile)
+        self.assertEqual(session.executed, [])
 
         # Changing career_evidence (part of matching_preferences / _profile_index_version) triggers full scoring rebuild.
         req_evidence = profiles.ProfileRequest(**{
@@ -889,6 +894,7 @@ class CheaperInvalidationTests(unittest.TestCase):
         mock_clear.assert_called_once_with(session, profile.id)
         mock_declared.assert_called_once_with(session, profile.id, presentation_only=False)
         mock_reeval.assert_not_called()
+        self.assertEqual(len(session.executed), 1)
 
     def test_reevaluate_profile_new_applications_defers_dirty_stale_and_legacy_rows(self):
         from hiring_scraper.app import job_search, source_changes

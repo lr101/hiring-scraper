@@ -183,18 +183,45 @@ def _ensure_profile_vote_weight(migration_url: str) -> None:
         engine.dispose()
 
 
-def _bootstrap() -> str:
+def _ensure_preparation_retry_schema(migration_url: str) -> None:
+    """Add the preparation queue's retry column without advancing Alembic's revision.
+
+    Older images ignore the nullable column, so a binary rollback still starts;
+    their claims leave it NULL, which newer images treat as "claim now".
+    """
+    engine = create_engine(migration_url)
+    try:
+        with engine.begin() as connection:
+            connection.execute(text(
+                "ALTER TABLE application_preparation_tasks "
+                "ADD COLUMN IF NOT EXISTS next_attempt_at TIMESTAMP WITH TIME ZONE"
+            ))
+            connection.execute(text(
+                "CREATE INDEX IF NOT EXISTS ix_application_preparation_tasks_next_attempt_at "
+                "ON application_preparation_tasks (next_attempt_at)"
+            ))
+    finally:
+        engine.dispose()
+
+
+def ensure_rollback_safe_schema(migration_url: str) -> None:
+    """Every additive step applied after Alembic (entrypoint, dev migrate and tests)."""
+    _ensure_profile_vote_weight(migration_url)
+    _ensure_preparation_retry_schema(migration_url)
+
+
+def _bootstrap(*, rollback_application_documents: bool = False) -> str:
     migration_url = _migration_database_url()
     engine = create_engine(migration_url, isolation_level="AUTOCOMMIT")
     try:
         with engine.connect() as connection:
             connection.execute(text("SELECT pg_advisory_lock(85793011, 7)"))
-            return _migrate(migration_url)
+            return _migrate(migration_url, rollback_application_documents=rollback_application_documents)
     finally:
         engine.dispose()
 
 
-def _migrate(migration_url: str) -> str:
+def _migrate(migration_url: str, *, rollback_application_documents: bool = False) -> str:
     application_url = _application_database_url()
     print("Ensuring the application database role exists", flush=True)
     _ensure_application_role(migration_url, _application_database_password())
@@ -204,11 +231,13 @@ def _migrate(migration_url: str) -> str:
     migration_environment["DATABASE_URL"] = migration_url
     migration_environment.pop("DATABASE_ADMIN_URL", None)
     migration_environment.pop("POSTGRES_PASSWORD", None)
-    subprocess.run(["alembic", "upgrade", "head"], check=True, env=migration_environment)
+    migration = (["downgrade", "0043_drop_ai_assessment"] if rollback_application_documents
+                 else ["upgrade", "head"])
+    subprocess.run(["alembic", *migration], check=True, env=migration_environment)
     del migration_environment
 
-    print("Ensuring profile matching preference schema", flush=True)
-    _ensure_profile_vote_weight(migration_url)
+    print("Ensuring rollback-safe schema steps", flush=True)
+    ensure_rollback_safe_schema(migration_url)
 
     return application_url
 
@@ -236,7 +265,8 @@ WORKER_MODULES = (
     "application_preparation_worker",
 )
 WORKER_POOL = {"HIRING_DB_POOL_SIZE": "5", "HIRING_DB_MAX_OVERFLOW": "5"}
-PREPARATION_POOL = {"HIRING_DB_POOL_SIZE": "2", "HIRING_DB_MAX_OVERFLOW": "0"}
+# Inference lane + render lane threads, each with short sessions.
+PREPARATION_POOL = {"HIRING_DB_POOL_SIZE": "3", "HIRING_DB_MAX_OVERFLOW": "0"}
 API_POOL = {"HIRING_DB_POOL_SIZE": "30", "HIRING_DB_MAX_OVERFLOW": "10"}
 API_COMMAND = ["uvicorn", "hiring_scraper.app.api:app", "--host", "0.0.0.0", "--port", "8000"]
 
@@ -302,6 +332,9 @@ def _serve() -> int:
 
 def main() -> int:
     arguments = sys.argv[1:]
+    if arguments == ["--rollback-application-documents"]:
+        _bootstrap(rollback_application_documents=True)
+        return 0
     if arguments == ["--migrate"]:
         _prepare_codex_state()
         _bootstrap()

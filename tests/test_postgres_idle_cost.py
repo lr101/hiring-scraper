@@ -49,6 +49,8 @@ def _idle_cycles():
             job_analysis_worker.refresh_profile_units_once(embed_fn=_no_inference),
             job_analysis_worker.refresh_evidence_once(embed_fn=_no_inference, rerank_fn=_no_inference),
             job_analysis_worker.analyse_next_job(analyse=_no_inference)),
+        'application render claim': lambda: application_preparation_queue.process_render_once(
+            lambda *_args: None),
     }
 
 

@@ -76,14 +76,9 @@ Open <http://localhost:5173>.
 
 Save a job profile under **Your profile**.
 
-Save a PNG portrait under **Edit profile → CVs & writing → CV photo (optional)**,
-then click **Save profile**. The photo is reused in English and German CV PDF
-previews, PDF exports, and source + photo ZIPs. PNGs must be at most 2 MiB and
-4096 pixels per side. In an application's **CV photo (optional)** section,
-uncheck **Use saved profile photo** to leave it out, or choose a different photo
-for that application. Temporary replacements are not saved to your profile.
-Photos are stored separately from profile prose and are not sent to ChatGPT.
-Custom LaTeX templates still need local compilation using their source + photo ZIP.
+Save a PNG portrait up to 2 MiB and 4096 pixels per side under
+**Edit profile → CVs & writing → CV photo (optional)**. The CV editor and local
+PDF renderer use this portrait for CVs with a portrait placeholder.
 
 Viewing a job detail adds it to
 **My applications** as New. Opening the original post leaves its stage unchanged.
@@ -149,13 +144,12 @@ embedding service.
 
 ### Application preparation
 
-On a saved-CV application's page, **Prepare inside Radius** generates the CV,
-cover letter and answers through drafting, independent review, revision and PDF
-checks, directly into the review/export flow. Choose
-**Continue with ChatGPT** in Settings or on the application page to connect your
-subscription through the bundled Codex runtime. No API key is needed. The ChatGPT
-handoff remains available. See [configuration, data handling and
-limits](docs/application-handoff.md#prepare-inside-radius).
+On a job's application page, confirm the imported base CV in the chosen language.
+Choose **Prepare documents** to draft a tailored CV and cover letter through the
+connected ChatGPT subscription. **Full** adds a review pass, while **Fast** drafts
+the pair. Edit the documents in place, review any findings and download each
+saved version as a PDF. Radius stores up to 20 versions per document and the
+applicant submits the application. See the [application preparation guide](docs/application-preparation.md).
 
 ### City election context
 
@@ -294,8 +288,7 @@ website request budget is exhausted.
 ## Documentation
 
 - [Architecture](docs/architecture.md)
-- [Saved CVs, application handoff and original-template document export](docs/application-handoff.md)
-- [Application preparation prompt and generation integration](docs/application-generation-integration.md)
+- [Saved CVs, structured application documents and PDF export](docs/application-preparation.md)
 - [Parallel application stages](docs/application-stages.md)
 - [CV formatting prompt](docs/cv-formatting-prompt.md)
 - [Matching strategy](docs/matching-strategy-review.md)
@@ -322,9 +315,11 @@ The Karlsruhe seed fixture includes OpenStreetMap-derived data. See [OpenStreetM
 
 ## Chrome application companion
 
-In **Settings → Application companion**, download the extension ZIP and load its `extension/` folder unpacked in Chrome. Save your reusable details, connect Radius, then open a job’s **Start application** flow to tailor its CV with ChatGPT. Saved profile CVs retain their original DOCX template; profiles without an attached CV can save CV text in the browser or attach one to the profile. The toolbar shows prepared jobs and follows their Apply links to employer forms. Filling is user-triggered and never submits an application or changes its tracked stage.
-
-[Installation, privacy, limits, and developer checks](extensions/application-companion/README.md). CI builds the same installable ZIP and checksum for every PR/main/tag, and includes them in tagged releases.
+In **Settings → Application companion**, download the extension ZIP and load its
+`extension/` folder unpacked in Chrome. Connect the extension to Radius and select
+your profile. Use **Prepare documents** to open the Radius editor for a job.
+The companion can capture employer form questions and fill saved profile facts
+when you choose to fill. Attach PDFs downloaded from Radius on the employer's form.
 
 ### German and English application profiles
 
@@ -337,7 +332,5 @@ Missing German text stays blank rather than silently borrowing English prose.
 
 Contact details, salary amounts and currency, availability dates, weekly hours,
 work permissions, search area and board settings are shared outside the tabs.
-Application briefs select the matching profile language alongside the CV.
-German briefs use German drafting and LaTeX instructions; JSON keys and history
-IDs retain the same machine-readable format in both languages. Connected companion
-saves and syncs preserve both language versions.
+Application preparation uses the selected base CV and matching profile language.
+Connected companion saves and syncs preserve both language versions.

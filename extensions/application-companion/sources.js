@@ -222,24 +222,3 @@ export function connectSources(
   next.source_notes = notes.join("\n");
   return validateProfile(next);
 }
-
-export function bulletPrompt(profile) {
-  const data = validateProfile(profile);
-  return (
-    'Tailor ONLY the work-experience bullet points for this application. Keep every experience_id exactly as supplied. Do not change company, title, location or dates and do not invent achievements. Return the usual radius-application-v1 package (preserve the job_id, profile_id and cv_updated_at from the application-preparation prompt) with this optional field: "experience_bullets": [{"experience_id":"...","bullets":["..."]}]. Return plain bullet text without bullet markers. Each job below has original_description as source material. If there is no evidence for an achievement, omit it.\n\nStructured experience facts:\n' +
-    JSON.stringify(
-      data.experiences.map((e) => ({
-        experience_id: e.id,
-        company: e.company,
-        title: e.title,
-        location: e.location,
-        start: e.start,
-        end: e.end,
-        current: e.current,
-        original_description: e.description,
-      })),
-      null,
-      2,
-    )
-  );
-}

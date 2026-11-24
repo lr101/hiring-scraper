@@ -13,8 +13,16 @@ from sqlalchemy.orm import Session
 from starlette.requests import Request
 
 from hiring_scraper.app import models, profiles
-import test_application_documents as document_tests
 from tests import pg
+
+
+def png_fixture(width=24):
+    from io import BytesIO
+    from PIL import Image
+
+    output = BytesIO()
+    Image.new('RGB', (width, 24), 'blue').save(output, format='PNG')
+    return output.getvalue()
 
 
 class ProfilePhotoTests(unittest.TestCase):
@@ -23,7 +31,7 @@ class ProfilePhotoTests(unittest.TestCase):
         models.Base.metadata.create_all(self.engine)
         self.session = Session(self.engine)
         self.profile_id = profiles.create_profile(profiles.ProfileRequest(name='Alex'), self.session)['id']
-        self.png = base64.b64decode(document_tests.ApplicationDocumentTests.photo().split(',', 1)[1])
+        self.png = png_fixture()
 
     def tearDown(self):
         self.session.close()
@@ -60,7 +68,7 @@ class ProfilePhotoTests(unittest.TestCase):
         for data, filename in [(b'bad', 'portrait.png'), (b'', 'portrait.png'),
                                (self.png[:-1], 'portrait.png'), (self.png, '../portrait.png'),
                                (self.png, 'portrait.svg'), (b'x' * (2 * 1024 * 1024 + 1), 'portrait.png'),
-                               (base64.b64decode(document_tests.ApplicationDocumentTests.photo(width=10000).split(',', 1)[1]), 'portrait.png')]:
+                               (png_fixture(width=10000), 'portrait.png')]:
             with self.subTest(filename=filename, size=len(data)), self.assertRaises(HTTPException) as error:
                 self.upload(data, filename)
             self.assertIn(error.exception.status_code, [413, 422])

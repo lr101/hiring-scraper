@@ -97,12 +97,40 @@ export function validateLocalizedContent(input) {
           wording_to_avoid: 3000,
           career_goals: 5000,
           work_preferences: 5000,
+          voice_notes: 1500,
         };
+        const { style_exemplars, ...fields } = object(value, [
+          ...Object.keys(limits),
+          "style_exemplars",
+        ]);
         next[key] = Object.fromEntries(
-          Object.entries(object(value, Object.keys(limits))).map(
-            ([key, value]) => [key, text(value, limits[key])],
-          ),
+          Object.entries(fields).map(([field, value]) => [
+            field,
+            text(value, limits[field]),
+          ]),
         );
+        if (style_exemplars !== undefined) {
+          if (!Array.isArray(style_exemplars) || style_exemplars.length > 6)
+            throw new Error("Save at most three style examples per language.");
+          const counts = { en: 0, de: 0 };
+          next[key].style_exemplars = style_exemplars.map((sample) => {
+            object(sample, ["language", "kind", "text"]);
+            if (
+              !["en", "de"].includes(sample.language) ||
+              !["cover_letter", "cv_summary"].includes(sample.kind)
+            )
+              throw new Error("Invalid style example language or type.");
+            if (++counts[sample.language] > 3)
+              throw new Error(
+                "Save at most three style examples per language.",
+              );
+            return {
+              language: sample.language,
+              kind: sample.kind,
+              text: text(sample.text, 16000),
+            };
+          });
+        }
       } else if (key === "application_preferences") {
         next[key] = Object.fromEntries(
           Object.entries(object(value, localizedPreferenceKeys)).map(

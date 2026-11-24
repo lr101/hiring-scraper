@@ -1,0 +1,8 @@
+Task: draft short answers to the application form questions listed under QUESTIONS.
+
+- Answer each question in the target language in the applicant's voice, 1–4 sentences unless
+  the question asks for more, and cite evidence ids for every fact.
+- When the evidence does not answer a question (for example salary, notice period, visa,
+  start date or a skill the applicant has not shown), return an empty answer and set
+  `needs_input` to true so the applicant fills it in.
+- Answer yes/no and choice questions with the option the evidence supports.

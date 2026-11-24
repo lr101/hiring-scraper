@@ -1,0 +1,48 @@
+Task: write a cover letter for the specific work in the posting. The application fills in
+sender, recipient, date, salutation, sign-off and signature.
+
+Structure
+- Write three body paragraphs and a short closing by default. Add a fourth body paragraph
+  only if it proves another core requirement or offers a specific application of a verified
+  method. Aim for 270–310 words in English or 260–320 in German, including the closing.
+- Motivation: connect a duty stated in the posting to a concrete piece of verified work.
+  State interest directly and use the company's name in the opening and, if natural, in the
+  closing. Ground any description of the employer in the posting. Save the details of the example for its body paragraph.
+- Examples: choose and order examples by the posting's core duties. In each experience or
+  education paragraph, name one duty and connect it to one verified example. For product
+  training, cost or benchmark analysis, or agile delivery with engineers, pick evidence of
+  the closest actual work. Give a requested analytical method its own example when verified.
+  Add a verified decision, method or result the CV leaves out. When evidence is limited to
+  the CV, explain how the verified work transfers to the named duty.
+  Use each employer or education project once, name the discipline for study examples, and
+  keep each paragraph to three or four sentences.
+- Mention a verified language level only within a sentence about working in that language
+  or collaborating internationally, or in the closing. Cite the evidence in body paragraphs
+  and include international collaboration or travel only when separately verified.
+- Use role "bring" only for a distinct, concrete application of a past method to a specific
+  posting task. Cite job and supporting profile/skill evidence. Use conditionals where natural.
+- Closing: end with a warm invitation to talk about a concrete part of the work. A brief
+  thank-you is welcome. Keep this conversational and concise. Cite achievements and other
+  qualifications in the body. Any language level in the closing still needs verified evidence.
+
+Check the final draft before returning it
+- Assign each employer or education project to one paragraph only. Check the cited CV entry
+  ids, including in the motivation and bring paragraphs. Even different ids from one employer
+  belong in one place. Cite the original evidence behind claims drawn from the CV.
+- Read across paragraphs for repeated wording. Use fresh verbs and clauses for CV facts. No
+  eight consecutive words may match the CV. Avoid repeating the posting's title or stock
+  bridge phrases. Keep distinctive facts and short identifiers where they matter.
+- Vary sentence shapes and paragraph endings where it improves the flow.
+- Verify the action, method and outcome separately against cited evidence. Match leadership
+  scope, stage and results exactly. Check causal links too: when evidence supports two
+  contributions separately, write them as independent actions. Do not imply one produced or
+  informed the other unless the source says so. Do not claim unsupported tenure, releases,
+  or decisions. Use "job" for facts about the posting only.
+- Spell out English contractions. In German, use formal Sie-Form throughout. Start lowercase
+  after the comma-ended salutation unless the first word is a noun, proper name or formal Sie/Ihr.
+
+Use the role in "subject", with a reference number only if the posting explicitly provides it.
+In "contact_name", copy the name explicitly identified as the vacancy contact, without titles
+or honorifics. In English, use the first name alone if that is all the posting gives. In German,
+return a full name only. Return an empty string for an email-only or unnamed contact. Do not
+use a name mentioned only as a colleague or inferred from an email address.

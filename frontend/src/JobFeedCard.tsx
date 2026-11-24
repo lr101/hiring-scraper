@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import ApplicationSwipeCard, { ApplicationStateBadge } from './ApplicationSwipeCard'
 import JobOverviewTags from './JobOverviewTags'
-import { applicationStartLink } from './applicationHandoff'
+import { applicationStartLink } from './applicationDocuments'
 import { applicationStatuses, nextApplicationStages } from './applications'
 import type { Application, ApplicationSwipeAction, ApplicationStatus } from './applications'
 import { languageRequirementLabel } from './JobEvidence'

@@ -1,0 +1,420 @@
+import base64
+import unittest
+from io import BytesIO
+
+from hiring_scraper.app import application_pdf
+from hiring_scraper.documents import (
+    Contact,
+    CvDocument,
+    Entry,
+    Header,
+    LetterDocument,
+    LockedEntry,
+    Section,
+    Sender,
+    Unit,
+)
+
+# 1x1 transparent PNG
+PIXEL = base64.b64decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+)
+
+
+def fictional_cv(bullets: int = 3) -> CvDocument:
+    return CvDocument(
+        language='de',
+        page='a4',
+        photo=True,
+        header=Header(
+            name='Jörg Übermaß',
+            contacts=[
+                Contact(kind='phone', text='+49 170 0000000'),
+                Contact(kind='email', text='joerg@example.test', href='mailto:joerg@example.test'),
+                Contact(kind='location', text='Göttingen, DE'),
+            ],
+        ),
+        headline=Unit(id='u-headline', text='Projektingenieur Energiespeicher'),
+        sections=[
+            Section(id='s-profile', kind='profile', title='', layout='paragraphs',
+                    units=[Unit(id='u-profile-1', text='Ingenieur für Batteriespeicher mit Erfahrung in Prüfständen.')]),
+            Section(
+                id='s-experience', kind='experience', title='BERUFSERFAHRUNG', layout='bullets',
+                entries=[
+                    Entry(
+                        id='work-1', kind='work',
+                        locked=LockedEntry(company='Beispielwerk GmbH', title='Projektingenieur',
+                                           location='Kassel', start='2021', end=None, current=True),
+                        units=[
+                            Unit(id=f'u-work-1-b{n}', text=f'Plante Prüfläufe für Speichermodule und werte Messreihe {n} aus. ' * (1 if bullets < 10 else 4))
+                            for n in range(1, bullets + 1)
+                        ],
+                    ),
+                ],
+            ),
+            Section(id='s-skills', kind='skills', title='KENNTNISSE', layout='inline',
+                    units=[Unit(id='u-skills-1', text='Python'), Unit(id='u-skills-2', text='Messtechnik')]),
+        ],
+    )
+
+
+def fictional_letter() -> LetterDocument:
+    return LetterDocument(
+        language='de',
+        sender=Sender(name='Jörg Übermaß', lines=['Göttingen', 'joerg@example.test']),
+        recipient_lines=['Speicherfabrik Muster AG', 'Personalabteilung'],
+        place_date='Göttingen, 23. November 2026',
+        subject=Unit(id='u-subject', text='Bewerbung als Projektingenieur'),
+        salutation=Unit(id='u-salutation', text='Sehr geehrte Damen und Herren,'),
+        paragraphs=[Unit(id=f'u-p{n}', text='Bei Beispielwerk plane ich Prüfläufe und werte Messreihen aus.',
+                         origin='ai', sources=['cv:work-1:b1']) for n in range(1, 5)],
+        closing=Unit(id='u-closing', text='Mit freundlichen Grüßen'),
+        signature='Jörg Übermaß',
+    )
+
+
+@unittest.skipUnless(application_pdf.available(), 'Chromium or frontend/dist/print.html unavailable')
+class RenderTests(unittest.TestCase):
+    def _passed(self, result, code):
+        return next(c for c in result.checks if c['code'] == code)['status']
+
+    def test_cv_renders_with_contacts_and_umlauts(self):
+        result = application_pdf.render_document('cv', fictional_cv().model_dump(mode='json'), photo_png=PIXEL)
+        self.assertTrue(result.pdf.startswith(b'%PDF'))
+        self.assertEqual(result.pages, 1)
+        self.assertFalse(result.page_limit_exceeded)
+        self.assertIn('Prüfständen', result.text)
+        self.assertIn('ÜBERMASS', result.text.upper())
+        self.assertNotIn('(cid:', result.text)
+        self.assertNotIn('�', result.text)
+        for code in ('contacts_present', 'glyphs', 'special_characters', 'name_present', 'page_count'):
+            self.assertEqual(self._passed(result, code), 'passed', code)
+        self.assertIn('content_height_px', result.telemetry)
+
+    def test_over_budget_pdf_is_rejected_instead_of_truncated(self):
+        from unittest.mock import patch
+
+        with patch.object(application_pdf, 'MAX_PDF_PAGES', 1):
+            with self.assertRaises(application_pdf.RenderFailed) as error:
+                application_pdf.render_document('cv', fictional_cv(bullets=20).model_dump(mode='json'))
+        self.assertEqual(error.exception.code, 'document_too_large')
+
+    def test_letter_renders_one_page(self):
+        result = application_pdf.render_document('letter', fictional_letter().model_dump(mode='json'))
+        self.assertEqual(result.pages, 1)
+        self.assertIn('Grüßen', result.text)
+        self.assertEqual(self._passed(result, 'name_present'), 'passed')
+
+    def test_multi_entry_cv_extracts_headers_and_bullets_in_order(self):
+        doc = fictional_cv(bullets=1)
+        doc.sections[1].entries += [
+            Entry(id='work-2', kind='work',
+                  locked=LockedEntry(company='Fiktivlabor', title='Praktikant',
+                                     start='2020', end='2020'),
+                  units=[Unit(id='u-work-2-b1', text='Kalibrierte Sensoren im Prüfstand.')]),
+        ]
+        doc.sections[2].layout = 'columns'
+        doc.sections[2].units.insert(1, Unit(id='u-skills-3', text='Konstruktion'))
+        result = application_pdf.render_document('cv', doc.model_dump(), photo_png=PIXEL)
+        self.assertEqual(self._passed(result, 'reading_order'), 'passed')
+        self.assertTrue(result.telemetry['photo_used'])
+        self.assertNotIn('2020-2020', result.text)
+        self.assertIn('2021-heute', result.text)
+        self.assertNotIn('‐', result.text)
+        parts = ('BEISPIELWERK', 'Plante Prüfläufe', 'FIKTIVLABOR', '2020',
+                 'Kalibrierte Sensoren', 'Python', 'Konstruktion', 'Messtechnik')
+        positions = [result.text.index(part) for part in parts]
+        self.assertEqual(positions, sorted(positions))
+        self.assertRegex(result.text, r'●\s*Kalibrierte')
+
+    def test_pdf_metadata_and_a4_dimensions_for_de_and_en(self):
+        from pypdf import PdfReader
+
+        en_cv = fictional_cv()
+        en_cv.language = 'en'
+        en_letter = fictional_letter()
+        en_letter.language = 'en'
+        for kind, doc, title in [
+            ('cv', fictional_cv(), 'Jörg Übermaß – Lebenslauf'),
+            ('letter', fictional_letter(), 'Jörg Übermaß – Anschreiben'),
+            ('cv', en_cv, 'Jörg Übermaß – CV'),
+            ('letter', en_letter, 'Jörg Übermaß – Cover letter'),
+        ]:
+            with self.subTest(kind=kind, language=doc.language):
+                result = application_pdf.render_document(kind, doc.model_dump())
+                reader = PdfReader(BytesIO(result.pdf))
+                self.assertEqual(reader.metadata.title, title)
+                self.assertEqual(reader.metadata.author, 'Jörg Übermaß')
+                box = reader.pages[0].mediabox
+                self.assertAlmostEqual(float(box.width), 595.0, delta=2.0)
+                self.assertAlmostEqual(float(box.height), 842.0, delta=2.0)
+
+    def test_education_keeps_institution_heading_and_bullets_together(self):
+        from pypdf import PdfReader
+
+        doc = fictional_cv(bullets=15)
+        doc.sections.insert(2, Section(
+            id='s-education', kind='education', title='Ausbildung', entries=[
+                Entry(id='study-1', kind='study', label='Hochschule',
+                      locked=LockedEntry(company='University', title='Fiktivlabor', start='2020', end='2020'),
+                      units=[
+                          Unit(id=f'u-study-b{n}', text=f'Auswertung {n}: ' + 'Kalibrierte Sensoren im Prüfstand. ' * 6)
+                          for n in range(1, 5)
+                      ]),
+            ],
+        ))
+        result = application_pdf.render_document('cv', doc.model_dump())
+        pages = [page.extract_text() for page in PdfReader(BytesIO(result.pdf)).pages]
+        self.assertEqual(len(pages), 2)
+        self.assertNotIn('UNIVERSITY', result.text)
+        self.assertNotIn('HOCHSCHULE', result.text)
+        self.assertEqual(result.text.upper().count('FIKTIVLABOR'), 1)
+        for part in ('AUSBILDUNG', 'FIKTIVLABOR', 'Auswertung 1:', 'Auswertung 4:'):
+            self.assertIn(part, pages[1])
+
+    def test_short_education_section_keeps_its_two_entries_under_one_heading(self):
+        from pypdf import PdfReader
+
+        doc = fictional_cv(bullets=14)
+        doc.sections.insert(2, Section(
+            id='s-education', kind='education', title='Ausbildung',
+            entries=[
+                Entry(
+                    id=f'study-{n}', kind='study',
+                    locked=LockedEntry(company=f'Fiktivlabor {n}', title='Forschungsprojekt',
+                                       start='2020', end='2020'),
+                    units=[
+                        Unit(id=f'u-study-{n}-b{i}', text=f'Auswertung {i}: '
+                             + 'Kalibrierte Sensoren für den Prüfstand mit dem Werkstattteam. ' * 3)
+                        for i in range(1, 4)
+                    ],
+                )
+                for n in (1, 2)
+            ],
+        ))
+        result = application_pdf.render_document('cv', doc.model_dump())
+        pages = [page.extract_text() for page in PdfReader(BytesIO(result.pdf)).pages]
+        self.assertEqual(len(pages), 2)
+        self.assertTrue(pages[1].lstrip().startswith('AUSBILDUNG'))
+        for company in ('FIKTIVLABOR 1', 'FIKTIVLABOR 2'):
+            self.assertIn(company, pages[1])
+
+    def test_long_entry_avoids_single_orphan_bullet_at_top_of_page_two(self):
+        from pypdf import PdfReader
+
+        doc = fictional_cv(bullets=13)
+        doc.sections[1].entries.append(
+            Entry(
+                id='work-2', kind='work',
+                locked=LockedEntry(company='Fiktivlabor', title='Projektingenieur', start='2019', end='2021'),
+                units=[
+                    Unit(id=f'u-w2-b{n}', text=f'Messreihe {n}: ' + 'Dokumentierte Prüfergebnisse im Labor. ' * 5)
+                    for n in range(1, 7)
+                ],
+            )
+        )
+        result = application_pdf.render_document('cv', doc.model_dump())
+        pages = [page.extract_text() for page in PdfReader(BytesIO(result.pdf)).pages]
+        self.assertEqual(len(pages), 2)
+        p1_items = [n for n in range(1, 7) if f'Messreihe {n}:' in pages[0]]
+        p2_items = [n for n in range(1, 7) if f'Messreihe {n}:' in pages[1]]
+        self.assertTrue(len(p1_items) == 0 or len(p1_items) >= 2)
+        self.assertGreaterEqual(len(p2_items), 2)
+
+    def test_long_cv_reports_overflow(self):
+        doc = fictional_cv(bullets=45).model_dump(mode='json')
+        result = application_pdf.render_document('cv', doc)
+        self.assertGreater(result.pages, 2)
+        self.assertTrue(result.page_limit_exceeded)
+        overflow = next(c for c in result.checks if c['code'] == 'overflow')
+        self.assertEqual(overflow['status'], 'warning')
+        self.assertGreater(len(result.telemetry['beyond_limit_units']), 0)
+
+    def test_compact_print_avoids_an_extra_page_from_entry_breaks(self):
+        doc = fictional_cv()
+        doc.sections[1].entries = [
+            Entry(id=f'work-{i}', kind='work',
+                  locked=LockedEntry(company=f'Labor {i}', title='Projektingenieur', start='2020', end='2021'),
+                  units=[
+                      Unit(id=f'u-work-{i}-b{n}', text=f'Messreihe {n} im Labor {i}. '
+                           + 'Kalibrierte Sensoren und erfasste auftretende Abweichungen im Prüfstand. ' * 3)
+                      for n in range(count)
+                  ])
+            for i, count in enumerate((10, 8, 8, 6), 1)
+        ]
+        result = application_pdf.render_document('cv', doc.model_dump())
+        self.assertEqual(result.pages, 2)
+        self.assertFalse(result.page_limit_exceeded)
+        self.assertEqual(self._passed(result, 'reading_order'), 'passed')
+
+    def test_entry_intro_stays_with_first_bullet_at_page_break(self):
+        from pypdf import PdfReader
+
+        doc = fictional_cv(bullets=16)
+        doc.sections[1].entries.append(
+            Entry(id='work-2', kind='work',
+                  locked=LockedEntry(company='Fiktivlabor', title='Praktikant', start='2020', end='2020'),
+                  intro=[Unit(id='u-intro', text='Übersicht über Kalibrierung und thermische Messung. ' * 3)],
+                  units=[Unit(id='u-bullet', text='Kalibrierte Sensoren im Prüfstand.')]),
+        )
+        result = application_pdf.render_document('cv', doc.model_dump())
+        pages = [page.extract_text() for page in PdfReader(BytesIO(result.pdf)).pages]
+        self.assertEqual(len(pages), 2)
+        for part in ('FIKTIVLABOR', 'Übersicht über Kalibrierung', 'Kalibrierte Sensoren'):
+            self.assertIn(part, pages[1])
+        self.assertNotIn('u-bullet', result.telemetry['split_units'])
+
+    def test_telemetry_reports_paragraph_that_spans_two_pdf_pages(self):
+        doc = fictional_cv(bullets=14)
+        doc.sections[1].entries.append(
+            Entry(id='work-2', kind='work',
+                  locked=LockedEntry(company='Fiktivlabor', title='Praktikant', start='2020', end='2020'),
+                  intro=[Unit(id='u-long-intro', text='Übersicht über Kalibrierung und thermische Messung. ' * 21)]),
+        )
+        result = application_pdf.render_document('cv', doc.model_dump())
+        self.assertEqual(result.pages, 2)
+        self.assertIn('u-long-intro', result.telemetry['split_units'])
+
+    def test_duplicate_company_title_internship_renders_localized_role_label(self):
+        for lang, expected in (('de', 'Praktikum'), ('en', 'Internship')):
+            with self.subTest(language=lang):
+                doc = fictional_cv(bullets=1)
+                doc.language = lang
+                doc.sections.append(Section(
+                    id='s-edu', kind='education', title='Ausbildung' if lang == 'de' else 'Education',
+                    entries=[
+                        Entry(
+                            id='study-2', kind='study', label='Praktikum' if lang == 'de' else 'Internship',
+                            locked=LockedEntry(
+                                company='Applied Craft Fellowship', title='Applied Craft Fellowship',
+                                start='2019', end='2019',
+                            ),
+                            units=[Unit(id='u-st2-b1', text='Built wooden mockups for community booths.')],
+                        ),
+                    ],
+                ))
+                result = application_pdf.render_document('cv', doc.model_dump())
+                self.assertIn(expected, result.text)
+                self.assertEqual(result.text.upper().count('APPLIED CRAFT FELLOWSHIP'), 1)
+
+    def test_four_bullet_entry_splits_to_fill_page_one(self):
+        from pypdf import PdfReader
+
+        doc = fictional_cv(bullets=13)
+        doc.sections[1].entries.append(
+            Entry(
+                id='work-2', kind='work',
+                locked=LockedEntry(company='Fiktivlabor', title='Projektingenieur', start='2019', end='2021'),
+                units=[
+                    Unit(id=f'u-w2-b{n}', text=f'Messreihe {n}: ' + 'Dokumentierte Prüfergebnisse im Labor. ' * 5)
+                    for n in range(1, 5)
+                ],
+            ),
+        )
+        result = application_pdf.render_document('cv', doc.model_dump())
+        pages = [page.extract_text() for page in PdfReader(BytesIO(result.pdf)).pages]
+        self.assertEqual(len(pages), 2)
+        p1_items = [n for n in range(1, 5) if f'Messreihe {n}:' in pages[0]]
+        p2_items = [n for n in range(1, 5) if f'Messreihe {n}:' in pages[1]]
+        self.assertEqual(p1_items, [1, 2])
+        self.assertEqual(p2_items, [3, 4])
+        self.assertIn('FIKTIVLABOR', pages[0])
+        ratios = result.telemetry['page_fill_ratios']
+        self.assertEqual(len(ratios), 2)
+        self.assertGreaterEqual(ratios[0], 0.80)
+        self.assertLessEqual(ratios[0], 1.0)
+
+    def test_invalid_document_fails_cleanly(self):
+        with self.assertRaises(application_pdf.RenderFailed) as ctx:
+            application_pdf.render_document('cv', {'format': 'radius-cv-v2'})
+        self.assertEqual(ctx.exception.code, 'invalid_document')
+
+
+class PaginationCheckTests(unittest.TestCase):
+    def test_checks_bullets_against_the_actual_header_page(self):
+        for count, on_first, expected in [
+            (3, 2, ['work-1']), (4, 0, ['work-1']), (4, 2, []), (4, 3, ['work-1']),
+            (5, 1, ['work-1']), (5, 2, []), (5, 3, []), (5, 5, []),
+        ]:
+            with self.subTest(count=count, on_first=on_first):
+                doc = fictional_cv(bullets=count)
+                entry = doc.sections[1].entries[0]
+                bullets = [unit.text for unit in entry.units]
+                pages = ['\n'.join([entry.locked.company, entry.locked.title, *bullets[:on_first]]),
+                         '\n'.join(bullets[on_first:])]
+                self.assertEqual(application_pdf._orphan_entry_breaks(doc, pages), expected)
+
+
+class AvailabilityTests(unittest.TestCase):
+    def test_reading_order_accepts_line_wrap_at_an_explicit_compound_hyphen(self):
+        doc = fictional_cv(bullets=1)
+        doc.headline.text = 'Koordination der Speicher-Entwicklung'
+        extracted = '\n'.join([
+            'Koordination der Speicher-\nEntwicklung',
+            doc.sections[0].units[0].text,
+            doc.sections[1].entries[0].units[0].text,
+            'Python • Messtechnik',
+        ])
+        checks = application_pdf._text_checks('cv', doc, extracted, 1)
+        self.assertIn(('reading_order', 'passed'), [(c['code'], c['status']) for c in checks])
+
+    def test_reading_order_check_rejects_extraction_with_moved_bullet(self):
+        doc = fictional_cv(bullets=1)
+        doc.sections[1].entries.append(
+            Entry(id='work-2', kind='work',
+                  locked=LockedEntry(company='Fiktivlabor', title='Praktikant',
+                                     start='2020', end='2020'),
+                  units=[Unit(id='u-work-2-b1', text='Kalibrierte Sensoren im Prüfstand.')]),
+        )
+        doc.sections[2].units[1].hidden = True
+        extracted = '\n'.join([
+            doc.headline.text,
+            doc.sections[0].units[0].text,
+            doc.sections[1].entries[1].units[0].text,
+            doc.sections[1].entries[0].units[0].text,
+            'Python',
+        ])
+        checks = application_pdf._text_checks('cv', doc, extracted, 1)
+        self.assertIn(('reading_order', 'failed'), [(c['code'], c['status']) for c in checks])
+
+    def test_missing_dist_is_unavailable(self):
+        import os
+        from unittest import mock
+
+        with mock.patch.dict(os.environ, {'RADIUS_FRONTEND_DIST': '/nonexistent/radius-dist'}):
+            self.assertFalse(application_pdf.available())
+            with self.assertRaises(application_pdf.RenderUnavailable):
+                application_pdf.render_document('letter', fictional_letter().model_dump(mode='json'))
+
+class ExportVerificationTests(unittest.TestCase):
+    def test_oversized_render_inputs_are_rejected_before_chromium(self):
+        from unittest.mock import patch
+
+        doc = fictional_letter().model_dump(mode='json')
+        with patch.object(application_pdf, 'available', return_value=True), \
+                patch.object(application_pdf, 'MAX_DOCUMENT_BYTES', 100), \
+                patch.object(application_pdf._RENDERER, 'render', side_effect=AssertionError('Chromium launched')):
+            with self.assertRaises(application_pdf.RenderFailed) as error:
+                application_pdf.render_document('letter', doc)
+        self.assertEqual(error.exception.code, 'document_too_large')
+
+    def test_pdf_export_requires_integrity_checks_but_allows_pagination_warnings(self):
+        checks = [
+            {'code': 'text_extractable', 'status': 'passed'},
+            {'code': 'glyphs', 'status': 'passed'},
+            {'code': 'special_characters', 'status': 'passed'},
+            {'code': 'name_present', 'status': 'passed'},
+            {'code': 'contacts_present', 'status': 'passed'},
+            {'code': 'entry_pagination', 'status': 'failed'},
+            {'code': 'overflow', 'status': 'warning'},
+        ]
+        self.assertTrue(application_pdf.export_verified(checks))
+        self.assertFalse(application_pdf.export_verified(checks[1:]))
+        for index in range(5):
+            broken = [dict(check) for check in checks]
+            broken[index]['status'] = 'failed'
+            self.assertFalse(application_pdf.export_verified(broken))
+
+
+if __name__ == '__main__':
+    unittest.main()

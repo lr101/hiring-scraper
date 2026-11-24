@@ -1,0 +1,40 @@
+% Fictional flowing marked LaTeX CV fixture (English, A4, no photo, current role).
+\documentclass[10pt,a4paper]{article}
+\usepackage[a4paper,margin=20mm]{geometry}
+\usepackage[unicode,hidelinks]{hyperref}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+% radius:profile
+\newcommand{\RadiusProfileA}{Operations analyst focused on inventory automation, SQL reporting and vendor coordination.}
+% radius:endprofile
+% radius:entry {"id": "work-1", "kind": "work", "company": "Baltic Freight Co", "title": "Lead Operations Analyst", "location": "Kiel, DE", "start": "2023", "end": null, "current": true}
+% radius:responsibilities
+\newcommand{\RadiusWorkA}{Automated weekly KPI reports in SQL and Tableau, cutting manual effort by 45\%.}
+\newcommand{\RadiusWorkB}{Coordinated 12 regional carriers across northern ports with 98.5\% on-time dispatch.}
+% radius:end
+% radius:entry {"id": "study-1", "kind": "study", "company": "Kiel Technical College", "title": "B.Sc. Industrial Engineering", "location": "Kiel, DE", "start": "2018", "end": "2022", "current": false}
+% radius:responsibilities
+\newcommand{\RadiusEduA}{\textbf{PortFlow Capstone:} Built a simulation model for berth scheduling in Python.}
+% radius:end
+\begin{document}
+{\bfseries Jonas Weber}\par
+Operations Analyst | SQL \& Supply Chain Automation\par
++49 170 0009876 \textbar\ Kiel, DE \textbar\ \href{mailto:jonas.weber@example.test}{jonas.weber@example.test} \textbar\ \href{https://example.test/jonas}{example.test/jonas}\par
+\RadiusProfileA{}\par
+\section*{Experience}
+\textbf{Baltic Freight Co} \hfill Kiel, DE\par
+\textbf{\textit{Lead Operations Analyst}} \hfill 2023--present\par
+\begin{itemize}
+\item \RadiusWorkA{}
+\item \RadiusWorkB{}
+\end{itemize}
+\section*{Education}
+\textbf{Kiel Technical College} \hfill Kiel, DE\par
+\textbf{\textit{B.Sc. Industrial Engineering}} \hfill 2018--2022\par
+\begin{itemize}
+\item \RadiusEduA{}
+\end{itemize}
+\section*{Languages}
+\noindent German – native\par
+\noindent English – C1\par
+\end{document}

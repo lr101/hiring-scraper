@@ -59,15 +59,18 @@ class ProfileIntegrationTests(unittest.TestCase):
                        writing_samples='I explain the work in direct sentences.', cover_letter_example='',
                        wording_to_avoid='passionate, perfect fit', career_goals='Move into research coordination.',
                        work_preferences='Small teams, clear expectations; no regular travel.')
+        style_defaults = {'voice_notes': '', 'style_exemplars': []}
+        expected = context | style_defaults
+        empty = dict.fromkeys(context, '') | style_defaults
         with Session(self.engine) as session:
             saved = profiles.create_profile(profiles.ProfileRequest(name='Alex', application_personalization=context), session)
-            self.assertEqual(saved['application_personalization'], context)
+            self.assertEqual(saved['application_personalization'], expected)
             updated = profiles.update_profile(saved['id'], profiles.ProfileRequest(name='Renamed'), session)
-            self.assertEqual(updated['application_personalization'], context)
+            self.assertEqual(updated['application_personalization'], expected)
             other = profiles.create_profile(profiles.ProfileRequest(name='Other'), session)
-            self.assertTrue(all(value == '' for value in other['application_personalization'].values()))
+            self.assertEqual(other['application_personalization'], empty)
             cleared = profiles.update_profile(saved['id'], profiles.ProfileRequest(name='Alex', application_personalization={}), session)
-            self.assertTrue(all(value == '' for value in cleared['application_personalization'].values()))
+            self.assertEqual(cleared['application_personalization'], empty)
 
     def test_application_personalization_rejects_unknown_and_oversized_fields(self):
         from pydantic import ValidationError

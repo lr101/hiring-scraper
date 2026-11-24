@@ -1,0 +1,63 @@
+Task: review the draft CV and cover letter as a careful recruiter and editor would, and propose
+small fixes. The applicant decides what to keep; be specific and brief.
+
+You receive every unit with its id, origin and cited sources, the deterministic FINDINGS
+already detected, and RENDER telemetry when available (pages, overflow, units past the limit).
+Use the PDF checks for reading order and the extracted split_units for page breaks. Bounds
+estimated from unpaginated HTML do not establish a PDF page break. Do not duplicate existing
+findings. If a wording patch alone resolves an issue, return the patch without a separate finding.
+
+Findings: report real problems only, each anchored to a unit id (or null for the whole
+document), with a category:
+- grounding: a statement the cited evidence does not support, or a fact not in the evidence.
+  Judge the scope of the action as well as the words. Check whether the source links the cited
+  methods to the specific evaluation criteria and whether the claimed outcome or decision
+  belongs to the applicant.
+- coverage: an important requirement of the job that the evidence supports but the documents
+  do not mention, or a strong piece of evidence left unused.
+- style: unnatural phrasing, translationese, clichés, buzzword strings, repetition.
+- format: too long for the page limit, unbalanced paragraphs, an ordinary bullet far outside
+  18–28 words or a labelled project bullet far outside 25–40 words (keep each labelled project
+  in one bullet).
+Severity is high (misleading or wrong), medium (weakens the application) or info.
+
+Patches: for AI-written units only, propose replacement text with a kind:
+- rephrase: same facts, better wording. If a supported action sounds broader than its cited
+  source, name the action and its verified scope. If a sentence joins independently
+  verified actions with an unsupported causal link, preserve both facts and rewrite them
+  as independent actions. Keep the underlying facts and leave out assertions about work
+  the applicant did not do.
+- shorten: same facts, fewer words (use when RENDER shows overflow).
+- content: adds, removes or changes facts. These are shown to the applicant, not applied.
+A patch keeps the unit's cited facts and cites nothing new. Return empty lists when the drafts
+are already good.
+
+Check that:
+- CV headline uses evidence-backed role-family terms in at most 70 characters without
+  overstating the domain.
+- CV profile is a single noun-phrase-led summary. Lead with the strongest evidence for
+  the posting's core duties and name each of the 1–2 examples once. Use active clauses with
+  the applicant as actor, no pronouns referring to the applicant, no agentless passives, and
+  no noun three times. Flag a separate project
+  list or repeated wording. Check both keyword coverage and the scope supporting it.
+- CV bullets avoid third-person pronouns referring to the applicant (never "die sie
+  koordinierte", "she", "he"), avoid unsupported qualifiers ("technical"/"technisch",
+  "strategic", "software", etc.), merge overlapping duties, vary opening verbs (no verb
+  starting more than 2 bullets), and keep verified quantified results with the actions they
+  measure. In German, use direct active verbs and suspension hyphens in coordinated compounds
+  ("Markt- und Nutzerbedürfnisse").
+- Competency additions are 1–4 words and use concrete wording supported by cited evidence.
+  Hide irrelevant base items.
+- Cover letter opens by connecting work stated in the posting to concrete verified experience.
+  Check claims about the employer against the posting. Each experience paragraph connects one
+  verified example to a named duty and adds a supported decision, method or result beyond the
+  CV, or explains the transfer when the CV is the only evidence.
+- Integrate a verified language level into a sentence about working in that language or
+  collaborating internationally, or place it in the closing.
+- Keep the letter to 4–5 paragraphs (~270–310 EN / ~260–320 DE words including closing). Name
+  the study discipline and keep leadership scope exact. Use each employer or project once.
+  Keep examples to four sentences and include a verified outcome where available. Vary sentence
+  openings and paragraph endings, and check for repeated phrases. Ground proposed approaches
+  in verified methods and use at most one conditional per paragraph. End conversationally.
+  Spell out English contractions. In German, use formal Sie-Form and lowercase after the
+  comma-ended salutation unless the opening is a noun, proper name or formal Sie/Ihr.

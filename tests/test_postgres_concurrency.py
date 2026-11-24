@@ -60,11 +60,9 @@ class PostgresConcurrencyTests(unittest.TestCase):
             return company.id, feed.id, run.id
 
     def test_preparation_api_enqueues_for_worker_and_prunes_finished_result(self):
-        from pathlib import Path
-        from tempfile import TemporaryDirectory
+        import json
 
-        from fastapi import Response
-        from hiring_scraper.app import application_generation as generation
+        from hiring_scraper.app import application_documents_v2 as documents, codex_runtime
         from hiring_scraper.app import application_preparation_queue as queue
         from hiring_scraper.app.models import ApplicationPreparationTask
 
@@ -77,28 +75,24 @@ class PostgresConcurrencyTests(unittest.TestCase):
             session.flush()
             profile_id, job_id = profile.id, job.id
 
-        request = generation.PrepareApplicationRequest(
-            job_id=job_id, cv_updated_at='current', profile_updated_at='current', language='en',
-        )
-        with TemporaryDirectory() as state, self.factory() as session, (
+        request = documents.PrepareRequest(job_id=job_id)
+        with self.factory() as session, (
             patch.object(queue, 'SessionLocal', self.factory)
-        ), patch.object(generation, 'generation_status', return_value={'enabled': True}), (
-            patch.object(generation, '_snapshot', return_value=({}, 'revision'))
-        ), patch.object(generation.codex_runtime, '_root', return_value=Path(state)), (
-            patch.object(generation.codex_runtime, 'selected_model', return_value=None)
-        ):
-            queued = generation.start_preparation_job(profile_id, request, Response(), session)['job']
+        ), patch.object(codex_runtime, 'status', return_value={'enabled': True}), (
+            patch.object(documents, 'snapshot_inputs', return_value=({}, 1))
+        ), patch.object(codex_runtime, 'selected_model', return_value=None):
+            queued = json.loads(documents.start_preparation(profile_id, request, session).body)['task']
             self.assertEqual(queued['state'], 'running')
             self.assertNotIn('checkpoints', queued)
 
-            def run(owner, payload, revision, progress):
-                self.assertEqual((owner, payload['job_id'], revision), (profile_id, job_id, 'revision'))
+            def run(owner, payload, progress):
+                self.assertEqual((owner, payload['job_id']), (profile_id, job_id))
                 progress('drafting')
                 progress.checkpoint('draft', {'title': 'Saved work'})
                 return {'package': 'generated'}
 
             self.assertTrue(queue.process_once(run))
-            finished = generation.preparation_job_status(profile_id, job_id, Response(), session=session)['job']
+            finished = json.loads(documents.preparation_task(profile_id, job_id, session=session).body)['task']
             self.assertEqual(finished['id'], queued['id'])
             self.assertEqual(finished['result'], {'package': 'generated'})
             session.rollback()
@@ -106,7 +100,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
                 task = writer.get(ApplicationPreparationTask, (profile_id, job_id))
                 task.updated_at = utcnow() - queue.RETENTION - timedelta(seconds=1)
             queue.prune_finished()
-            self.assertIsNone(generation.preparation_job_status(profile_id, job_id, Response(), session=session)['job'])
+            self.assertIsNone(json.loads(documents.preparation_task(profile_id, job_id, session=session).body)['task'])
 
 
     def test_job_edit_uses_fk_compatible_lock_during_profile_index_publication(self):

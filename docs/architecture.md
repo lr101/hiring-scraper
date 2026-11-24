@@ -23,7 +23,7 @@ development, run the same modules with `python -m hiring_scraper.app.<module>`.
 | Job analysis worker | `app.job_analysis_worker` | Drains the job analysis and pair evidence queues with the local `llm` and `llm-reranker` containers (see `docs/local-models.md`). |
 | Model containers | `llm`, `llm-reranker` | llama.cpp servers for the pinned Qwen3.5-4B (posting analysis) and Qwen3-Reranker-0.6B (CV evidence checks). CPU only. |
 | Profile match worker | `app.profile_match_worker` | Scores profiles against jobs from stored analyses and evidence (no inference) and rebuilds stale matches. |
-| Application preparation worker | `app.application_preparation_worker` | Drafts, reviews and revises application documents from the PostgreSQL queue. |
+| Application preparation worker | `app.application_preparation_worker` | Runs inference and PDF rendering on separate threads with independent PostgreSQL queues. |
 
 PostgreSQL (with PostGIS and pgvector) is the only database. Development and tests use
 the same migrated schema and the same workers as production; requests never match,
@@ -64,19 +64,54 @@ flowchart LR
     `requirements.py` (sentence scoping), `matching.py` (job enrichment and skill vocabulary for
     display) and `semantic_matching.py` (pinned E5 model identity). `election_data.py` supplies
     optional city context.
+- `hiring_scraper/documents/` — database-free CV and letter schemas, marked TeX and
+  DOCX import, marked-text projection, evidence, grounding and editorial checks.
 - `hiring_scraper/app/` — persistence, API routers, workers and application preparation.
   `models.py` is the schema; changes ship as Alembic migrations in
   `app/migrations/versions/` (plus the rollback-safe step in `docker/entrypoint.py`,
   which `scripts/dev/migrate.py` and the test harness apply too). Write sites declare source changes through
   `source_changes.py`, which invalidates caches, queues rematching and publishes search generations. Routers live beside their domain: `journey.py`
   (stages, Journey list, momentum), `focus.py` (Today's focus), `profiles.py`,
-  `companion.py`, `application_generation.py`; `api.py` keeps search, companies,
+  `companion.py`, `application_documents_v2.py`; `api.py` keeps search, companies,
   feeds and discovery.
 - `frontend/` — React + TypeScript + Vite single-page app.
 - `extensions/application-companion/` — Chrome extension that fills application
   forms from a saved profile. It never submits a form.
 - `runtime/codex/` — pinned Codex CLI bundled for ChatGPT subscription access.
 - `fixtures/` — sanitized data for the seed command, CI smoke test and manual demos.
+
+## Application preparation
+
+The applicant confirms the imported base CV in the chosen language. The profile
+stores the structured source in `ProfileCV.variants[language].document` alongside
+marked text for the matcher and companion. The editor and bundled Vite
+`print.html` entry use the same React document views. Chromium loads the print
+bundle through intercepted local assets, verifies the extracted PDF text and
+reports page fill and overflow. Preparation uses these observations in Full review.
+Editorial heuristics pass through to review as findings. Structural violations,
+high-severity grounding checks and unsupported CV qualifiers can trigger retries.
+
+| Table | Key and purpose |
+| --- | --- |
+| `application_document_preparation_tasks` | Profile and job. One active inference task per pair, with kind `prepare` or `revise`, lease, attempts, retry timestamp and input-digest checkpoints. |
+| `application_documents` | Profile, job, kind and version. Stores the document JSON, findings, provenance and staleness. Keeps the latest 20 versions per kind. |
+| `application_document_renders` | Document key and template. Stores verified PDF bytes, page count and checks. |
+| `application_render_tasks` | Document key and template. Tracks the independent render lane, with a claim time, lease token and failure code. |
+
+Preparation publishes the CV and letter as the stages complete. A revision returns
+a suggestion for explicit acceptance. Automatic preparation uses the same queue
+for high-ranked New jobs once the base CV is confirmed. Inference retries
+transient task failures after two and ten minutes, for up to three attempts.
+
+A PDF download returns a cached version or queues a render and returns 202.
+The worker's dedicated render thread runs independently of inference. Transient
+render failures retry after 15 and 60 seconds. Applicants can retry an exhausted
+export from the editor.
+
+Removing the base CV clears the profile's inference tasks and document versions,
+including each version's render task and cached PDF by cascade. The companion
+fills saved profile facts and can capture employer form questions. See the
+[application preparation guide](application-preparation.md).
 
 ## Invariants
 
@@ -150,6 +185,21 @@ Several processes write to the same PostgreSQL database. Keep these rules when a
   (`reserve_job_source_rows`), then hold profiles, then write matches or Journey rows.
   Profile editors write the profile row before derived rows, so neither side
   can deadlock. Hold exclusively (`exclusive=True`) only to write the profile row itself.
+- **Preparation publishes with a fenced lease.** Inference renews its six-minute
+  lease through stage/checkpoint updates and periodic worker checks. Publication
+  holds the job and profile before the task row and verifies the lease token
+  and task ID before updating document versions. Retry waits keep the task active
+  until its next claim time. The render lane takes the document version before
+  the render task, verifies its two-minute lease token and publishes PDF bytes
+  against that exact version and template.
+- **Document versions use compare-and-set.** An editor saves against its observed
+  version. If another writer wins, the API returns 409 and the editor keeps the
+  local text. Preparation publishes over the version it started from or a
+  version it published itself. Otherwise it keeps the generated document with
+  the task so the applicant can review and adopt it explicitly. Input changes
+  during inference mark the result stale. CV saves and profile changes can mark
+  existing versions stale. CV removal takes the profile row before clearing
+  tasks and document versions, so expired workers cannot recreate them.
 - **Retry contention, don't discard work.** Wrap persistence of expensive results in
   `database.retry_transient()`, and log loop failures with `database.log_worker_failure()`
   (one warning line for contention, a traceback for bugs).

@@ -126,7 +126,7 @@ jobs:
       - name: Use Ubuntu HTTPS package mirrors
         run: |
           # The runner's Azure mirror can trickle downloads without triggering failover.
-          # Both Playwright and the PDF runtime install packages through this list.
+          # Playwright installs Chromium dependencies through this list.
           printf '%s\tpriority:%s\n' \
             'https://archive.ubuntu.com/ubuntu/' 1 \
             'https://security.ubuntu.com/ubuntu/' 2 \
@@ -136,14 +136,28 @@ jobs:
         run: |
           uv sync --locked
           npm --prefix frontend ci
+          export PLAYWRIGHT_BROWSERS_PATH="$RUNNER_TEMP/radius-playwright"
           uv run python -m playwright install --with-deps chromium
+          printf 'PLAYWRIGHT_BROWSERS_PATH=%s\n' "$PLAYWRIGHT_BROWSERS_PATH" >> "$GITHUB_ENV"
 
-      - name: Install PDF export runtime
+      - name: Allow the PDF renderer to use the Chromium sandbox
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libreoffice-writer fonts-liberation texlive-luatex texlive-latex-recommended
-          libreoffice --version
-          lualatex --version
+          # Ubuntu 24.04 restricts user namespaces for downloaded Chromium builds.
+          # Grant access to Playwright's PDF renderer on this runner only.
+          shopt -s nullglob
+          shells=("$PLAYWRIGHT_BROWSERS_PATH"/chromium_headless_shell-*/chrome-headless-shell-linux64/chrome-headless-shell)
+          if (( ${#shells[@]} != 1 )) || [[ ! -x "${shells[0]}" ]]; then
+            echo 'Expected one installed Playwright Chromium headless shell' >&2
+            exit 1
+          fi
+          shell_path=$(realpath -e -- "${shells[0]}")
+          sudo apparmor_parser -r <<EOF
+          abi <abi/4.0>,
+          include <tunables/global>
+          profile radius-ci-pdf-renderer "$shell_path" flags=(unconfined) {
+            userns,
+          }
+          EOF
 
       - name: Install pinned Codex subscription runtime
         run: |
