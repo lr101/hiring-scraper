@@ -131,6 +131,9 @@ class _SectionDraft:
     title: str
     kind: SectionKind | None
     layout: SectionLayout = 'bullets'
+    group: str = ''
+    heading_level: int | None = None
+    heading_size: int = 0
     units: list[tuple[str, str]] = field(default_factory=list)
     entries: list[_EntryDraft] = field(default_factory=list)
     inline: bool = False
@@ -313,6 +316,11 @@ def _strip_bullet(text: str) -> str:
 def _is_glyph_bullet(para: _Para) -> bool:
     first = para.raw.lstrip()[:1]
     return bool(first) and first in '•●▪■◦○‣∙*–-' and len(para.plain) > 2 and para.plain[1:2] == ' '
+
+
+def _heading_level(para: _Para) -> int | None:
+    match = re.match(r'(?i)^(?:heading|überschrift|berschrift)\s*([1-6])$', para.style.strip())
+    return int(match.group(1)) if match else None
 
 
 def _is_heading(para: _Para) -> bool:
@@ -600,7 +608,37 @@ def import_docx(data: bytes, *, language: DocumentLanguage | None = None) -> CvD
             continue
         if _is_heading(para):
             title = para.plain[:200]
-            sections.append(_SectionDraft(title=title, kind=_section_kind(title)))
+            kind = _section_kind(title)
+            level = _heading_level(para)
+            size = para.max_size
+            parent = sections[-1]
+            group = ''
+            if kind not in ('profile', 'experience', 'education'):
+                if level is not None and parent.heading_level is not None:
+                    if level > parent.heading_level and parent.kind not in ('profile', 'experience', 'education'):
+                        group = parent.group or parent.title
+                        if not parent.group:
+                            if parent.units or parent.entries:
+                                parent.group, parent.title = group, ''
+                            else:
+                                sections.pop()
+                    elif level == parent.heading_level and parent.group:
+                        group = parent.group
+                elif parent.group:
+                    if not (size and parent.heading_size and size > parent.heading_size):
+                        group = parent.group
+                elif (
+                    parent.title
+                    and not parent.units
+                    and not parent.entries
+                    and parent.kind not in ('profile', 'experience', 'education')
+                ):
+                    group = parent.title
+                    sections.pop()
+            sections.append(_SectionDraft(
+                title=title, kind=kind, group=group,
+                heading_level=level, heading_size=size,
+            ))
             current_entry = None
             index += 1
             continue
@@ -711,6 +749,7 @@ def _build(
             entries.append(Entry(id=edraft.entry_id, kind=edraft.kind, locked=edraft.locked,  # type: ignore[arg-type]
                                  intro=intro, units=bullets))
         sections.append(Section(id=sid, kind=kind, title=draft.title if kind != 'profile' else '',
+                                group=draft.group if kind != 'profile' else '',
                                 layout=layout, units=units, entries=entries))
         if len(sections) >= 30:
             break

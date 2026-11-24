@@ -109,23 +109,26 @@ function renderSectionUnits(
       <p className="doc-cv-inline">
         {items.map((unit, index) => (
           <Fragment key={unit.id}>
-            {index > 0 ? (
-              <span className="doc-cv-inline-sep" aria-hidden="true">
-                {' \u2022 '}
+            {index > 0 ? ' ' : null}
+            <span className="doc-cv-inline-entry">
+              <span
+                className="doc-cv-inline-item"
+                data-unit-id={unit.id}
+                data-unit-hidden={unit.hidden ? 'true' : undefined}
+              >
+                {renderUnitContent(renderUnit, {
+                  unit,
+                  kind: 'inline',
+                  splittable: true,
+                  sectionId: section.id,
+                  index,
+                })}
               </span>
-            ) : null}
-            <span
-              className="doc-cv-inline-item"
-              data-unit-id={unit.id}
-              data-unit-hidden={unit.hidden ? 'true' : undefined}
-            >
-              {renderUnitContent(renderUnit, {
-                unit,
-                kind: 'inline',
-                splittable: true,
-                sectionId: section.id,
-                index,
-              })}
+              {index < items.length - 1 ? (
+                <span className="doc-cv-inline-sep" aria-hidden="true">
+                  {'\u00A0\u2022'}
+                </span>
+              ) : null}
             </span>
           </Fragment>
         ))}

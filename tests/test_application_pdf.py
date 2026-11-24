@@ -343,6 +343,77 @@ class RenderTests(unittest.TestCase):
         self.assertGreaterEqual(ratios[0], 0.80)
         self.assertLessEqual(ratios[0], 1.0)
 
+    def test_education_starts_on_page_one_when_underfilled(self):
+        from pypdf import PdfReader
+
+        doc = fictional_cv(bullets=12)
+        doc.sections.insert(2, Section(
+            id='s-education', kind='education', title='Ausbildung', entries=[
+                Entry(
+                    id='study-1', kind='study',
+                    locked=LockedEntry(company='Beispielhochschule', title='M.Sc. Energiesysteme',
+                                       location='Kassel', start='2018', end='2020'),
+                    intro=[
+                        Unit(id='u-study-i1', text='Schwerpunkt auf Batteriemodule und thermische Modellierung.'),
+                        Unit(id='u-study-i2', text='Ausgewählte Projekte:'),
+                    ],
+                    units=[
+                        Unit(id=f'u-study-b{n}', lead_in=f'Projekt {n}:',
+                             text='Entwickelte einen Prüfstand und wertete Messdaten für Zellen aus. ' * 4)
+                        for n in range(1, 4)
+                    ],
+                ),
+            ],
+        ))
+        result = application_pdf.render_document('cv', doc.model_dump())
+        pages = [page.extract_text() for page in PdfReader(BytesIO(result.pdf)).pages]
+        self.assertEqual(len(pages), 2)
+        self.assertIn('AUSBILDUNG', pages[0])
+        self.assertIn('BEISPIELHOCHSCHULE', pages[0])
+        self.assertIn('Schwerpunkt auf Batteriemodule', pages[0])
+        self.assertGreaterEqual(result.telemetry['page_fill_ratios'][0], 0.80)
+        self.assertEqual(self._passed(result, 'entry_pagination'), 'passed')
+
+    def test_inline_skills_keep_items_unbroken_unless_longer_than_line(self):
+        from pypdf import PdfReader
+
+        items = [
+            'Thermische Analyse & Modellierung',
+            'Grafana-Messwert-Dashboards',
+            'Laser Cutting / Rapid Prototyping',
+            'Cross-Functional Coordination',
+            'Stakeholder & Vendor Alignment',
+            'Test Plan Prioritization',
+            'Hardware Verification & Validation',
+            'Workshop Facilitation & Coaching',
+        ]
+        doc = fictional_cv(bullets=1)
+        doc.sections[2].units = [
+            Unit(id=f'u-skill-{i}', text=text) for i, text in enumerate(items, 1)
+        ]
+        result = application_pdf.render_document('cv', doc.model_dump())
+        lines = [
+            ' '.join(line.split())
+            for page in PdfReader(BytesIO(result.pdf)).pages
+            for line in (page.extract_text() or '').splitlines()
+            if line.strip()
+        ]
+        for item in items:
+            self.assertTrue(
+                any(item in line for line in lines),
+                f'Inline skill broke across lines: {item!r} not intact in {lines!r}',
+            )
+        self.assertFalse(any(line.startswith(('•', '/')) for line in lines))
+
+        # An item longer than the line still wraps cleanly without failing verification.
+        doc.sections[2].units.append(Unit(
+            id='u-skill-long',
+            text='Extremely Long Specialized Competency Description Spanning More Than One Full Printable A4 Line In Liberation Serif',
+        ))
+        long_result = application_pdf.render_document('cv', doc.model_dump())
+        self.assertEqual(long_result.pages, 1)
+        self.assertEqual(self._passed(long_result, 'reading_order'), 'passed')
+
     def test_invalid_document_fails_cleanly(self):
         with self.assertRaises(application_pdf.RenderFailed) as ctx:
             application_pdf.render_document('cv', {'format': 'radius-cv-v2'})
@@ -352,8 +423,8 @@ class RenderTests(unittest.TestCase):
 class PaginationCheckTests(unittest.TestCase):
     def test_checks_bullets_against_the_actual_header_page(self):
         for count, on_first, expected in [
-            (3, 2, ['work-1']), (4, 0, ['work-1']), (4, 2, []), (4, 3, ['work-1']),
-            (5, 1, ['work-1']), (5, 2, []), (5, 3, []), (5, 5, []),
+            (3, 1, []), (3, 2, ['work-1']), (4, 0, ['work-1']), (4, 2, []), (4, 3, ['work-1']),
+            (5, 1, []), (5, 2, []), (5, 3, []), (5, 5, []),
         ]:
             with self.subTest(count=count, on_first=on_first):
                 doc = fictional_cv(bullets=count)
@@ -362,6 +433,48 @@ class PaginationCheckTests(unittest.TestCase):
                 pages = ['\n'.join([entry.locked.company, entry.locked.title, *bullets[:on_first]]),
                          '\n'.join(bullets[on_first:])]
                 self.assertEqual(application_pdf._orphan_entry_breaks(doc, pages), expected)
+
+    def test_intro_breaks_and_orphaned_section_headings(self):
+        doc = fictional_cv(bullets=3)
+        entry = doc.sections[1].entries[0]
+        entry.intro = [
+            Unit(id='u-i1', text='Degree overview in energy storage.'),
+            Unit(id='u-i2', text='Selected projects:'),
+        ]
+        bullets = [unit.text for unit in entry.units]
+        # Heading + header + substantive intro on page 1, caption + bullets on page 2 -> clean.
+        clean_pages = [
+            '\n'.join(['BERUFSERFAHRUNG', entry.locked.company, entry.locked.title, entry.intro[0].text]),
+            '\n'.join([entry.intro[1].text, *bullets]),
+        ]
+        self.assertEqual(application_pdf._orphan_entry_breaks(doc, clean_pages), [])
+        # Dangling colon caption on page 1 with 0 bullets on page 1 -> flagged.
+        dangling_pages = [
+            '\n'.join(['BERUFSERFAHRUNG', entry.locked.company, entry.locked.title,
+                       entry.intro[0].text, entry.intro[1].text]),
+            '\n'.join(bullets),
+        ]
+        self.assertEqual(application_pdf._orphan_entry_breaks(doc, dangling_pages), ['work-1'])
+        # Section heading orphaned on page 1 while entry starts on page 2 -> flagged.
+        orphan_heading = [
+            'BERUFSERFAHRUNG',
+            '\n'.join([entry.locked.company, entry.locked.title, entry.intro[0].text, entry.intro[1].text, *bullets]),
+        ]
+        self.assertEqual(application_pdf._orphan_entry_breaks(doc, orphan_heading), ['work-1'])
+
+    def test_stylesheet_left_aligns_letter_and_protects_inline_items(self):
+        from pathlib import Path
+        import re
+
+        css = (Path(__file__).resolve().parents[1] / 'frontend' / 'src' / 'documents' / 'classic-serif-v1.css').read_text(encoding='utf-8')
+        letter_rule = re.search(r'\.doc-letter-paragraph\s*\{([^}]*)\}', css)
+        self.assertIsNotNone(letter_rule)
+        self.assertIn('text-align: left', letter_rule.group(1))
+        self.assertNotIn('text-align: justify', letter_rule.group(1))
+        inline_rule = re.search(r'\.doc-cv-inline-entry\s*\{([^}]*)\}', css)
+        self.assertIsNotNone(inline_rule)
+        self.assertIn('display: inline-block', inline_rule.group(1))
+        self.assertIn('max-width: 100%', inline_rule.group(1))
 
 
 class AvailabilityTests(unittest.TestCase):

@@ -243,32 +243,33 @@ class _Renderer:
             if payload['kind'] == 'cv':
                 from pypdf import PdfReader
 
-                if height <= printable_px * limit and len(PdfReader(io.BytesIO(pdf)).pages) > limit:
-                    # Keeping entries together can add a page even when their total height fits.
-                    await page.locator('.doc-page').evaluate("(el) => el.classList.add('doc-page--compact')")
-                    candidate = await page.pdf(**pdf_options)
-                    if len(PdfReader(io.BytesIO(candidate)).pages) <= limit:
-                        pdf, compact = candidate, True
-                    else:
-                        await page.locator('.doc-page').evaluate("(el) => el.classList.remove('doc-page--compact')")
+                doc_model = CvDocument.model_validate(payload['document'])
+                page_root = page.locator('.doc-page')
                 reader = PdfReader(io.BytesIO(pdf))
                 if len(reader.pages) > 1:
                     first_fill = _page_fill_ratios(reader)[0]
-                    if first_fill < _MIN_FIRST_PAGE_FILL:
-                        root = page.locator('.doc-page')
-                        await root.evaluate("(el) => el.classList.add('doc-page--fill-first')")
+                    if first_fill < _MIN_FIRST_PAGE_FILL or len(reader.pages) > limit:
+                        await page_root.evaluate("(el) => el.classList.add('doc-page--fill-first')")
                         candidate = await page.pdf(**pdf_options)
                         relaxed = PdfReader(io.BytesIO(candidate))
                         improved = (len(relaxed.pages) < len(reader.pages)
                                     or (len(relaxed.pages) == len(reader.pages)
                                         and _page_fill_ratios(relaxed)[0] > first_fill))
                         if improved and not _orphan_entry_breaks(
-                            CvDocument.model_validate(payload['document']),
+                            doc_model,
                             [part.extract_text() for part in relaxed.pages],
                         ):
-                            pdf = candidate
+                            pdf, reader = candidate, relaxed
                         else:
-                            await root.evaluate("(el) => el.classList.remove('doc-page--fill-first')")
+                            await page_root.evaluate("(el) => el.classList.remove('doc-page--fill-first')")
+                if height <= printable_px * limit and len(reader.pages) > limit:
+                    # Keeping entries together can add a page even when their total height fits.
+                    await page_root.evaluate("(el) => el.classList.add('doc-page--compact')")
+                    candidate = await page.pdf(**pdf_options)
+                    if len(PdfReader(io.BytesIO(candidate)).pages) <= limit:
+                        pdf, compact = candidate, True
+                    else:
+                        await page_root.evaluate("(el) => el.classList.remove('doc-page--compact')")
             telemetry = await page.evaluate(
                 """([printable, limit]) => {
                     const root = document.querySelector('.doc-page-content') || document.body;
@@ -358,7 +359,7 @@ def _reading_order_check(model: CvDocument | LetterDocument, text: str) -> dict:
 
 
 def _orphan_entry_breaks(model: CvDocument, page_texts: list[str]) -> list[str]:
-    """Find entries whose bullets cross pages without enough content beside the header."""
+    """Find entries with orphaned headings/headers, dangling intro captions, or lone trailing bullets."""
     if len(page_texts) < 2:
         return []
     runs = [_squash(page) for page in page_texts]
@@ -367,9 +368,11 @@ def _orphan_entry_breaks(model: CvDocument, page_texts: list[str]) -> list[str]:
     broken: list[str] = []
     cursor = 0
     for section in model.sections:
-        for entry in section.entries:
+        section_start = cursor
+        for entry_idx, entry in enumerate(section.entries):
             start = cursor
             first_unit = None
+            intro_ends: list[tuple[int, bool]] = []
             bullet_ends: list[int] = []
             bullets = [unit for unit in entry.units if not unit.hidden]
             intro = [unit for unit in entry.intro if not unit.hidden]
@@ -380,9 +383,11 @@ def _orphan_entry_breaks(model: CvDocument, page_texts: list[str]) -> list[str]:
                 cursor = offset + len(run)
                 if first_unit is None:
                     first_unit = offset
-                if idx >= len(intro):
+                if idx < len(intro):
+                    intro_ends.append((cursor - 1, unit_full_text(unit).rstrip().endswith(':')))
+                else:
                     bullet_ends.append(cursor - 1)
-            if first_unit is None or not bullet_ends:
+            if first_unit is None or not (intro_ends or bullet_ends):
                 continue
             # The company is the first header line. A generic import placeholder
             # may render the title in its place.
@@ -395,9 +400,26 @@ def _orphan_entry_breaks(model: CvDocument, page_texts: list[str]) -> list[str]:
             if header == -1:
                 continue
             header_page = bisect_right(boundaries, header)
+            if entry_idx == 0 and section.title.strip():
+                section_heading = extracted.rfind(_squash(section.title), section_start, header)
+                if section_heading != -1 and bisect_right(boundaries, section_heading) < header_page:
+                    broken.append(entry.id)
+                    continue
+            intro_on_header = [
+                is_colon for end, is_colon in intro_ends if bisect_right(boundaries, end) == header_page
+            ]
             bullet_pages = Counter(bisect_right(boundaries, end) for end in bullet_ends)
             spills = any(page > header_page for page in bullet_pages)
-            if spills and (bullet_pages[header_page] < 2 or any(count < 2 for count in bullet_pages.values())):
+            if not spills:
+                continue
+            has_content_on_header = bullet_pages[header_page] >= 1 or (
+                bool(intro_on_header) and not intro_on_header[-1]
+            )
+            dangling_caption = bullet_pages[header_page] == 0 and bool(intro_on_header) and intro_on_header[-1]
+            lone_continuation = len(bullet_ends) >= 3 and any(
+                count < 2 for page, count in bullet_pages.items() if page > header_page
+            )
+            if not has_content_on_header or dangling_caption or lone_continuation:
                 broken.append(entry.id)
     return broken
 

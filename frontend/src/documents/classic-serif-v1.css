@@ -208,15 +208,9 @@
 
 .doc-cv-paragraph {
   margin: 0 0 4pt 0;
-  text-align: justify;
+  text-align: left;
   orphans: 2;
   widows: 2;
-}
-
-.doc-cv-section--profile .doc-cv-paragraph,
-.doc-cv-paragraph--left,
-.doc-cv-entry-intro .doc-cv-paragraph {
-  text-align: left;
 }
 
 .doc-cv-paragraph:last-child {
@@ -287,7 +281,12 @@
 
 .doc-cv-entry-intro:has(+ .doc-cv-bullets) {
   break-after: avoid;
+  page-break-after: avoid;
+}
+
+.doc-page:not(.doc-page--fill-first) .doc-cv-entry-intro:has(+ .doc-cv-bullets) {
   break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 /* ---------- CV Bullets ---------- */
@@ -336,6 +335,12 @@
 .doc-cv-inline {
   margin: 0;
   text-align: left;
+}
+
+.doc-cv-inline-entry {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 .doc-cv-inline-sep {
@@ -430,7 +435,7 @@
 
 .doc-letter-paragraph {
   margin: 0 0 6pt 0;
-  text-align: justify;
+  text-align: left;
   orphans: 2;
   widows: 2;
   break-inside: avoid;
@@ -492,9 +497,9 @@
     page-break-inside: avoid;
   }
 
-  /* Keep the first two bullets with the header and prevent a final bullet on its own. */
-  .doc-cv-entry .doc-cv-bullet:nth-child(1):not(:last-child),
-  .doc-cv-entry .doc-cv-bullet:nth-last-child(2) {
+  /* Keep the first two bullets with the header when page one is already full, and avoid a lone trailing bullet. */
+  .doc-page:not(.doc-page--fill-first) .doc-cv-entry .doc-cv-bullet:nth-child(1):not(:last-child),
+  .doc-cv-entry .doc-cv-bullet:nth-last-child(2):not(:first-child) {
     break-after: avoid;
     page-break-after: avoid;
   }
