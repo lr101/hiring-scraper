@@ -27,6 +27,9 @@ Evidence
   artifacts separately, list them in parallel or choose one. Name what an artifact contained,
   what it was used for, or what an action achieved only if the source makes that connection.
   Preserve who gave feedback and what it was about, at the specificity of the source.
+  Keep collaborator types exact. Research participants, users and paying customers are
+  different groups. Internal colleagues, suppliers and external partners are different
+  relationships. Use the source's description and leave out a more specific label if unclear.
 - Match every claim about prior work or current practice to the exact action, object,
   collaborators, decision rights and result in the cited evidence. A one-time action does
   not establish a habit. Measuring results with colleagues does not establish that the

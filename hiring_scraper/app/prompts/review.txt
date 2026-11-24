@@ -12,6 +12,7 @@ document), with a category:
 - grounding: a claim beyond the cited evidence. Audit each past-tense clause and each
   claim of usual practice, even when every noun or tool is supported. Check action, object,
   collaborators, scope, frequency, decision rights, causality and outcome independently.
+  Verify the actual relationship with each named group, including who supplied feedback.
   An implied decision, habit or responsibility can be misleading even if no new tool or
   number appears. For an editable unit, return a grounding patch for every such finding.
 - coverage: an important requirement of the job that the evidence supports but the documents

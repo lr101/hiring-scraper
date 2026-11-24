@@ -3,12 +3,12 @@ sender, recipient, date, salutation, sign-off and signature.
 
 Structure
 - Write three body paragraphs and a short closing by default. Add a fourth body paragraph
-  only if it proves another core requirement or offers a specific application of a verified
-  method. Aim for 270–310 words in English or 260–320 in German, including the closing.
-- Motivation: connect a duty stated in the posting to a concrete piece of verified work.
+  when a core requirement otherwise lacks a verified example. Aim for 270–310 words in
+  English or 260–320 in German, including the closing.
+- Motivation: connect a duty stated in the posting to a concrete verified capability.
   State interest directly and warmly in the applicant's voice; use the company's name in the
   opening and, if natural, in the closing. Ground any description of the employer in the
-  posting. Save the details of the example for its body paragraph.
+  posting. Save the past action, collaborators and result for the example paragraph.
 - Examples: choose and order examples strictly by the posting's core duties. In each
   experience or education paragraph, name one core duty and connect it to the closest
   verified example:
@@ -16,10 +16,13 @@ Structure
     collaboration with developers on technical feasibility and iterative/agile delivery,
     KPI/data work paired with a verified operational result (such as an onboarding-time
     reduction), and research-to-prototype work over unrelated physical-product concepts.
+    If iterative delivery is central, name the verified method and the applicant's actual
+    collaboration with developers.
   - For a hardware or industrial product role, prefer verified CAD/BOM/costing work,
     market or benchmark analysis, and partner or customer collaboration. Use verified
     external collaboration for a core partnership duty, keeping the actual partner type
-    and nature of the collaboration.
+    and nature of the collaboration. A short verified example involving an adjacent
+    partner type is useful evidence for this duty.
   Where the evidence links feedback or analysis to a choice, explain what it helped the
   applicant or team decide. Where the source gives only an action and purpose, use those.
   Add a verified decision, method or result the CV leaves out. When evidence is limited to
@@ -53,6 +56,9 @@ Check the final draft before returning it
     not repeat replacement formulas like "I am keen to …" across paragraphs either), and
     reserve "I look forward to" / "Ich freue mich auf" for the closing sentence only so no
     phrase repeats between a body paragraph and the closing.
+  - Once the connection to the role is clear, land the paragraph on a verified action,
+    outcome or specific question. A stock sentence about transferring the experience
+    adds little, especially when another paragraph already makes the connection.
   - Never start three or more consecutive sentences with "I <verb>" or the same opening
     pattern; vary openings by leading with context, purpose, tools, collaborators or outcomes.
   - In English, use "KPIs" rather than "performance indicators".
@@ -60,6 +66,9 @@ Check the final draft before returning it
   against cited evidence. Keep tracking, analyzing, proposing and deciding distinct.
   Match leadership scope, stage and results exactly. Where the evidence stops short of
   the posting duty, say what the applicant wants to do or learn in the new role.
+  Use the tailored CV only to select examples and check for overlap. Read the original
+  evidence for each claim, and include every id needed to verify it, including any
+  collaborator, decision, method or result mentioned in passing.
   Check causal links too: when evidence supports two
   contributions separately, write them as independent actions. Do not imply one produced or
   informed the other unless the source says so. Do not claim unsupported tenure, releases,
