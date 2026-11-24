@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from collections import Counter
@@ -14,6 +15,7 @@ from time import monotonic
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
+from hiring_scraper.app import codex_runtime  # noqa: E402
 from hiring_scraper.app.application_pdf import render_document  # noqa: E402
 from hiring_scraper.app.application_pipeline import (  # noqa: E402
     Generate,
@@ -44,23 +46,29 @@ def write_json(path: Path, value) -> None:
     path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
 
 
-def cli_generate(model: str, workspace: Path) -> Generate:
+def cli_generate(model: str, workspace: Path, state: Path) -> Generate:
     def generate(prompt: str, schema: dict) -> dict:
         with TemporaryDirectory(prefix='codex-', dir=workspace) as directory:
             cwd = Path(directory)
             schema_file, response_file = cwd / 'schema.json', cwd / 'response.json'
             write_json(schema_file, schema)
             command = [
-                'codex', 'exec', '--ephemeral', '--sandbox', 'read-only', '--skip-git-repo-check',
+                *codex_runtime._command('exec'), '--ignore-user-config', '--ignore-rules',
+                '--ephemeral', '--sandbox', 'read-only', '--skip-git-repo-check',
                 '--json', '--color', 'never', '--model', model, '--output-schema', str(schema_file),
                 '--output-last-message', str(response_file), '-c', 'approval_policy="never"',
                 '-c', 'web_search="disabled"', '-c', 'project_doc_max_bytes=0',
-                '-c', 'log_dir=' + json.dumps(str(cwd / 'logs')), '-',
+                '-c', 'features.skip_host_skill_discovery=true',
+                '-c', 'log_dir=' + json.dumps(str(cwd / 'logs')),
             ]
+            for feature in codex_runtime._disabled:
+                command += ['-c', f'features.{feature}=false']
+            command.append('-')
             try:
                 # CLI output can contain application text. Capture it in memory and report fixed codes.
                 result = subprocess.run(command, input=prompt, encoding='utf-8', errors='replace',
-                                        cwd=cwd, capture_output=True, timeout=300)
+                                        cwd=cwd, env=codex_runtime._environment(state, cwd),
+                                        capture_output=True, timeout=300)
                 if result.returncode:
                     error = (result.stderr[-65536:] + result.stdout[-65536:]).lower()
                     if 'model is not supported' in error or 'model_not_found' in error:
@@ -86,6 +94,7 @@ def run(args: argparse.Namespace) -> None:
     job = case['job']
     profile = read_json(private_path(args.profile))
     out = private_path(args.out)
+    state = private_path(Path(os.environ.get('RADIUS_CODEX_STATE_DIR', ROOT / 'data' / 'private' / 'codex')))
     base_path = private_path(args.base_tex or args.base_docx)
     language = case.get('language')
     base = (import_marked_tex(base_path.read_text(encoding='utf-8'), language=language) if args.base_tex
@@ -111,7 +120,7 @@ def run(args: argparse.Namespace) -> None:
                        lambda _: None, lambda: False)
     with TemporaryDirectory(prefix='.run-', dir=out) as directory:
         workspace = Path(directory)
-        result = prepare_documents(inp, cli_generate(args.model, workspace), hooks, render)
+        result = prepare_documents(inp, cli_generate(args.model, workspace, state), hooks, render)
         write_json(workspace / 'job.json', job)
         write_json(workspace / 'findings.json', result.findings)
         pages = {}

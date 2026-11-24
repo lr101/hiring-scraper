@@ -16,18 +16,21 @@ reviews the pair. **Fast** skips model review. The worker keeps completed
 stages across retries. Open the page again to check progress and review any
 documents already published.
 
-Check the evidence behind claims and review any findings in the editor. Edits
+Check the evidence behind claims and review findings in the editor. Style checks,
+such as repeated openings or phrases, surface as suggestions in both modes and
+give Full review targets for small wording edits. Edits
 save automatically. If another tab or the worker saved a newer version, the
 editor keeps your text and offers to reload or overwrite. **Improve with AI**
 requests an optional replacement for one unit. Use **Version history** to
 restore an earlier version and **Download PDF** to render the currently saved
-version. When the saved inputs change, choose **Regenerate** to update the
-tailoring. Radius leaves submission to you.
+version. CVs use the shared print layout with an optional saved portrait. When
+Radius flags changed inputs, regenerate to update the tailoring. Radius leaves submission to you.
 
 The companion fills saved profile facts after you start a fill, and can
 capture the current form's question labels and constraints. Download v2 PDFs
 in Radius and attach them on the employer's form. Existing v1 packages retained
-by the companion can still be used through its legacy package tools.
+by the companion can still be used through its legacy package tools. Older
+server-side working drafts require a fresh preparation in the editor.
 
 ## Data and deployment
 
@@ -40,7 +43,16 @@ by the companion can still be used through its legacy package tools.
   Use a private Radius deployment with its existing access controls. An
   authenticated connection can invoke the server's connected subscription.
 - The structured documents and verified PDFs are stored in PostgreSQL. Radius
-  keeps up to 20 versions per job, profile and document kind. Removing the
+  keeps up to 20 versions per job, profile and document kind. A pending download
+  displays render progress and can be retried after a failure. Removing the
   base CV also removes these documents, their render cache and queued work.
 - The worker needs Chromium and the built `frontend/dist/print.html` entry
   for PDF rendering. See the architecture guide for queue and worker details.
+
+## Private evaluation
+
+The developer harness `scripts/eval/application_documents.py` accepts inputs and
+writes artifacts only under the ignored `data/private/` directory. It uses an
+authenticated evaluation runtime under `data/private/codex/` by default.
+Set `RADIUS_CODEX_STATE_DIR` to another directory inside `data/private/` to
+reuse an isolated evaluation connection.

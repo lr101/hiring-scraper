@@ -76,14 +76,9 @@ Open <http://localhost:5173>.
 
 Save a job profile under **Your profile**.
 
-Save a PNG portrait under **Edit profile → CVs & writing → CV photo (optional)**,
-then click **Save profile**. The photo is reused in English and German CV PDF
-previews, PDF exports, and source + photo ZIPs. PNGs must be at most 2 MiB and
-4096 pixels per side. In an application's **CV photo (optional)** section,
-uncheck **Use saved profile photo** to leave it out, or choose a different photo
-for that application. Temporary replacements are not saved to your profile.
-Photos are stored separately from profile prose and are not sent to ChatGPT.
-Custom LaTeX templates still need local compilation using their source + photo ZIP.
+Save a PNG portrait up to 2 MiB and 4096 pixels per side under
+**Edit profile → CVs & writing → CV photo (optional)**. The CV editor and local
+PDF renderer use this portrait for CVs with a portrait placeholder.
 
 Viewing a job detail adds it to
 **My applications** as New. Opening the original post leaves its stage unchanged.
@@ -171,7 +166,7 @@ For an isolated preview with both local semantic services, set
 `HIRING_PREVIEW_LOCAL_SEMANTICS=true` when starting `scripts/dev/preview.sh` with a
 fresh slug. The adapter reserves a separate embedding port and owns both processes.
 
-### Local profile scoring and application preparation
+### Local profile scoring
 
 Job ranking is local-only: the profile matching worker scores active postings against
 each profile using deterministic rules (skills, duties, qualifications, language,
@@ -200,11 +195,14 @@ model, set `HIRING_PREVIEW_PROFILE_MATCHING=true` with a fresh preview slug. Use
 `HIRING_PREVIEW_LOCAL_SEMANTICS=true` when the preview also needs local embedding
 backfills; it enables the profile worker as well.
 
-On a job's application page, review your imported base CV and choose **Prepare
-documents** to draft a tailored CV and cover letter. Full mode also reviews the
-pair. Edit either document in Radius, review findings and export the saved version
-as a PDF. Connect the bundled Codex runtime through **Continue with ChatGPT** in
-Settings or on the application page. See the [application preparation guide](docs/application-preparation.md).
+### Application preparation
+
+On a job's application page, confirm the imported base CV in the chosen language.
+Choose **Prepare documents** to draft a tailored CV and cover letter through the
+connected ChatGPT subscription. **Full** adds a review pass, while **Fast** drafts
+the pair. Edit the documents in place, review any findings and download each
+saved version as a PDF. Radius stores up to 20 versions per document and the
+applicant submits the application. See the [application preparation guide](docs/application-preparation.md).
 
 ### City election context
 
@@ -370,9 +368,11 @@ The Karlsruhe seed fixture includes OpenStreetMap-derived data. See [OpenStreetM
 
 ## Chrome application companion
 
-In **Settings → Application companion**, download the extension ZIP and load its `extension/` folder unpacked in Chrome. Save your reusable details, connect Radius, then open a job’s **Start application** flow to tailor its CV with ChatGPT. Saved profile CVs retain their original DOCX template; profiles without an attached CV can save CV text in the browser or attach one to the profile. The toolbar shows prepared jobs and follows their Apply links to employer forms. Filling is user-triggered and never submits an application or changes its tracked stage.
-
-[Installation, privacy, limits, and developer checks](extensions/application-companion/README.md). CI builds the same installable ZIP and checksum for every PR/main/tag, and includes them in tagged releases.
+In **Settings → Application companion**, download the extension ZIP and load its
+`extension/` folder unpacked in Chrome. Connect the extension to Radius and select
+your profile. Use **Prepare documents** to open the Radius editor for a job.
+The companion can capture employer form questions and fill saved profile facts
+when you choose to fill. Attach PDFs downloaded from Radius on the employer's form.
 
 ### German and English application profiles
 

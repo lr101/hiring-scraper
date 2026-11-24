@@ -58,6 +58,8 @@ flowchart LR
   - Matching: `matching.py`, `requirements.py`, `duty_evidence.py`,
     `task_alignment.py`, `semantic_matching.py` and `matching_v2/` (gates, feature extraction,
     weights, DEV-only fitter and calibration). `election_data.py` supplies optional city context.
+- `hiring_scraper/documents/` — database-free CV and letter schemas, marked TeX and
+  DOCX import, marked-text projection, evidence, grounding and editorial checks.
 - `hiring_scraper/app/` — persistence, API routers, workers and application preparation.
   `models.py` is the schema; changes ship as Alembic migrations in
   `app/migrations/versions/` (plus the rollback-safe step in `docker/entrypoint.py`,
@@ -74,31 +76,36 @@ flowchart LR
 
 ## Application preparation
 
-The application page confirms the imported base CV in the chosen language.
-`ProfileCV.variants[language].document` stores the structured source, and its
-projected marked text feeds the existing matcher and companion history. The
-application editor and Chromium PDF renderer share the same React document views.
+The applicant confirms the imported base CV in the chosen language. The profile
+stores the structured source in `ProfileCV.variants[language].document` alongside
+marked text for the matcher and companion. The editor and bundled Vite
+`print.html` entry use the same React document views. Chromium loads the print
+bundle through intercepted local assets, verifies the extracted PDF text and
+reports page fill and overflow. Preparation uses these observations in Full review.
+Editorial heuristics pass through to review as findings. Structural violations,
+high-severity grounding checks and unsupported CV qualifiers can trigger retries.
 
-`application_preparation_tasks` holds one inference task per profile and job.
-A preparation runs CV, letter and optional Full-mode review, and publishes
-documents as each stage completes. The worker checkpoints stage outputs by
-input digest. Transient task failures retry after two minutes and then ten
-minutes, for up to three attempts. Unit revisions return a suggestion for
-explicit acceptance. Automatic preparation of high-ranked New jobs uses the
-same queue after the base CV has been confirmed.
+| Table | Key and purpose |
+| --- | --- |
+| `application_preparation_tasks` | Profile and job. One active inference task per pair, with kind `prepare` or `revise`, lease, attempts, retry timestamp and input-digest checkpoints. |
+| `application_documents` | Profile, job, kind and version. Stores the document JSON, findings, provenance and staleness. Keeps the latest 20 versions per kind. |
+| `application_document_renders` | Document key and template. Stores verified PDF bytes, page count and checks. |
+| `application_render_tasks` | Document key and template. Tracks the independent render lane, with a claim time, lease token and failure code. |
 
-`application_documents` keeps the latest 20 versions of each CV and cover
-letter. `application_document_renders` stores verified PDFs for exact document
-versions. A PDF request without a cached result queues
-`application_render_tasks` and returns 202. The worker's render thread claims
-work independently of inference, opens the bundled print view in Chromium
-and publishes the verified file. Failed renders retry after 15 seconds and
-then 60 seconds, and the export can be retried explicitly afterward.
+Preparation publishes the CV and letter as the stages complete. A revision returns
+a suggestion for explicit acceptance. Automatic preparation uses the same queue
+for high-ranked New jobs once the base CV is confirmed. Inference retries
+transient task failures after two and ten minutes, for up to three attempts.
 
-Removing the base CV clears that profile's preparation tasks and tailored
-documents. Deleting or pruning a document version cascades to its PDF and
-render task. The form-filling companion remains opt-in and independent of
-document editing. See the [application preparation guide](application-preparation.md).
+A PDF download returns a cached version or queues a render and returns 202.
+The worker's dedicated render thread runs independently of inference. Transient
+render failures retry after 15 and 60 seconds. Applicants can retry an exhausted
+export from the editor.
+
+Removing the base CV clears the profile's inference tasks and document versions,
+including each version's render task and cached PDF by cascade. The companion
+fills saved profile facts and can capture employer form questions. See the
+[application preparation guide](application-preparation.md).
 
 ## Invariants
 
@@ -171,9 +178,10 @@ Several processes write to the same PostgreSQL database. Keep these rules when a
 - **Preparation publishes with a fenced lease.** Inference renews its six-minute
   lease through stage/checkpoint updates and periodic worker checks. Publication
   holds the job and profile before the task row and verifies the lease token
-  and task ID. Retry waits keep the task active and claimable at its next retry
-  time. The render lane has its own two-minute lease and fences results to the
-  document version it claimed.
+  and task ID before updating document versions. Retry waits keep the task active
+  until its next claim time. The render lane takes the document version before
+  the render task, verifies its two-minute lease token and publishes PDF bytes
+  against that exact version and template.
 - **Document versions use compare-and-set.** An editor saves against its observed
   version. If another writer wins, the API returns 409 and the editor keeps the
   local text. Preparation publishes over the version it started from or a

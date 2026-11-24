@@ -1,13 +1,13 @@
 # Application documents v2: implementation plan
 
-Status: approved for implementation. Replaces the fixed-slot LaTeX tailoring pipeline
+Status: implemented. Replaces the fixed-slot LaTeX tailoring pipeline
 (`application_generation.py` macro edits, `tex_cv.py` budgets, `application_prompt.txt`)
 with structured documents, one shared HTML layout, inline editing and a short, resumable,
 grounded generation pipeline.
 
 ## Why
 
-The current pipeline asks the model to rewrite LaTeX macros that are fixed-width justified
+The former pipeline asked the model to rewrite LaTeX macros that are fixed-width justified
 lines at absolute page coordinates, with budgets counted in characters. Characters are not
 widths, so accepted edits can overflow or stretch, valid prose gets rejected, the model writes
 to line lengths instead of for the reader, and custom CVs are never compiled during
@@ -24,8 +24,8 @@ stilted. See the validation notes in the PR description.
 - Generation: CV call, then letter call (sees the accepted CV), then one review call (findings
   plus patches, receives overflow telemetry). Fast mode skips review. Form answers stay a
   separate optional call. No AI requirement assessment call.
-- Deterministic grounding produces unit-anchored findings. Model review is advisory. Nothing
-  is discarded because of a finding; export is blocked only by a broken render.
+- Deterministic grounding produces unit-anchored findings. Unsupported qualifiers and
+  high-severity grounding issues can trigger a retry. Editorial findings are review targets.
 - One PostgreSQL queue with retries, stage checkpoints, short fenced leases and partial
   publication. The file/thread job store is retired once nothing reads it.
 - The manual ChatGPT copy/paste handoff is removed. The connected ChatGPT integration runs
