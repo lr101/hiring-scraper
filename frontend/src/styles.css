@@ -619,6 +619,13 @@ tbody tr:last-child td { border-bottom: 0; }
 .evidence-note { background: #f1f4e8; color: #354833; padding: 18px; border-radius: 10px; margin: 18px 0; }
 .evidence-panel { margin-top: 24px; }
 .evidence-panel li { margin: 8px 0; }
+.job-posting-analysis { border-top: 1px solid var(--line); padding: 16px 0; }
+.job-posting-analysis h2 { margin: 0 0 10px; font-size: 17px; }
+.job-posting-analysis h3 { margin: 14px 0 4px; font-size: 14px; }
+.job-posting-analysis ul { margin: 0; padding-inline-start: 20px; }
+.job-posting-analysis li { margin: 4px 0; font-size: 14px; line-height: 1.55; overflow-wrap: anywhere; }
+.job-posting-analysis li strong { font-size: 12px; margin-inline-end: 4px; }
+.job-posting-analysis > p { margin: 0; font-size: 14px; }
 .skill-evidence-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
 .skill-evidence-list > div { border: 1px solid #e0e5db; border-radius: 10px; padding: 16px; }
 .skill-evidence-list p { overflow-wrap: anywhere; font-size: 14px; line-height: 1.6; }

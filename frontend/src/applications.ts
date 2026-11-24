@@ -94,7 +94,7 @@ export async function trackJobInteraction(
 ): Promise<Application | null> {
   let latest = current ?? null
   if (interaction === 'open_post') {
-    const response = await fetch(`${base}/api/v1/jobs/${jobId}?profile_id=${profileId}`)
+    const response = await fetch(`${base}/api/v1/jobs/${jobId}?profile_id=${profileId}&include_analysis=false`)
     const payload = await response.json()
     if (!response.ok) throw new Error(typeof payload.detail === 'string' ? payload.detail : 'Could not update application stage.')
     return payload.application ?? null

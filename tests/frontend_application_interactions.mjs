@@ -7,7 +7,7 @@ let writes = 0
 let decideAfterRead = false
 const server = createServer(async (request, response) => {
   response.setHeader('Content-Type', 'application/json')
-  if (request.method === 'GET' && request.url === '/api/v1/jobs/42?profile_id=9') {
+  if (request.method === 'GET' && request.url === '/api/v1/jobs/42?profile_id=9&include_analysis=false') {
     response.end(JSON.stringify({ id: 42, application }))
     if (decideAfterRead) application = { profile_id: 9, job_id: 42, status: 'open' }
   } else if (request.method === 'PUT' && request.url === '/api/v1/profiles/9/applications/42') {

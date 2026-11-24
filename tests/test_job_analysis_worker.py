@@ -193,6 +193,8 @@ class JobAnalysisWorkerTests(unittest.TestCase):
         self.assertIsNotNone(self.evidence_request(self.near_id))
 
     def test_failed_reanalysis_after_a_model_change_keeps_the_usable_analysis(self):
+        from hiring_scraper.app import api
+
         self.analyse_and_match_near()
         with self.factory.begin() as session:
             session.get(models.JobAnalysis, self.near_id).version = 'older-model'
@@ -207,6 +209,10 @@ class JobAnalysisWorkerTests(unittest.TestCase):
             row = session.get(models.JobAnalysis, self.near_id)
             self.assertEqual(row.status, 'ok')
             self.assertTrue(row.payload['duties'])
+            detail = api.get_job(self.near_id, session)
+            self.assertEqual(detail.get('analysis_state'), 'outdated')
+            self.assertTrue(detail['analysis_refreshing'])
+            self.assertEqual(detail['analysis']['duties'], [{'line': 1, 'text': 'Build Python services.'}])
         self.assertFalse(self.match(self.near_id)['pending'])
 
     def test_new_analysis_output_never_reuses_evidence_of_the_old_output(self):
