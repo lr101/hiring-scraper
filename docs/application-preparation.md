@@ -16,15 +16,20 @@ reviews the pair. **Fast** skips model review. The worker keeps completed
 stages across retries. Open the page again to check progress and review any
 documents already published.
 
-Check the evidence behind claims and review findings in the editor. Style checks,
-such as repeated openings or phrases, surface as suggestions in both modes and
-give Full review targets for small wording edits. Edits
-save automatically. If another tab or the worker saved a newer version, the
-editor keeps your text and offers to reload or overwrite. **Improve with AI**
-requests an optional replacement for one unit. Use **Version history** to
-restore an earlier version and **Download PDF** to render the currently saved
-version. CVs use the shared print layout with an optional saved portrait. When
-Radius flags changed inputs, regenerate to update the tailoring. Radius leaves submission to you.
+Use the inline review panel in the editor to step through AI changes in document
+order, inspect word diffs against the original wording, check versioned source
+citations and act on findings (accept, edit, restore original wording, or apply a
+suggested replacement). Accepted state saves with the document and clears when a
+unit is edited; if unreviewed changes remain, **Download PDF** offers to review
+first or download directly. Style checks, such as repeated openings or phrases,
+surface as suggestions in both modes and give Full review targets for small
+wording edits. Edits save automatically. If another tab or the worker saved a
+newer version, the editor keeps your text and offers to reload or overwrite.
+**Improve with AI** requests an optional replacement for one unit. Use **Version
+history** to restore an earlier version and **Download PDF** to render the
+currently saved version (review metadata is excluded from the PDF). CVs use the
+shared print layout with an optional saved portrait. When Radius flags changed
+inputs, regenerate to update the tailoring. Radius leaves submission to you.
 
 The companion fills saved profile facts after you start a fill, and can
 capture the current form's question labels and constraints. Download v2 PDFs
