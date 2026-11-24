@@ -341,13 +341,17 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
     def test_pdf_that_fails_verification_is_not_cached_or_downloaded(self):
         self.save(0)
         with self.sessions() as session:
-            self.assertEqual(documents.document_pdf(1, 'letter', 2, 1, session=session).status_code, 202)
+            saved = documents.latest_pair(session, 1, 2)['letter']
+            response = documents.document_pdf(1, 'letter', 2, saved['version'],
+                                              revision=saved['revision'], session=session)
+            self.assertEqual(response.status_code, 202)
         result = types.SimpleNamespace(pdf=b'fictional blank PDF', pages=1,
                                        checks=[{'code': 'text_extractable', 'status': 'failed'}])
         self.assertTrue(queue.process_render_once(lambda *_: result))
         with self.sessions() as session:
             self.assertEqual(session.scalars(select(ApplicationDocumentRender)).all(), [])
-            response = documents.document_pdf(1, 'letter', 2, 1, session=session)
+            response = documents.document_pdf(1, 'letter', 2, saved['version'],
+                                              revision=saved['revision'], session=session)
             self.assertEqual(response.status_code, 422)
             self.assertEqual(json.loads(response.body)['error_code'], 'render_verification_failed')
 
