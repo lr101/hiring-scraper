@@ -726,6 +726,23 @@ class PipelineTests(unittest.TestCase):
         self.assertFalse(any(f['code'] == 'review_grounding' for f in result.findings))
 
     @patch.object(pipeline, 'SLEEP', lambda _: None)
+    def test_unsupported_letter_audit_claim_requires_a_grounding_patch(self):
+        letter = letter_reply()
+        original = letter['paragraphs'][1]['text']
+        letter['paragraphs'][1]['text'] = 'I selected all the workshop topics. ' + original
+        review = {'letter_claims': [{
+            'unit_id': 'u-letter-p2', 'claim': 'Selected the topics.', 'supporting_sources': [], 'supported': False,
+        }], 'findings': [], 'patches': []}
+        correction = {**review, 'patches': [{
+            'document': 'letter', 'unit_id': 'u-letter-p2', 'kind': 'grounding', 'text': original,
+        }]}
+        replies = iter([cv_reply(), letter, review, correction])
+        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
+        self.assertEqual(result.telemetry['attempts']['review'], 2)
+        self.assertEqual(result.letter['paragraphs'][1]['text'], original)
+        self.assertFalse(any(f['code'] == 'review_grounding' for f in result.findings))
+
+    @patch.object(pipeline, 'SLEEP', lambda _: None)
     def test_grounding_correction_retries_when_it_adds_a_page(self):
         long_correction = 'Librarians and I worked together on the design of a public workshop.'
         short_correction = 'Librarians and I designed a workshop.'

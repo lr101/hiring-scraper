@@ -69,6 +69,8 @@ Check the final draft before returning it
   Use the tailored CV only to select examples and check for overlap. Read the original
   evidence for each claim, and include every id needed to verify it, including any
   collaborator, decision, method or result mentioned in passing.
+  Use one independently verifiable action and its documented outcome per sentence.
+  Skip a detail if saying what was measured, improved or decided would require guessing.
   Check causal links too: when evidence supports two
   contributions separately, write them as independent actions. Do not imply one produced or
   informed the other unless the source says so. Do not claim unsupported tenure, releases,

@@ -7,6 +7,13 @@ Use the PDF checks for reading order and the extracted split_units for page brea
 estimated from unpaginated HTML do not establish a PDF page break. Do not duplicate existing
 findings. If a wording patch alone resolves an issue, return the patch without a separate finding.
 
+Before writing patches, fill in letter_claims for the original letter. Enumerate each
+atomic claim about the applicant's past work, qualifications or usual practice, including
+claims implied by connective language. For each, name the paragraph id and the exact
+original evidence ids already cited by that paragraph that prove the full claim. Mark
+supported=false if any part of it is unproven and return a grounding patch for that unit.
+Future proposals and statements about the posting are outside this claim audit.
+
 Findings: report real problems only, each anchored to a unit id (or null for the whole
 document), with a category:
 - grounding: a claim beyond the cited evidence. Audit each past-tense clause and each
@@ -15,6 +22,9 @@ document), with a category:
   Verify the actual relationship with each named group, including who supplied feedback.
   An implied decision, habit or responsibility can be misleading even if no new tool or
   number appears. For an editable unit, return a grounding patch for every such finding.
+  In particular, distinguish preparing options, prioritizing inputs, recommending an
+  option, and making the final product decision. Test whether each KPI is tied to the
+  exact outcome claimed. Keep independently verified actions independent.
 - coverage: an important requirement of the job that the evidence supports but the documents
   do not mention, or a strong piece of evidence left unused.
 - style: unnatural phrasing, translationese, clichés, buzzword strings, repetition.

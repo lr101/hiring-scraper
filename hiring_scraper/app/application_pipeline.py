@@ -152,12 +152,21 @@ class _ReviewPatch(_Text):
     kind: Literal['rephrase', 'shorten', 'grounding', 'content']
 
 
+class _ReviewLetterClaim(_Response):
+    unit_id: str
+    claim: str
+    supporting_sources: list[str]
+    supported: bool
+
+
 class _ReviewEnvelope(_Response):
+    letter_claims: list[_ReviewLetterClaim] = Field(default_factory=list)
     findings: list
     patches: list
 
 
 class _ReviewResponse(_Response):
+    letter_claims: list[_ReviewLetterClaim]
     findings: list[_ReviewFinding]
     patches: list[_ReviewPatch]
 
@@ -1204,6 +1213,24 @@ def _review(
     applied = []
     touched = set()
     malformed = 0
+    letter_units = {unit.id: unit for unit in docs['letter'].paragraphs if not unit.hidden}
+    for claim in reply.letter_claims:
+        target = letter_units.get(claim.unit_id)
+        if target is None:
+            raise _InvalidResponse(
+                'In letter_claims, use ids of visible letter paragraphs only.',
+                code='review_claim_unit',
+            )
+        allowed_sources = set(target.sources).intersection(evidence) - {'job'}
+        if claim.supported and (
+            not claim.supporting_sources or set(claim.supporting_sources) - allowed_sources
+        ):
+            raise _InvalidResponse(
+                'For every supported letter claim, list the exact original evidence ids cited by that paragraph.',
+                code='review_claim_citations',
+            )
+        if not claim.supported and target.origin == 'ai':
+            grounding_targets.add(('letter', target.id))
     for item in reply.findings:
         try:
             review = _ReviewFinding.model_validate(item)
