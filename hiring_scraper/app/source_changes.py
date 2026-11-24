@@ -153,7 +153,9 @@ def jobs_changed(session: Session, job_ids: Iterable[int]) -> None:
         return
     session.flush()
     _declare(session, 'job', ids)
-    jobs = session.scalars(select(Job).where(Job.id.in_(ids))).all()
+    jobs = session.scalars(
+        select(Job).where(Job.id.in_(ids)).execution_options(populate_existing=True)
+    ).all()
     if jobs:
         _mark_stale_analyses(session, jobs)
         _queue_rematch(session, [job.id for job in jobs])

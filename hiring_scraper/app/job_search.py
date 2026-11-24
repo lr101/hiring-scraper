@@ -88,7 +88,8 @@ def replace_job_locations(job: Job, rows: list[dict]) -> None:
         else:
             updated.append(JobLocation(**{name: row.get(name) for name in
                 ("label", "latitude", "longitude", "precision", "country_code")}))
-    job.locations[:] = updated
+    if len(updated) != len(job.locations) or any(previous.values()):
+        job.locations[:] = updated
 
 
 def scoring_preferences(matching_preferences: dict) -> dict:

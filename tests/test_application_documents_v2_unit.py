@@ -348,7 +348,9 @@ class MigrationAndEvalGuardTests(unittest.TestCase):
         cfg = Config()
         cfg.set_main_option('script_location', 'hiring_scraper/app/migrations')
         script = ScriptDirectory.from_config(cfg)
-        self.assertEqual(script.get_heads(), ['0045_local_job_analysis'])
+        self.assertEqual(script.get_heads(), ['0046_job_location_scope'])
+        self.assertEqual(script.get_revision('0046_job_location_scope').down_revision,
+                         '0045_local_job_analysis')
         self.assertEqual(script.get_revision('0045_local_job_analysis').down_revision,
                          '0044_application_documents_v2')
 

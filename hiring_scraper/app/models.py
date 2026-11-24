@@ -8,7 +8,7 @@ from sqlalchemy import (
     LargeBinary,
     JSON, String, Text, UniqueConstraint, false, select, text,
 )
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
 from pgvector.sqlalchemy import Vector
 
@@ -226,6 +226,22 @@ class Job(Base):
         UniqueConstraint("feed_id", "external_id", name="uq_job_feed_external_id"),
         Index("ix_jobs_remote_active", "is_remote", "is_active"),
         Index("ix_jobs_active_id", "id", postgresql_where=text("is_active")),
+        Index("ix_jobs_germany_candidate", "is_active", "id", postgresql_where=text("germany_candidate IS TRUE")),
+        Index(
+            "ix_jobs_location_states",
+            "location_states",
+            postgresql_using="gin",
+            postgresql_with={"fastupdate": "off"},
+        ),
+        Index("ix_jobs_location_scope_version", "location_scope_version", "id"),
+        Index(
+            "ix_jobs_remote_candidate_active",
+            "id",
+            postgresql_where=text(
+                "is_active IS TRUE AND (work_arrangement = 'remote' "
+                "OR (is_remote IS TRUE AND work_arrangement IS NULL))"
+            ),
+        ),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -237,6 +253,9 @@ class Job(Base):
     url: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     location_text: Mapped[str | None] = mapped_column(Text)
+    germany_candidate: Mapped[bool | None] = mapped_column(Boolean, nullable=True, deferred=True)
+    location_states: Mapped[list[str] | None] = mapped_column(ARRAY(Text), nullable=True, deferred=True)
+    location_scope_version: Mapped[str | None] = mapped_column(String(40), nullable=True, deferred=True)
     is_remote: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     work_arrangement: Mapped[str | None] = mapped_column(String(40))
     employment_type: Mapped[str | None] = mapped_column(String(120))
@@ -285,6 +304,15 @@ class JobLocation(Base):
     country_code: Mapped[str | None] = mapped_column(String(2))
 
     job: Mapped[Job] = relationship(back_populates="locations")
+
+
+class JobLocationScopeDirty(Base):
+    __tablename__ = "job_location_scope_dirty"
+
+    # Independent marks let concurrent writers commit without contending for
+    # the same row. There is no FK, so marking never locks the parent job.
+    job_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    change_xid: Mapped[str] = mapped_column(Text, primary_key=True)
 
 
 class LocationCache(Base):
