@@ -98,3 +98,15 @@ def downgrade():
     op.drop_table('profile_evidence_units')
     op.drop_index('ix_job_analyses_status', table_name='job_analyses')
     op.drop_table('job_analyses')
+    # Restore the (empty) section-vector cache so earlier downgrades can drop it.
+    op.create_table('match_semantic_documents',
+        sa.Column('id', sa.Integer(), primary_key=True),
+        sa.Column('job_id', sa.Integer(), sa.ForeignKey('jobs.id', ondelete='CASCADE'), unique=True),
+        sa.Column('profile_id', sa.Integer(), sa.ForeignKey('user_profiles.id', ondelete='CASCADE'), unique=True),
+        sa.Column('source_hash', sa.String(64), nullable=False),
+        sa.Column('version', sa.String(160), nullable=False),
+        sa.Column('sections', sa.JSON(), nullable=False),
+        sa.Column('vectors', sa.LargeBinary(), nullable=False),
+        sa.Column('indexed_at', sa.DateTime(timezone=True), nullable=False),
+        sa.CheckConstraint('(job_id IS NULL AND profile_id IS NOT NULL) OR '
+                           '(job_id IS NOT NULL AND profile_id IS NULL)', name='ck_match_semantic_document_owner'))
