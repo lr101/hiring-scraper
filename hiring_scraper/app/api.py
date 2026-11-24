@@ -32,9 +32,11 @@ from sqlalchemy import and_, case, func, or_, select, text, update
 from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 from hiring_scraper.app import source_changes
 from hiring_scraper.app.database import dialect_insert, get_session
+from hiring_scraper.app.match_documents import USABLE_ANALYSIS_STATUSES
 from hiring_scraper.app.models import (
     Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany,
-    DiscoveryRun, Job, JobApplication, JobFeed, JobSearchResult, JobSearchSnapshot, JobVacancyGroup,
+    DiscoveryRun, Job, JobAnalysis, JobAnalysisQueue, JobApplication, JobFeed, JobSearchResult, JobSearchSnapshot,
+    JobVacancyGroup,
     LocationCache, ScanRun, SemanticSearchDocument, SemanticSearchIndexState, utcnow,
 )
 from hiring_scraper.app.discovery_jobs import (
@@ -1433,13 +1435,34 @@ def get_job(job_id: int, session: Session = Depends(get_session),
             state: str | None = None, country: str | None = None) -> dict[str, Any]:
     state = search_snapshots.canonical_state(state)
     employer_country = _canonical_country(country)
-    statement = select(Job).options(joinedload(Job.feed).joinedload(JobFeed.company),
-                                    joinedload(Job.employer_company),
-                                    selectinload(Job.locations)).where(Job.id == job_id)
-    job = session.scalars(statement).unique().first()
-    if not job:
+    queued = select(JobAnalysisQueue.job_id).where(JobAnalysisQueue.job_id == Job.id).exists()
+    statement = (select(Job, JobAnalysis.status, JobAnalysis.payload, queued)
+                 .outerjoin(JobAnalysis, JobAnalysis.job_id == Job.id)
+                 .options(joinedload(Job.feed).joinedload(JobFeed.company),
+                          joinedload(Job.employer_company), selectinload(Job.locations))
+                 .where(Job.id == job_id))
+    row = session.execute(statement).one_or_none()
+    if row is None:
         raise HTTPException(status_code=404, detail="Job not found")
+    job, analysis_status, payload, is_queued = row
     data = search_snapshots.job_json(job, include_description=True)
+    analysis_fields = ('occupation', 'industry', 'duties', 'requirements')
+    data['analysis'] = None
+    if (analysis_status in USABLE_ANALYSIS_STATUSES and isinstance(payload, dict)
+            and all(key in payload for key in analysis_fields)):
+        data['analysis_state'] = 'ready'
+        data['analysis'] = {key: payload[key] for key in analysis_fields}
+    elif analysis_status == 'failed':
+        data['analysis_state'] = 'failed'
+    else:
+        data['analysis_state'] = 'pending' if is_queued else 'unavailable'
+
+    # Stored enrichment can still contain this retired warning. Filter it on read
+    # without rewriting the job or invalidating other enrichment signals.
+    enrichment = data['enrichment']
+    legacy_warning = 'No skills recognized in the current vocabulary'
+    if legacy_warning in enrichment['warnings']:
+        data['enrichment'] = {**enrichment, 'warnings': [w for w in enrichment['warnings'] if w != legacy_warning]}
     if employer_country and profile_id is None:
         data['geography'] = search_snapshots.result_scope(job, 0, 0, 15, None, None, state, employer_country)
     if profile_id is not None:

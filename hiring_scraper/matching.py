@@ -834,8 +834,6 @@ def enrich_job(job: dict) -> dict:
     warnings = []
     if len(description) < 350:
         warnings.append('Full description not available' if not description else 'Only a short description is available')
-    if not skills:
-        warnings.append('No skills recognized in the current vocabulary')
     if not seniority:
         warnings.append('Experience level not stated')
     if not arrangement:

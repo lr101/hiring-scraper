@@ -110,6 +110,12 @@ whether they actually show it, so a shared word in an unrelated field (for examp
 not count. Everything runs on CPU in separate containers; there are no API calls or
 subscription quotas. See [docs/local-models.md](docs/local-models.md).
 
+The job page shows the posting's field, industry, duties, must-haves and
+nice-to-haves under **What this job asks for**. Quotes come from the posting,
+and the section is available without a profile or a match score. It shows
+**Reading this posting…** while the first analysis is queued and keeps the
+last usable analysis visible during a refresh.
+
 The score (0–100) adds duty evidence, mandatory and preferred requirements, role
 fit and occupational-field fit, then subtracts bounded penalties (work style,
 employment type, unverified formal prerequisites, and at most two points for

@@ -12,6 +12,8 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Job details show the posting's field, industry, quoted duties, must-haves and nice-to-haves without needing a profile. This replaces the static skill evidence list.
+
 - Local model-based job matching: a local LLM (Qwen3.5-4B, CPU, own `llm` container) lists each posting's duties and requirements as verbatim quotes, and a local reranker (Qwen3-Reranker-0.6B, `llm-reranker` container) checks them against your CV lines in the context of the job's field. Benefits and company text no longer count as requirements, and shared words from unrelated fields no longer produce strong matches. Migration `0045_local_job_analysis` adds the analysis, evidence and queue tables; see `docs/local-models.md`.
 - The job page shows how the match score was built: earned against possible points per part (duties, must-haves, nice-to-haves, role, field), deductions, the calibrated score, and a checklist of each duty and requirement marked as shown, partly shown or not shown in your CV.
 - Today's focus on Journey: up to three roles to act on now (prepared documents first, then Interested, then best match) with a "3 a day" progress indicator. Ready documents open directly in review.

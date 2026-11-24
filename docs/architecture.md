@@ -129,7 +129,8 @@ fills saved profile facts and can capture employer form questions. See the
   evidence; unknown values stay unknown. A shared domain alone does not merge employers.
 - **Reads never infer.** API requests use cached matches; local model inference (job analysis,
   evidence checks, embeddings) and application drafting run in workers, outside database
-  transactions, and publish only if inputs are unchanged.
+  transactions, and publish only if inputs are unchanged. The job detail API reads the
+  posting analysis and its queue state independently of the profile match.
 - **Profile data stays private.** Application prompts use saved career facts, not inferred
   abilities; profile photos are never sent to the model.
 

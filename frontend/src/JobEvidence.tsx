@@ -49,8 +49,62 @@ export type Enrichment = {
   }[]
 }
 
+export type AnalysisState = 'ready' | 'pending' | 'failed' | 'unavailable'
+type PostingQuote = { line: number; text: string }
+type PostingRequirement = PostingQuote & { need: 'must' | 'nice'; kind: string }
+export type PostingAnalysis = {
+  occupation: string
+  industry: string
+  duties: PostingQuote[]
+  requirements: PostingRequirement[]
+}
+
+const requirementKinds: Record<string, string> = {
+  skill: 'Skill',
+  knowledge: 'Knowledge',
+  experience: 'Experience',
+  education: 'Education',
+  certification: 'Certification',
+  language: 'Language',
+  authorization: 'Work authorization',
+  other: 'Other requirement',
+}
+const requirementGroups = [
+  { need: 'must', label: 'Must-haves' },
+  { need: 'nice', label: 'Nice-to-haves' },
+] as const
+
+export function JobPostingAnalysis({ state, analysis }: { state?: AnalysisState; analysis?: PostingAnalysis | null }) {
+  return <section className="job-posting-analysis" aria-labelledby="job-posting-analysis-heading">
+    <h2 id="job-posting-analysis-heading">What this job asks for</h2>
+    {state === 'pending' ? <span className="application-match-refresh-tag" role="status">Reading this posting…</span>
+      : state === 'failed' ? <p className="muted">Could not read this posting.</p>
+      : analysis ? <>
+        {(analysis.occupation || analysis.industry) && <div className="job-overview-tags">
+          {analysis.occupation && <span className="job-overview-tag">Field · {analysis.occupation}</span>}
+          {analysis.industry && <span className="job-overview-tag">Industry · {analysis.industry}</span>}
+        </div>}
+        {analysis.duties.length > 0 && <>
+          <h3>Duties</h3>
+          <ul>{analysis.duties.map(row => <li key={row.text}><q>{row.text}</q></li>)}</ul>
+        </>}
+        {requirementGroups.map(({ need, label }) => {
+          const rows = analysis.requirements.filter(row => row.need === need)
+          return rows.length > 0 && <div key={need}>
+            <h3>{label}</h3>
+            <ul>{rows.map(row => <li key={row.text}>
+              <strong>{requirementKinds[row.kind] ?? requirementKinds.other}</strong>{' '}
+              <q>{row.text}</q>
+            </li>)}</ul>
+          </div>
+        })}
+        {analysis.duties.length === 0 && analysis.requirements.length === 0 &&
+          <p className="muted">No duties or requirements could be quoted from this posting.</p>}
+      </> : <p className="muted">Posting analysis is unavailable.</p>}
+  </section>
+}
+
 export default function JobEvidence({ enrichment, match }: { enrichment: Enrichment; match?: ProfileMatch }) {
-  const skillEvidence = [...enrichment.skills, ...(match?.custom_skill_evidence ?? [])]
   return <section className="detail-panel evidence-panel">
     <p className="eyebrow">How this job fits</p>
     {match?.pending ? <>
@@ -89,7 +143,7 @@ export default function JobEvidence({ enrichment, match }: { enrichment: Enrichm
       {(match.requirement_gaps?.length ?? 0) > 0 && !match.requirement_observations?.some(row => row.strength) && <div className="evidence-note"><strong>Qualification gaps to check</strong><ul>{match.requirement_gaps!.map(gap => <li key={gap}>{gap}</li>)}</ul></div>}
       {match.unknowns.length > 0 && <div className="evidence-note"><strong>Still needs checking</strong><ul>{match.unknowns.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
       {match.missing_skills.length > 0 && <p>Other skills mentioned in the post: {match.missing_skills.join(', ')}. Mentions can include optional skills.</p>}
-    </> : <><h2>Skills and requirements found</h2><p className="muted"><a href="/profile">Create a profile</a> to rank jobs by your interests.</p></>}
+    </> : <><h2>Profile matching</h2><p className="muted"><a href="/profile">Create a profile</a> to rank jobs by your interests.</p></>}
     {enrichment.seniority && <p><strong>Experience level:</strong> {enrichment.seniority.value} · {enrichment.seniority.evidence}</p>}
     {enrichment.experience_years && <p><strong>Minimum experience:</strong> {enrichment.experience_years.value} years · {enrichment.experience_years.evidence}</p>}
     {enrichment.languages.length > 0 && <>
@@ -102,10 +156,6 @@ export default function JobEvidence({ enrichment, match }: { enrichment: Enrichm
         <small>{(row.source.startsWith('structured') || row.source.startsWith('detail')) ? 'Employer’s structured job data' : 'Job description'}</small>
       </div>)}</div>
     </>}
-    <h3>Evidence from the job post</h3>
-    {skillEvidence.length ? <div className="skill-evidence-list">{skillEvidence.map(skill => <div key={skill.name}>
-      <strong>{skill.name}</strong><p>{skill.evidence}</p><small>{(skill.source.startsWith('structured') || skill.source.startsWith('detail')) ? 'Employer’s structured job data' : skill.source === 'title' ? 'Job title' : 'Job description'}</small>
-    </div>)}</div> : <p className="muted">No skills recognized yet. Our first version has a limited vocabulary; this does not mean the job has no requirements.</p>}
     {enrichment.warnings.length > 0 && <div className="evidence-note"><strong>Information gaps</strong><ul>{enrichment.warnings.map(warning => <li key={warning}>{warning}</li>)}</ul></div>}
   </section>
 }
