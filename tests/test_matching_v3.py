@@ -83,6 +83,18 @@ class ScoringTests(unittest.TestCase):
         for entry in result['explanation']:
             self.assertEqual(entry['contribution'], round(entry['contribution'], 2))
 
+    def test_components_carry_possible_points_and_item_counts_for_the_page(self):
+        result = match_job_v3(JOB, PROFILE, analysis=ANALYSIS, evidence=evidence(0.9, 0.001, 0.5, 0.4))
+        parts = {entry['signal']: entry for entry in result['explanation'] if entry['signal'] in W.COMPONENT_WEIGHTS}
+        self.assertAlmostEqual(sum(entry['max_points'] for entry in parts.values()), 100.0, delta=0.05)
+        for entry in parts.values():
+            self.assertLessEqual(entry['contribution'], entry['max_points'] + 1e-9)
+        self.assertEqual((parts['duties']['supported'], parts['duties']['total']), (1, 2))
+        self.assertEqual((parts['must']['supported'], parts['must']['total']), (0, 2))
+        self.assertIsNone(parts['role']['total'])
+        strengths = {row['job_quote']: row.get('strength') for row in result['requirement_observations']}
+        self.assertEqual(strengths['Technische Ausbildung im Korrosionsschutz'], 'none')
+
     def test_score_increases_with_support(self):
         scores = [match_job_v3(JOB, PROFILE, analysis=ANALYSIS, evidence=evidence(p, p, p, p))['score']
                   for p in (0.01, 0.1, 0.3, 0.6, 0.9, 0.99, 0.999)]

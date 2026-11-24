@@ -309,9 +309,19 @@ def match_job_v3(
         'domain': (f'Occupational field fit {values["domain"]:.2f}' + (f' ({context})' if context else '')
                    if values['domain'] is not None else '', None),
     }
+    present_weight = sum(weight for name, weight in weights.items() if values.get(name) is not None)
+    counts = {
+        'duties': (sum(row['support'] >= W.PARTIAL_SUPPORT for row in duties), len(duties)),
+        'must': (sum(row['support'] >= W.PARTIAL_SUPPORT for row in must_rows), len(must_rows)),
+        'nice': (sum(row['support'] >= W.PARTIAL_SUPPORT for row in nice_rows), len(nice_rows)),
+    }
     for name, contribution in contributions.items():
         detail, row = details[name]
+        supported, total = counts.get(name, (None, None))
+        # max_points: what this component adds at full support, so the page can show earned vs possible.
         entry = {'signal': name, 'contribution': contribution, 'detail': detail,
+                 'max_points': round(100.0 * weights[name] / present_weight, 2),
+                 'supported': supported, 'total': total,
                  'job_quote': '', 'profile_source': '', 'profile_quote': ''}
         if row is not None:
             entry.update(job_quote=row['text'][:240], profile_source=row['evidence_source'],
@@ -375,6 +385,7 @@ def match_job_v3(
             'evidence_context': 'professional' if partial else 'unspecified',
             'explanation': (f'Your CV shows this {"directly" if supported else "partly"}' if partial
                             else 'No CV line shows this yet'),
+            'strength': 'direct' if supported else 'partial' if partial else 'none',
             'modality': row.get('need', 'must'),
         }
 

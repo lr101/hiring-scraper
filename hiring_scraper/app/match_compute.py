@@ -66,9 +66,11 @@ _REQUIREMENT_OBSERVATION_FIELDS = (
     'unit',
     'scope',
     'modality',
+    'strength',
 )
 _REQUIREMENT_OBSERVATION_SHORT_FIELDS = frozenset({
     'kind',
+    'strength',
     'status',
     'job_source',
     'evidence_source',
@@ -553,7 +555,8 @@ def _build_explanation_pass(
         ledger = result.get('explanation') or []
         explanation['explanation'], ledger_trimmed = _project_cited_rows(
             ledger, ('signal', 'detail', 'job_quote', 'profile_source', 'profile_quote'),
-            max_items=len(ledger), text_chars=min(nested_chars, 160), numeric_fields=('contribution',),
+            max_items=len(ledger), text_chars=min(nested_chars, 160),
+            numeric_fields=('contribution', 'max_points', 'supported', 'total'),
         )
         explanation['prerequisite_conditions'], conditions_trimmed = _project_cited_rows(
             result.get('prerequisite_conditions'),
