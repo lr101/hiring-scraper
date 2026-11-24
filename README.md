@@ -104,101 +104,49 @@ applications (marking a role Waiting for reply or Automated application). After 
 the day is done and anything more is a bonus. Closed or expired postings are skipped,
 and nothing is sent on your behalf.
 
-Profile matching also compares job duties and qualifications with your skills,
-profile summary, work-history descriptions and saved career evidence. Strong
-content overlap can recommend a role with an unfamiliar title, including an
-adjacent role. This runs locally with bilingual skill/task aliases and cached
-profile analysis; it makes no LLM calls and consumes no API tokens. Title matches
-remain a fallback for sparse postings.
+Profile matching reads each posting with a small local language model and checks
+it against your saved career facts with a local reranker. The model lists the
+posting's duties and requirements as verbatim quotes and names its occupational
+field and industry; benefits, company descriptions and application instructions
+are never treated as requirements. For every duty and requirement the reranker
+then reads the closest lines of your CV together with the job's field and decides
+whether they actually show it, so a shared word in an unrelated field (for example
+"Schulungen" in a SaaS support role versus training in corrosion protection) does
+not count. Everything runs on CPU in separate containers; there are no API calls or
+subscription quotas. See [docs/local-models.md](docs/local-models.md).
 
-The content score uses weighted coverage of the competencies mentioned in a
-posting (up to 85 points). Optional skills carry one quarter of the weight;
-benefits and title-only mentions contribute none. A strong content match needs
-at least two distinct substantive competencies. Common tools alone do not
-promote a role, academic/research evidence has half weight, and repeated words
-or overlapping aliases do not add extra points. Explicit qualification gaps,
-language requirements, location and saved preferences still apply. Job details
-explain the contributing skills and their profile sources. The vocabulary is
-bounded: unsupported paraphrases and unrecognized skills may still be missed;
-explicit custom profile skills also match literally.
+The score (0–100) adds duty evidence, mandatory and preferred requirements, role
+fit and occupational-field fit, then subtracts bounded penalties (work style,
+employment type, unverified formal prerequisites, and at most five points for
+language or work-permit flags) and applies a calibration fitted on the evaluation
+set. Job details show each contribution with the job quote and the CV line that
+supports it. Only explicit incompatibilities cited from both the job and the
+profile hide a job.
 
-Matcher updates and edits to those career facts rebuild matches across the
-existing active inventory, so previously low-scoring roles can appear in Journey.
-Application wording and contact edits do not trigger this rebuild. This expands
-profile matching within the collected inventory; external feed coverage is unchanged.
-The approach takes inspiration from the skills and functional-experience
-dimensions in [AI Job Search's evaluation framework](https://github.com/ai-job-search-dev/ai-job-search/blob/master/.claude/skills/job-application-assistant/04-job-evaluation.md).
-
-Local semantic matching supplements these rules using the existing pinned
-multilingual E5 model on CPU. Inference runs serially in batches of at most four
-sections to limit native memory use during backfills and concurrent requests.
-The profile matching worker embeds career facts
-and separate sections of job responsibilities/qualifications, so related work
-can surface even without a shared title or vocabulary alias. Titles, benefits,
-optional training and contact details do not contribute to this semantic path.
-Sections are bounded and sampled across long postings, retaining late requirements.
-Exact duplicate sentences are removed before embedding.
-The model uses local inference; it makes no paid LLM/API calls.
-
-Normalized section vectors are stored once per job/profile in
-`match_semantic_documents` (migration `0034_profile_semantics`). Job vectors are reused across
-profiles and process restarts. Content changes invalidate their vectors;
-contact/drafting edits reuse them. Background inference runs outside database
-transactions, checks that the source is still current before saving, and updates
-Journey ranking. Job detail and Journey use the same cached evidence. Results
-appear on subsequent Journey loads as indexing progresses.
-
-Semantic similarity alone can surface a **possible lead**, capped at 59 points;
-it never proves a required skill, credential or language level. The initial
-cosine threshold is conservative and needs calibration against a broader judged
-corpus; similarity is not a hiring probability. Higher saved minimum-score
-filters still apply. Rule matching continues while the local service loads or
-is unavailable. Compose already starts both the embedding service and profile
-matching worker. For local development, run both worker commands above and:
-
-```bash
-mise exec -- uv run python -m hiring_scraper.app.semantic_search_worker
-```
-
-An optional real-model smoke test uses synthetic English/German paraphrases and
-unrelated work examples (requires the pinned model cache):
-
-```bash
-HF_HUB_OFFLINE=1 RUN_LOCAL_SEMANTIC_TESTS=1 mise exec -- uv run python -m unittest discover -s tests -p test_semantic_profile_matching.py -v
-```
-
-For an isolated preview with both local semantic services, set
-`HIRING_PREVIEW_LOCAL_SEMANTICS=true` when starting `scripts/dev/preview.sh` with a
-fresh slug. The adapter reserves a separate embedding port and owns both processes.
-
-### Local profile scoring and application preparation
-
-Job ranking is local-only: the profile matching worker scores active postings against
-each profile using deterministic rules (skills, duties, qualifications, language,
-location and eligibility gates) combined with cached local multilingual semantic
-evidence. Results and explanations are stored per profile/job in `profile_job_matches`
-and refreshed in the background when a job, profile or vector changes.
+Jobs the models have not analysed yet show **Analysing job…** and stay out of
+Journey until they are done; jobs in your search area are analysed first. After a
+job or CV edit, the previous result stays visible (marked as updating) until the
+new analysis replaces it. Results are stored per profile/job in
+`profile_job_matches`; the profile match worker rescores from stored analyses and
+evidence and never runs inference itself.
 
 Explicit CV language sections can supply a missing language level without
 replacing a saved level; absence of a language claim remains unknown.
 Country-agnostic authorization flags are not country-specific eligibility evidence.
-The v2 matcher combines documented fit and preferences into a calibrated 0–100
-score. Desired titles contribute preference points. Postings with missing evidence
-are flagged for review. Language and work authorization together can deduct up to
-five points on visible jobs. Only explicit incompatibilities supported by quotes
-from the job and profile hide a job during matching.
 
-With v2 enabled, job details show the strongest positive and negative contributions
-with evidence quotes, the raw total and the calibrated score. Journey uses the stored score
-and explanation while the worker refreshes old matches.
+For local development, run the models and both workers:
 
-The default is `v2`. Set `RADIUS_MATCHER=v1` on the API and workers to return to the
-previous rules matcher for this release. Switching runs the normal background rebuild.
+```bash
+scripts/dev/local-models.sh start
+mise exec -- uv run python -m hiring_scraper.app.semantic_search_worker
+mise exec -- uv run python -m hiring_scraper.app.job_analysis_worker
+```
 
-For a preview of the local profile matching worker without loading another local embedding
-model, set `HIRING_PREVIEW_PROFILE_MATCHING=true` with a fresh preview slug. Use
-`HIRING_PREVIEW_LOCAL_SEMANTICS=true` when the preview also needs local embedding
-backfills; it enables the profile worker as well.
+For a preview of the profile matching worker, set `HIRING_PREVIEW_PROFILE_MATCHING=true`
+with a fresh preview slug; `HIRING_PREVIEW_LOCAL_SEMANTICS=true` also starts the local
+embedding service.
+
+### Application preparation
 
 On a saved-CV application's page, **Prepare inside Radius** generates the CV,
 cover letter and answers through drafting, independent review, revision and PDF
@@ -260,7 +208,7 @@ This keeps the named database volume. Once PostgreSQL is healthy, the migration 
 
 When upgrading from the single-container layout, stop the old app before starting the new release so the old workers do not overlap the new ones. Existing preparation drafts remain on the Codex volume. New PostgreSQL preparation jobs are persisted and resume from checkpoints after an interrupted worker lease expires.
 
-The first app image pull downloads the pinned ONNX model (about 235 MB). The search worker then indexes existing companies and jobs in the background; newly changed records are queued as they are discovered or edited. The jobs page can serve a recent snapshot while the next refresh runs, and text queries use local semantic vectors once indexed.
+The first app image pull downloads the pinned ONNX model (about 235 MB); the `llm` and `llm-reranker` containers download their pinned GGUF weights (about 3.4 GB) into the `llm_models` volume on first start, and the job analysis worker waits for them. The search worker then indexes existing companies and jobs in the background; newly changed records are queued as they are discovered or edited. The jobs page can serve a recent snapshot while the next refresh runs, and text queries use local semantic vectors once indexed.
 
 Open <http://localhost:8080> (or the `APP_PORT` you set in `.env`). `docker compose down` preserves the database volume; use `docker compose down --volumes` to erase it. For a pinned deployment, set `HIRING_APP_IMAGE` and `HIRING_DB_IMAGE` in `.env` to the tags from the same commit (`COMMIT_SHA` for the app and `db-COMMIT_SHA` for the database), or pin each image to its own digest. Then run `docker compose pull && docker compose up -d --no-build`.
 
