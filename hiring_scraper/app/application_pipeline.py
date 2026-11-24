@@ -430,6 +430,45 @@ def _issues_to_findings(kind: DocumentKind, issues: tuple[_ProseIssue, ...] | li
     ]
 
 
+_HEADLINE_SEPARATORS = (' | ', ' · ', ' • ', ' – ', ' — ', ' / ')
+_MAX_PROFILE_SENTENCES = 4
+
+
+def _headline_separator(text: str) -> str | None:
+    """The separator a pillar-style headline uses, when it splits into 2–5 parts."""
+    for separator in _HEADLINE_SEPARATORS:
+        parts = [part for part in text.split(separator) if part.strip()]
+        if 2 <= len(parts) <= 5 and len(parts) == text.count(separator) + 1:
+            return separator
+    return None
+
+
+def _headline_limit(base_text: str) -> int:
+    """Base headlines longer than one short line keep their length budget."""
+    return max(70, len(base_text.strip()) + 10)
+
+
+def cv_format(base: CvDocument) -> dict:
+    """Layout facts of the base headline and profile that tailoring keeps; only wording changes."""
+    headline = base.headline.text.strip()
+    separator = _headline_separator(headline)
+    profile = next((s for s in base.sections if s.kind == 'profile'), None)
+    units = [unit for unit in (profile.units if profile else []) if not unit.hidden and unit.text.strip()]
+    text = ' '.join(unit.text.strip() for unit in units)
+    count = len(editorial.sentences(text)) if text else 2
+    return {
+        'headline': {
+            'base_text': headline, 'max_chars': _headline_limit(headline),
+            **({'separator': separator, 'segments': len(headline.split(separator))} if separator else {}),
+        },
+        'profile': {
+            'paragraphs': max(1, len(units)),
+            'sentences': max(1, min(_MAX_PROFILE_SENTENCES, count)),
+            'words': len(text.split()) if text else 45,
+        },
+    }
+
+
 def _cv_contract(base: CvDocument, evidence: dict[str, str] | None = None) -> tuple[list[dict], type[_CvSlots], dict[str, dict[str, tuple[str, Unit]]]]:
     """Build relevance-gated bullet slots and source-cited profile sentences."""
     if evidence is None:
@@ -500,12 +539,21 @@ def _cv_contract(base: CvDocument, evidence: dict[str, str] | None = None) -> tu
         )
         for index, sources in enumerate(profile_scopes, 1)
     )]
+    shape = cv_format(base)
     profile = create_model(
         'CvProfile', __base__=_Response,
-        first=(sentence, ...), second=(sentence, ...), third=(sentence | None, ...),
+        first=(sentence, ...), second=(sentence | None, ...), third=(sentence | None, ...), fourth=(sentence | None, ...),
     )
+    headline_field: dict = {}
+    if 'separator' in shape['headline']:
+        # Pillar headlines keep their separator and part count: the model writes the parts only.
+        segments = shape['headline']['segments']
+        headline_field['headline'] = (create_model(
+            'CvHeadlineSegments', __base__=_Response,
+            segments=(list[str], Field(min_length=segments, max_length=segments)), sources=(list[str], ...),
+        ), ...)
     response = create_model(
-        'CvDraft', __base__=_CvSlots, entries=(entries_model, ...), profile=(profile, ...),
+        'CvDraft', __base__=_CvSlots, entries=(entries_model, ...), profile=(profile, ...), **headline_field,
     )
     return entries_prompt, response, slot_map
 
@@ -578,7 +626,13 @@ def _cv_from_slots(
     def unknown(message: str) -> None:
         issues.append(_ProseIssue('cv_unknown_id', message, 'review_format', message))
 
-    headline = _SourcedText.model_validate(reply['headline'])
+    shape = cv_format(base)
+    raw_headline = reply['headline']
+    if 'segments' in raw_headline:
+        separator = shape['headline']['separator']
+        raw_headline = {'text': separator.join(' '.join(part.split()) for part in raw_headline['segments']),
+                        'sources': raw_headline['sources']}
+    headline = _SourcedText.model_validate(raw_headline)
     if not headline.sources:
         issues.append(_ProseIssue(
             'cv_missing_sources',
@@ -623,9 +677,16 @@ def _cv_from_slots(
         doc.headline.original_text = original_headline.text
     profile = next((s for s in doc.sections if s.kind == 'profile'), None)
     if profile is not None:
+        written = [_SourcedText.model_validate(sentence) for sentence in reply['profile'].values() if sentence is not None]
+        # Keep the base layout: as many paragraphs as the base profile, filled with the new sentences in order.
+        paragraphs = min(shape['profile']['paragraphs'], len(written)) or 1
+        size = -(-len(written) // paragraphs)
+        groups = [written[start:start + size] for start in range(0, len(written), size)]
         profile.units = [
-            *(_ai(new_id(f'u-ai-profile-{idx}'), _SourcedText.model_validate(sentence))
-              for idx, sentence in enumerate(reply['profile'].values(), 1) if sentence is not None),
+            *(_ai(new_id(f'u-ai-profile-{idx}'), _SourcedText(
+                text=' '.join(item.text.strip() for item in group),
+                sources=list(dict.fromkeys(source for item in group for source in item.sources)),
+            )) for idx, group in enumerate(groups, 1)),
             *(unit for unit in profile.units if unit.hidden),
         ]
 
@@ -704,12 +765,13 @@ def _supported_competency(unit: Unit, evidence: dict[str, str], posting: str) ->
 def _cv_prose_issues(doc: CvDocument) -> list[_ProseIssue]:
     issues: list[_ProseIssue] = []
     if not doc.headline.hidden and doc.headline.origin == 'ai':
-        if len(doc.headline.text) > 70:
+        limit = _headline_limit(doc.headline.original_text or '')
+        if len(doc.headline.text) > limit:
             issues.append(_ProseIssue(
                 'cv_headline_too_long',
-                f'CV headline is {len(doc.headline.text)} characters; keep the CV headline to one line of at most 70 characters.',
+                f'CV headline is {len(doc.headline.text)} characters; keep the CV headline to one line of at most {limit} characters.',
                 'review_format',
-                'The CV headline exceeds 70 characters and may wrap onto a second line.',
+                'The CV headline is longer than the base headline allows and may wrap onto a second line.',
                 unit_id=doc.headline.id,
             ))
     bullets = [
@@ -754,7 +816,7 @@ def _cv_prose_issues(doc: CvDocument) -> list[_ProseIssue]:
                         'The CV profile closely repeats an experience or project bullet.',
                         unit_id=unit.id,
                     ))
-                if len(editorial.sentences(unit.text)) < 2 and len(editorial.words(unit.text)) > 28:
+                if any(len(editorial.words(sentence)) > 28 for sentence in editorial.sentences(unit.text)):
                     issues.append(_ProseIssue(
                         'cv_profile_run_on',
                         f'Profile sentence {idx} is too long; synthesize the strongest evidence in a short sentence.',
@@ -1591,7 +1653,7 @@ def prepare_documents(
         entries, cv_response, slot_map = _cv_contract(base, evidence)
         skills = [{'section_id': s.id, 'title': s.title, 'units': [u.model_dump() for u in s.units]}
                   for s in base.sections if s.kind == 'skills']
-        prompt = _prompt('cv', inp, evidence, entries=entries, skills=skills)
+        prompt = _prompt('cv', inp, evidence, format=cv_format(base), entries=entries, skills=skills)
         last_render = None
 
         def accept_cv(output: dict):

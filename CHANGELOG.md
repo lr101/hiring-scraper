@@ -64,6 +64,7 @@ no historical releases have been reconstructed.
 
 ### Changed
 
+- Application preparation shows one CV at a time: the base CV editor is hidden once a tailored CV exists. **Improve with AI** opens its prompt next to the clicked section and shows the suggestion there. Above the editor, the "Mark AI changes" toggle, the findings count, the unreviewed-download notice and the review-complete banner are gone; document-level notes collapse into one line. CV tailoring and revisions keep the base headline and profile format (separator, part count, sentence count, paragraphs, length) and change only the wording.
 - Generated CVs show each role in capitals with its location, then the employer in bold italic with dates as `MM/YYYY – MM/YYYY` (`present`/`heute` for current roles). The name is larger, the headline bold and the contact links black.
 - Germany and state job searches use the work location only. The employer's or job feed's country or state is no longer a fallback, so a German company's role in Romania is not listed under Germany, A posting that states no work location at all stays in Germany and state searches and in Journey when its employer is in that country or state, flagged "Work location not stated in the posting" (hidden when a profile excludes uncertain matches).
 - Journey shows a job only after the local models have analysed it; until then it appears as "Analysing job…". Jobs in your search area are analysed first. After a job or CV edit, the previous match stays visible until it is refreshed. Score contributions are shown with one decimal.

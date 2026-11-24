@@ -38,6 +38,12 @@ def inputs(mode='full'):
     )
 
 
+def profile_paragraph():
+    """The base profile is one paragraph, so the drafted sentences share one unit."""
+    profile = cv_reply()['profile']
+    return ' '.join(sentence['text'] for sentence in profile.values() if sentence)
+
+
 def cv_reply():
     return {
         'headline': {'text': 'Exhibit and workshop designer', 'sources': ['cv:headline']},
@@ -45,6 +51,7 @@ def cv_reply():
             'first': {'text': 'Workshop designer focused on public participation.', 'sources': ['cv:headline']},
             'second': {'text': 'Experience developing activities with library staff.', 'sources': ['cv:work-1:b1']},
             'third': None,
+            'fourth': None,
         },
         'entries': {'work-1': {
             'order': ['u-base-bullet'],
@@ -463,7 +470,7 @@ class PipelineTests(unittest.TestCase):
              'text': 'I design workshops focused on public participation.'},
         ]})
         self.assertEqual(result.telemetry['applied_patches'], [])
-        self.assertEqual(result.cv['sections'][0]['units'][0]['text'], cv_reply()['profile']['first']['text'])
+        self.assertEqual(result.cv['sections'][0]['units'][0]['text'], profile_paragraph())
         self.assertEqual(result.letter['paragraphs'][-1]['text'], letter_reply()['closing']['text'])
 
     def test_cv_slot_contract_forbids_dropping_a_project_and_supports_keep_action(self):
@@ -917,6 +924,7 @@ class PipelineTests(unittest.TestCase):
             'first': {'text': 'Workshop designer focused on public participation.', 'sources': ['cv:headline']},
             'second': {'text': 'Designed activities with library staff.', 'sources': ['cv:work-1:b1']},
             'third': None,
+            'fourth': None,
         }
         draft['skills'][0] = {'section_id': 's-skills', 'unit_ids': ['u-skill']}
         bullets = draft['entries']['work-1']['bullets']
@@ -1509,7 +1517,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(result.telemetry['applied_patches'], [])
         self.assertEqual(
             result.cv['sections'][0]['units'][0]['text'],
-            cv_reply()['profile']['first']['text'],
+            profile_paragraph(),
         )
 
     def test_prompts_dir_override_and_env_var(self):
@@ -1556,3 +1564,38 @@ class PipelineTests(unittest.TestCase):
             # Default remains unchanged once env var is cleared.
             self.assertEqual(pipeline.input_digest(inputs()), default_digest)
             self.assertNotIn('CUSTOM COMMON PROMPT', pipeline._instructions('cv'))
+
+
+class CvFormatTests(unittest.TestCase):
+    """Tailoring keeps the base headline and profile format and only changes the wording."""
+
+    def test_pillar_headline_keeps_separator_and_part_count(self):
+        from hiring_scraper.documents.schema import Unit
+        base = CvDocument.model_validate(inputs().base_cv)
+        base.headline = Unit(id=base.headline.id, text='Product Development | User Research & Requirements | Project Coordination')
+        shape = pipeline.cv_format(base)
+        self.assertEqual((shape['headline']['separator'], shape['headline']['segments']), (' | ', 3))
+        self.assertGreaterEqual(shape['headline']['max_chars'], len(base.headline.text))
+        _, response, slot_map = pipeline._cv_contract(base)
+        reply = cv_reply()
+        reply['headline'] = {'segments': ['Product Discovery', 'User Research', 'Workshop Coordination'],
+                             'sources': ['cv:headline']}
+        doc, _ = pipeline._cv_from_slots(reply, response, slot_map, base)
+        self.assertEqual(doc.headline.text, 'Product Discovery | User Research | Workshop Coordination')
+        reply['headline']['segments'] = ['Only', 'Two']
+        with self.assertRaises(ValidationError):
+            pipeline._cv_from_slots(reply, response, slot_map, base)
+
+    def test_profile_sentences_stay_in_the_base_paragraph_layout(self):
+        from hiring_scraper.documents.schema import Unit
+        base = CvDocument.model_validate(inputs().base_cv)
+        base.sections[0].units = [Unit(id='u-profile', text='Designer of workshops. Works with libraries. Builds exhibits.')]
+        self.assertEqual(pipeline.cv_format(base)['profile'], {'paragraphs': 1, 'sentences': 3, 'words': 8})
+        _, response, slot_map = pipeline._cv_contract(base)
+        reply = cv_reply()
+        reply['profile']['third'] = {'text': 'Builds prototypes with visitors.', 'sources': ['cv:headline']}
+        doc, _ = pipeline._cv_from_slots(reply, response, slot_map, base)
+        profile = [unit for unit in doc.sections[0].units if not unit.hidden]
+        base_profile = [unit for unit in base.sections[0].units if not unit.hidden]
+        self.assertEqual(len(profile), len(base_profile))
+        self.assertEqual(len(pipeline.editorial.sentences(profile[0].text)), 3)

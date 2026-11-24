@@ -316,13 +316,9 @@ class ProductionPreparationTests(ProductionHarness):
                 timeout=30000,
             ) as rendered,
         ):
-            # The fixture letter is AI-written and unreviewed, so download first
-            # offers the review; continuing must still start the render.
-            application.get_by_role('button', name='Download PDF', exact=True).click()
-            notice = application.get_by_role('group', name='Download review notice')
-            expect(notice).to_contain_text('not reviewed yet')
+            # Download starts the render directly, even with unreviewed AI changes.
             with application.expect_response(lambda response: '/letter/pdf?' in response.url) as first:
-                notice.get_by_role('button', name='Download anyway', exact=True).click()
+                application.get_by_role('button', name='Download PDF', exact=True).click()
             self.assertEqual(first.value.status, 202)
             # Claim the real queue row and run the shipped renderer without
             # starting the long-lived inference worker or touching a subscription.
@@ -391,6 +387,11 @@ class ProductionPreparationTests(ProductionHarness):
         overwrite = self.page.get_by_role('button', name='Overwrite with my edits')
         expect(overwrite).to_be_enabled()
         overwrite.click()
-        expect(self.page.get_by_text('Version 3 · English', exact=True)).to_be_visible()
-        body = self.context.request.get(f'{api}?job_id=1574').json()['letter']['body']
+        # The version label is gone from the lean toolbar; the conflict notice clears and the
+        # editor reports the save once version 3 is stored.
+        expect(self.page.get_by_text('Your local edits are still here.', exact=False)).to_have_count(0)
+        expect(self.page.get_by_text('Saved', exact=True)).to_be_visible()
+        saved = self.context.request.get(f'{api}?job_id=1574').json()['letter']
+        self.assertEqual(saved['version'], 3)
+        body = saved['body']
         self.assertEqual(body['paragraphs'][0]['text'], 'My reviewed paragraph.')

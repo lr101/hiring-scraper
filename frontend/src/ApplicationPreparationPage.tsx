@@ -253,7 +253,7 @@ function Preparation({ job, profile, editHref }: { job: Job; profile: Profile; e
         </select></label>
       </div>
       {baseError && <p className="preparation-error" role="alert">{baseError}</p>}
-      {!base ? <p role="status">{baseError ? <button onClick={() => setBaseReload(current => current + 1)}>Retry loading base CV</button> : 'Loading base CV…'}</p>
+      {cv.body ? null : !base ? <p role="status">{baseError ? <button onClick={() => setBaseReload(current => current + 1)}>Retry loading base CV</button> : 'Loading base CV…'}</p>
         : !baseBody ? <div><ul>{base.errors.map(error => <li key={error}>{error}</li>)}</ul><a href={editHref}>Manage base CVs in your profile</a></div>
         : <details className="base-cv-review" open={baseOpen} onToggle={event => setBaseOpen(event.currentTarget.open)}>
           <summary>{base.source === 'imported' ? 'Review imported base CV' : 'Review or edit base CV'}</summary>
@@ -290,8 +290,7 @@ function Preparation({ job, profile, editHref }: { job: Job; profile: Profile; e
     </section>
 
     {!documentsLoaded && <p role="status">Loading saved documents…</p>}
-    {(cv.body || letter.body) && <section className="application-finish-card" aria-labelledby="application-documents-heading">
-      <h2 id="application-documents-heading">Application documents</h2>
+    {(cv.body || letter.body) && <section className="application-finish-card" aria-label="Application documents">
       <div className="preparation-actions" role="tablist" aria-label="Document tabs">
         {KINDS.map(kind => <button type="button" key={kind} role="tab" id={`application-tab-${kind}`}
           aria-selected={selected === kind} aria-controls="application-document-panel"
@@ -381,7 +380,6 @@ function TailoredDocument({
   const [reverting, setReverting] = useState(false)
   const [reloading, setReloading] = useState(false)
   const [error, setError] = useState('')
-  const [instruction, setInstruction] = useState<{ unitId: string; text: string }>()
   const [findingEdit, setFindingEdit] = useState<{ finding: Finding; original: string; text: string }>()
   const [pdfBusy, setPdfBusy] = useState(false)
   const [pdfError, setPdfError] = useState('')
@@ -480,7 +478,6 @@ function TailoredDocument({
 
   return <>
     <div className="preparation-actions">
-      <span>Version {saved.version} · {saved.language === 'de' ? 'Deutsch' : 'English'}</span>
       <button type="button" disabled={versionBusy || reverting} onClick={() => void loadVersions()}>
         {versions ? 'Close version history' : 'Version history'}
       </button>
@@ -524,34 +521,6 @@ function TailoredDocument({
         <button type="button" onClick={() => dismissOutput(outputKey)}>Keep my document</button>
       </div>
     </div>}
-    {suggestion && <section className="preparation-review-panel" aria-label="AI revision suggestion">
-      <h3>AI revision suggestion</h3>
-      <p><strong>Original</strong> {suggestion.original_text}</p>
-      <p><strong>Suggested</strong> {suggestion.text}</p>
-      {suggestion.findings.length > 0 && <ul>{suggestion.findings.map(finding => <li key={finding.id}>{finding.message}</li>)}</ul>}
-      {!canAccept && <p>This section changed after the revision was requested. Ask for a new suggestion to revise the current text.</p>}
-      <div className="preparation-actions">
-        <button type="button" disabled={!canAccept || readOnly} onClick={() => {
-          draft.edit(updateUnitText(body, suggestion.unit_id, suggestion.text))
-          dismissOutput(outputKey)
-        }}>Accept suggestion</button>
-        <button type="button" onClick={() => dismissOutput(outputKey)}>Dismiss suggestion</button>
-      </div>
-    </section>}
-    {instruction && <form className="preparation-review-panel" onSubmit={event => {
-      event.preventDefault()
-      if (!canRevise || unsettled || !instruction.text.trim() || !findUnitById(body, instruction.unitId)) return
-      onRevise(kind, instruction.unitId, instruction.text.trim(), saved)
-      setInstruction(undefined)
-    }}>
-      <label>How should AI improve this section?
-        <textarea value={instruction.text} maxLength={500} rows={3} onChange={event => setInstruction({ ...instruction, text: event.target.value })} autoFocus />
-      </label>
-      <div className="preparation-actions">
-        <button type="submit" disabled={!canRevise || unsettled || !instruction.text.trim()}>Request suggestion</button>
-        <button type="button" onClick={() => setInstruction(undefined)}>Cancel</button>
-      </div>
-    </form>}
     {findingEdit && <form className="preparation-review-panel" onSubmit={event => {
       event.preventDefault()
       const id = findingEdit.finding.unit_id
@@ -575,13 +544,26 @@ function TailoredDocument({
       saving={draft.saving ? 'saving' : draft.error ? 'error' : unsettled ? 'idle' : 'saved'}
       saveError={draft.error} readOnly={readOnly}
       onDownloadPdf={() => void download()} downloadDisabled={unsettled || pdfBusy}
-      onImproveUnit={unitId => { setFindingEdit(undefined); setInstruction({ unitId, text: '' }) }}
+      onImproveUnit={(unitId, text) => {
+        setFindingEdit(undefined)
+        if (canRevise && !unsettled && findUnitById(body, unitId)) onRevise(kind, unitId, text, saved)
+      }}
       improveDisabled={!canRevise || unsettled}
+      suggestion={suggestion ? {
+        unitId: suggestion.unit_id,
+        text: suggestion.text,
+        notes: suggestion.findings.map(finding => finding.message),
+        canAccept: canAccept && !readOnly,
+        onAccept: () => {
+          draft.edit(updateUnitText(body, suggestion.unit_id, suggestion.text))
+          dismissOutput(outputKey)
+        },
+        onDismiss: () => dismissOutput(outputKey),
+      } : null}
       onDismissFinding={draft.dismiss}
       onApplyFinding={finding => {
         const unit = finding.unit_id && findUnitById(body, finding.unit_id)
         if (unit) {
-          setInstruction(undefined)
           setFindingEdit({ finding, original: unit.text, text: unit.text })
         }
       }} />
