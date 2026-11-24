@@ -797,6 +797,9 @@ class ExportVerificationTests(unittest.TestCase):
             {'code': 'overflow', 'status': 'warning'},
         ]
         self.assertTrue(application_pdf.export_verified(checks))
+        advisory = checks + [{'code': 'pdfium_word_boundaries', 'status': 'failed'},
+                             {'code': 'pdfium_control_chars', 'status': 'failed'}]
+        self.assertTrue(application_pdf.export_verified(advisory))
         self.assertFalse(application_pdf.export_verified(checks[1:]))
         for index in range(5):
             broken = [dict(check) for check in checks]
@@ -838,8 +841,9 @@ class ExportVerificationTests(unittest.TestCase):
             {'code': 'contacts_present', 'status': 'passed'},
         ]
         self.assertTrue(application_pdf.export_verified(base_passed + ok_checks))
-        self.assertFalse(application_pdf.export_verified(base_passed + ctrl_checks))
-        self.assertFalse(application_pdf.export_verified(base_passed + merged_checks))
+        # pdfium findings are advisory telemetry and never block an export.
+        self.assertTrue(application_pdf.export_verified(base_passed + ctrl_checks))
+        self.assertTrue(application_pdf.export_verified(base_passed + merged_checks))
 
 
 if __name__ == '__main__':

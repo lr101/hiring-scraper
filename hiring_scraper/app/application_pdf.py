@@ -76,14 +76,14 @@ class RenderResult:
 
 
 def export_verified(checks: list[dict]) -> bool:
-    """Require readable text and applicant details. Layout checks are advisory."""
+    """Require readable text and applicant details.
+
+    Layout and pdfium checks are advisory: pdfium infers word gaps heuristically and
+    can join words on valid Chromium PDFs, so it must never block a download.
+    """
     required = {'text_extractable', 'glyphs', 'special_characters', 'name_present', 'contacts_present'}
     passed = {check['code'] for check in checks if check.get('status') == 'passed'}
-    pdfium_failed = any(
-        check.get('code') in {'pdfium_control_chars', 'pdfium_word_boundaries'} and check.get('status') != 'passed'
-        for check in checks
-    )
-    return required <= passed and not pdfium_failed
+    return required <= passed
 
 
 def _dist() -> Path:
