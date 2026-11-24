@@ -69,7 +69,8 @@ Check that:
   keep verified quantified results with the actions they measure. In German, use direct
   active verbs and suspension hyphens in coordinated compounds ("Markt- und
   Nutzerbedürfnisse"). Preserve each rewrite's local terminology change and original
-  clause order. Leave kept `origin == "source"` bullets untouched.
+  clause order. Report any remaining bullet wording issue as a finding with a suggestion
+  for the applicant. Leave kept `origin == "source"` bullets untouched.
 - Skills are reordered only. Preserve their text, citations and visibility.
 - Cover letter opens by connecting a core duty to a specific, cited capability in
   the applicant's background. Keep posting facts exact.

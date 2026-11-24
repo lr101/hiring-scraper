@@ -913,6 +913,36 @@ class PipelineTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             response.model_validate(draft)
 
+    def test_profile_sentence_cannot_mix_work_and_study_entry_sources(self):
+        base_data = deepcopy(self.inp.base_cv)
+        entry = deepcopy(base_data['sections'][1]['entries'][0])
+        entry.update(id='study-1', kind='study', intro=[], units=[
+            {'id': 'u-study-test', 'text': 'Prototyped a gallery sign as a design student.'},
+        ])
+        base_data['sections'].append({
+            'id': 's-edu', 'title': 'Education', 'kind': 'education', 'entries': [entry],
+        })
+        base = CvDocument.model_validate(base_data)
+        _, response, _ = pipeline._cv_contract(base)
+        draft = cv_reply()
+        draft['entries']['study-1'] = {
+            'order': ['u-study-test'], 'bullets': {'u-study-test': {'relevance': 'medium'}},
+        }
+        response.model_validate(draft)
+        draft['profile']['second']['sources'].append('cv:study-1:b1')
+        with self.assertRaises(ValidationError):
+            response.model_validate(draft)
+
+    def test_review_leaves_rewritten_bullet_edits_as_suggestions(self):
+        result = self.run_with(review={'findings': [], 'patches': [{
+            'document': 'cv', 'unit_id': 'u-base-bullet', 'kind': 'rephrase',
+            'text': 'Directed a public workshop with librarians.',
+        }]})
+        bullet = result.cv['sections'][1]['entries'][0]['units'][0]
+        self.assertEqual(bullet['text'], 'Designed a public workshop with librarians.')
+        self.assertEqual(result.telemetry['applied_patches'], [])
+        self.assertTrue(any(f['unit_id'] == bullet['id'] for f in result.findings))
+
     def test_unknown_entry_or_dropped_bullet_is_rejected_by_cv_schema(self):
         base = CvDocument.model_validate(self.inp.base_cv)
         _, response, _ = pipeline._cv_contract(base)

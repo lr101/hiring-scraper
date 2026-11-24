@@ -151,8 +151,9 @@ verbatim as `origin="source"`. High-relevance slots take replacement text and ar
 the exact base source. The application keeps the original lead-in. A typical CV rewrites
 two to four core-duty bullets at the source's exact scope, applying posting vocabulary
 where equivalent. Skills can only be reordered. The profile has two required sentence
-slots and one nullable third slot, each with a separate evidence list. Entry-scoped facts
-identify work and study contexts explicitly. The German profile uses implicit first person
+slots and one nullable third slot, each with a separate evidence list limited to one
+entry plus general facts. Entry-scoped facts identify work and study contexts explicitly.
+The German profile uses implicit first person
 and the English profile uses noun-led or subject-less CV prose.
 
 The letter opens with a cited connection between the applicant's background and a core
@@ -165,8 +166,8 @@ allowed source per sentence.
 The closing uses an idiomatic interview invitation in the target language.
 Subjects are formatted deterministically from the posting title (`Bewerbung als <Titel>` in
 German, `Application for <title>` in English). The tailored CV is available during review,
-where textual overlap and claim-scope issues can be surfaced as findings, while kept
-`origin="source"` bullets are left untouched. In PDF rendering, list-label intros stay with
+where textual overlap and claim-scope issues can be surfaced as findings. Review can
+suggest changes to generated bullets for the applicant to consider. In PDF rendering, list-label intros stay with
 their first bullet and an entry header/intro is never stranded on a page with zero bullets.
 
 ## Work packages
@@ -190,5 +191,5 @@ Focused unit and node tests during development; frontend build; Chromium render 
 when no browser is installed. PostgreSQL migration and queue tests run in CI. Real profile
 data, outputs and judge transcripts stay in gitignored `data/private/`.
 
-Pipeline version `application-documents-v2.12` invalidates earlier draft checkpoints for
+Pipeline version `application-documents-v2.13` invalidates earlier draft checkpoints for
 the relevance-based CV contract and revised letter and review prompts.

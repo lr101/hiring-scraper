@@ -38,7 +38,7 @@ from hiring_scraper.documents.schema import (
 )
 from hiring_scraper.documents.text import unit_full_text
 
-PIPELINE_VERSION = 'application-documents-v2.12'
+PIPELINE_VERSION = 'application-documents-v2.13'
 SLEEP = time.sleep
 PROMPTS = Path(__file__).with_name('prompts')
 DocumentKind = Literal['cv', 'letter']
@@ -406,6 +406,8 @@ def _cv_contract(base: CvDocument, evidence: dict[str, str] | None = None) -> tu
         evidence = build_evidence(base)
     profile_sources = {'cv:headline', 'profile:education', 'profile:certifications'}
     profile_sources.update(source for source in evidence if source.startswith('skill:'))
+    general_sources = profile_sources.intersection(evidence)
+    profile_scopes = [general_sources] if general_sources else []
     entries_prompt: list[dict] = []
     entry_fields: dict[str, tuple] = {}
     slot_map: dict[str, dict[str, tuple[str, Unit]]] = {}
@@ -418,8 +420,9 @@ def _cv_contract(base: CvDocument, evidence: dict[str, str] | None = None) -> tu
             intros = {source: fact for source, fact in evidence.items() if re.fullmatch(
                 rf'{re.escape(prefix)}i\d+', source,
             )}
-            profile_sources.update(intros)
-            profile_sources.update(source for source, _ in bank)
+            entry_sources = set(intros) | {source for source, _ in bank}
+            if entry_sources:
+                profile_scopes.append(general_sources | entry_sources)
             entries_prompt.append({
                 'entry_id': entry.id,
                 'kind': entry.kind,
@@ -457,12 +460,16 @@ def _cv_contract(base: CvDocument, evidence: dict[str, str] | None = None) -> tu
             slot_map[entry.id] = entry_slots
             entries_prompt[-1]['bullets'] = prompt_bullets
     entries_model = create_model('CvEntries', __base__=_Response, **entry_fields)
-    # A sparse CV can cite its original headline as the only identity evidence.
-    allowed = tuple(sorted(profile_sources.intersection(evidence) or {'cv:headline'}))
-    sentence = create_model(
-        'CvProfileSentence', __base__=_Text,
-        sources=(list[Literal[allowed]], Field(min_length=1)),
-    )
+    # Keep any scoped facts within one entry per sentence. General facts supply identity.
+    if not profile_scopes:
+        profile_scopes.append({'cv:headline'})
+    sentence = Union[tuple(
+        create_model(
+            f'CvProfileSentence{index}', __base__=_Text,
+            sources=(list[Literal[tuple(sorted(sources))]], Field(min_length=1)),
+        )
+        for index, sources in enumerate(profile_scopes, 1)
+    )]
     profile = create_model(
         'CvProfile', __base__=_Response,
         first=(sentence, ...), second=(sentence, ...), third=(sentence | None, ...),
@@ -1334,6 +1341,15 @@ def _valid_review_edit(
     candidate: Document, docs: dict[DocumentKind, Document], unit: Unit,
     base: CvDocument, evidence: dict[str, str], posting: str, company: str,
 ) -> bool:
+    if isinstance(candidate, CvDocument):
+        for section in candidate.sections:
+            if section.kind == 'profile' and any(
+                u.id == unit.id and len(editorial.sentences(u.text)) != 1 for u in section.units
+            ):
+                return False
+            if any(u.id == unit.id for entry in section.entries for u in entry.units):
+                return False
+
     cv = candidate if isinstance(candidate, CvDocument) else docs['cv']
     letter = candidate if isinstance(candidate, LetterDocument) else docs['letter']
     def blocking_keys(issues):
@@ -1388,11 +1404,6 @@ def _valid_review_edit(
                 updated = next((u for u in section.units if u.id == unit.id), None)
                 if updated is not None:
                     return _supported_competency(updated, evidence, posting)
-            for entry in section.entries:
-                updated = next((u for u in entry.units if u.id == unit.id), None)
-                if updated is not None:
-                    return not (editorial.omitted_critical_details(updated, evidence, entry.id)
-                                - editorial.omitted_critical_details(unit, evidence, entry.id))
     return True
 
 

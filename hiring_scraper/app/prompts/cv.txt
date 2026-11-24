@@ -18,9 +18,10 @@ Headline and profile
   für … mit Erfahrung in …". Follow with direct, subject-less verb-led clauses as natural.
 - English: use a noun-led opening and fluent CV sentences with an implied applicant where
   natural. Avoid sentence fragments, bare infinitives and explicit applicant pronouns.
-- Every sentence has its own `sources`. Cite only facts supporting that sentence; do not
-  borrow context from another sentence or another title. In ENTRIES, each fact belongs to
-  its own entry. Use a study fact only as study experience, explicitly naming it as a study
+- Every sentence has its own `sources`, supporting the text of that sentence alone.
+  Each sentence may draw on one entry and general identity or skill evidence. Never
+  borrow context from another sentence or another title. Use a study fact only as study
+  experience, explicitly naming it as a study
   project where relevant. A company in a project label is a topic, not an employer, client,
   or project recipient unless the cited fact explicitly says so. Never attach a job title to
   work in a different entry. If two sources describe unrelated actions, state them
