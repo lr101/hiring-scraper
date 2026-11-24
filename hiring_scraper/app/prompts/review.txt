@@ -7,13 +7,6 @@ Use the PDF checks for reading order and the extracted split_units for page brea
 estimated from unpaginated HTML do not establish a PDF page break. Do not duplicate existing
 findings. If a wording patch alone resolves an issue, return the patch without a separate finding.
 
-Before writing patches, fill in letter_claims for the original letter. Enumerate each
-atomic claim about the applicant's past work, qualifications or usual practice, including
-claims implied by connective language. For each, name the paragraph id and the exact
-original evidence ids already cited by that paragraph that prove the full claim. Mark
-supported=false if any part of it is unproven and return a grounding patch for that unit.
-Future proposals and statements about the posting are outside this claim audit.
-
 Findings: report real problems only, each anchored to a unit id (or null for the whole
 document), with a category:
 - grounding: a claim beyond the cited evidence. Audit each past-tense clause and each
@@ -21,7 +14,7 @@ document), with a category:
   collaborators, scope, frequency, decision rights, causality and outcome independently.
   Verify the actual relationship with each named group, including who supplied feedback.
   An implied decision, habit or responsibility can be misleading even if no new tool or
-  number appears. For an editable unit, return a grounding patch for every such finding.
+  number appears. Report it on the affected unit and suggest narrower wording for review.
   In particular, distinguish preparing options, prioritizing inputs, recommending an
   option, and making the final product decision. Test whether each KPI is tied to the
   exact outcome claimed. Keep independently verified actions independent.
@@ -39,12 +32,9 @@ Patches: for AI-written units only, propose replacement text with a kind:
   CV profile repeating a bullet or written as a single run-on sentence, three consecutive
   "I <verb>" openings, repeated paragraph endings, or multiple "würde"/"would" conditionals
   across the letter). Keep the underlying facts and citations.
-- grounding: narrow or remove only the unsupported part of a claim using the unit's existing
-  sources. Separate verified facts if their causal link is unsupported. When helpful, state
-  a broader action as a concrete future plan for the role. Include the same unit's style
-  fixes in this replacement, including any CV wording overlap.
 - shorten: same facts, fewer words (use when RENDER shows overflow).
-- content: adds, removes or changes facts. These are shown to the applicant, not applied.
+- content: adds, removes or changes facts, including narrowing an unsupported past claim.
+  These are shown to the applicant, not applied.
 A patch keeps the unit's cited facts, cites nothing new, and does not introduce repeated
 phrases across paragraphs (such as "I look forward to" in both a body paragraph and the
 closing). Before returning each patch, audit every claim in the replacement against the
@@ -75,7 +65,7 @@ Check that:
   verbs and suspension hyphens in coordinated compounds ("Markt- und Nutzerbedürfnisse").
 - Competency additions are 1–4 words and use concrete wording supported by cited evidence.
   Keep the existing units and their citations intact.
-- Cover letter opens by connecting work stated in the posting to concrete verified experience.
+- Cover letter opens with a specific reason for interest in the work in the posting.
   Check claims about the employer against the posting. Each experience paragraph connects one
   verified example to a named duty and adds a supported decision, method or result beyond the
   CV, or explains the transfer when the CV is the only evidence.

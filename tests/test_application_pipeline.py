@@ -6,6 +6,7 @@ from datetime import date
 from unittest.mock import Mock, patch
 
 from fastapi import HTTPException
+from pydantic import ValidationError
 
 from hiring_scraper.app import application_pipeline as pipeline
 from hiring_scraper.app.application_pdf import RenderResult
@@ -72,6 +73,31 @@ def letter_reply():
     }
 
 
+def slot_letter_reply(schema, reply):
+    """Translate the shared prose fixtures to the generated employer-slot schema."""
+    defs = schema['$defs']
+    fields = defs['LetterExamples']['properties']
+    examples = dict.fromkeys(fields)
+    fit = None
+    for paragraph in reply['paragraphs'][1:]:
+        if paragraph['role'] == 'bring':
+            fit = {'text': paragraph['text'], 'uses_language_level': 'profile:language_levels' in paragraph['sources']}
+            continue
+        source = paragraph['sources'][0]
+        for slot, field in fields.items():
+            if any(source in anchor.get('enum', [anchor.get('const')])
+                   for option in field['anyOf'] if '$ref' in option
+                   for anchor in [defs[option['$ref'].rsplit('/', 1)[-1]]['properties']['anchor']]):
+                examples[slot] = {
+                    'anchor': source, 'priority': 1,
+                    'sentences': [{'text': paragraph['text'], 'source': source}],
+                }
+                break
+    return {'subject': reply['subject'], 'contact_name': reply['contact_name'],
+            'motivation': {'text': reply['paragraphs'][0]['text']}, 'examples': examples,
+            'fit': fit, 'closing': reply['closing']}
+
+
 class PipelineTests(unittest.TestCase):
     def setUp(self):
         self.inp = inputs()
@@ -86,10 +112,19 @@ class PipelineTests(unittest.TestCase):
         if checkpoint is not None:
             self.checkpoints[key] = checkpoint
 
+    def prepare(self, generate, hooks, render=None):
+        def generate_for_schema(prompt, schema):
+            reply = generate(prompt, schema)
+            if 'LetterExamples' in schema.get('$defs', {}) and 'paragraphs' in reply:
+                return slot_letter_reply(schema, reply)
+            return reply
+
+        return pipeline.prepare_documents(self.inp, generate_for_schema, hooks, render)
+
     def run_with(self, cv=None, letter=None, review=None, render=None):
         replies = iter((cv if cv is not None else cv_reply(), letter or letter_reply(),
                         review or {'findings': [], 'patches': []}))
-        return pipeline.prepare_documents(self.inp, lambda prompt, schema: next(replies), self.hooks, render)
+        return self.prepare(lambda prompt, schema: next(replies), self.hooks, render)
 
     def test_input_digest_changes_with_effective_voice(self):
         initial = pipeline.input_digest(self.inp)
@@ -113,14 +148,14 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(set(schema['required']), set(schema['properties']))
             return reply
 
-        result = pipeline.prepare_documents(self.inp, generate, self.hooks)
+        result = self.prepare(generate, self.hooks)
         self.assertEqual(self.stages, ['cv', 'letter', 'review', 'finalize'])
         self.assertEqual([kind for kind, *_ in self.published], ['cv', 'letter', 'cv', 'letter'])
         self.assertEqual(self.published[-1][1], result.letter)
         self.assertEqual(set(self.checkpoints), {f'{s}:{pipeline.input_digest(self.inp)}'
                                                 for s in ['cv', 'letter', 'review']})
         self.published.clear()
-        resumed = pipeline.prepare_documents(self.inp, lambda *_: self.fail('generation on resume'), self.hooks)
+        resumed = self.prepare(lambda *_: self.fail('generation on resume'), self.hooks)
         self.assertEqual((resumed.cv, resumed.letter, resumed.findings), (result.cv, result.letter, result.findings))
         self.assertEqual(self.published, [])
 
@@ -142,7 +177,7 @@ class PipelineTests(unittest.TestCase):
                 case _:
                     return letter_reply()
 
-        result = pipeline.prepare_documents(self.inp, generate, self.hooks)
+        result = self.prepare(generate, self.hooks)
         self.assertEqual(result.telemetry['attempts'], {'cv': 3, 'letter': 1})
         self.assertEqual([p[0] for p in self.published], ['cv', 'letter'])
 
@@ -151,7 +186,7 @@ class PipelineTests(unittest.TestCase):
             raise pipeline.GenerationError('unauthorized')
 
         with self.assertRaises(pipeline.GenerationError) as error:
-            pipeline.prepare_documents(self.inp, generate, self.hooks)
+            self.prepare(generate, self.hooks)
         self.assertEqual(error.exception.code, 'unauthorized')
         self.assertEqual(self.stages, ['cv'])
         self.assertEqual(self.published, [])
@@ -162,7 +197,7 @@ class PipelineTests(unittest.TestCase):
             raise pipeline.GenerationError('timeout', retryable=True)
 
         with self.assertRaises(pipeline.GenerationError) as error:
-            pipeline.prepare_documents(self.inp, generate, self.hooks)
+            self.prepare(generate, self.hooks)
         self.assertEqual(error.exception.code, 'timeout')
         self.assertEqual(self.stages, ['cv'])
         self.assertEqual(self.published, [])
@@ -176,7 +211,7 @@ class PipelineTests(unittest.TestCase):
             return cv_reply() if stage == 'cv' else letter_reply()
 
         with self.assertRaises(pipeline.GenerationError) as error:
-            pipeline.prepare_documents(self.inp, generate, self.hooks)
+            self.prepare(generate, self.hooks)
         self.assertEqual(error.exception.code, 'timeout')
         self.assertEqual([kind for kind, *_ in self.published], ['cv', 'letter'])
 
@@ -184,7 +219,7 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(self.stages[-1], 'review')
             return {'findings': [], 'patches': []}
 
-        resumed = pipeline.prepare_documents(self.inp, review, self.hooks)
+        resumed = self.prepare(review, self.hooks)
         self.assertEqual(resumed.stages['cv']['state'], 'resumed')
         self.assertEqual(resumed.stages['letter']['state'], 'resumed')
         self.assertEqual(resumed.stages['review']['state'], 'completed')
@@ -196,10 +231,10 @@ class PipelineTests(unittest.TestCase):
             raise pipeline.GenerationError('not_connected')
 
         with self.assertRaises(pipeline.GenerationError):
-            pipeline.prepare_documents(self.inp, generate, self.hooks)
+            self.prepare(generate, self.hooks)
         self.assertEqual([p[0] for p in self.published], ['cv'])
         replies = iter([letter_reply(), {'findings': [], 'patches': []}])
-        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
+        result = self.prepare(lambda *_: next(replies), self.hooks)
         self.assertEqual(result.stages['cv']['state'], 'resumed')
         self.assertEqual([p[0] for p in self.published], ['cv', 'letter', 'cv', 'letter'])
 
@@ -213,7 +248,7 @@ class PipelineTests(unittest.TestCase):
         unknown_id = cv_reply()
         unknown_id['entries'].append({'entry_id': 'invented', 'bullets': []})
         replies = iter([cv, unknown_id, cv_reply(), letter_reply(), {'findings': [], 'patches': []}])
-        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
+        result = self.prepare(lambda *_: next(replies), self.hooks)
         base = self.inp.base_cv
         entry = result.cv['sections'][1]['entries'][0]
         self.assertEqual(entry['locked'], base['sections'][1]['entries'][0]['locked'])
@@ -268,28 +303,13 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(result.cv['page'], 'a4')
         self.assertEqual(result.letter['page'], 'a4')
 
-    @patch.object(pipeline, 'SLEEP', lambda _: None)
-    def test_letter_retries_duplicate_entry_and_copied_cv_prose(self):
-        self.inp.mode = 'fast'
-        copied_bullet = 'Designed an accessible exhibition workshop with librarians and visiting teachers.'
-        cv = cv_reply()
-        cv['entries'][0]['bullets'][0]['text'] = copied_bullet
+    def test_duplicate_employer_safety_net_flags_legacy_style_paragraphs(self):
+        base = CvDocument.model_validate(self.inp.base_cv)
         duplicate = letter_reply()
         duplicate['paragraphs'][2]['sources'].append('cv:work-1:i1')
-        copied = letter_reply()
-        copied['paragraphs'][1]['text'] += ' ' + copied_bullet
-        prompts = []
-
-        def generate(prompt, schema):
-            prompts.append(prompt)
-            return replies[len(prompts) - 1]
-
-        replies = [cv, duplicate, copied, letter_reply()]
-        result = pipeline.prepare_documents(self.inp, generate, self.hooks)
-        self.assertEqual(result.telemetry['attempts']['letter'], 3)
-        self.assertIn('one paragraph per employer or project', prompts[2])
-        self.assertIn('eight consecutive words', prompts[3])
-        self.assertIn('one paragraph per employer or project', prompts[3])
+        letter = pipeline._letter_draft(duplicate, self.inp, base)
+        issues = pipeline._letter_prose_issues(letter, base, base, 'Wren Museum')
+        self.assertIn('letter_duplicate_employer', {issue.code for issue in issues})
 
     @patch.object(pipeline, 'SLEEP', lambda _: None)
     def test_advisory_style_reaches_review_without_retry_and_can_be_fixed(self):
@@ -316,7 +336,7 @@ class PipelineTests(unittest.TestCase):
                 {'document': 'letter', 'unit_id': 'u-letter-p3', 'kind': 'rephrase', 'text': original},
             ]}
 
-        result = pipeline.prepare_documents(self.inp, generate, self.hooks)
+        result = self.prepare(generate, self.hooks)
         self.assertEqual(result.telemetry['attempts'], {'cv': 1, 'letter': 1, 'review': 1})
         self.assertEqual(result.letter['paragraphs'][2]['text'], original)
         self.assertFalse(any('more than one conditional' in f['message'] for f in result.findings))
@@ -380,7 +400,7 @@ class PipelineTests(unittest.TestCase):
             'text': 'Worked with visiting teachers.', 'lead_in': '', 'sources': ['cv:work-1:b1'],
         })
         replies = iter([first_person, split, cv, letter_reply()])
-        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
+        result = self.prepare(lambda *_: next(replies), self.hooks)
         self.assertEqual(result.telemetry['attempts']['cv'], 3)
 
     @patch.object(pipeline, 'SLEEP', lambda _: None)
@@ -397,7 +417,7 @@ class PipelineTests(unittest.TestCase):
             return replies[len(prompts) - 1]
 
         replies = [long_headline, roman_ok, letter_reply()]
-        result = pipeline.prepare_documents(self.inp, generate, self.hooks)
+        result = self.prepare(generate, self.hooks)
         self.assertEqual(result.telemetry['attempts']['cv'], 2)
         self.assertIn('headline', prompts[1].lower())
         self.assertIn('Phase I', result.cv['sections'][0]['units'][0]['text'])
@@ -456,7 +476,7 @@ class PipelineTests(unittest.TestCase):
         projects.append({'lead_in': '', 'text': 'Mapped signage for the gallery.',
                          'sources': ['cv:study-1:b1']})
         replies = iter([reply, reply, reply, letter_reply()])
-        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
+        result = self.prepare(lambda *_: next(replies), self.hooks)
         self.assertEqual(result.telemetry['attempts']['cv'], 3)
         self.assertEqual(result.stages['cv']['state'], 'fallback')
         self.assertIn('cv_missing_base_bullet', result.telemetry['attempt_failures']['cv'][0]['reasons'])
@@ -703,88 +723,93 @@ class PipelineTests(unittest.TestCase):
             for issue in letter_issues
         ))
 
-    @patch.object(pipeline, 'SLEEP', lambda _: None)
-    def test_grounding_finding_requires_valid_correction_across_retries(self):
-        letter = letter_reply()
-        original = letter['paragraphs'][1]['text']
-        letter['paragraphs'][1]['text'] = 'I decided what workshops the librarians would teach. ' + original
-        finding = {'document': 'letter', 'unit_id': 'u-letter-p2', 'category': 'grounding',
-                   'severity': 'high', 'message': 'The source verifies collaboration, not decision authority.',
-                   'suggestion': ''}
-        bad_patch = {'document': 'letter', 'unit_id': 'u-letter-p2', 'kind': 'grounding',
-                     'text': 'I designed 17 workshops with librarians.'}
-        correction = {**bad_patch, 'text': original}
-        replies = iter([
-            cv_reply(), letter, {'findings': [finding], 'patches': [bad_patch]},
-            {'findings': [], 'patches': []}, {'findings': [], 'patches': [correction]},
-        ])
-        prompts = []
-
-        def generate(prompt, _schema):
-            prompts.append(prompt)
-            return next(replies)
-
-        result = pipeline.prepare_documents(self.inp, generate, self.hooks)
-        self.assertIn('letter u-letter-p2 (unsupported_number)', prompts[3])
-        self.assertEqual(result.telemetry['attempts']['review'], 3)
-        self.assertEqual(result.letter['paragraphs'][1]['text'], original)
-        self.assertEqual(result.letter['paragraphs'][1]['sources'], ['cv:work-1:b1'])
-        self.assertEqual(result.telemetry['applied_patches'][0]['kind'], 'grounding')
-        self.assertFalse(any(f['code'] == 'review_grounding' for f in result.findings))
-
-    @patch.object(pipeline, 'SLEEP', lambda _: None)
-    def test_unsupported_letter_audit_claim_requires_a_grounding_patch(self):
-        letter = letter_reply()
-        original = letter['paragraphs'][1]['text']
-        letter['paragraphs'][1]['text'] = 'I selected all the workshop topics. ' + original
-        review = {'letter_claims': [{
-            'unit_id': 'u-letter-p2', 'claim': 'Selected the topics.', 'supporting_sources': [], 'supported': False,
-        }], 'findings': [], 'patches': []}
-        correction = {**review, 'patches': [{
-            'document': 'letter', 'unit_id': 'u-letter-p2', 'kind': 'grounding', 'text': original,
-        }]}
-        replies = iter([cv_reply(), letter, review, correction])
-        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
-        self.assertEqual(result.telemetry['attempts']['review'], 2)
-        self.assertEqual(result.letter['paragraphs'][1]['text'], original)
-        self.assertFalse(any(f['code'] == 'review_grounding' for f in result.findings))
-
-    @patch.object(pipeline, 'SLEEP', lambda _: None)
-    def test_grounding_correction_retries_when_it_adds_a_page(self):
-        long_correction = 'Librarians and I worked together on the design of a public workshop.'
-        short_correction = 'Librarians and I designed a workshop.'
-        letter = letter_reply()
-        letter['paragraphs'][1]['text'] = (
-            'I decided what workshops the librarians would teach. ' + letter['paragraphs'][1]['text']
-        )
-
-        def render(kind, body):
-            pages = 2 if kind == 'letter' and body['paragraphs'][1]['text'] == long_correction else 1
-            return RenderResult(b'', pages, '', [], pages > 1)
-
-        def review(text):
-            return {'findings': [], 'patches': [
-                {'document': 'letter', 'unit_id': 'u-letter-p2', 'kind': 'grounding', 'text': text},
-            ]}
-
-        replies = iter([cv_reply(), letter, review(long_correction), review(short_correction)])
-        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks, render)
-        self.assertEqual(result.telemetry['attempts']['review'], 2)
-        self.assertEqual(result.letter['paragraphs'][1]['text'], short_correction)
-        self.assertEqual(result.telemetry['render']['letter']['pages'], 1)
-
-    @patch.object(pipeline, 'SLEEP', lambda _: None)
-    def test_unresolved_grounding_keeps_drafts_and_does_not_finalize_review(self):
+    def test_grounding_finding_stays_visible_without_a_rewrite_or_retry(self):
         review = {'findings': [{
-            'document': 'letter', 'unit_id': 'u-letter-p2', 'category': 'grounding', 'severity': 'high',
-            'message': 'The responsibility is broader than the source supports.', 'suggestion': '',
+            'document': 'letter', 'unit_id': 'u-letter-p2', 'category': 'grounding',
+            'severity': 'high', 'message': 'The claim exceeds its citations.', 'suggestion': '',
         }], 'patches': []}
-        empty = {'findings': [], 'patches': []}
-        replies = iter([cv_reply(), letter_reply(), review, empty, empty])
-        with self.assertRaises(pipeline.GenerationError) as error:
-            pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
-        self.assertTrue(error.exception.retryable)
-        self.assertNotIn('finalize', self.stages)
+        result = self.run_with(review=review)
+        self.assertEqual(result.telemetry['attempts']['review'], 1)
+        self.assertEqual(result.letter['paragraphs'][1]['text'], letter_reply()['paragraphs'][1]['text'])
+        self.assertTrue(any(f['code'] == 'review_grounding' and f['severity'] == 'high'
+                            for f in result.findings))
+
+    def test_letter_receives_one_evidence_slot_per_employer_and_no_tailored_text(self):
+        self.inp.mode = 'fast'
+        entries = self.inp.base_cv['sections'][1]['entries']
+        duplicate_employer = deepcopy(entries[0])
+        duplicate_employer.update(id='work-2', units=[{
+            'id': 'u-other-bullet', 'text': 'Set up tactile objects for gallery talks.',
+        }])
+        duplicate_employer['locked']['company'] = 'Sedge Workshop GmbH'
+        duplicate_employer['intro'] = []
+        other_employer = deepcopy(duplicate_employer)
+        other_employer.update(id='work-3', units=[{
+            'id': 'u-third-bullet', 'text': 'Catalogued tools in the public archive.',
+        }])
+        other_employer['locked']['company'] = 'Woodlark Archive'
+        entries.extend([duplicate_employer, other_employer])
+        self.inp.profile['application_personalization'] = {
+            'career_evidence': '\n'.join([
+                'At Woodlark Archive, grouped donated materials by use.',
+                'At Sedge Workshop, supported weekend programs.',
+                'Helped catalogue exhibit labels.',
+            ]),
+        }
+        cv = cv_reply()
+        cv['entries'][0]['bullets'][0]['text'] = 'Designed library activities for hands-on workshops.'
+        cv['entries'].extend([
+            {'entry_id': 'work-2', 'bullets': [{'text': duplicate_employer['units'][0]['text'],
+                                               'lead_in': '', 'sources': ['cv:work-2:b1']}]},
+            {'entry_id': 'work-3', 'bullets': [{'text': other_employer['units'][0]['text'],
+                                               'lead_in': '', 'sources': ['cv:work-3:b1']}]},
+        ])
+
+        def generate(prompt, schema):
+            if self.stages[-1] == 'cv':
+                return cv
+            props = schema['$defs']['LetterExamples']['properties']
+            self.assertEqual(set(props), {'work-1', 'work-3'})
+            self.assertNotIn(cv['entries'][0]['bullets'][0]['text'], prompt)
+            self.assertIn(duplicate_employer['units'][0]['text'], prompt)
+            self.assertIn(other_employer['units'][0]['text'], prompt)
+            groups = json.loads(prompt.split('\nEXAMPLE SLOTS\n')[1])
+            self.assertEqual(set(groups['work-3']['supplemental']), {'evidence:1'})
+            self.assertEqual(groups['work-1']['supplemental'], {})
+            self.assertNotIn('Helped catalogue exhibit labels.', prompt)
+            return {
+                'subject': {'text': 'Designer'}, 'contact_name': '',
+                'motivation': {'text': letter_reply()['paragraphs'][0]['text']},
+                'examples': {'work-1': {
+                    'anchor': 'cv:work-1:b1', 'priority': 1,
+                    'sentences': [{'text': letter_reply()['paragraphs'][1]['text'], 'source': 'cv:work-1:b1'}],
+                }, 'work-3': None},
+                'fit': {'text': letter_reply()['paragraphs'][2]['text'], 'uses_language_level': False},
+                'closing': letter_reply()['closing'],
+            }
+
+        result = self.prepare(generate, self.hooks)
+        self.assertEqual(result.telemetry['attempts'], {'cv': 1, 'letter': 1})
+        self.assertEqual(result.telemetry['attempt_failures'], {})
+        self.assertEqual(result.letter['paragraphs'][1]['sources'], ['cv:work-1:b1', 'job'])
+
+    def test_letter_response_schema_rejects_cross_entry_citations(self):
+        entries = self.inp.base_cv['sections'][1]['entries']
+        other = deepcopy(entries[0])
+        other.update(id='work-2', intro=[], units=[{
+            'id': 'u-archive-bullet', 'text': 'Logged donated books.',
+        }])
+        other['locked']['company'] = 'Sedge Workshop GmbH'
+        entries.append(other)
+        base = CvDocument.model_validate(self.inp.base_cv)
+        evidence = pipeline.build_evidence(base, self.inp.profile)
+        groups, response = pipeline._letter_contract(base, evidence)
+        self.assertEqual(list(groups), ['work-1'])
+        output = slot_letter_reply(response.model_json_schema(), letter_reply())
+        response.model_validate(output)
+        output['examples']['work-1']['sentences'][0]['source'] = 'cv:work-2:b1'
+        with self.assertRaises(ValidationError):
+            response.model_validate(output)
 
     def test_letter_flags_repeated_content_stems_and_repeated_bridge_verbs(self):
         base = CvDocument.model_validate(self.inp.base_cv)
@@ -838,7 +863,7 @@ class PipelineTests(unittest.TestCase):
         cv['entries'][0]['entry_id'] = 'invented'
         with patch.object(pipeline, 'SLEEP', lambda _: None):
             replies = iter([cv, cv, cv, letter_reply(), {'findings': [], 'patches': []}])
-            result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
+            result = self.prepare(lambda *_: next(replies), self.hooks)
         source, = result.cv['sections'][1]['entries'][0]['units']
         self.assertEqual(source['id'], 'u-base-bullet')
         self.assertEqual(source['text'], 'Designed a workshop with librarians.')
@@ -878,7 +903,7 @@ class PipelineTests(unittest.TestCase):
             'document': 'cv', 'unit_id': 'u-headline', 'kind': 'shorten', 'text': 'Workshop designer',
         }]}
         replies = iter([cv_reply(), cv_reply(), cv_reply(), letter_reply(), review])
-        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks, render)
+        result = self.prepare(lambda *_: next(replies), self.hooks, render)
         self.assertEqual(rendered, ['cv', 'cv', 'cv', 'letter', 'cv'])
         self.assertEqual({f['code'] for f in result.findings}, {'extra_page', 'review_format', 'overflow'})
         self.assertEqual(result.telemetry['render']['cv']['pages'], 3)
@@ -911,7 +936,7 @@ class PipelineTests(unittest.TestCase):
                 pages = 3 if 'public' in bullet['text'] else 2
             return RenderResult(b'', pages, '', [], pages > 2)
 
-        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks, render)
+        result = self.prepare(lambda *_: next(replies), self.hooks, render)
         self.assertEqual(result.telemetry['attempts']['cv'], 2)
         self.assertEqual(result.telemetry['render']['cv']['pages'], 2)
         self.assertEqual(result.cv['sections'][1]['entries'][0]['units'][0]['sources'], ['cv:work-1:b1'])
@@ -936,11 +961,14 @@ class PipelineTests(unittest.TestCase):
             self.assertIn('Example 2', prompt)
             self.assertNotIn('Example 3', prompt)
             self.assertNotIn('German-only sample', prompt)
-            self.assertEqual(json.loads(prompt.split('\nEVIDENCE\n')[1].split('\n\n')[0])['evidence:1'],
-                             'Led a seminar on clay glazes.')
+            if self.stages[-1] == 'cv':
+                self.assertEqual(json.loads(prompt.split('\nEVIDENCE\n')[1].split('\n\n')[0])['evidence:1'],
+                                 'Led a seminar on clay glazes.')
+            else:
+                self.assertNotIn('Led a seminar on clay glazes.', prompt)
             return cv_reply() if self.stages[-1] == 'cv' else letter_reply()
 
-        pipeline.prepare_documents(self.inp, generate, self.hooks)
+        self.prepare(generate, self.hooks)
 
     def test_revise_unit_returns_findings_and_preserves_input(self):
         before = deepcopy(self.inp.base_cv)
@@ -992,57 +1020,19 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(result.telemetry['attempts']['letter'], 1)
         self.assertEqual(result.telemetry['attempt_failures'], {})
 
-        # Real 8-word substantive copy still retries with specific paragraph index and fixed telemetry code.
+        # The safety net still reports coincidental overlap with the independently generated CV.
         self.checkpoints.clear()
         cv2 = cv_reply()
         copied_clause = 'built modular tactile exhibition kits with visiting schoolteachers and curators'
         cv2['entries'][0]['bullets'][0]['text'] = f'Successfully {copied_clause}.'
         bad_letter = letter_reply()
         bad_letter['paragraphs'][1]['text'] += f' I {copied_clause}.'
-        prompts = []
-        replies = [cv2, bad_letter, letter_reply()]
 
-        def generate(prompt, schema):
-            prompts.append(prompt)
-            return replies[len(prompts) - 1]
-
-        result2 = pipeline.prepare_documents(self.inp, generate, self.hooks)
-        self.assertEqual(result2.telemetry['attempts']['letter'], 2)
-        self.assertIn('Paragraph 2', prompts[2])
-        self.assertEqual(result2.telemetry['attempt_failures'], {
-            'letter': [{'attempt': 1, 'code': 'invalid_response', 'reasons': ['letter_cv_ngram_overlap']}],
-        })
-
-    @patch.object(pipeline, 'SLEEP', lambda _: None)
-    def test_letter_employer_grouping_normalizes_legal_suffixes_and_names_paragraphs(self):
-        self.inp.mode = 'fast'
-        self.inp.base_cv['sections'][1]['entries'][0]['locked']['company'] = 'Sedge Workshop GmbH'
-        self.inp.base_cv['sections'][1]['entries'].append({
-            'id': 'work-2', 'kind': 'work',
-            'locked': {'company': 'Sedge Workshop', 'title': 'Lead Designer',
-                       'location': 'Port Alder', 'start': '2022', 'end': '2024'},
-            'intro': [],
-            'units': [{'id': 'u-base-bullet-2', 'text': 'Trained museum volunteers on workshop setup.'}],
-        })
-        cv = cv_reply()
-        cv['entries'].append({'entry_id': 'work-2', 'bullets': [
-            {'text': 'Trained volunteers on gallery workshop setup.', 'lead_in': '', 'sources': ['cv:work-2:b1']},
-        ]})
-        dup_letter = letter_reply()
-        dup_letter['paragraphs'][2]['role'] = 'experience'
-        dup_letter['paragraphs'][2]['sources'] = ['cv:work-2:b1']
-        prompts = []
-        replies = [cv, dup_letter, letter_reply()]
-
-        def generate(prompt, schema):
-            prompts.append(prompt)
-            return replies[len(prompts) - 1]
-
-        result = pipeline.prepare_documents(self.inp, generate, self.hooks)
-        self.assertEqual(result.telemetry['attempts']['letter'], 2)
-        self.assertIn('Paragraph 3', prompts[2])
-        self.assertIn('Paragraph 2', prompts[2])
-        self.assertEqual(result.telemetry['attempt_failures']['letter'][0]['reasons'], ['letter_duplicate_employer'])
+        result2 = self.run_with(cv=cv2, letter=bad_letter)
+        self.assertEqual(result2.telemetry['attempts']['letter'], 1)
+        self.assertEqual(result2.telemetry['attempt_failures'], {})
+        self.assertTrue(any(f['document'] == 'letter' and 'closely repeats' in f['message']
+                            for f in result2.findings))
 
     @patch.object(pipeline, 'SLEEP', lambda _: None)
     def test_letter_fallback_publishes_best_attempt_after_prose_or_timeout_exhaustion(self):
@@ -1069,7 +1059,7 @@ class PipelineTests(unittest.TestCase):
                 'patches': [{'document': 'letter', 'unit_id': 'u-letter-p2', 'kind': 'rephrase', 'text': fixed_text}],
             }
 
-        result = pipeline.prepare_documents(self.inp, generate, self.hooks)
+        result = self.prepare(generate, self.hooks)
         self.assertEqual(result.stages['letter']['state'], 'fallback')
         self.assertEqual(result.telemetry['attempts']['letter'], 3)
         self.assertEqual(result.telemetry['attempt_failures']['letter'], [
@@ -1084,7 +1074,7 @@ class PipelineTests(unittest.TestCase):
         self.assertNotIn('adapt the setup', json.dumps(result.telemetry))
 
     @patch.object(pipeline, 'SLEEP', lambda _: None)
-    def test_cv_prose_fallback_publishes_best_attempt_and_letter_uses_base_cv_units(self):
+    def test_cv_prose_fallback_publishes_best_attempt_and_letter_uses_original_evidence(self):
         self.inp.mode = 'fast'
         long_cv = cv_reply()
         long_cv['headline']['text'] = 'Exhibit, Workshop and Participatory Museum Activity Designer for Public Spaces'
@@ -1097,7 +1087,7 @@ class PipelineTests(unittest.TestCase):
             letter_prompts.append(prompt)
             return letter_reply()
 
-        result = pipeline.prepare_documents(self.inp, generate, self.hooks)
+        result = self.prepare(generate, self.hooks)
         self.assertEqual(result.stages['cv']['state'], 'fallback')
         self.assertEqual(result.cv['headline']['text'], long_cv['headline']['text'])
         self.assertTrue(any(f['code'] == 'review_format' and f['unit_id'] == 'u-headline' for f in result.findings))
@@ -1117,7 +1107,7 @@ class PipelineTests(unittest.TestCase):
             seen_prompts.append(prompt)
             return cv_reply() if self.stages[-1] == 'cv' else letter_reply()
 
-        pipeline.prepare_documents(self.inp, generate, self.hooks)
+        self.prepare(generate, self.hooks)
         self.assertTrue(seen_prompts)
         for prompt in seen_prompts:
             self.assertNotIn('j9876', prompt)
@@ -1214,7 +1204,7 @@ class PipelineTests(unittest.TestCase):
         letter = letter_reply()
         letter['paragraphs'][1]['text'] += ' The workshop attracted 860 visitors.'
         replies = iter([cv, cv_reply(), letter, letter_reply()])
-        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
+        result = self.prepare(lambda *_: next(replies), self.hooks)
         self.assertEqual(result.telemetry['attempts'], {'cv': 2, 'letter': 2})
         self.assertEqual(result.telemetry['attempt_failures'], {
             'cv': [{'attempt': 1, 'code': 'invalid_response', 'reasons': ['unsupported_qualifier']}],

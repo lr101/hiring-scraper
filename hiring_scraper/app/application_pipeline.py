@@ -13,9 +13,9 @@ from datetime import date
 from functools import cache
 from html import unescape
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Union
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, create_model
 
 from hiring_scraper.app.application_pdf import PAGE_LIMITS, RenderResult
 from hiring_scraper.documents import editorial
@@ -39,7 +39,7 @@ from hiring_scraper.documents.schema import (
 )
 from hiring_scraper.documents.text import unit_full_text
 
-PIPELINE_VERSION = 'application-documents-v2.8'
+PIPELINE_VERSION = 'application-documents-v2.9'
 SLEEP = time.sleep
 PROMPTS = Path(__file__).with_name('prompts')
 DocumentKind = Literal['cv', 'letter']
@@ -50,8 +50,6 @@ Generate = Callable[[str, dict], dict]
 _BLOCKING_PROSE_CODES = frozenset({
     'cv_headline_too_long',
     'cv_profile_first_person',
-    'letter_duplicate_employer',
-    'letter_cv_ngram_overlap',
     'letter_contraction',
 })
 
@@ -137,6 +135,22 @@ class _LetterResponse(_Response):
     closing: _Text
 
 
+class _LetterExample(_Response):
+    priority: int
+
+
+class _LetterFit(_Text):
+    uses_language_level: bool
+
+
+class _LetterSlots(_Response):
+    subject: _Text
+    contact_name: str
+    motivation: _Text
+    fit: _LetterFit | None
+    closing: _Text
+
+
 class _ReviewFinding(_Response):
     document: DocumentKind
     unit_id: str | None
@@ -149,24 +163,15 @@ class _ReviewFinding(_Response):
 class _ReviewPatch(_Text):
     document: DocumentKind
     unit_id: str
-    kind: Literal['rephrase', 'shorten', 'grounding', 'content']
-
-
-class _ReviewLetterClaim(_Response):
-    unit_id: str
-    claim: str
-    supporting_sources: list[str]
-    supported: bool
+    kind: Literal['rephrase', 'shorten', 'content']
 
 
 class _ReviewEnvelope(_Response):
-    letter_claims: list[_ReviewLetterClaim] = Field(default_factory=list)
     findings: list
     patches: list
 
 
 class _ReviewResponse(_Response):
-    letter_claims: list[_ReviewLetterClaim]
     findings: list[_ReviewFinding]
     patches: list[_ReviewPatch]
 
@@ -1113,7 +1118,88 @@ def _letter_prose_issues(
     return issues
 
 
-def _letter_draft(output: dict, inp: PreparationInput, base: CvDocument, cv: CvDocument | None = None) -> LetterDocument:
+def _letter_contract(base: CvDocument, evidence: dict[str, str]) -> tuple[dict, type[_LetterSlots]]:
+    """Partition original facts into uniquely addressable employer slots."""
+    groups: dict[str, dict] = {}
+    employer_slots: dict[str, str] = {}
+    for section in base.sections:
+        for entry in section.entries:
+            facts = {source: text for source, text in evidence.items() if re.fullmatch(
+                rf'cv:{re.escape(entry.id)}:[bi]\d+', source,
+            )}
+            if not facts:
+                continue
+            key = editorial.employer_key(entry.locked.company, entry.id)
+            slot = employer_slots.setdefault(key, entry.id)
+            group = groups.setdefault(slot, {'entries': {}, 'supplemental': {}})
+            group['entries'][entry.id] = {
+                'organization': entry.locked.company,
+                'title': entry.locked.title,
+                'role': 'education' if entry.kind == 'study' else 'experience',
+                'facts': facts,
+            }
+
+    named_employers = {key: slot for key, slot in employer_slots.items() if key != slot}
+    for source, fact in evidence.items():
+        if source.startswith('evidence:'):
+            normalized = ' '.join(editorial.words(fact))
+            matches = [slot for key, slot in named_employers.items()
+                       if re.search(rf'(?<!\w){re.escape(key)}(?!\w)', normalized)]
+            if len(matches) == 1:
+                group = groups[matches[0]]
+                if len(group['entries']) == 1:
+                    group['supplemental'][source] = fact
+
+    fields = {}
+    index = 0
+    for slot, group in groups.items():
+        options = []
+        for entry in group['entries'].values():
+            index += 1
+            direct = tuple(entry['facts'])
+            allowed = direct + tuple(group['supplemental']) + ('job',)
+            sentence = create_model(f'LetterSentence{index}', __base__=_Text, source=(Literal[allowed], ...))
+            options.append(create_model(
+                f'LetterExample{index}', __base__=_LetterExample,
+                anchor=(Literal[direct], ...),
+                sentences=(list[sentence], ...),
+            ))
+        fields[slot] = (Union[tuple(options)] | None, ...)
+    examples = create_model('LetterExamples', __base__=_Response, **fields)
+    response = create_model('LetterDraft', __base__=_LetterSlots, examples=(examples, ...))
+    return groups, response
+
+
+def _letter_from_slots(
+    output: dict, response: type[_LetterSlots], groups: dict, evidence: dict[str, str],
+    inp: PreparationInput, base: CvDocument, cv: CvDocument,
+) -> LetterDocument:
+    reply = response.model_validate(output).model_dump()
+    examples = sorted(
+        ((slot, example) for slot, example in reply.pop('examples').items() if example is not None),
+        key=lambda item: item[1]['priority'],
+    )
+    paragraphs = [{'role': 'motivation', 'text': reply.pop('motivation')['text'], 'sources': ['job']}]
+    for slot, example in examples:
+        anchor = example['anchor']
+        entry = groups[slot]['entries'][anchor.split(':')[1]]
+        paragraphs.append({
+            'role': entry['role'],
+            'text': ' '.join(sentence['text'] for sentence in example['sentences']),
+            'sources': list(dict.fromkeys([anchor, *(sentence['source'] for sentence in example['sentences']), 'job'])),
+        })
+    if fit := reply.pop('fit'):
+        sources = ['job']
+        if fit['uses_language_level'] and 'profile:language_levels' in evidence:
+            sources.append('profile:language_levels')
+        paragraphs.append({'role': 'bring', 'text': fit['text'], 'sources': sources})
+    return _letter_draft({**reply, 'paragraphs': paragraphs}, inp, base, cv, sparse=len(groups) < 2)
+
+
+def _letter_draft(
+    output: dict, inp: PreparationInput, base: CvDocument, cv: CvDocument | None = None,
+    *, sparse: bool = False,
+) -> LetterDocument:
     reply = _LetterResponse.model_validate(output)
     if not reply.paragraphs:
         raise _InvalidResponse(
@@ -1148,7 +1234,7 @@ def _letter_draft(output: dict, inp: PreparationInput, base: CvDocument, cv: CvD
         signature=name,
     )
     issues: list[_ProseIssue] = []
-    if not 3 <= len(reply.paragraphs) <= 4:
+    if not (1 if sparse else 3) <= len(reply.paragraphs) <= 4:
         issues.append(_ProseIssue(
             'letter_paragraph_count',
             f'Returned {len(reply.paragraphs)} body paragraphs; return 4–5 paragraphs total: 3–4 body paragraphs and the final closing sentence.',
@@ -1162,7 +1248,7 @@ def _letter_draft(output: dict, inp: PreparationInput, base: CvDocument, cv: CvD
             'review_format',
             'The letter should open with a single motivation paragraph.',
         ))
-    if not 150 <= body_words <= 450:
+    if not (0 if sparse else 150) <= body_words <= 450:
         issues.append(_ProseIssue(
             'letter_word_count',
             f'Body has {body_words} words; keep the body between 150 and 450 words, ideally 270 to 310 (English) or 260 to 320 (German).',
@@ -1180,7 +1266,7 @@ def _letter_draft(output: dict, inp: PreparationInput, base: CvDocument, cv: CvD
     return letter
 
 
-def _units(doc: Document, *, visible_only: bool = False) -> list[dict]:
+def _units(doc: Document) -> list[dict]:
     context = {}
     if isinstance(doc, CvDocument):
         for section in doc.sections:
@@ -1191,7 +1277,7 @@ def _units(doc: Document, *, visible_only: bool = False) -> list[dict]:
                     context[unit.id] = {'section': section.kind, 'entry_id': entry.id,
                                         'company': entry.locked.company, 'title': entry.locked.title}
     return [{**unit.model_dump(), 'context': context.get(unit.id, {})}
-            for unit in walk_units(doc) if not visible_only or not unit.hidden]
+            for unit in walk_units(doc)]
 
 
 def _ground(doc: Document, evidence: dict, inp: PreparationInput, base: CvDocument) -> list[Finding]:
@@ -1204,8 +1290,7 @@ def _high(findings: list[Finding]) -> set[tuple]:
 
 def _review(
     output: dict, docs: dict[DocumentKind, Document], ground: Callable[[Document], list[Finding]],
-    base: CvDocument, evidence: dict[str, str], posting: str, company: str,
-    grounding_targets: set[tuple[DocumentKind, str]],
+    base: CvDocument, evidence: dict[str, str], posting: str, company: str = '',
 ) -> tuple[dict, list[Finding], list[dict], int]:
     reply = _ReviewEnvelope.model_validate(output)
     docs = docs.copy()
@@ -1213,34 +1298,11 @@ def _review(
     applied = []
     touched = set()
     malformed = 0
-    letter_units = {unit.id: unit for unit in docs['letter'].paragraphs if not unit.hidden}
-    for claim in reply.letter_claims:
-        target = letter_units.get(claim.unit_id)
-        if target is None:
-            raise _InvalidResponse(
-                'In letter_claims, use ids of visible letter paragraphs only.',
-                code='review_claim_unit',
-            )
-        allowed_sources = set(target.sources).intersection(evidence) - {'job'}
-        if claim.supported and (
-            not claim.supporting_sources or set(claim.supporting_sources) - allowed_sources
-        ):
-            raise _InvalidResponse(
-                'For every supported letter claim, list the exact original evidence ids cited by that paragraph.',
-                code='review_claim_citations',
-            )
-        if not claim.supported and target.origin == 'ai':
-            grounding_targets.add(('letter', target.id))
     for item in reply.findings:
         try:
             review = _ReviewFinding.model_validate(item)
-            target = unit_by_id(docs[review.document], review.unit_id) if review.unit_id is not None else None
-            if review.unit_id is not None and target is None:
+            if review.unit_id is not None and unit_by_id(docs[review.document], review.unit_id) is None:
                 findings.append(_finding(review.document, 'review_format', 'The review referred to an unknown unit.'))
-                continue
-            if (review.category == 'grounding' and review.severity != 'info'
-                    and target is not None and target.origin == 'ai' and not target.hidden):
-                grounding_targets.add((review.document, target.id))
                 continue
             findings.append(_finding(
                 review.document, f'review_{review.category}', _plain(review.message, 500),
@@ -1248,16 +1310,13 @@ def _review(
             ))
         except (ValidationError, _InvalidResponse):
             malformed += 1
-    patches = []
     for item in reply.patches:
         try:
-            patches.append(_ReviewPatch.model_validate(item))
-        except ValidationError:
+            proposed = _ReviewPatch.model_validate(item)
+            text = _plain(proposed.text)
+        except (ValidationError, _InvalidResponse):
             malformed += 1
-    corrected = set()
-    rejected_corrections = {}
-    # Grounding corrections take precedence when the review proposes multiple edits to one unit.
-    for proposed in sorted(patches, key=lambda patch: patch.kind != 'grounding'):
+            continue
         kind = proposed.document
         doc = docs[kind]
         unit = unit_by_id(doc, proposed.unit_id)
@@ -1265,57 +1324,26 @@ def _review(
             findings.append(_finding(kind, 'review_format', 'The review proposed a patch for an unknown unit.'))
             continue
         key = (kind, unit.id)
-        if proposed.kind == 'grounding' and unit.origin == 'ai' and not unit.hidden:
-            grounding_targets.add(key)
-        try:
-            text = _plain(proposed.text)
-        except _InvalidResponse:
-            malformed += 1
+        if text == unit.text:
             continue
-        if text == unit.text or key in corrected:
-            continue
-        if key in grounding_targets and proposed.kind != 'grounding':
-            continue
-        if proposed.kind != 'content' and unit.origin == 'ai' and not unit.hidden and key not in touched:
+        if proposed.kind in ('rephrase', 'shorten') and unit.origin == 'ai' and not unit.hidden and key not in touched:
             candidate = apply_patch(doc, unit.id, text, 'ai')
-            new_high = _high(ground(candidate)) - _high(ground(doc))
-            failure = min((code for _, code, _ in new_high), default=None) or _review_edit_issue(
-                candidate, docs, unit, base, evidence, posting, company,
-                grounding_correction=proposed.kind == 'grounding',
-            )
-            if failure is None:
+            if (_valid_review_edit(candidate, docs, unit, base, evidence, posting, company)
+                    and not _high(ground(candidate)) - _high(ground(doc))):
                 docs[kind] = candidate
                 touched.add(key)
-                if proposed.kind == 'grounding':
-                    corrected.add(key)
                 applied.append({'document': kind, 'unit_id': unit.id, 'kind': proposed.kind})
                 continue
-            if proposed.kind == 'grounding':
-                rejected_corrections[key] = failure
         code = 'review_coverage' if proposed.kind == 'content' else 'review_style'
         findings.append(_finding(kind, code, 'Review suggested a manual wording change.',
                                  unit_id=unit.id, suggestion=text))
-    if missing := grounding_targets - corrected:
-        units = ', '.join(f'{kind} {uid}' for kind, uid in sorted(grounding_targets))
-        failures = ', '.join(
-            f'{kind} {uid} ({rejected_corrections.get((kind, uid), "missing or unchanged")})'
-            for kind, uid in sorted(missing)
-        )
-        raise _InvalidResponse(
-            f'Invalid or missing grounding corrections: {failures}. Return kind="grounding" patches for '
-            f'all of {units}, including previously accepted corrections. Narrow each unsupported claim '
-            'to the exact scope of its existing citations. Keep supported details, change only what is needed, '
-            'avoid copying eight consecutive words from the CV and return the full review.',
-            code='review_grounding_unpatched',
-        )
     return docs, findings, applied, malformed
 
 
-def _review_edit_issue(
+def _valid_review_edit(
     candidate: Document, docs: dict[DocumentKind, Document], unit: Unit,
     base: CvDocument, evidence: dict[str, str], posting: str, company: str,
-    *, grounding_correction: bool,
-) -> str | None:
+) -> bool:
     cv = candidate if isinstance(candidate, CvDocument) else docs['cv']
     letter = candidate if isinstance(candidate, LetterDocument) else docs['letter']
     def blocking_keys(issues):
@@ -1323,15 +1351,17 @@ def _review_edit_issue(
 
     old_cv_issues = blocking_keys(_cv_prose_issues(docs['cv']))
     new_cv_issues = blocking_keys(_cv_prose_issues(cv))
-    if new_issues := new_cv_issues - old_cv_issues:
-        return min(code for code, _ in new_issues)
+    if new_cv_issues - old_cv_issues:
+        return False
     old_letter_all = _letter_prose_issues(docs['letter'], docs['cv'], base, company)
     new_letter_all = _letter_prose_issues(letter, cv, base, company)
     old_letter_issues = blocking_keys(old_letter_all)
     new_letter_issues = blocking_keys(new_letter_all)
-    if new_issues := new_letter_issues - old_letter_issues:
-        return min(code for code, _ in new_issues)
+    if new_letter_issues - old_letter_issues:
+        return False
     _no_regress = frozenset({
+        'letter_duplicate_employer',
+        'letter_cv_ngram_overlap',
         'letter_repeated_ending',
         'letter_repeated_phrase',
         'letter_repeated_motif',
@@ -1342,26 +1372,24 @@ def _review_edit_issue(
     })
     old_style = {(issue.code, issue.unit_id) for issue in old_letter_all if issue.code in _no_regress}
     new_style = {(issue.code, issue.unit_id) for issue in new_letter_all if issue.code in _no_regress}
-    if not grounding_correction and (new_issues := new_style - old_style):
-        return min(code for code, _ in new_issues)
+    if new_style - old_style:
+        return False
     if isinstance(candidate, CvDocument):
         before = {(f.unit_id, f.message) for f in _qualifier_findings(docs['cv'], evidence)}
         after = {(f.unit_id, f.message) for f in _qualifier_findings(candidate, evidence)}
         if after - before:
-            return 'unsupported_qualifier'
+            return False
         for section in candidate.sections:
             if section.kind == 'skills':
                 updated = next((u for u in section.units if u.id == unit.id), None)
-                if updated is not None and not _supported_competency(updated, evidence, posting):
-                    return 'unsupported_competency'
+                if updated is not None:
+                    return _supported_competency(updated, evidence, posting)
             for entry in section.entries:
                 updated = next((u for u in entry.units if u.id == unit.id), None)
-                if updated is not None and (
-                    editorial.omitted_critical_details(updated, evidence, entry.id)
-                    - editorial.omitted_critical_details(unit, evidence, entry.id)
-                ):
-                    return 'omitted_critical_detail'
-    return None
+                if updated is not None:
+                    return not (editorial.omitted_critical_details(updated, evidence, entry.id)
+                                - editorial.omitted_critical_details(unit, evidence, entry.id))
+    return True
 
 
 def _render(
@@ -1545,11 +1573,15 @@ def prepare_documents(
         letter_non_prose_findings = checkpoint.non_prose_findings
         resume(stats, checkpoint)
     else:
-        letter_cv_source = _new_cv(base) if cv_state == 'fallback' else cv
-        prompt = _prompt('letter', inp, evidence, cv_units=_units(letter_cv_source, visible_only=True))
+        groups, response = _letter_contract(base, evidence)
+        language_evidence = {key: evidence[key] for key in ('profile:language_levels',) if key in evidence}
+        prompt = _prompt('letter', inp, language_evidence, example_slots=groups)
         letter_outcome = _generate(
-            generate, prompt, _LetterResponse,
-            lambda output: accept_grounded(lambda reply: _letter_draft(reply, inp, base, cv), output),
+            generate, prompt, response,
+            lambda output: accept_grounded(
+                lambda reply: _letter_from_slots(reply, response, groups, evidence, inp, base, cv),
+                output,
+            ),
             stats, hooks.cancelled, return_best=True,
         )
         if isinstance(letter_outcome, _Fallback):
@@ -1588,11 +1620,9 @@ def prepare_documents(
         else:
             prompt = _prompt('review', inp, evidence, documents={k: _units(d) for k, d in docs.items()},
                              findings=_numbered(findings), render=renders)
-            grounding_targets: set[tuple[DocumentKind, str]] = set()
-
             def accept_review(output):
                 reviewed, review_findings, patches, malformed = _review(
-                    output, docs, ground, base, evidence, posting, company, grounding_targets,
+                    output, docs, ground, base, evidence, posting, company,
                 )
                 checked = {}
                 for kind, doc in reviewed.items():
@@ -1602,12 +1632,6 @@ def prepare_documents(
                     limit = PAGE_LIMITS[kind]
                     if (1 <= renders[kind].get('pages', 0) <= limit
                             and any(finding.code == 'extra_page' for finding in render_findings)):
-                        if any(patch['document'] == kind and patch['kind'] == 'grounding' for patch in patches):
-                            raise _InvalidResponse(
-                                f'The revised {kind} exceeds its {limit}-page limit. Return shorter '
-                                'grounding corrections with the same verified facts and omit optional edits.',
-                                code='review_grounding_page_limit',
-                            )
                         reviewed[kind] = docs[kind]
                         patches = [patch for patch in patches if patch['document'] != kind]
                     else:

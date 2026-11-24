@@ -21,8 +21,8 @@ stilted. See the validation notes in the PR description.
   typed fields that no model schema contains. Prose lives in addressable units.
 - One React view renders documents. The inline editor and the PDF use the same component;
   the worker prints a built `print.html` in Playwright Chromium. Fonts are bundled.
-- Generation: CV call, then letter call (sees the accepted CV), then one review call (findings
-  plus patches, receives overflow telemetry). Fast mode skips review. Form answers stay a
+- Generation: CV call, then letter call with original evidence grouped by employer, then one
+  review call (findings plus patches, receives overflow telemetry). Fast mode skips review. Form answers stay a
   separate optional call. No AI requirement assessment call.
 - Deterministic grounding produces unit-anchored findings. Unsupported qualifiers and
   high-severity grounding issues can trigger a retry. Editorial findings are review targets.
@@ -144,6 +144,10 @@ Short, positive, per-stage prompts (`common.txt`, `cv.txt`, `letter.txt`, `revie
 Letter arc: specific motivation for this company and work → one paragraph per relevant
 employer/project (concrete actions, tools, outcomes) → education/technical foundation →
 collaboration and what the applicant brings/wants to learn → one-line close.
+The letter generation schema gives each employer one optional example slot. A selected
+example anchors to a single entry and cites one allowed source for each sentence. The
+letter prompt receives original slot facts. The tailored CV is available during review,
+where textual overlap and claim-scope issues can be surfaced as findings.
 
 ## Work packages
 

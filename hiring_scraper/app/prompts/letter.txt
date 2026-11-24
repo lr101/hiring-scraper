@@ -1,6 +1,22 @@
 Task: write a cover letter for the specific work in the posting. The application fills in
 sender, recipient, date, salutation, sign-off and signature.
 
+Output contract
+- EXAMPLE SLOTS contains original evidence grouped by employer or institution. Select the
+  best two or three distinct slots for the core duties. Each slot takes one paragraph or
+  null. Set priority 1 for the most relevant paragraph and number the rest in reading order.
+  Give each selected slot an anchor from the single entry described in that paragraph.
+- Write each example as linked sentences. Assign every sentence one source that verifies
+  the exact action, collaborator and outcome stated. Use job only for a sentence about
+  the posting or an explicitly future contribution. Use the slot's supplemental facts
+  only when they concern the chosen entry. If no single source supports the complete
+  sentence, split or narrow it. The application joins the sentences and retains their ids.
+- Use motivation for interest and fit for an optional future contribution or a verified
+  language clause. Keep past work in the example slots. Set fit.uses_language_level only
+  when the fit paragraph includes a level explicitly requested by the posting and verified
+  by EVIDENCE. Use fit=null when it adds no distinct point. Use at most four body
+  paragraphs including motivation and fit; use fewer when evidence is sparse.
+
 Structure
 - Write three body paragraphs and a short closing by default. Add a fourth body paragraph
   when a core requirement otherwise lacks a verified example. Aim for 270–310 words in
@@ -25,29 +41,19 @@ Structure
     partner type is useful evidence for this duty.
   Where the evidence links feedback or analysis to a choice, explain what it helped the
   applicant or team decide. Where the source gives only an action and purpose, use those.
-  Add a verified decision, method or result the CV leaves out. When evidence is limited to
-  the CV, explain how the verified work transfers to the named duty. Use each employer or
-  education project once, name the discipline for study examples, and keep each paragraph
-  to three or four sentences.
+  Name the discipline for study examples. Keep each paragraph to three or four sentences.
 - Mention a verified level only if the posting explicitly requires that language. Use one
   short, natural clause about communication or collaboration that the level supports. Keep
   any past collaboration at its documented scope, including which language was used if
   known. Keep the clause out of sentences about unrelated duties or outcomes.
-- Use role "bring" only for a distinct, concrete application of a past method to a specific
-  posting task. Cite job and supporting profile/skill evidence.
 - Closing: invite a personal conversation or interview in one warm, concise sentence.
   Name a concrete topic from the role that the applicant wants to discuss. A thank-you is
   optional. Introduce no new claims or qualifications.
 
 Check the final draft before returning it
-- Assign each employer or education project to one paragraph only. Check the cited CV entry
-  ids, including in the motivation and bring paragraphs. Even different ids from one employer
-  belong in one place. Cite the original evidence behind claims drawn from the CV.
-- Read across paragraphs for repeated wording. Use fresh verbs and clauses for CV facts. No
-  eight consecutive words may match the CV. Avoid repeating the posting's title or stock
-  bridge phrases. Give each paragraph a different duty or argument. Merge sentences that
-  restate the same point, including within a paragraph. Read for repeated combinations of
-  actions and objects even when inflected or slightly reworded.
+- Give each paragraph a different duty or argument. Merge sentences that restate the same
+  point. Avoid recycling an action/object phrase or the same bridge verb across examples.
+  Compose in fresh first-person prose from the evidence; do not quote source sentences.
 - Formula and rhythm checks:
   - Use at most ONE forward-looking conditional formula ("würde ich …" / "I would bring …" /
     "I would apply …") in the ENTIRE letter; use indicative, varied constructions everywhere
@@ -66,16 +72,12 @@ Check the final draft before returning it
   against cited evidence. Keep tracking, analyzing, proposing and deciding distinct.
   Match leadership scope, stage and results exactly. Where the evidence stops short of
   the posting duty, say what the applicant wants to do or learn in the new role.
-  Use the tailored CV only to select examples and check for overlap. Read the original
-  evidence for each claim, and include every id needed to verify it, including any
-  collaborator, decision, method or result mentioned in passing.
   Use one independently verifiable action and its documented outcome per sentence.
   Skip a detail if saying what was measured, improved or decided would require guessing.
   Check causal links too: when evidence supports two
   contributions separately, write them as independent actions. Do not imply one produced or
   informed the other unless the source says so. Do not claim unsupported tenure, releases,
-  or decisions. Include "job" in sources whenever a paragraph names the target company, its
-  product, or a duty from the posting, and use "job" for facts about the posting only.
+  or decisions. Use job as the source of sentences about the posting and future plans.
 - Spell out English contractions. In German, keep formal Sie-Form throughout ("Sie"/"Ihr",
   matching the voice notes) and start lowercase after the comma-ended salutation unless the
   first word is a noun, proper name or formal Sie/Ihr.
