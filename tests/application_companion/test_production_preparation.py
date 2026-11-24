@@ -309,7 +309,13 @@ class ProductionPreparationTests(ProductionHarness):
             popup.get_by_role('button', name='Prepare documents', exact=True).click()
         application = opened.value
         expect(application.get_by_role('heading', name='Prepare your application')).to_be_visible()
-        with application.expect_download(timeout=30000) as downloaded:
+        with (
+            application.expect_download(timeout=30000) as downloaded,
+            application.expect_response(
+                lambda response: '/letter/pdf?' in response.url and response.status != 202,
+                timeout=30000,
+            ) as rendered,
+        ):
             with application.expect_response(lambda response: '/letter/pdf?' in response.url) as first:
                 application.get_by_role('button', name='Download PDF', exact=True).click()
             self.assertEqual(first.value.status, 202)
@@ -320,6 +326,9 @@ class ProductionPreparationTests(ProductionHarness):
                 'from hiring_scraper.app.application_preparation_worker import render; '
                 'assert process_render_once(render)'
             )], cwd=ROOT.parents[1], check=True, timeout=25, env={**os.environ, 'DATABASE_URL': pg.url()})
+
+            response = rendered.value
+            self.assertEqual(response.status, 200, response.text() if not response.ok else '')
 
         artifact = downloaded.value
         self.assertEqual(artifact.suggested_filename, 'application-letter-v1.pdf')
