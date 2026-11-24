@@ -244,8 +244,16 @@ class HistoricalUpgradeTests(unittest.TestCase):
                     "SELECT record->>'kind' FROM application_document_preparation_tasks")), 'prepare')
 
     def test_0046_retries_child_ddl_without_blocking_job_writes(self):
+        self.assert_0046_child_ddl_does_not_block_job_writes('0045_local_job_analysis')
+
+    def test_upgrade_through_0045_and_0046_does_not_hold_job_locks(self):
+        # 0045 locks jobs; with one transaction per migration that lock is released
+        # before 0046 waits for job_locations.
+        self.assert_0046_child_ddl_does_not_block_job_writes('0044_application_documents_v2')
+
+    def assert_0046_child_ddl_does_not_block_job_writes(self, start):
         with patch.dict(os.environ, {'DATABASE_URL': self.target}):
-            command.upgrade(self.config, '0045_local_job_analysis')
+            command.upgrade(self.config, start)
             engine = create_engine(self.target)
             self.addCleanup(engine.dispose)
             with engine.begin() as connection:
