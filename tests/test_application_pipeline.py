@@ -703,6 +703,99 @@ class PipelineTests(unittest.TestCase):
             for issue in letter_issues
         ))
 
+    @patch.object(pipeline, 'SLEEP', lambda _: None)
+    def test_grounding_finding_requires_valid_correction_across_retries(self):
+        letter = letter_reply()
+        original = letter['paragraphs'][1]['text']
+        letter['paragraphs'][1]['text'] = 'I decided what workshops the librarians would teach. ' + original
+        finding = {'document': 'letter', 'unit_id': 'u-letter-p2', 'category': 'grounding',
+                   'severity': 'high', 'message': 'The source verifies collaboration, not decision authority.',
+                   'suggestion': ''}
+        bad_patch = {'document': 'letter', 'unit_id': 'u-letter-p2', 'kind': 'grounding',
+                     'text': 'I designed 17 workshops with librarians.'}
+        correction = {**bad_patch, 'text': original}
+        replies = iter([
+            cv_reply(), letter, {'findings': [finding], 'patches': [bad_patch]},
+            {'findings': [], 'patches': []}, {'findings': [], 'patches': [correction]},
+        ])
+        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
+        self.assertEqual(result.telemetry['attempts']['review'], 3)
+        self.assertEqual(result.letter['paragraphs'][1]['text'], original)
+        self.assertEqual(result.letter['paragraphs'][1]['sources'], ['cv:work-1:b1'])
+        self.assertEqual(result.telemetry['applied_patches'][0]['kind'], 'grounding')
+        self.assertFalse(any(f['code'] == 'review_grounding' for f in result.findings))
+
+    @patch.object(pipeline, 'SLEEP', lambda _: None)
+    def test_grounding_correction_retries_when_it_adds_a_page(self):
+        long_correction = 'Librarians and I worked together on the design of a public workshop.'
+        short_correction = 'Librarians and I designed a workshop.'
+        letter = letter_reply()
+        letter['paragraphs'][1]['text'] = (
+            'I decided what workshops the librarians would teach. ' + letter['paragraphs'][1]['text']
+        )
+
+        def render(kind, body):
+            pages = 2 if kind == 'letter' and body['paragraphs'][1]['text'] == long_correction else 1
+            return RenderResult(b'', pages, '', [], pages > 1)
+
+        def review(text):
+            return {'findings': [], 'patches': [
+                {'document': 'letter', 'unit_id': 'u-letter-p2', 'kind': 'grounding', 'text': text},
+            ]}
+
+        replies = iter([cv_reply(), letter, review(long_correction), review(short_correction)])
+        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks, render)
+        self.assertEqual(result.telemetry['attempts']['review'], 2)
+        self.assertEqual(result.letter['paragraphs'][1]['text'], short_correction)
+        self.assertEqual(result.telemetry['render']['letter']['pages'], 1)
+
+    @patch.object(pipeline, 'SLEEP', lambda _: None)
+    def test_unresolved_grounding_keeps_drafts_and_does_not_finalize_review(self):
+        review = {'findings': [{
+            'document': 'letter', 'unit_id': 'u-letter-p2', 'category': 'grounding', 'severity': 'high',
+            'message': 'The responsibility is broader than the source supports.', 'suggestion': '',
+        }], 'patches': []}
+        empty = {'findings': [], 'patches': []}
+        replies = iter([cv_reply(), letter_reply(), review, empty, empty])
+        with self.assertRaises(pipeline.GenerationError) as error:
+            pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
+        self.assertTrue(error.exception.retryable)
+        self.assertNotIn('finalize', self.stages)
+
+    def test_letter_flags_repeated_content_stems_and_repeated_bridge_verbs(self):
+        base = CvDocument.model_validate(self.inp.base_cv)
+        for language, first, second, code in (
+            ('en', 'I converted sketches into tactile prototypes.',
+             'Converting the sketches to tactile prototypes would suit this role.', 'letter_repeated_motif'),
+            ('de', 'Daran möchte ich anknüpfen.', 'Im Museum knüpfe ich an diese Arbeit an.', 'letter_repeated_bridge'),
+        ):
+            with self.subTest(language=language):
+                self.inp.language = language
+                letter = pipeline._letter_draft(letter_reply(), self.inp, base)
+                letter.paragraphs[0].text = first
+                letter.paragraphs[1].text = second
+                issues = pipeline._letter_prose_issues(letter, base, base, 'Wren Museum')
+                self.assertIn((code, 'u-letter-p2'), {(issue.code, issue.unit_id) for issue in issues})
+
+    def test_profile_flags_adjacent_repeated_experience(self):
+        self.assertTrue(pipeline.editorial.repeated_profile_term(
+            'Designer with experience in gallery exhibits. Workshop experience includes tactile displays.'
+        ))
+        self.assertFalse(pipeline.editorial.repeated_profile_term(
+            'Designer with experience in gallery exhibits. Workshop planning includes tactile displays.'
+        ))
+
+    def test_en_subject_uses_posting_title(self):
+        result = self.run_with()
+        self.assertEqual(result.letter['subject']['text'], 'Application for Designer')
+
+    def test_cv_flags_dropped_alphanumeric_source_detail(self):
+        unit = pipeline.Unit(id='u-project', text='Built CAD prototypes.', sources=['cv:study-1:b1'])
+        missing = pipeline.editorial.omitted_critical_details(
+            unit, {'cv:study-1:b1': 'Built 3D CAD prototypes.'}, 'study-1',
+        )
+        self.assertEqual(missing, {'3d'})
+
     def test_review_patch_rejects_newly_introduced_repeated_letter_ending(self):
         # Paragraph 1 ends with 'I am eager to ...'; patching paragraph 3 to end with the same 3-word opener is rejected.
         patched_p3 = (

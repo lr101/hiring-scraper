@@ -17,24 +17,24 @@ Structure
     KPI/data work paired with a verified operational result (such as an onboarding-time
     reduction), and research-to-prototype work over unrelated physical-product concepts.
   - For a hardware or industrial product role, prefer verified CAD/BOM/costing work,
-    market or benchmark analysis, partner or customer collaboration, and training delivery.
+    market or benchmark analysis, and partner or customer collaboration. Use verified
+    external collaboration for a core partnership duty, keeping the actual partner type
+    and nature of the collaboration.
+  Where the evidence links feedback or analysis to a choice, explain what it helped the
+  applicant or team decide. Where the source gives only an action and purpose, use those.
   Add a verified decision, method or result the CV leaves out. When evidence is limited to
   the CV, explain how the verified work transfers to the named duty. Use each employer or
   education project once, name the discipline for study examples, and keep each paragraph
   to three or four sentences.
-- Language requirement: when the posting explicitly requires a language (for example,
-  English or German) and the evidence verifies a strong level, weave the verified level
-  naturally into a substantive body sentence (for instance alongside verified international
-  collaboration or working in that language). Never omit a required verified language level
-  and never tack it on as an isolated sentence. Cite the language evidence alongside the
-  collaboration evidence.
+- Mention a verified level only if the posting explicitly requires that language. Use one
+  short, natural clause about communication or collaboration that the level supports. Keep
+  any past collaboration at its documented scope, including which language was used if
+  known. Keep the clause out of sentences about unrelated duties or outcomes.
 - Use role "bring" only for a distinct, concrete application of a past method to a specific
   posting task. Cite job and supporting profile/skill evidence.
-- Closing: end with a brief thank-you and a warm, natural invitation to a personal
-  conversation or interview in the applicant's voice (matching the tone of the voice
-  exemplars). Keep this concise and conversational. NEVER introduce a new factual claim,
-  project detail, or technical assertion in the closing — all qualifications and examples
-  belong in the body.
+- Closing: invite a personal conversation or interview in one warm, concise sentence.
+  Name a concrete topic from the role that the applicant wants to discuss. A thank-you is
+  optional. Introduce no new claims or qualifications.
 
 Check the final draft before returning it
 - Assign each employer or education project to one paragraph only. Check the cited CV entry
@@ -42,7 +42,9 @@ Check the final draft before returning it
   belong in one place. Cite the original evidence behind claims drawn from the CV.
 - Read across paragraphs for repeated wording. Use fresh verbs and clauses for CV facts. No
   eight consecutive words may match the CV. Avoid repeating the posting's title or stock
-  bridge phrases. Keep distinctive facts and short identifiers where they matter.
+  bridge phrases. Give each paragraph a different duty or argument. Merge sentences that
+  restate the same point, including within a paragraph. Read for repeated combinations of
+  actions and objects even when inflected or slightly reworded.
 - Formula and rhythm checks:
   - Use at most ONE forward-looking conditional formula ("würde ich …" / "I would bring …" /
     "I would apply …") in the ENTIRE letter; use indicative, varied constructions everywhere
@@ -54,8 +56,11 @@ Check the final draft before returning it
   - Never start three or more consecutive sentences with "I <verb>" or the same opening
     pattern; vary openings by leading with context, purpose, tools, collaborators or outcomes.
   - In English, use "KPIs" rather than "performance indicators".
-- Verify the action, method and outcome separately against cited evidence. Match leadership
-  scope, stage and results exactly. Check causal links too: when evidence supports two
+- Audit every past-tense clause and every statement about the applicant's usual practice
+  against cited evidence. Keep tracking, analyzing, proposing and deciding distinct.
+  Match leadership scope, stage and results exactly. Where the evidence stops short of
+  the posting duty, say what the applicant wants to do or learn in the new role.
+  Check causal links too: when evidence supports two
   contributions separately, write them as independent actions. Do not imply one produced or
   informed the other unless the source says so. Do not claim unsupported tenure, releases,
   or decisions. Include "job" in sources whenever a paragraph names the target company, its
@@ -64,7 +69,8 @@ Check the final draft before returning it
   matching the voice notes) and start lowercase after the comma-ended salutation unless the
   first word is a noun, proper name or formal Sie/Ihr.
 
-Use the role in "subject", with a reference number only if the posting explicitly provides it.
+Use "Application for <job title>" in the English subject. Use the role in the German subject,
+with a reference number only if the posting explicitly provides it.
 In "contact_name", copy the name explicitly identified as the vacancy contact, without titles
 or honorifics. In English, use the first name alone if that is all the posting gives. In German,
 return a full name only. Return an empty string for an email-only or unnamed contact. Do not

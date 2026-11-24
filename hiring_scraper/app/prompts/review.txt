@@ -9,10 +9,11 @@ findings. If a wording patch alone resolves an issue, return the patch without a
 
 Findings: report real problems only, each anchored to a unit id (or null for the whole
 document), with a category:
-- grounding: a statement the cited evidence does not support, or a fact not in the evidence.
-  Judge the scope of the action as well as the words. Check whether the source links the cited
-  methods to the specific evaluation criteria and whether the claimed outcome or decision
-  belongs to the applicant.
+- grounding: a claim beyond the cited evidence. Audit each past-tense clause and each
+  claim of usual practice, even when every noun or tool is supported. Check action, object,
+  collaborators, scope, frequency, decision rights, causality and outcome independently.
+  An implied decision, habit or responsibility can be misleading even if no new tool or
+  number appears. For an editable unit, return a grounding patch for every such finding.
 - coverage: an important requirement of the job that the evidence supports but the documents
   do not mention, or a strong piece of evidence left unused.
 - style: unnatural phrasing, translationese, clichés, buzzword strings, repetition.
@@ -26,33 +27,40 @@ Patches: for AI-written units only, propose replacement text with a kind:
   deterministic `review_style` finding in FINDINGS (such as repeated CV opening verbs, a
   CV profile repeating a bullet or written as a single run-on sentence, three consecutive
   "I <verb>" openings, repeated paragraph endings, or multiple "würde"/"would" conditionals
-  across the letter). If a supported action sounds broader than its cited source, name the
-  action and its verified scope. If a sentence joins independently verified actions with an
-  unsupported causal link, preserve both facts and rewrite them as independent actions.
-  Keep the underlying facts and leave out assertions about work the applicant did not do.
+  across the letter). Keep the underlying facts and citations.
+- grounding: narrow or remove only the unsupported part of a claim using the unit's existing
+  sources. Separate verified facts if their causal link is unsupported. When helpful, state
+  a broader action as a concrete future plan for the role. Include the same unit's style
+  fixes in this replacement, including any CV wording overlap.
 - shorten: same facts, fewer words (use when RENDER shows overflow).
 - content: adds, removes or changes facts. These are shown to the applicant, not applied.
 A patch keeps the unit's cited facts, cites nothing new, and does not introduce repeated
 phrases across paragraphs (such as "I look forward to" in both a body paragraph and the
-closing). Return empty lists when the drafts are already good.
+closing). Before returning each patch, audit every claim in the replacement against the
+same citations, including any new implication created by the edit. Return empty lists
+when the drafts are already good.
 
 Check that:
 - CV headline is at most 70 characters and names only 2–3 verified functional areas the
-  applicant has actually worked in, ordered for the posting — never an unheld role-family
+  applicant has actually worked in, tied to the posting's core duties and ordered by fit.
+  Leave secondary duties out of the headline. Avoid an unheld role-family
   label (such as "Product Management" / "Produktmanagement" without formal PM tenure) and
   never a standalone pillar backed only by a single student project.
 - CV profile is a single noun-phrase-led summary of 2–3 short, distinct sentences (never a
   single run-on sentence). It synthesizes verified cross-cutting strengths against the
   posting's core duties without repeating any bullet's wording or retelling an individual
   project's details. Use active clauses with no pronouns referring to the applicant, no
-  agentless passives, and no content noun three times.
+  agentless passives or language-level filler, and avoid repeating summary words in
+  adjacent sentences. Keep the documented stage and scope.
 - CV bullets avoid third-person pronouns referring to the applicant (never "die sie
   koordinierte", "she", "he"), avoid unsupported qualifiers ("technical"/"technisch",
   "strategic", "software", etc.), preserve exact authorship/ownership (never weakening
   revising/creating to merely "using"), give overlapping duties distinct wording, vary
   opening verbs (hard cap: NO verb starting more than 2 bullets across the entire CV),
   avoid clunky compounds, repeated stems, abrupt endings and passive filler lines, and keep
-  verified quantified results with the actions they measure. In German, use direct active
+  verified quantified results with the actions they measure. Keep precise source terms
+  relevant to the posting. Assign overlapping actions to the bullet that best proves them
+  and preserve the distinct verified focus of the others. In German, use direct active
   verbs and suspension hyphens in coordinated compounds ("Markt- und Nutzerbedürfnisse").
 - Competency additions are 1–4 words and use concrete wording supported by cited evidence.
   Keep the existing units and their citations intact.
@@ -60,15 +68,18 @@ Check that:
   Check claims about the employer against the posting. Each experience paragraph connects one
   verified example to a named duty and adds a supported decision, method or result beyond the
   CV, or explains the transfer when the CV is the only evidence.
-- When the posting requires a language and the evidence verifies a strong level, ensure it is
-  woven into a substantive sentence (e.g. international collaboration), not omitted or tacked on.
+- Check that verified examples address core duties, including collaboration with external
+  partners or iterative delivery with developers when relevant and supported. Connect
+  evidence or feedback to a decision only where that link is documented.
+- Allow a language level only when the posting explicitly requires that language. Use one
+  short clause about communication or collaboration with no added claim of past use.
 - Keep the letter to 4–5 paragraphs (~270–310 EN / ~260–320 DE words including closing). Name
   the study discipline and keep leadership scope exact. Use each employer or project once.
   Keep examples to four sentences and include a verified outcome where available. Use at most
   ONE forward-looking conditional formula ("würde ich …" / "I would bring …") in the entire
   letter, ensure no two body paragraphs end with the same construction, and never allow three
   or more consecutive "I <verb>" sentence openings. Use "KPIs" over "performance indicators"
-  in English. Ensure the closing is a brief thank-you plus a warm, natural interview
-  invitation in the applicant's voice with NO new factual or technical claims.
+  in English. End with a brief, specific interview invitation in the applicant's voice
+  with no new factual or technical claims.
   Spell out English contractions. In German, keep formal Sie-Form throughout and lowercase
   after the comma-ended salutation unless the opening is a noun, proper name or formal Sie/Ihr.

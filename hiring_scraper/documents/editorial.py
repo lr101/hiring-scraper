@@ -76,7 +76,22 @@ _STEM_SUFFIXES = (
     'ierten', 'endes', 'enden', 'ender', 'ende', 'ings', 'ing', 'ung', 'ied', 'ies', 'ern',
     'ers', 'ten', 'tet', 'es', 'ed', 'er', 'en', 'te', 's', 'e', 'n', 't',
 )
-_CRITICAL_ACRONYM = re.compile(r'\b(?:[A-Z]{2,6}[0-9]{0,3}|[A-Za-z]*[a-z][A-Z][A-Za-z0-9]*)\b')
+_CRITICAL_ACRONYM = re.compile(r'\b(?:[A-Z]{2,6}[0-9]{0,3}|[0-9]+[A-Z]{1,4}|[A-Za-z]*[a-z][A-Z][A-Za-z0-9]*)\b')
+
+_PROFILE_META_WORDS = frozenset({'experience', 'experiences', 'erfahrung', 'erfahrungen'})
+_LETTER_GENERIC_WORDS = frozenset(
+    'work working team teams role position experience product products project projects company '
+    'business development process processes collaboration arbeit arbeiten stelle erfahrung '
+    'produkt produkte entwicklung projekt projekte unternehmen bereich prozess zusammenarbeit'.split()
+)
+_BRIDGE_VERBS = {
+    'anknüpfen': re.compile(r'\b(?:an(?:zu)?knüpf\w*|knüpf(?:e|en|t)\b[^.!?]{0,60}\ban)\b', re.I),
+    'aufgreifen': re.compile(r'\b(?:auf(?:zu)?greif\w*|greif(?:e|en|t)\b[^.!?]{0,60}\bauf)\b', re.I),
+}
+_EN_BRIDGE_VERB = re.compile(
+    r'\b(bring|apply|transfer|leverage)\s+(?:this|that|the same)\s+(?:approach|method|experience)\b',
+    re.I,
+)
 
 # Profile voice validation (sentence-initial verb/imperative detection)
 _DE_CONJUGATED_VERB_OPENERS = frozenset(
@@ -257,7 +272,10 @@ def sentence_phrases(text: str, *, size: int = 4) -> set[tuple[str, ...]]:
 def repeated_profile_term(text: str) -> bool:
     tokens = (token for token in _prose_words(text)
               if token.isalpha() and len(token) >= 3 and token not in _NGRAM_STOPWORDS)
-    return any(count >= 3 for count in Counter(map(_stem, tokens)).values())
+    if any(count >= 3 for count in Counter(map(_stem, tokens)).values()):
+        return True
+    meta = [set(words(sentence)) & _PROFILE_META_WORDS for sentence in sentences(text)]
+    return any(left and right for left, right in zip(meta, meta[1:], strict=False))
 
 
 def normalize_skills(section: Section, *, preserve_order: bool = False) -> None:
@@ -615,6 +633,30 @@ def repeated_paragraph_endings(paragraphs: Iterable[Unit]) -> list[tuple[int, in
         if matched_prev is not None:
             repeats.append((matched_prev, idx))
     return repeats
+
+
+def letter_content_trigrams(text: str, ignore_phrases: Iterable[str]) -> set[tuple[str, ...]]:
+    """Match short sequences through light inflection and intervening function words."""
+    trigrams = set()
+    for segment in _strip_ignored_phrases(text, ignore_phrases):
+        content = [
+            (_stem(token), token not in _LETTER_GENERIC_WORDS)
+            for token in _prose_words(segment)
+            if token.isalpha() and len(token) >= 4 and token not in _NGRAM_STOPWORDS
+        ]
+        for gram in zip(content, content[1:], content[2:], strict=False):
+            stems = tuple(stem for stem, _ in gram)
+            if len(set(stems)) == 3 and sum(distinctive for _, distinctive in gram) >= 2:
+                trigrams.add(stems)
+    return trigrams
+
+
+def letter_bridge_verbs(text: str) -> set[str]:
+    """Recognize recurring ways of introducing the transfer of past experience."""
+    return (
+        {label for label, pattern in _BRIDGE_VERBS.items() if pattern.search(text)}
+        | set(_EN_BRIDGE_VERB.findall(text.casefold()))
+    )
 
 
 def has_de_salutation_case_error(salutation: str, first_paragraph: str) -> bool:

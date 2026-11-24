@@ -3,10 +3,8 @@ order. Identify the core work the employer is hiring for and map it to the stron
 
 Headline and profile
 - Write a one-line headline of at most 70 characters, preferably 45–65. Build it from 2–3
-  verified functional areas the applicant has actually worked in, chosen and ordered for
-  closest relevance to the posting (for example,
-  "Produktentwicklung | Projekt- & Schnittstellenkoordination | CAD & Kalkulation" or
-  "Product Development | Requirements & Prototyping | Stakeholder Alignment").
+  verified functional areas the applicant has actually worked in. Choose and order them
+  by fit to the posting's core duties. Leave out secondary duties even when well supported.
   Never use a role-family label or job title that the applicant's verified titles and work
   do not hold (do not use "Product Management" / "Produktmanagement" without formal PM
   tenure). Every pillar must rest on substantial or recurring verified work — never elevate
@@ -16,19 +14,18 @@ Headline and profile
 - Return exactly one profile unit made of 2–3 short, distinct sentences (never one long
   run-on sentence; aim for roughly 35–55 words total). Open the first sentence with a noun
   phrase naming the applicant's verified professional identity or degree (use it once, in
-  the first sentence only). Synthesize the applicant's verified cross-cutting strengths
-  against the posting's core duties — such as verified product development methods and tools
-  (CAD, BOM/costing, prototyping, KPI analysis, iterative workflows), cross-functional,
-  supplier, or developer collaboration, training design with its verified quantified result,
-  external partnerships, and a verified language level when the posting explicitly requires
-  that language (weave it smoothly into one of the 2–3 sentences rather than adding a choppy
-  4-word standalone sentence). Do NOT repeat any experience or project bullet's wording and do NOT retell
-  an individual employer or student project in detail (keep project specifics in their entry
-  bullets). Keep active, concrete phrasing with no explicit first-person (I/ich) or
-  third-person (she/he/sie/er) pronouns, no bare verb-first openings, and no agentless
-  passives. Avoid repeating a content noun three times. Save motivation for the letter.
-- Cite every evidence id supporting each capability, tool, quantified result, or language
-  level in the profile. Keep any evidence gap visible in the scope of the wording.
+  the first sentence only). Lead with verified actions, methods and collaborators that prove
+  the closest fit to the core duties. Where relevant, prioritize requirements work, costing
+  or bill-of-materials work, and supplier coordination for physical products. For software,
+  show the progression from requirements through prototyping to developer iterations if
+  the evidence connects them. Name the actual scope, including early development where
+  applicable. Leave language levels to the dedicated CV section. Synthesize strengths
+  without copying bullets or retelling a project. Use active, concrete phrasing with no
+  first- or third-person applicant pronouns, bare verb-first openings or agentless passives.
+  Avoid using a content noun three times or repeating a summary word such as "experience"
+  in adjacent sentences. Save motivation for the letter.
+- Cite every evidence id supporting each capability, tool or quantified result in the
+  profile. Keep any evidence gap visible in the scope of the wording.
 
 Entries
 - For each listed entry, retain and reorder its bullets by relevance to the posting's CORE
@@ -52,7 +49,9 @@ Entries
   outcome with the same details, and cite both base bullets in that case.
 - Fit the whole CV within two pages. Save space with direct verbs, short clauses and precise
   objects. When responsibilities overlap, give each bullet its own focus and keep the
-  distinct details from its source.
+  distinct details from its source. Assign overlapping actions to the bullet that best
+  proves them. Keep precise source terms relevant to the posting, including modifiers in
+  names like "3D CAD". Finish each thought and vary prepositional constructions across bullets.
 - Start each bullet with a direct past-tense active verb and concrete object (no explicit
   first-person OR third-person pronouns referring to the applicant — never write "I", "ich",
   "she", "he", "die sie koordinierte", etc.). Hard cap: NO opening verb may start more than
