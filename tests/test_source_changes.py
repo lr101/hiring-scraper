@@ -6,9 +6,9 @@ from sqlalchemy import select
 
 from hiring_scraper.app import search_snapshots, source_changes
 from hiring_scraper.app.models import (
-    Company, Job, JobFeed, MatchDirtyJob, MatchSemanticDocument, UserProfile,
+    Company, Job, JobAnalysis, JobFeed, MatchDirtyJob, UserProfile,
 )
-from hiring_scraper.semantic_matching import VERSION
+from hiring_scraper.job_analysis import VERSION, job_lines, source_hash
 from tests import pg
 
 
@@ -102,22 +102,35 @@ class SourceChangesTests(unittest.TestCase):
         self.addCleanup(directory.cleanup)
         return directory.name
 
-    def test_jobs_changed_drops_only_stale_vectors(self):
-        from hiring_scraper.semantic_matching import job_sections, source_hash as vector_hash
+    def test_jobs_changed_marks_only_changed_analyses_stale_and_keeps_them_usable(self):
         with self.factory.begin() as session:
             job = session.get(Job, self.job_id)
-            session.add(MatchSemanticDocument(job_id=job.id, version=VERSION, sections=[], vectors=b'',
-                source_hash=vector_hash(job_sections({'description': job.description,
-                                                      'raw_metadata': job.raw_metadata}))))
+            lines = job_lines({'title': job.title, 'description': job.description, 'raw_metadata': job.raw_metadata})
+            session.add(JobAnalysis(job_id=job.id, version=VERSION, source_hash=source_hash(lines), status='ok',
+                                    payload={'lines': lines, 'duties': [], 'requirements': []}))
         with self.factory() as session:
-            # Unchanged inputs keep the cached rows.
+            # Unchanged inputs keep the analysis current.
             source_changes.jobs_changed(session, [self.job_id])
             session.commit()
-            self.assertIsNotNone(session.scalar(select(MatchSemanticDocument.id)))
+            self.assertEqual(session.scalar(select(JobAnalysis.status)), 'ok')
             session.get(Job, self.job_id).description = 'You will coordinate clinical trials across several hospital sites.'
             source_changes.jobs_changed(session, [self.job_id])
             session.commit()
-            self.assertIsNone(session.scalar(select(MatchSemanticDocument.id)))
+            # The old analysis stays in use (refreshing) until the worker replaces it.
+            row = session.scalar(select(JobAnalysis))
+            self.assertEqual(row.status, 'stale')
+            self.assertTrue(row.payload['lines'])
+
+    def test_published_analysis_must_be_declared(self):
+        with self.application_write(), self.factory() as session:
+            session.add(JobAnalysis(job_id=self.job_id, version=VERSION, source_hash='x', status='ok', payload={}))
+            with self.assertRaises(RuntimeError):
+                session.commit()
+        with self.application_write(), self.factory() as session:
+            session.add(JobAnalysis(job_id=self.job_id, version=VERSION, source_hash='x', status='ok', payload={}))
+            source_changes.analysis_changed(session, [self.job_id])
+            session.commit()
+            self.assertEqual(session.scalars(select(MatchDirtyJob.job_id)).all(), [self.job_id])
 
     def test_changed_career_facts_restart_the_profile_index(self):
         with self.factory.begin() as session:

@@ -86,14 +86,13 @@ class MatchProgressTests(unittest.TestCase):
                 observed_cursors.append(progress.cursor)
         with patch.object(job_search, 'SessionLocal', self.factory), \
                 patch.object(job_search, '_MATCH_WORK_PAGE_SIZE', 2), \
-                patch.object(profile_match_worker, 'refresh_semantic_documents_once', expensive_work), \
                 patch.object(profile_match_worker, 'prepare_once', expensive_work), \
                 patch.object(profile_match_worker.time, 'sleep', side_effect=EndIteration):
             with self.assertLogs(profile_match_worker.LOG, level='INFO') as logs:
                 with self.assertRaises(EndIteration):
                     profile_match_worker.main()
             self.assertFalse(any('ERROR' in line for line in logs.output), logs.output)
-        self.assertEqual(observed_cursors, [self.job_ids[1]] * 2)
+        self.assertEqual(observed_cursors, [self.job_ids[1]])
         with self.factory() as session:
             self.assertIsNotNone(session.get(models.ProfileMatchProgress, self.profile_id))
 
@@ -157,7 +156,6 @@ class MatchProgressTests(unittest.TestCase):
                 patch.object(profile_match_worker, 'refresh_profile_match_indexes_once',
                              side_effect=job_search.ProfileIndexChanged('retry page')), \
                 patch.object(profile_match_worker.time, 'sleep', side_effect=EndIteration), \
-                patch.object(profile_match_worker, 'refresh_semantic_documents_once', lambda: None), \
                 patch.object(profile_match_worker, 'prepare_once', lambda: None):
             with self.assertLogs(profile_match_worker.LOG):
                 with self.assertRaises(EndIteration):
@@ -175,11 +173,10 @@ class MatchProgressTests(unittest.TestCase):
         with patch.object(job_search, 'SessionLocal', self.factory), \
                 patch.object(job_search, '_MATCH_WORK_PAGE_SIZE', 2), \
                 patch.object(profile_match_worker.time, 'sleep', side_effect=EndIteration), \
-                patch.object(profile_match_worker, 'refresh_semantic_documents_once', lambda: events.append('semantic')), \
                 patch.object(profile_match_worker, 'prepare_once', lambda: events.append('prepare')):
             with self.assertRaises(EndIteration):
                 profile_match_worker.main()
-        self.assertEqual(events, ['semantic', 'prepare'])
+        self.assertEqual(events, ['prepare'])
         with self.factory() as session:
             self.assertEqual(len(session.scalars(select(models.MatchDirtyJob)).all()), 3)
 
@@ -189,7 +186,7 @@ class MatchProgressTests(unittest.TestCase):
             ('location', [self.job_ids[0]]),
             ('feed', self.job_ids),
             ('company', self.job_ids),
-            ('semantic', [self.job_ids[0]]),
+            ('analysis', [self.job_ids[0]]),
             ('closure', [self.job_ids[0]]),
         ]
         for kind, expected in cases:
@@ -207,10 +204,10 @@ class MatchProgressTests(unittest.TestCase):
                     elif kind == 'company':
                         job.feed.company.name = 'Renamed employer'
                         source_changes.companies_changed(session, [job.feed.company_id])
-                    elif kind == 'semantic':
-                        session.add(models.MatchSemanticDocument(job_id=job.id, source_hash='source',
-                            version='test', sections=[], vectors=b''))
-                        source_changes.vectors_changed(session, job_ids=[job.id])
+                    elif kind == 'analysis':
+                        session.add(models.JobAnalysis(job_id=job.id, source_hash='source', version='test',
+                                                       status='ok', payload={}, attempts=0))
+                        source_changes.analysis_changed(session, [job.id])
                     else:
                         job.is_active = False
                         source_changes.jobs_changed(session, [job.id])

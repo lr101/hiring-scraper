@@ -4,7 +4,7 @@ Usage:
     python -m tests.eval.cv.check
 
 Validates schema, counts, split disjointness, strict anonymisation / PII rules,
-and evaluates ``hiring_scraper.matching.match_job`` over all labelled cases
+and evaluates the v3 matcher (from recorded model outputs) over all labelled cases
 using local self-contained metric helpers (does not import tests.eval.metrics).
 """
 from __future__ import annotations
@@ -17,7 +17,6 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 from hiring_scraper.matching import VERSION as MATCHER_VERSION
-from hiring_scraper.matching import match_job
 from tests.eval.cv import (
     CV_EVAL_DIR,
     JOBS_DIR,
@@ -499,7 +498,10 @@ def main() -> int:
     print(f"  Cases by split   : {dict(sorted(case_split_counts.items()))}")
     print(f"  Cases by tag     : {dict(sorted(case_tag_counts.items()))}\n")
 
-    # Run match_job over all cases
+    # Run the v3 matcher over all cases (recorded local-model outputs).
+    from tests.eval.run import _ACTIVE_DATASET, get_matcher
+    _ACTIVE_DATASET[0] = "private"
+    match_job = get_matcher("v3")
     cases = load_cases()
     evaluated: list[dict] = []
     for c in cases:

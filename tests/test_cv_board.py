@@ -35,10 +35,8 @@ class CVBoardImportTests(unittest.TestCase):
             self.assertEqual(saved.preferences['skill_evidence']['CAD']['context'], 'academic')
             self.assertEqual(saved.preferences['search_area']['radius_km'], 35)
 
-    def test_committed_reimport_drops_the_stale_profile_vector(self):
+    def test_committed_reimport_restarts_the_profile_index(self):
         from hiring_scraper.app.cv_board import import_board
-        from hiring_scraper.app.models import MatchSemanticDocument
-        from hiring_scraper.semantic_matching import VERSION, profile_sections, source_hash
         engine = pg.engine(self)
         with tempfile.TemporaryDirectory() as directory, Session(engine) as session:
             profile = Path(directory) / 'profile.json'
@@ -46,16 +44,13 @@ class CVBoardImportTests(unittest.TestCase):
                 'summary': 'Mechanical engineer designing machine parts for production lines.'}))
             profile_id = import_board(session, profile, [])['profile_id']
             session.commit()
-            saved = session.get(UserProfile, profile_id)
-            session.add(MatchSemanticDocument(profile_id=profile_id, version=VERSION, sections=[], vectors=b'',
-                source_hash=source_hash(profile_sections(saved.matching_preferences))))
+            session.get(UserProfile, profile_id).match_index_version = 'current'
             session.commit()
             profile.write_text(json.dumps({'name': 'Anonymous project profile', 'skills': ['Python'],
                 'summary': 'Software developer building data pipelines for research teams.'}))
             import_board(session, profile, [])
             session.commit()  # strict mode fails here if the profile change is undeclared
-            self.assertIsNone(session.scalar(select(MatchSemanticDocument.id).where(
-                MatchSemanticDocument.profile_id == profile_id)))
+            self.assertIsNone(session.get(UserProfile, profile_id).match_index_version)
 
     def test_invalid_profile_does_not_import_jobs(self):
         from hiring_scraper.app.cv_board import import_board

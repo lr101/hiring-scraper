@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from hiring_scraper import matching
 from hiring_scraper.app import job_search
-from hiring_scraper.matching import enrich_job, match_job
+from hiring_scraper.matching import enrich_job
 from hiring_scraper.requirements import clause_key, scoped_sentences, structured_text
 
 PROFILE = {'skills': ['Python', 'SQL', 'Docker'], 'desired_roles': ['Software Engineer'],
@@ -18,76 +18,8 @@ DE_JOB = {'title': 'Backend Entwickler', 'description':
           'Dein Profil: Mindestens 3 Jahre Berufserfahrung mit Python, SQL und Docker. Gute Deutschkenntnisse.'}
 
 
-class UnknownTenureTests(unittest.TestCase):
-    def test_unknown_profile_tenure_is_a_visible_note_not_a_gate(self):
-        result = match_job(EN_JOB, PROFILE)
-        self.assertGreaterEqual(result['score'], 55)
-        self.assertEqual(result['fit_tier'], 'possible')
-        self.assertTrue(result['eligible'])
-        self.assertFalse(result['mandatory_review'])
-        self.assertEqual(result['gates']['eligibility']['status'], 'pass')
-        self.assertEqual(result['conflicts'], [])
-        self.assertTrue(any('Verify scoped tenure' in item for item in result['soft_conflicts']))
-        self.assertTrue(result['uncertain'])
-
-    def test_unknown_scoped_tenure_with_known_total_years_stays_visible_and_unblocked(self):
-        result = match_job(EN_JOB, {**PROFILE, 'experience_years': 4})
-        self.assertGreaterEqual(result['score'], 55)
-        self.assertEqual(result['fit_tier'], 'possible')
-        self.assertFalse(result['mandatory_review'])
-        self.assertTrue(result['soft_conflicts'])
-
-    def test_known_shortfall_keeps_the_hard_conflict(self):
-        result = match_job(EN_JOB, {**PROFILE, 'experience_years': 1})
-        self.assertFalse(result['eligible'])
-        self.assertEqual(result['fit_tier'], 'unlikely')
-        self.assertLessEqual(result['score'], 29)
-        self.assertTrue(result['mandatory_review'])
-        self.assertTrue(any('Requires at least 3 years' in item for item in result['conflicts']))
-        self.assertEqual(result['soft_conflicts'], [])
-
-    def test_sufficient_total_years_never_lower_the_score(self):
-        for job in (EN_JOB, DE_JOB):
-            unknown = match_job(job, PROFILE)['score']
-            previous = unknown
-            for years in (3, 4, 10):
-                with self.subTest(job=job['title'], years=years):
-                    score = match_job(job, {**PROFILE, 'experience_years': years})['score']
-                    self.assertGreaterEqual(score, unknown)
-                    self.assertGreaterEqual(score, previous)
-                    previous = score
-
-    def test_unknown_scoped_tenure_no_longer_caps_the_score_at_59(self):
-        job = {**EN_JOB, 'description': EN_JOB['description'] + ' Strong fit signals.'}
-        result = match_job(job, PROFILE)
-        self.assertTrue(result['soft_conflicts'])
-        self.assertGreater(result['score'], 59)
-
-    def test_unknown_senior_tenure_has_no_penalty(self):
-        job = {'title': 'Senior Backend Engineer', 'description': EN_JOB['description'].replace('3+', '3')}
-        unknown = match_job(job, PROFILE)
-        self.assertTrue(any('senior-level professional tenure' in gap for gap in unknown['requirement_gaps']))
-        self.assertGreaterEqual(unknown['score'], 55)
-        self.assertEqual(unknown['fit_tier'], 'possible')
-
-    def test_soft_conflicts_is_empty_without_tenure_requirements(self):
-        result = match_job({'title': 'Backend Engineer', 'description':
-                            'Your tasks:\nBuild REST APIs in Python.\nOperate Docker services.'}, PROFILE)
-        self.assertEqual(result['soft_conflicts'], [])
-
-
 class RequirementGapDedupeTests(unittest.TestCase):
-    def test_one_german_clause_is_one_gap_with_one_penalty(self):
-        result = match_job(DE_JOB, {**PROFILE, 'experience_years': 4})
-        self.assertEqual(len(result['requirement_gaps']), 1)
-        self.assertGreaterEqual(result['score'], 45)
-        self.assertEqual(result['fit_tier'], 'possible')
 
-    def test_unknown_tenure_clause_is_one_gap_and_unpenalised(self):
-        result = match_job(DE_JOB, PROFILE)
-        self.assertEqual(len(result['requirement_gaps']), 1)
-        self.assertGreaterEqual(result['score'], 55)
-        self.assertEqual(result['fit_tier'], 'possible')
 
     def test_every_row_of_a_clause_shares_the_full_clause_key(self):
         enriched = enrich_job(DE_JOB)
@@ -164,11 +96,6 @@ class LocalizedLanguageKeyTests(unittest.TestCase):
                    'language_levels': levels, 'experience_years': 5}
         return match_job(self.JOB, profile)['conflicts']
 
-    def test_english_and_localized_language_keys_give_the_same_decision(self):
-        english = self.conflicts(['German', 'English'], {'German': 'C2', 'English': 'A2'})
-        localized = self.conflicts(['Deutsch', 'Englisch'], {'Deutsch': 'C2', 'Englisch': 'A2'})
-        self.assertTrue(any('profile has A2' in item for item in english))
-        self.assertEqual(localized, english)
 
     def test_canonical_language_maps_known_localized_names_only(self):
         self.assertEqual(matching._canonical_language('Englisch'), 'English')

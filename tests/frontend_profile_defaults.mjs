@@ -34,7 +34,7 @@ const languages = ['Spanish', 'English', 'French']
 const saved = { languages, language_levels: helpers.selectedLanguageLevels(languages, levels) }
 const result = spawnSync('.venv/bin/python', ['-c', `
 import json, sys
-from hiring_scraper.matching import match_job
+from hiring_scraper.matching_v3 import match_job_v3 as match_job
 profiles = json.loads(sys.stdin.read())
 job = {'title': 'Project coordinator', 'description': 'German B2 required. Project management and coordination. ' * 12}
 print(json.dumps([{'gate': match_job(job, profile)['gates']['language'],

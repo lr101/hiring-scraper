@@ -17,17 +17,22 @@ from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import (
-    application_preparation_queue, discovery_worker, job_search, profile_semantics,
+    application_preparation_queue, discovery_worker, job_analysis_worker, job_search,
     search_snapshots, semantic_search_worker, worker,
 )
-from hiring_scraper.app.models import MatchSemanticDocument, SemanticSearchIndexState, UserProfile
-from hiring_scraper.semantic_matching import MODEL_KEY, VERSION
+from hiring_scraper.app.models import ProfileEvidenceUnits, SemanticSearchIndexState, UserProfile
+from hiring_scraper.matching_v3.evidence import UNITS_VERSION, units_hash, units_source
+from hiring_scraper.semantic_matching import MODEL_KEY
 from tests import pg
 
 SMALL, LARGE = 3000, 40000
 # Allowed growth from SMALL to LARGE jobs (13x more rows; SMALL exceeds bounded scan windows). B-tree depth may add a
 # page per index lookup; a scan would grow by orders of magnitude.
 GROWTH_FACTOR, GROWTH_SLACK = 1.5, 60
+
+
+def _no_inference(*_args, **_kwargs):
+    raise AssertionError('an idle cycle ran model inference')
 
 
 def _idle_cycles():
@@ -40,8 +45,10 @@ def _idle_cycles():
         'search snapshot refresh': search_snapshots.process_search_snapshot_refresh_once,
         'application preparation claim': lambda: application_preparation_queue.process_once(
             lambda *_args: None),
-        'profile/job vectors': lambda: profile_semantics.refresh_semantic_documents_once(
-            encode=lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError('idle cycle encoded'))),
+        'job analysis': lambda: (
+            job_analysis_worker.refresh_profile_units_once(embed_fn=_no_inference),
+            job_analysis_worker.refresh_evidence_once(embed_fn=_no_inference, rerank_fn=_no_inference),
+            job_analysis_worker.analyse_next_job(analyse=_no_inference)),
     }
 
 
@@ -84,8 +91,9 @@ class IdleWorkerCostTests(unittest.TestCase):
                 'summary': 'I build software services.'})
             session.add(profile)
             session.flush()
-            session.add(MatchSemanticDocument(profile_id=profile.id, source_hash='p', version=VERSION,
-                                              sections=['I build software services.'], vectors=b'\x00' * 8))
+            source = units_source(profile.matching_preferences)
+            session.add(ProfileEvidenceUnits(profile_id=profile.id, version=UNITS_VERSION,
+                                             source_hash=units_hash(source), payload=source, vectors=b''))
             profile_id = profile.id
             for kind in ('company', 'job'):
                 session.add(SemanticSearchIndexState(entity_type=kind, model_revision=MODEL_KEY,
@@ -120,11 +128,6 @@ class IdleWorkerCostTests(unittest.TestCase):
                        'https://example.invalid/j/' || g, repeat('Build services. ', 40), '{}', '{}',
                        now(), now(), true, false, 0
                 FROM generate_series(CAST(:first AS integer), CAST(:last AS integer)) g"""), {'first': first, 'last': last})
-            connection.execute(text("""
-                INSERT INTO match_semantic_documents(job_id, source_hash, version, sections, vectors, indexed_at)
-                SELECT id, 'j', :version, '[]', '\\x00'::bytea, now() FROM jobs
-                WHERE id NOT IN (SELECT job_id FROM match_semantic_documents WHERE job_id IS NOT NULL)"""),
-                {'version': VERSION})
             for kind, table in (('job', 'jobs'), ('company', 'companies')):
                 connection.execute(text(f"""
                     INSERT INTO semantic_search_documents(entity_type, entity_id, content_hash, model_revision,
@@ -137,7 +140,8 @@ class IdleWorkerCostTests(unittest.TestCase):
         with cls.engine.connect().execution_options(isolation_level='AUTOCOMMIT') as connection:
             # Autovacuum keeps statistics fresh and drained queues compact in production.
             # Leave jobs unvacuumed on purpose: its stale visibility map is the scenario.
-            for table in ('semantic_search_refreshes', 'match_dirty_jobs', 'job_search_snapshot_refreshes'):
+            for table in ('semantic_search_refreshes', 'match_dirty_jobs', 'job_search_snapshot_refreshes',
+                          'job_analysis_queue', 'match_evidence_queue'):
                 connection.execute(text(f'VACUUM {table}'))
             connection.execute(text('ANALYZE'))
 

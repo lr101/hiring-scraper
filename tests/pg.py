@@ -210,13 +210,16 @@ def run_workers(bound: Engine, *, matching: bool = True, search: bool = True, ma
     """
     from unittest.mock import patch
 
-    from hiring_scraper.app import job_search, search_snapshots
+    from hiring_scraper.app import job_analysis_worker, job_search, search_snapshots  # noqa: F401 (patched below)
+    from tests.model_outputs import run_analysis_worker
 
     # The worker debounces bursts of refresh requests; tests drain immediately.
     with patched_session_local(bound), patch.object(search_snapshots, '_SEARCH_SNAPSHOT_REFRESH_DELAY_SECONDS', 0):
         for _ in range(max_rounds):
             worked = False
             if matching:
+                # Local model work first, as in production: analyses and evidence feed matching.
+                worked = run_analysis_worker() or worked
                 for step in (job_search.refresh_profile_match_indexes_once,
                              job_search.refresh_dirty_job_matches_once):
                     try:

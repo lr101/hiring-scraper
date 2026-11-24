@@ -8,12 +8,11 @@ from fastapi import HTTPException
 
 from hiring_scraper.app import api, models
 from tests import pg
+from tests.model_outputs import analyse_all
 
 
 class ProfileIntegrationTests(unittest.TestCase):
-    def test_documented_duties_survive_legacy_edits_and_reach_matcher(self):
-        from hiring_scraper.matching import match_job
-
+    def test_documented_duties_survive_legacy_edits(self):
         profiles = self.profile_api()
         evidence = {'quote': 'Translated business requirements into product specifications.',
                     'context': 'professional', 'responsibility': 'coordinated',
@@ -23,10 +22,7 @@ class ProfileIntegrationTests(unittest.TestCase):
                 name='Example', duty_evidence=[evidence]), session)
             profiles.update_profile(created['id'], profiles.ProfileRequest(name='Updated example'), session)
             profile = session.get(models.UserProfile, created['id'])
-            job = {'description': 'Your tasks:\nTranslate business requirements into product specifications.'}
-            row = match_job(job, profile.matching_preferences)['duty_evidence']['duties'][0]
-            self.assertEqual(row['status'], 'direct')
-            self.assertEqual(row['evidence_reference'], evidence['reference'])
+            self.assertEqual(profile.matching_preferences['duty_evidence'][0]['reference'], evidence['reference'])
 
     def test_optional_personal_application_facts_persist_through_profile_edits(self):
         profiles = self.profile_api()
@@ -187,6 +183,7 @@ class ProfileIntegrationTests(unittest.TestCase):
                     description=('Your tasks:\nBuild Python services and maintain SQL databases.\n'
                                  'Deploy Docker containers to production.'))
                 session.add(company); session.commit()
+                analyse_all(self.engine)
                 ensure_profile_match_indexes(session, [profile]); session.commit()
                 self.assertEqual(session.scalars(select(models.JobApplication).where(
                     models.JobApplication.profile_id == profile.id)).all(), [])
@@ -200,8 +197,7 @@ class ProfileIntegrationTests(unittest.TestCase):
                 # Documented core duties can produce a strong local score
                 # despite a different title.
                 self.assertGreaterEqual(match['score'], 30)
-                self.assertIn('Python', match['matched_skills'])
-                self.assertTrue(match['duty_evidence']['duties'])
+                self.assertTrue(any(duty['status'] == 'direct' for duty in match['duty_evidence']['duties']))
 
     def test_localized_content_rejects_shared_facts_and_unknown_languages(self):
         from pydantic import ValidationError
