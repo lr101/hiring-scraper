@@ -145,9 +145,12 @@ Several processes write to the same PostgreSQL database. Keep these rules when a
   model outputs, call the matching `source_changes.*_changed()` function before
   commit. It drops caches whose inputs changed and queues rematching. Undeclared tracked
   writes fail tests (strict mode) and log an error in production. Precomputed Germany/state
-  location scope columns (`job_location_scope.py`) are invalidated directly by PostgreSQL
-  triggers whenever `jobs.location_text` or `job_locations` change, and recomputed in SQL
-  in bounded batches by `search_snapshot_worker`.
+  location scope columns (`job_location_scope.py`) fall back to live predicates when the
+  version is stale or a dirty mark exists. A change to `jobs.location_text` clears the
+  version in that row's update. Structured location edits enqueue a mark per job and
+  transaction in `job_location_scope_dirty`, which has no foreign key to jobs. The
+  snapshot worker recomputes scopes and clears the marks visible in the same SQL snapshot,
+  then services queued refreshes between backfill batches.
 - **Derived data is rebuilt from queues.** A declared job change is queued in `match_dirty_jobs` and, when its text
   changed or it was never analysed, in `job_analysis_queue`; companies and jobs needing search vectors are queued
   in `semantic_search_refreshes` by database triggers. Published analyses and changed CV evidence units queue pairs in

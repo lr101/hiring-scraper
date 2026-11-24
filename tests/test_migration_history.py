@@ -2,6 +2,8 @@
 import os
 from pathlib import Path
 import sys
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
@@ -241,6 +243,60 @@ class HistoricalUpgradeTests(unittest.TestCase):
                 self.assertEqual(connection.scalar(text(
                     "SELECT record->>'kind' FROM application_document_preparation_tasks")), 'prepare')
 
+    def test_0046_retries_child_ddl_without_blocking_job_writes(self):
+        with patch.dict(os.environ, {'DATABASE_URL': self.target}):
+            command.upgrade(self.config, '0045_local_job_analysis')
+            engine = create_engine(self.target)
+            self.addCleanup(engine.dispose)
+            with engine.begin() as connection:
+                connection.execute(text("""
+                    WITH company AS (
+                        INSERT INTO companies (source, source_id, name, career_status, discovery_attempt_count)
+                        VALUES ('manual', 'ddl', 'Employer', 'not_checked', 0) RETURNING id
+                    ), feed AS (
+                        INSERT INTO job_feeds (company_id, provider, feed_url, status, enabled, attempt_count)
+                        SELECT id, 'rss', 'https://example.test/feed', 'ok', TRUE, 0 FROM company RETURNING id
+                    ), job AS (
+                        INSERT INTO jobs (feed_id, external_id, title, url, is_remote, raw_metadata, enrichment,
+                                          first_seen_at, last_seen_at, is_active, missing_complete_scans)
+                        SELECT id, '1', 'Engineer', 'https://example.test/job', FALSE, '{}', '{}',
+                               now(), now(), TRUE, 0 FROM feed RETURNING id
+                    )
+                    INSERT INTO job_locations (job_id, label) SELECT id, 'Paris' FROM job
+                """))
+            retrying = threading.Event()
+            attempts = 0
+
+            def observe_child_ddl(_connection, _cursor, statement, *_args):
+                nonlocal attempts
+                if statement.startswith(('LOCK TABLE job_locations',
+                                         'DROP TRIGGER IF EXISTS job_locations_invalidate_location_scope')):
+                    attempts += 1
+                    if attempts == 2:
+                        retrying.set()
+
+            event.listen(engine.__class__, 'before_cursor_execute', observe_child_ddl)
+            try:
+                with ThreadPoolExecutor(max_workers=1) as pool:
+                    with engine.begin() as writer, engine.connect() as observer:
+                        writer.execute(text("UPDATE job_locations SET label = 'Lyon'"))
+                        pid = writer.scalar(text('SELECT pg_backend_pid()'))
+                        migration = pool.submit(command.upgrade, self.config, 'head')
+                        pg.wait_for_blocker(observer, pid)
+                        with engine.begin() as job_writer:
+                            job_writer.execute(text("SET LOCAL lock_timeout = '1s'"))
+                            job_writer.execute(text("UPDATE jobs SET title = 'Senior Engineer'"))
+                        self.assertTrue(retrying.wait(5), 'migration did not retry while the child writer was active')
+                    migration.result(timeout=15)
+            finally:
+                event.remove(engine.__class__, 'before_cursor_execute', observe_child_ddl)
+
+            with engine.connect() as connection:
+                self.assertEqual(connection.scalar(text('SELECT version_num FROM alembic_version')),
+                                 '0046_job_location_scope')
+                self.assertEqual(connection.scalar(text('SELECT title FROM jobs')), 'Senior Engineer')
+                self.assertEqual(connection.scalar(text('SELECT label FROM job_locations')), 'Lyon')
+
     def test_0046_job_location_scope_up_down_up_and_worker_backfill(self):
         from hiring_scraper.app.job_location_scope import LOCATION_SCOPE_VERSION, backfill_job_location_scopes_once
 
@@ -301,7 +357,7 @@ class HistoricalUpgradeTests(unittest.TestCase):
                         })
 
             def assert_upgraded():
-                with engine.connect() as connection:
+                with engine.begin() as connection:
                     self.assertEqual(
                         connection.scalar(text('SELECT version_num FROM alembic_version')),
                         '0046_job_location_scope',
@@ -321,6 +377,10 @@ class HistoricalUpgradeTests(unittest.TestCase):
                         "SELECT DISTINCT germany_candidate, location_states, location_scope_version FROM jobs"
                     )).all(), [(None, None, None)])
                     connection.execute(text('UPDATE jobs SET location_text = location_text'))
+                    job_id = connection.scalar(text(
+                        "UPDATE job_locations SET label = label || ' Annex' WHERE country_code = 'DE' RETURNING job_id"
+                    ))
+                    self.assertEqual(connection.scalar(text('SELECT job_id FROM job_location_scope_dirty')), job_id)
 
                 with engine.connect() as connection:
                     with connection.begin():

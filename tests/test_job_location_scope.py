@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import patch
 
 from sqlalchemy import and_, delete, event, func, insert, or_, select, text, update
@@ -25,6 +26,7 @@ from hiring_scraper.app.models import (
     Job,
     JobFeed,
     JobLocation,
+    JobLocationScopeDirty,
     SemanticSearchRefresh,
     UserProfile,
 )
@@ -653,7 +655,9 @@ class JobLocationScopeTests(unittest.TestCase):
             ).scalar_one()
             source_changes.jobs_changed(session, [job_id])
         with self.factory() as session:
-            self.assertIsNone(session.scalar(select(Job.location_scope_version).where(Job.id == job_id)))
+            self.assertEqual(session.scalar(select(Job.location_scope_version).where(Job.id == job_id)),
+                             LOCATION_SCOPE_VERSION)
+            self.assertEqual(session.scalar(select(JobLocationScopeDirty.job_id)), job_id)
         self.assertEqual(backfill_job_location_scopes_once(session_factory=self.factory), 1)
         with self.factory() as session:
             self.assertEqual(
@@ -672,12 +676,16 @@ class JobLocationScopeTests(unittest.TestCase):
                 LOCATION_SCOPE_VERSION,
             )
 
+            self.assertIsNone(session.scalar(select(JobLocationScopeDirty.job_id)))
+
         # Core UPDATE of JobLocation.label invalidates and recomputes to Hamburg.
         with self.factory.begin() as session:
             session.execute(update(JobLocation).where(JobLocation.id == loc_id).values(label='Hamburg Port'))
             source_changes.jobs_changed(session, [job_id])
         with self.factory() as session:
-            self.assertIsNone(session.scalar(select(Job.location_scope_version).where(Job.id == job_id)))
+            self.assertEqual(session.scalar(select(Job.location_scope_version).where(Job.id == job_id)),
+                             LOCATION_SCOPE_VERSION)
+            self.assertEqual(session.scalar(select(JobLocationScopeDirty.job_id)), job_id)
         self.assertEqual(backfill_job_location_scopes_once(session_factory=self.factory), 1)
         with self.factory() as session:
             self.assertEqual(
@@ -692,7 +700,20 @@ class JobLocationScopeTests(unittest.TestCase):
             session.execute(delete(JobLocation).where(JobLocation.id == loc_id))
             source_changes.jobs_changed(session, [job_id])
         with self.factory() as session:
-            self.assertIsNone(session.scalar(select(Job.location_scope_version).where(Job.id == job_id)))
+            self.assertEqual(session.scalar(select(Job.location_scope_version).where(Job.id == job_id)),
+                             LOCATION_SCOPE_VERSION)
+            self.assertEqual(session.scalar(select(JobLocationScopeDirty.job_id)), job_id)
+            for country, state, predicate in (
+                ('DE', None, search_snapshots._job_germany_precomputed_or_fallback()),
+                (None, 'Hamburg', search_snapshots._job_state_precomputed_or_fallback('Hamburg')),
+            ):
+                self.assertIsNone(session.scalar(select(Job.id).where(Job.id == job_id, predicate)))
+                self.assertNotIn(job_id, [row.id for row in session.execute(
+                    search_snapshots._scoped_job_rows_statement(
+                        employer_country=country, state=state, location_scope='area',
+                        company_id=None, normalized_query=None, work_style='all', posting_status='open',
+                    )
+                )])
         self.assertEqual(backfill_job_location_scopes_once(session_factory=self.factory), 1)
         with self.factory() as session:
             self.assertEqual(
@@ -718,9 +739,6 @@ class JobLocationScopeTests(unittest.TestCase):
                 )
                 session.add(job)
                 session.flush()
-                if key == 'backfill-first-loc':
-                    session.add(JobLocation(job_id=job.id, label='Paris', country_code='FR'))
-                    session.flush()
                 jobs.append((key, job.id))
         job_ids = dict(jobs)
 
@@ -776,10 +794,9 @@ class JobLocationScopeTests(unittest.TestCase):
                 (True, ['Berlin'], LOCATION_SCOPE_VERSION),
             )
 
-        # Cases 2 & 3: backfill holds FOR NO KEY UPDATE on the job row and pauses before its SQL UPDATE
-        # while a concurrent writer updates (a) jobs.location_text OR (b) only job_locations.label.
-        # In both cases the writer must serialize on the job row lock and leave location_scope_version NULL
-        # (never Paris + current version).
+        # Text changes serialize on the parent lock and clear the version.
+        # Child edits can commit before the backfill does. Pause after its SQL
+        # statement to verify that a new edit survives the deletion of older marks.
         for target_key, writer_action in (
             (
                 'backfill-first-text',
@@ -793,6 +810,10 @@ class JobLocationScopeTests(unittest.TestCase):
             ),
         ):
             target_id = job_ids[target_key]
+            edits_child = target_key == 'backfill-first-loc'
+            if edits_child:
+                with self.factory.begin() as session:
+                    session.add(JobLocation(job_id=target_id, label='Paris', country_code='FR'))
             backfill_locked = threading.Event()
             release_backfill = threading.Event()
             writer_started = threading.Event()
@@ -801,10 +822,8 @@ class JobLocationScopeTests(unittest.TestCase):
 
             def pause_after_lock(_conn, _cursor, statement, *_args):
                 normalized = ' '.join(statement.upper().split())
-                if (
-                    threading.current_thread().name == f'backfill-{target_key}'
-                    and 'FOR NO KEY UPDATE SKIP LOCKED' in normalized
-                ):
+                pause_at = 'UPDATE JOBS AS J' if edits_child else 'FOR NO KEY UPDATE SKIP LOCKED'
+                if threading.current_thread().name == f'backfill-{target_key}' and pause_at in normalized:
                     backfill_locked.set()
                     if not release_backfill.wait(6):
                         raise AssertionError('backfill did not receive release signal')
@@ -833,8 +852,10 @@ class JobLocationScopeTests(unittest.TestCase):
                 self.assertTrue(backfill_locked.wait(3), f'{target_key}: backfill did not acquire lock')
                 wr_thread.start()
                 self.assertTrue(writer_started.wait(3), f'{target_key}: writer did not start')
-                # Writer must block behind backfill's FOR NO KEY UPDATE lock rather than committing early.
-                self.assertFalse(writer_finished.wait(0.25), f'{target_key}: writer bypassed backfill lock')
+                if edits_child:
+                    self.assertTrue(writer_finished.wait(3), 'child writer waited for backfill')
+                else:
+                    self.assertFalse(writer_finished.wait(0.25), 'text writer bypassed backfill lock')
                 release_backfill.set()
                 bf_thread.join(6)
                 wr_thread.join(6)
@@ -847,11 +868,13 @@ class JobLocationScopeTests(unittest.TestCase):
 
             self.assertEqual(errors, [], f'{target_key} concurrent errors: {errors}')
             with self.factory() as session:
-                # Must be invalidated (NULL), NEVER Paris stamped with LOCATION_SCOPE_VERSION.
-                self.assertIsNone(
-                    session.scalar(select(Job.location_scope_version).where(Job.id == target_id)),
-                    f'{target_key}: stale-current scope left after concurrent write',
-                )
+                if edits_child:
+                    self.assertEqual(session.scalars(select(JobLocationScopeDirty.job_id)).all(), [target_id])
+                    self.assertEqual(session.scalar(select(Job.id).where(
+                        Job.id == target_id, search_snapshots._job_state_precomputed_or_fallback('Berlin'),
+                    )), target_id)
+                else:
+                    self.assertIsNone(session.scalar(select(Job.location_scope_version).where(Job.id == target_id)))
                 berlin_ids = {
                     row[0] for row in session.execute(search_snapshots._scoped_job_rows_statement(
                         employer_country=None, state='Berlin', location_scope='area_remote',
@@ -868,6 +891,90 @@ class JobLocationScopeTests(unittest.TestCase):
                     ).where(Job.id == target_id)).one(),
                     (True, ['Berlin'], LOCATION_SCOPE_VERSION),
                 )
+
+    def _seed_lock_job(self):
+        with self.factory.begin() as session:
+            job = Job(
+                feed=JobFeed(
+                    company=Company(source='test', source_id='lock-job', name='Employer'),
+                    provider='rss', feed_url='https://lock.example/feed', status='parsed',
+                ),
+                external_id='role', title='Engineer', url='https://lock.example/job',
+                locations=[JobLocation(label='Paris'), JobLocation(label='Lyon')],
+            )
+            session.add(job)
+            session.flush()
+            ids = job.feed_id, job.id, job.locations[0].id
+        self.assertEqual(backfill_job_location_scopes_once(session_factory=self.factory), 1)
+        return ids
+
+    def test_core_label_update_after_title_flush_does_not_wait_for_feed_editor(self):
+        feed_id, job_id, loc_id = self._seed_lock_job()
+
+        def edit_feed():
+            with self.factory.begin() as editor:
+                editor.scalar(select(JobFeed.id).where(JobFeed.id == feed_id).with_for_update())
+                models.reserve_job_source_rows(editor, [job_id])
+
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            with self.factory.begin() as writer, self.engine.connect() as observer:
+                writer.execute(text("SET LOCAL lock_timeout = '1s'"))
+                job = writer.get(Job, job_id)
+                job.title = 'Senior Engineer'
+                writer.flush()
+                pid = writer.scalar(text('SELECT pg_backend_pid()'))
+                editor = pool.submit(edit_feed)
+                pg.wait_for_blocker(observer, pid)
+                writer.execute(update(JobLocation).where(JobLocation.id == loc_id).values(label='Berlin'))
+                source_changes.jobs_changed(writer, [job_id])
+            editor.result(timeout=5)
+        self.assertEqual(backfill_job_location_scopes_once(session_factory=self.factory), 1)
+        with self.factory() as session:
+            self.assertEqual(session.scalar(select(Job.location_states).where(Job.id == job_id)), ['Berlin'])
+
+    def test_direct_label_edit_does_not_wait_for_ingestion_replacing_the_location(self):
+        _, job_id, loc_id = self._seed_lock_job()
+
+        def ingest():
+            with self.factory.begin() as session:
+                models.reserve_job_source_rows(session, [job_id])
+                replace_job_locations(session.get(Job, job_id), [{'label': 'München'}])
+                source_changes.jobs_changed(session, [job_id])
+
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            with self.factory.begin() as writer, self.engine.connect() as observer:
+                writer.execute(text("SET LOCAL lock_timeout = '1s'"))
+                writer.scalar(select(JobLocation.id).where(JobLocation.id == loc_id).with_for_update())
+                pid = writer.scalar(text('SELECT pg_backend_pid()'))
+                ingestion = pool.submit(ingest)
+                pg.wait_for_blocker(observer, pid)
+                writer.execute(update(JobLocation).where(JobLocation.id == loc_id).values(label='Berlin'))
+            ingestion.result(timeout=5)
+        self.assertEqual(backfill_job_location_scopes_once(session_factory=self.factory), 1)
+        with self.factory() as session:
+            self.assertEqual(session.scalar(select(Job.location_states).where(Job.id == job_id)), ['Bayern'])
+
+    def test_backfill_discards_dirty_marks_for_deleted_jobs(self):
+        _, job_id, _ = self._seed_lock_job()
+        with self.factory.begin() as session:
+            session.execute(delete(Job).where(Job.id == job_id))
+        with self.factory() as session:
+            self.assertEqual(session.scalars(select(JobLocationScopeDirty.job_id)).all(), [job_id])
+        self.assertEqual(backfill_job_location_scopes_once(session_factory=self.factory), 0)
+        with self.factory() as session:
+            self.assertIsNone(session.scalar(select(JobLocationScopeDirty.job_id)))
+
+    def test_location_reorder_preserves_scope_and_rows(self):
+        _, job_id, _ = self._seed_lock_job()
+        with self.factory.begin() as session:
+            job = session.get(Job, job_id)
+            location_ids = [loc.id for loc in job.locations]
+            replace_job_locations(job, [{'label': loc.label} for loc in reversed(job.locations)])
+            session.flush()
+            self.assertEqual([loc.id for loc in job.locations], location_ids)
+            self.assertEqual(session.scalar(select(Job.location_scope_version).where(Job.id == job_id)),
+                             LOCATION_SCOPE_VERSION)
+        self.assertEqual(backfill_job_location_scopes_once(session_factory=self.factory), 0)
 
     def test_location_replace_and_backfill_do_not_wait_for_feed_key_share(self):
         with self.factory.begin() as session:
@@ -892,9 +999,8 @@ class JobLocationScopeTests(unittest.TestCase):
                 replace_job_locations(job, [{'label': 'Berlin'}])
                 source_changes.jobs_changed(writer, [job_id])
 
-            # PostgreSQL can recheck the feed FK on a second Job UPDATE in
-            # the same transaction. The replacement can clear the scope in
-            # its original write, and backfill uses its own transaction.
+            # Replacement records a dirty mark without a second Job UPDATE.
+            # Backfill recomputes the scope in its own transaction.
             with self.engine.begin() as connection:
                 connection.execute(text("SET LOCAL lock_timeout = '1s'"))
                 self.assertEqual(backfill_job_location_scopes_once(

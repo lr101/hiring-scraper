@@ -194,12 +194,15 @@ class IdleWorkerCostTests(unittest.TestCase):
             # Autovacuum keeps statistics fresh and drained queues compact in production.
             # Leave jobs unvacuumed on purpose: its stale visibility map is the scenario.
             for table in ('semantic_search_refreshes', 'match_dirty_jobs', 'job_search_snapshot_refreshes',
-                          'job_analysis_queue', 'match_evidence_queue'):
+                          'job_analysis_queue', 'match_evidence_queue', 'job_location_scope_dirty'):
                 connection.execute(text(f'VACUUM {table}'))
             connection.execute(text('ANALYZE'))
 
     @classmethod
     def measure(cls):
+        with cls.engine.connect() as connection:
+            if connection.scalar(text('SELECT EXISTS (SELECT 1 FROM job_location_scope_dirty)')):
+                raise AssertionError('The idle cost fixture must have an empty location scope queue')
         costs = {}
         for name, cycle in _idle_cycles().items():
             statements = []

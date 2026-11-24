@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 import re
 import threading
+import time
 from contextlib import contextmanager
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -82,6 +83,21 @@ def _deployment_schema_steps(database_url: str) -> None:
     entrypoint = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(entrypoint)
     entrypoint.ensure_rollback_safe_schema(database_url)
+
+
+def wait_for_blocker(connection, blocker_pid: int, *, timeout: float = 3) -> None:
+    """Wait until another transaction in this database is blocked by blocker_pid."""
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if connection.scalar(text("""
+            SELECT EXISTS (
+                SELECT 1 FROM pg_locks
+                 WHERE NOT granted AND :pid = ANY(pg_blocking_pids(pid))
+            )
+        """), {'pid': blocker_pid}):
+            return
+        time.sleep(0.01)
+    raise AssertionError(f'No transaction waited for PostgreSQL backend {blocker_pid}')
 
 
 def reset() -> None:

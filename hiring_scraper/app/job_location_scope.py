@@ -18,7 +18,7 @@ import re
 import unicodedata
 from typing import Any
 
-from sqlalchemy import Float, Integer, String, Text, bindparam, or_, select, text
+from sqlalchemy import Float, Integer, String, Text, bindparam, delete, or_, select, text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Session
 
@@ -147,6 +147,9 @@ _RECOMPUTE_JOB_LOCATION_SCOPES_SQL = text("""
                 east double precision,
                 north double precision
             )
+    ),
+    cleared AS (
+        DELETE FROM job_location_scope_dirty WHERE job_id = ANY(:job_ids)
     )
     UPDATE jobs AS j
        SET germany_candidate = (
@@ -197,7 +200,7 @@ _RECOMPUTE_JOB_LOCATION_SCOPES_SQL = text("""
 )
 
 
-def _stale_job_ids(session: Session, batch_size: int, version: str) -> list[int]:
+def _stale_job_ids(session: Session, batch_size: int, version: str, *, exclude: list[int]) -> list[int]:
     """Select up to ``batch_size`` stale/uncomputed job IDs via ``ix_jobs_location_scope_version``."""
     from hiring_scraper.app.models import Job
 
@@ -210,44 +213,52 @@ def _stale_job_ids(session: Session, batch_size: int, version: str) -> list[int]
         remaining = batch_size - len(ids)
         if remaining <= 0:
             break
-        ids.extend(
-            int(job_id)
-            for job_id in session.scalars(
-                select(Job.id).where(clause).order_by(*order_by).limit(remaining)
-            ).all()
-        )
+        statement = select(Job.id).where(clause).order_by(*order_by).limit(remaining)
+        if exclude:
+            statement = statement.where(Job.id.not_in(exclude))
+        ids.extend(session.scalars(statement))
     return ids
+
+
+def dirty_job_location_scope_exists():
+    from hiring_scraper.app.models import Job, JobLocationScopeDirty
+
+    return select(1).where(JobLocationScopeDirty.job_id == Job.id).exists()
 
 
 def backfill_job_location_scopes_once(batch_size: int = 500, *, session_factory=None) -> int:
     """Atomically lock and recompute stored location scopes in SQL for one bounded batch."""
     from hiring_scraper.app import database
-    from hiring_scraper.app.models import Job
+    from hiring_scraper.app.models import Job, JobLocationScopeDirty
 
     factory = session_factory or database.SessionLocal
     version = LOCATION_SCOPE_VERSION
     with factory.begin() as session:
-        candidate_ids = _stale_job_ids(session, batch_size, version)
+        dirty_ids = list(session.scalars(
+            select(JobLocationScopeDirty.job_id).distinct().order_by(JobLocationScopeDirty.job_id).limit(batch_size)
+        ))
+        candidate_ids = dirty_ids + _stale_job_ids(session, batch_size - len(dirty_ids), version, exclude=dirty_ids)
         if not candidate_ids:
             return 0
-        locked_ids = [
-            int(job_id)
-            for job_id in session.scalars(
-                select(Job.id)
-                .where(
-                    Job.id.in_(candidate_ids),
-                    or_(
-                        Job.location_scope_version.is_(None),
-                        Job.location_scope_version < version,
-                        Job.location_scope_version > version,
-                    ),
-                )
-                .order_by(Job.id.asc())
-                .with_for_update(key_share=True, skip_locked=True)
-            ).all()
-        ]
+        locked_ids = list(session.scalars(
+            select(Job.id)
+            .where(
+                Job.id.in_(candidate_ids),
+                or_(Job.location_scope_version.is_distinct_from(version), dirty_job_location_scope_exists()),
+            )
+            .order_by(Job.id.asc())
+            .with_for_update(key_share=True, skip_locked=True)
+        ))
+        if dirty_ids:
+            # Cascaded location deletes can mark jobs that no longer exist.
+            session.execute(delete(JobLocationScopeDirty).where(
+                JobLocationScopeDirty.job_id.in_(dirty_ids),
+                ~select(1).where(Job.id == JobLocationScopeDirty.job_id).exists(),
+            ))
         if not locked_ids:
             return 0
+        # The UPDATE and its DELETE CTE share one PostgreSQL statement snapshot.
+        # A child edit invisible to the recompute also keeps its independent mark.
         result = session.execute(_RECOMPUTE_JOB_LOCATION_SCOPES_SQL, {
             **_sql_scope_parameters(),
             'version': version,

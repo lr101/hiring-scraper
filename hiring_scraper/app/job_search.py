@@ -88,12 +88,8 @@ def replace_job_locations(job: Job, rows: list[dict]) -> None:
         else:
             updated.append(JobLocation(**{name: row.get(name) for name in
                 ("label", "latitude", "longitude", "precision", "country_code")}))
-    locations_changed = updated != list(job.locations)
-    job.locations[:] = updated
-    if locations_changed:
-        # Clear in the same Job flush so the job_locations trigger sees
-        # location_scope_version IS NULL and avoids issuing a second UPDATE on jobs.
-        job.location_scope_version = None
+    if len(updated) != len(job.locations) or any(previous.values()):
+        job.locations[:] = updated
 
 
 def scoring_preferences(matching_preferences: dict) -> dict:

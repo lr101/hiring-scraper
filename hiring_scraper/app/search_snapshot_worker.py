@@ -39,8 +39,7 @@ def main() -> None:
             backfilled = backfill_job_location_scopes_once(batch_size=BACKFILL_BATCH_SIZE)
         except Exception:
             logging.getLogger(__name__).exception("Could not backfill job location scopes")
-        if backfilled >= BACKFILL_BATCH_SIZE:
-            continue
+        # Give queued requests a turn between full backfill batches.
         refreshed = process_search_snapshot_refresh_once()
         if not backfilled and not refreshed:
             time.sleep(POLL_SECONDS)

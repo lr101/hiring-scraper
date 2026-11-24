@@ -10,7 +10,7 @@ from urllib.parse import urlsplit
 from uuid import uuid4
 
 from fastapi import HTTPException
-from sqlalchemy import Text, and_, any_, case, delete, false, func, literal, or_, select, text, true, union, update
+from sqlalchemy import Text, and_, any_, case, delete, func, literal, or_, select, text, true, union, update
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 
@@ -26,7 +26,7 @@ from hiring_scraper.app.job_location_scope import (
 from hiring_scraper.app.application_deduplication import index_vacancy_identities
 from hiring_scraper.app.database import dialect_insert, SessionLocal
 from hiring_scraper.app.models import (
-    Company, ConfiguredLocation, Job, JobApplication, JobFeed, JobLocation, JobSearchRefresh,
+    Company, ConfiguredLocation, Job, JobApplication, JobFeed, JobLocation, JobLocationScopeDirty, JobSearchRefresh,
     JobSearchResult, JobSearchSnapshot, JobSearchState, JobVacancyGroup, MatchDirtyJob,
     ProfileJobMatch, SemanticSearchDocument, UserProfile, utcnow,
 )
@@ -157,25 +157,22 @@ def _job_location_scope_stale_filter():
     )
 
 
+def _job_location_scope_precomputed_or_fallback(precomputed, fallback):
+    return case(
+        (or_(_job_location_scope_stale_filter(), job_location_scope.dirty_job_location_scope_exists()), fallback),
+        else_=precomputed,
+    )
+
+
 def _job_germany_precomputed_or_fallback():
-    version = job_location_scope.LOCATION_SCOPE_VERSION
-    return or_(
-        and_(Job.location_scope_version == version, Job.germany_candidate.is_(True)),
-        case(
-            (_job_location_scope_stale_filter(), _job_germany_fallback_candidates()),
-            else_=false(),
-        ),
+    return _job_location_scope_precomputed_or_fallback(
+        Job.germany_candidate.is_(True), _job_germany_fallback_candidates(),
     )
 
 
 def _job_state_precomputed_or_fallback(state: str):
-    version = job_location_scope.LOCATION_SCOPE_VERSION
-    return or_(
-        and_(Job.location_scope_version == version, Job.location_states.contains([state])),
-        case(
-            (_job_location_scope_stale_filter(), _job_state_text_candidates(state)),
-            else_=false(),
-        ),
+    return _job_location_scope_precomputed_or_fallback(
+        Job.location_states.contains([state]), _job_state_text_candidates(state),
     )
 
 
@@ -191,8 +188,8 @@ def _scope_candidate_branches(
     Separating cross-table OR branches (company/employer state vs precomputed
     job columns vs remote jobs) lets PostgreSQL use each table's index instead
     of scanning the full job inventory. Any row whose precomputed scope is NULL
-    or stamped with an older version falls back to the legacy ILIKE/bounds
-    predicate via ``ix_jobs_location_scope_version``.
+    or stale enters the legacy ILIKE/bounds branch via the version index.
+    A separate branch starts from the dirty table for jobs with edited locations.
     """
     version = job_location_scope.LOCATION_SCOPE_VERSION
     posting_filter = posting_status_filter(posting_status)
@@ -211,16 +208,6 @@ def _scope_candidate_branches(
                 posting_filter,
                 german_company_filter(employer_company),
             ),
-            select(Job.id, Job.feed_id).where(
-                posting_filter,
-                Job.location_scope_version == version,
-                Job.germany_candidate.is_(True),
-            ),
-            select(Job.id, Job.feed_id).where(
-                posting_filter,
-                _job_location_scope_stale_filter(),
-                _job_germany_fallback_candidates(),
-            ),
         ])
     elif state:
         branches.extend([
@@ -234,15 +221,25 @@ def _scope_candidate_branches(
                 posting_filter,
                 employer_company.state == state,
             ),
+        ])
+    if employer_country or state:
+        if employer_country:
+            precomputed = Job.germany_candidate.is_(True)
+            fallback = _job_germany_fallback_candidates()
+        else:
+            precomputed = Job.location_states.contains([state])
+            fallback = _job_state_text_candidates(state)
+        dirty_ids = select(JobLocationScopeDirty.job_id).distinct().subquery()
+        branches.extend([
             select(Job.id, Job.feed_id).where(
                 posting_filter,
                 Job.location_scope_version == version,
-                Job.location_states.contains([state]),
+                precomputed,
+                ~job_location_scope.dirty_job_location_scope_exists(),
             ),
-            select(Job.id, Job.feed_id).where(
-                posting_filter,
-                _job_location_scope_stale_filter(),
-                _job_state_text_candidates(state),
+            select(Job.id, Job.feed_id).where(posting_filter, _job_location_scope_stale_filter(), fallback),
+            select(Job.id, Job.feed_id).join(dirty_ids, dirty_ids.c.job_id == Job.id).where(
+                posting_filter, Job.location_scope_version == version, fallback,
             ),
         ])
     if include_remote:

@@ -306,6 +306,15 @@ class JobLocation(Base):
     job: Mapped[Job] = relationship(back_populates="locations")
 
 
+class JobLocationScopeDirty(Base):
+    __tablename__ = "job_location_scope_dirty"
+
+    # Independent marks let concurrent writers commit without contending for
+    # the same row. There is no FK, so marking never locks the parent job.
+    job_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    change_xid: Mapped[str] = mapped_column(Text, primary_key=True)
+
+
 class LocationCache(Base):
     __tablename__ = "location_cache"
 
