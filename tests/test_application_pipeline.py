@@ -718,7 +718,14 @@ class PipelineTests(unittest.TestCase):
             cv_reply(), letter, {'findings': [finding], 'patches': [bad_patch]},
             {'findings': [], 'patches': []}, {'findings': [], 'patches': [correction]},
         ])
-        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
+        prompts = []
+
+        def generate(prompt, _schema):
+            prompts.append(prompt)
+            return next(replies)
+
+        result = pipeline.prepare_documents(self.inp, generate, self.hooks)
+        self.assertIn('letter u-letter-p2 (unsupported_number)', prompts[3])
         self.assertEqual(result.telemetry['attempts']['review'], 3)
         self.assertEqual(result.letter['paragraphs'][1]['text'], original)
         self.assertEqual(result.letter['paragraphs'][1]['sources'], ['cv:work-1:b1'])

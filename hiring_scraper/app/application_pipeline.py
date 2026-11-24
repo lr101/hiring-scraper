@@ -1255,6 +1255,7 @@ def _review(
         except ValidationError:
             malformed += 1
     corrected = set()
+    rejected_corrections = {}
     # Grounding corrections take precedence when the review proposes multiple edits to one unit.
     for proposed in sorted(patches, key=lambda patch: patch.kind != 'grounding'):
         kind = proposed.document
@@ -1277,31 +1278,44 @@ def _review(
             continue
         if proposed.kind != 'content' and unit.origin == 'ai' and not unit.hidden and key not in touched:
             candidate = apply_patch(doc, unit.id, text, 'ai')
-            if (_valid_review_edit(candidate, docs, unit, base, evidence, posting, company)
-                    and not _high(ground(candidate)) - _high(ground(doc))):
+            new_high = _high(ground(candidate)) - _high(ground(doc))
+            failure = min((code for _, code, _ in new_high), default=None) or _review_edit_issue(
+                candidate, docs, unit, base, evidence, posting, company,
+                grounding_correction=proposed.kind == 'grounding',
+            )
+            if failure is None:
                 docs[kind] = candidate
                 touched.add(key)
                 if proposed.kind == 'grounding':
                     corrected.add(key)
                 applied.append({'document': kind, 'unit_id': unit.id, 'kind': proposed.kind})
                 continue
+            if proposed.kind == 'grounding':
+                rejected_corrections[key] = failure
         code = 'review_coverage' if proposed.kind == 'content' else 'review_style'
         findings.append(_finding(kind, code, 'Review suggested a manual wording change.',
                                  unit_id=unit.id, suggestion=text))
     if missing := grounding_targets - corrected:
-        units = ', '.join(f'{kind} {uid}' for kind, uid in sorted(missing))
+        units = ', '.join(f'{kind} {uid}' for kind, uid in sorted(grounding_targets))
+        failures = ', '.join(
+            f'{kind} {uid} ({rejected_corrections.get((kind, uid), "missing or unchanged")})'
+            for kind, uid in sorted(missing)
+        )
         raise _InvalidResponse(
-            f'Return kind="grounding" patches for {units}. Narrow each unsupported claim to the exact '
-            'scope of its existing citations. Keep supported details, avoid copying the CV and return the full review.',
+            f'Invalid or missing grounding corrections: {failures}. Return kind="grounding" patches for '
+            f'all of {units}, including previously accepted corrections. Narrow each unsupported claim '
+            'to the exact scope of its existing citations. Keep supported details, change only what is needed, '
+            'avoid copying eight consecutive words from the CV and return the full review.',
             code='review_grounding_unpatched',
         )
     return docs, findings, applied, malformed
 
 
-def _valid_review_edit(
+def _review_edit_issue(
     candidate: Document, docs: dict[DocumentKind, Document], unit: Unit,
     base: CvDocument, evidence: dict[str, str], posting: str, company: str,
-) -> bool:
+    *, grounding_correction: bool,
+) -> str | None:
     cv = candidate if isinstance(candidate, CvDocument) else docs['cv']
     letter = candidate if isinstance(candidate, LetterDocument) else docs['letter']
     def blocking_keys(issues):
@@ -1309,14 +1323,14 @@ def _valid_review_edit(
 
     old_cv_issues = blocking_keys(_cv_prose_issues(docs['cv']))
     new_cv_issues = blocking_keys(_cv_prose_issues(cv))
-    if new_cv_issues - old_cv_issues:
-        return False
+    if new_issues := new_cv_issues - old_cv_issues:
+        return min(code for code, _ in new_issues)
     old_letter_all = _letter_prose_issues(docs['letter'], docs['cv'], base, company)
     new_letter_all = _letter_prose_issues(letter, cv, base, company)
     old_letter_issues = blocking_keys(old_letter_all)
     new_letter_issues = blocking_keys(new_letter_all)
-    if new_letter_issues - old_letter_issues:
-        return False
+    if new_issues := new_letter_issues - old_letter_issues:
+        return min(code for code, _ in new_issues)
     _no_regress = frozenset({
         'letter_repeated_ending',
         'letter_repeated_phrase',
@@ -1328,24 +1342,26 @@ def _valid_review_edit(
     })
     old_style = {(issue.code, issue.unit_id) for issue in old_letter_all if issue.code in _no_regress}
     new_style = {(issue.code, issue.unit_id) for issue in new_letter_all if issue.code in _no_regress}
-    if new_style - old_style:
-        return False
+    if not grounding_correction and (new_issues := new_style - old_style):
+        return min(code for code, _ in new_issues)
     if isinstance(candidate, CvDocument):
         before = {(f.unit_id, f.message) for f in _qualifier_findings(docs['cv'], evidence)}
         after = {(f.unit_id, f.message) for f in _qualifier_findings(candidate, evidence)}
         if after - before:
-            return False
+            return 'unsupported_qualifier'
         for section in candidate.sections:
             if section.kind == 'skills':
                 updated = next((u for u in section.units if u.id == unit.id), None)
-                if updated is not None:
-                    return _supported_competency(updated, evidence, posting)
+                if updated is not None and not _supported_competency(updated, evidence, posting):
+                    return 'unsupported_competency'
             for entry in section.entries:
                 updated = next((u for u in entry.units if u.id == unit.id), None)
-                if updated is not None:
-                    return not (editorial.omitted_critical_details(updated, evidence, entry.id)
-                                - editorial.omitted_critical_details(unit, evidence, entry.id))
-    return True
+                if updated is not None and (
+                    editorial.omitted_critical_details(updated, evidence, entry.id)
+                    - editorial.omitted_critical_details(unit, evidence, entry.id)
+                ):
+                    return 'omitted_critical_detail'
+    return None
 
 
 def _render(
