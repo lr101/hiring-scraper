@@ -32,9 +32,11 @@ from sqlalchemy import and_, case, func, or_, select, text, update
 from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 from hiring_scraper.app import source_changes
 from hiring_scraper.app.database import dialect_insert, get_session
+from hiring_scraper.app.match_documents import USABLE_ANALYSIS_STATUSES
 from hiring_scraper.app.models import (
     Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany,
-    DiscoveryRun, Job, JobApplication, JobFeed, JobSearchResult, JobSearchSnapshot, JobVacancyGroup,
+    DiscoveryRun, Job, JobAnalysis, JobAnalysisQueue, JobApplication, JobFeed, JobSearchResult, JobSearchSnapshot,
+    JobVacancyGroup,
     LocationCache, ScanRun, SemanticSearchDocument, SemanticSearchIndexState, utcnow,
 )
 from hiring_scraper.app.discovery_jobs import (
@@ -56,6 +58,7 @@ from hiring_scraper.app.applications import (
 from hiring_scraper.app.job_search import (
     refresh_application_matches_for_jobs,
 )
+from hiring_scraper.job_analysis import VERSION as ANALYSIS_VERSION
 from hiring_scraper.matching import VERSION as MATCHING_VERSION
 from hiring_scraper.semantic_matching import MODEL_KEY as SEMANTIC_MODEL_KEY
 from hiring_scraper.app import search_snapshots
@@ -1430,16 +1433,46 @@ def get_job(job_id: int, session: Session = Depends(get_session),
             radius_km: Annotated[float | None, Query(gt=0, le=200)] = None,
             place: Annotated[str | None, Query(max_length=120)] = None,
             country_code: Annotated[str | None, Query(pattern=r'^[A-Za-z]{2}$')] = None,
-            state: str | None = None, country: str | None = None) -> dict[str, Any]:
+            state: str | None = None, country: str | None = None,
+            include_analysis: bool = True) -> dict[str, Any]:
     state = search_snapshots.canonical_state(state)
     employer_country = _canonical_country(country)
-    statement = select(Job).options(joinedload(Job.feed).joinedload(JobFeed.company),
-                                    joinedload(Job.employer_company),
-                                    selectinload(Job.locations)).where(Job.id == job_id)
-    job = session.scalars(statement).unique().first()
-    if not job:
+    statement = (select(Job)
+                 .options(joinedload(Job.feed).joinedload(JobFeed.company),
+                          joinedload(Job.employer_company), selectinload(Job.locations))
+                 .where(Job.id == job_id))
+    analysis_fields = ('occupation', 'industry', 'duties', 'requirements')
+    if include_analysis:
+        queued = select(JobAnalysisQueue.job_id).where(JobAnalysisQueue.job_id == Job.id).exists()
+        statement = statement.outerjoin(JobAnalysis, JobAnalysis.job_id == Job.id).add_columns(
+            JobAnalysis.status, JobAnalysis.version, queued,
+            *(JobAnalysis.payload[field] for field in analysis_fields),
+        )
+    row = session.execute(statement).one_or_none()
+    if row is None:
         raise HTTPException(status_code=404, detail="Job not found")
+    job = row[0]
     data = search_snapshots.job_json(job, include_description=True)
+    if include_analysis:
+        analysis_status, version, is_queued, *values = row[1:]
+        is_current_version = version == ANALYSIS_VERSION
+        refreshing = job.is_active and is_queued
+        data['analysis_refreshing'] = refreshing
+        data['analysis'] = None
+        if analysis_status in USABLE_ANALYSIS_STATUSES and all(value is not None for value in values):
+            data['analysis_state'] = 'ready' if is_current_version and analysis_status == 'ok' else 'outdated'
+            data['analysis'] = dict(zip(analysis_fields, values, strict=True))
+        elif analysis_status == 'failed' and is_current_version:
+            data['analysis_state'] = 'failed'
+        else:
+            data['analysis_state'] = 'pending' if refreshing else 'unavailable'
+
+    # Stored enrichment can still contain this retired warning. Filter it on read
+    # without rewriting the job or invalidating other enrichment signals.
+    enrichment = data['enrichment']
+    legacy_warning = 'No skills recognized in the current vocabulary'
+    if legacy_warning in enrichment['warnings']:
+        data['enrichment'] = {**enrichment, 'warnings': [w for w in enrichment['warnings'] if w != legacy_warning]}
     if employer_country and profile_id is None:
         data['geography'] = search_snapshots.result_scope(job, 0, 0, 15, None, None, state, employer_country)
     if profile_id is not None:
@@ -1449,7 +1482,10 @@ def get_job(job_id: int, session: Session = Depends(get_session),
                                  resolved['radius_km'], resolved['place'],
                                  resolved['country'] if resolved['profile_area'] or isinstance(country_code, str) else None, state, employer_country) if state or employer_country or resolved['profile_area'] or resolved['explicit'] else None
         data['geography'] = scope
-        data['profile_match'] = search_snapshots.profile_match(job, profile, scope)
+        # Application-state lookups (include_analysis=false) skip matching: it can
+        # load the full analysis and evidence, and those callers discard it.
+        if include_analysis:
+            data['profile_match'] = search_snapshots.profile_match(job, profile, scope)
         application = canonical_application_states_for_jobs(session, profile.id, [job]).get(job.id)
         data['application'] = application_json(application) if application else None
     return data

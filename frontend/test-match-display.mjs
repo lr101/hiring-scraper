@@ -62,14 +62,54 @@ try {
   }))
   assert.doesNotMatch(noMatch, /Updating match…|fit<\/span>/)
 
-  const { default: JobEvidence } = await server.ssrLoadModule('/src/JobEvidence.tsx')
+  const { default: JobEvidence, JobPostingAnalysis } = await server.ssrLoadModule('/src/JobEvidence.tsx')
+  const postingEvidence = (state, analysis = null) =>
+    renderToStaticMarkup(React.createElement(JobPostingAnalysis, { state, analysis }))
+  const analysedPosting = postingEvidence('ready', {
+    occupation: 'archival science',
+    industry: 'museums',
+    duties: [{ line: 1, text: 'Catalogue new acquisitions.' }],
+    requirements: [
+      { line: 2, text: 'Archival training required.', need: 'must', kind: 'education' },
+      { line: 3, text: 'Latin is a plus.', need: 'nice', kind: 'language' },
+    ],
+  })
+  assert.match(analysedPosting, /What this job asks for/)
+  assert.match(analysedPosting, /archival science.*museums/)
+  assert.match(analysedPosting, /Duties.*<q>Catalogue new acquisitions\.<\/q>/)
+  assert.match(analysedPosting, /Must-haves.*Education.*<q>Archival training required\.<\/q>/)
+  assert.match(analysedPosting, /Nice-to-haves.*Language.*<q>Latin is a plus\.<\/q>/)
+  const earlier = { occupation: 'archival science', industry: 'museums', duties: [],
+    requirements: [{ line: 2, text: '<b>Archival</b> training required.', need: 'must', kind: 'education' }] }
+  const outdated = (refreshing) =>
+    renderToStaticMarkup(React.createElement(JobPostingAnalysis, { state: 'outdated', analysis: earlier, refreshing }))
+  assert.match(outdated(true), /role="status">Earlier analysis — updating…/)
+  assert.match(outdated(false), /role="status">Earlier analysis</)
+  assert.match(outdated(false), /<q>&lt;b&gt;Archival&lt;\/b&gt; training required\.<\/q>/)
+  assert.doesNotMatch(outdated(false), /<b>Archival/)
+  assert.match(postingEvidence('pending'), /role="status">Reading this posting…/)
+  assert.match(postingEvidence('failed'), /Could not read this posting/)
+  assert.match(postingEvidence('unavailable'), /Posting analysis is unavailable/)
+
+  const enrichedEvidence = renderToStaticMarkup(React.createElement(JobEvidence, {
+    enrichment: { skills: [{ name: 'Legacy skill', evidence: 'Legacy evidence', source: 'description' }],
+      warnings: ['Salary not stated'],
+      seniority: { value: 'senior', evidence: 'Senior Archivist', source: 'title' },
+      experience_years: { value: 3, evidence: '3 years of experience', source: 'description' },
+      languages: [{ value: 'German', level: 'C1', evidence: 'Deutsch C1', source: 'description' }] },
+  }))
+  assert.match(enrichedEvidence, /Experience level:.*Senior Archivist/)
+  assert.match(enrichedEvidence, /Minimum experience:.*3 years of experience/)
+  assert.match(enrichedEvidence, /Language requirements.*Deutsch C1/)
+  assert.match(enrichedEvidence, /Information gaps.*Salary not stated/)
+  assert.doesNotMatch(enrichedEvidence, /Evidence from the job post|Legacy skill/)
   const pendingEvidence = renderToStaticMarkup(React.createElement(JobEvidence, {
     enrichment: { skills: [], languages: [], warnings: [], seniority: null, experience_years: null },
     match: { score: 0, pending: true, eligible: true, uncertain: true, label: '', matched_skills: [],
       missing_skills: [], reasons: [], conflicts: [], unknowns: [] },
   }))
   assert.match(pendingEvidence, /Analysing this job/)
-  assert.doesNotMatch(pendingEvidence, /0\/100/)
+  assert.doesNotMatch(pendingEvidence, /0\/100|No skills recognized yet/)
   const pendingConflict = renderToStaticMarkup(React.createElement(JobEvidence, {
     enrichment: { skills: [], languages: [], warnings: [], seniority: null, experience_years: null },
     match: { score: 0, pending: true, eligible: false, uncertain: true, label: '', matched_skills: [],
