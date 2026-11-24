@@ -199,8 +199,6 @@ def list_job_applications(profile_id: int,
             'offset': offset, 'limit': limit}
 
 
-@router.get('/api/v1/applications')
-
 def _analysis_backlog(session, profile_ids) -> int:
     """Active postings still waiting for the local models (analysis, or pair evidence for
     the selected profiles). Closed postings and ones waiting for a retry are not counted."""
@@ -216,6 +214,8 @@ def _analysis_backlog(session, profile_ids) -> int:
     waiting = union(analysis, evidence).subquery()
     return int(session.scalar(select(func.count()).select_from(waiting)) or 0)
 
+
+@router.get('/api/v1/applications')
 def list_applications(profile_ids: str = Query(..., max_length=1200),
                       statuses: str | None = Query(None, max_length=160),
                       sort: Literal['match', 'posted', 'discovered'] = 'match',
