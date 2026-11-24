@@ -247,7 +247,11 @@ class ApplicationDocumentsV2Tests(unittest.TestCase):
         body = letter(paragraph='Generated fictional draft.')
         documents._publish_stage(1, 2, progress, 'digest', request, 'letter:digest', checkpoint,
                                  [('letter', body, [])])
+        progress('review')
         progress._update(finish=True, state='failed', stage='failed')
+        with self.sessions() as session:
+            partial = queue.status(session, 1, 2)
+        self.assertEqual((partial['state'], partial['failed_stage']), ('partial', 'review'))
         retried = queue.enqueue_task(1, 2, 'prepare', request)
         self.assertEqual(retried['checkpoints']['letter:digest'], checkpoint)
         self.assertEqual(retried['held']['letter']['body']['paragraphs'][0]['text'], 'Generated fictional draft.')

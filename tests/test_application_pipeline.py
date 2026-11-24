@@ -156,6 +156,39 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(self.stages, ['cv'])
         self.assertEqual(self.published, [])
 
+    @patch.object(pipeline, 'SLEEP', lambda _: None)
+    def test_cv_timeout_propagates_without_publishing_the_base_cv(self):
+        def generate(*_):
+            raise pipeline.GenerationError('timeout', retryable=True)
+
+        with self.assertRaises(pipeline.GenerationError) as error:
+            pipeline.prepare_documents(self.inp, generate, self.hooks)
+        self.assertEqual(error.exception.code, 'timeout')
+        self.assertEqual(self.stages, ['cv'])
+        self.assertEqual(self.published, [])
+
+    @patch.object(pipeline, 'SLEEP', lambda _: None)
+    def test_review_timeout_retains_the_two_drafts_and_retries_only_review(self):
+        def generate(*_):
+            stage = self.stages[-1]
+            if stage == 'review':
+                raise pipeline.GenerationError('timeout', retryable=True)
+            return cv_reply() if stage == 'cv' else letter_reply()
+
+        with self.assertRaises(pipeline.GenerationError) as error:
+            pipeline.prepare_documents(self.inp, generate, self.hooks)
+        self.assertEqual(error.exception.code, 'timeout')
+        self.assertEqual([kind for kind, *_ in self.published], ['cv', 'letter'])
+
+        def review(*_):
+            self.assertEqual(self.stages[-1], 'review')
+            return {'findings': [], 'patches': []}
+
+        resumed = pipeline.prepare_documents(self.inp, review, self.hooks)
+        self.assertEqual(resumed.stages['cv']['state'], 'resumed')
+        self.assertEqual(resumed.stages['letter']['state'], 'resumed')
+        self.assertEqual(resumed.stages['review']['state'], 'completed')
+
     def test_cv_checkpoint_survives_non_retryable_letter_failure(self):
         def generate(prompt, schema):
             if self.stages[-1] == 'cv':
@@ -588,23 +621,6 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(result.letter['paragraphs'][0]['text'], letter_reply()['paragraphs'][0]['text'])
         self.assertEqual(len(result.findings), 5)
         self.assertNotIn('unsupported_number', [f['code'] for f in result.findings])
-
-    @patch.object(pipeline, 'SLEEP', lambda _: None)
-    def test_letter_falls_back_to_base_cv_after_exhaustion(self):
-        self.inp.mode = 'fast'
-
-        def generate(prompt, schema):
-            if self.stages[-1] == 'cv':
-                raise pipeline.GenerationError('busy', retryable=True)
-            self.assertIn('CV UNITS', prompt)
-            self.assertIn('Designed a workshop with librarians.', prompt)
-            return letter_reply()
-
-        result = pipeline.prepare_documents(self.inp, generate, self.hooks)
-        self.assertEqual(result.cv, self.inp.base_cv)
-        self.assertEqual(result.telemetry['attempts']['cv'], 3)
-        self.assertNotIn(f'cv:{pipeline.input_digest(self.inp)}', self.checkpoints)
-        self.assertEqual([p[0] for p in self.published], ['cv', 'letter'])
 
     def test_render_findings_and_final_render_of_patched_unit(self):
         rendered = []

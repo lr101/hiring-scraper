@@ -29,8 +29,9 @@ export type Revision = {
 export type Task = {
   id: string
   kind: 'prepare' | 'revise' | 'legacy'
-  state: 'running' | 'cancelling' | 'cancelled' | 'failed' | 'completed'
+  state: 'running' | 'cancelling' | 'cancelled' | 'failed' | 'partial' | 'completed'
   stage: string
+  failed_stage?: string | null
   attempts: number
   error_code: string | null
   error: string | null

@@ -115,6 +115,10 @@ def _store(row, **changes):
     row.updated_at = now
 
 
+def _failure_state(record):
+    return 'partial' if record.get('kind') == 'prepare' and (record.get('held') or record.get('published')) else 'failed'
+
+
 def _reset_row(session, row, profile_id, job_id):
     if row is None:
         row = Task(profile_id=profile_id, job_id=job_id, record={})
@@ -154,7 +158,7 @@ def enqueue_task(profile_id, job_id, kind, request, *, extra=None, automatic=Fal
         same_inputs = same or (kind == previous.get('kind') == 'prepare'
                                and {k: v for k, v in old_request.items() if k != 'mode'}
                                == {k: v for k, v in request.items() if k != 'mode'})
-        resume = same_inputs and previous.get('state') in ('failed', 'cancelled')
+        resume = same_inputs and previous.get('state') in ('failed', 'partial', 'cancelled')
         resumed = {}
         if resume:
             resumed = {key: previous.get(key) or {} for key in (
@@ -212,7 +216,7 @@ def _claim():
         attempts = int(record.get('attempts') or 0)
         if record.get('kind') in V2_KINDS and attempts >= MAX_ATTEMPTS:
             # The previous owner's lease expired without finishing (crash or hang).
-            _store(candidate, state='failed', stage='failed', failed_stage=record.get('stage'),
+            _store(candidate, state=_failure_state(record), stage='failed', failed_stage=record.get('stage'),
                    error_code='lease_expired', error='Preparation stopped responding. Try again.')
             candidate.lease_token = candidate.lease_until = candidate.next_attempt_at = None
             return None
@@ -269,8 +273,10 @@ class Progress:
                 retry_at = None
             elif row.state != 'running':
                 return False
-            if changes.get('state') == 'failed':
+            if changes.get('state') == 'failed' or retry_at is not None:
                 changes['failed_stage'] = row.record.get('stage')
+            if changes.get('state') == 'failed':
+                changes['state'] = _failure_state(row.record)
             if retry_at is not None:
                 changes['next_attempt_at'] = retry_at.isoformat()
             _store(row, **changes)

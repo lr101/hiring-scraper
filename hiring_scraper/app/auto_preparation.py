@@ -98,7 +98,7 @@ def prepare_once():
                         current = None
                     if current and (current['state'] in ('running', 'cancelling', 'cancelled') or
                                     (current['state'] == 'completed' and not current.get('automatic')) or
-                                    (current['state'] == 'failed' and time.time() - current.get('updated_at', 0) < RETRY_SECONDS)):
+                                    (current['state'] in ('failed', 'partial') and time.time() - current.get('updated_at', 0) < RETRY_SECONDS)):
                         continue
                     job = session.get(Job, row.job_id)
                     if not job:

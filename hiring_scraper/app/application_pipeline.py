@@ -15,7 +15,7 @@ from html import unescape
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from hiring_scraper.app.application_pdf import RenderResult
 from hiring_scraper.documents import editorial
@@ -206,11 +206,13 @@ class _Checkpoint(_Response):
 class _CvCheckpoint(_Checkpoint):
     document: CvDocument
     draft_findings: list[Finding]
+    fallback: bool = False
 
 
 class _LetterCheckpoint(_Checkpoint):
     document: LetterDocument
     cv_digest: str
+    non_prose_findings: list[Finding] = Field(default_factory=list)
 
 
 class _ReviewCheckpoint(_Checkpoint):
@@ -1256,34 +1258,26 @@ def prepare_documents(
     if checkpoint is not None:
         cv, cv_findings, renders['cv'] = checkpoint.document, checkpoint.findings, checkpoint.render
         draft_findings = checkpoint.draft_findings
+        cv_state = 'fallback' if checkpoint.fallback else 'completed'
         resume(stats, checkpoint)
     else:
         entries = _cv_entries(base, evidence)
         skills = [{'section_id': s.id, 'title': s.title, 'units': [u.model_dump() for u in s.units]}
                   for s in base.sections if s.kind == 'skills']
         prompt = _prompt('cv', inp, evidence, entries=entries, skills=skills)
-        try:
-            cv_outcome = _generate(generate, prompt, _CvResponse,
-                                   lambda output: accept_grounded(
-                                       lambda reply: _cv_draft(reply, base, entries, evidence, posting), output),
-                                   stats, hooks.cancelled, return_best=True)
-            if isinstance(cv_outcome, _Fallback):
-                cv, base_draft_findings = cv_outcome.candidate
-                draft_findings = base_draft_findings + _issues_to_findings(
-                    'cv', [issue for issue in cv_outcome.issues if issue.code not in _BLOCKING_PROSE_CODES],
-                )
-                stats['error'] = 'invalid_response'
-                cv_state = 'fallback'
-            else:
-                cv, draft_findings = cv_outcome
-                cv_state = 'completed'
-        except GenerationError as error:
-            if not error.retryable:
-                raise
-            cv = _new_cv(base)
-            draft_findings = [_finding('cv', 'review_format', 'CV tailoring stopped; the base CV is available.')]
-            stats['error'] = error.code
+        cv_outcome = _generate(generate, prompt, _CvResponse,
+                               lambda output: accept_grounded(
+                                   lambda reply: _cv_draft(reply, base, entries, evidence, posting), output),
+                               stats, hooks.cancelled, return_best=True)
+        if isinstance(cv_outcome, _Fallback):
+            cv, base_draft_findings = cv_outcome.candidate
+            draft_findings = base_draft_findings + _issues_to_findings(
+                'cv', [issue for issue in cv_outcome.issues if issue.code not in _BLOCKING_PROSE_CODES],
+            )
+            stats['error'] = 'invalid_response'
             cv_state = 'fallback'
+        else:
+            cv, draft_findings = cv_outcome
         renders['cv'], render_findings = _render('cv', cv, render)
         cv_findings = (
             draft_findings
@@ -1295,7 +1289,7 @@ def prepare_documents(
         )
         timing = complete(stats, started, cv_state)
         saved = _CvCheckpoint(document=cv, findings=cv_findings, draft_findings=draft_findings,
-                              render=renders['cv'], **timing) if cv_state == 'completed' else None
+                              render=renders['cv'], fallback=cv_state == 'fallback', **timing)
         commit(key, saved, {'cv': cv}, cv_findings)
 
     started, key, stats = start('letter')
@@ -1304,6 +1298,7 @@ def prepare_documents(
     letter_non_prose_findings: list[Finding] = []
     if checkpoint is not None and checkpoint.cv_digest == cv_digest:
         letter, letter_findings, renders['letter'] = checkpoint.document, checkpoint.findings, checkpoint.render
+        letter_non_prose_findings = checkpoint.non_prose_findings
         resume(stats, checkpoint)
     else:
         letter_cv_source = _new_cv(base) if cv_state == 'fallback' else cv
@@ -1332,7 +1327,7 @@ def prepare_documents(
         )
         timing = complete(stats, started, letter_state)
         saved = _LetterCheckpoint(document=letter, cv_digest=cv_digest, findings=letter_findings,
-                                  render=renders['letter'], **timing) if letter_state == 'completed' else None
+                                  render=renders['letter'], non_prose_findings=letter_non_prose_findings, **timing)
         commit(key, saved, {'letter': letter}, letter_findings)
 
     docs = {'cv': cv, 'letter': letter}
@@ -1349,18 +1344,10 @@ def prepare_documents(
         else:
             prompt = _prompt('review', inp, evidence, documents={k: _units(d) for k, d in docs.items()},
                              findings=_numbered(findings), render=renders)
-            try:
-                reviewed, review_findings, applied, malformed = _generate(
-                    generate, prompt, _ReviewResponse, lambda output: _review(output, docs, ground, base, evidence, posting, company),
-                    stats, hooks.cancelled,
-                )
-                state = 'completed'
-            except GenerationError as error:
-                if not error.retryable:
-                    raise
-                reviewed, review_findings = docs, []
-                stats['error'] = error.code
-                state = 'skipped'
+            reviewed, review_findings, applied, malformed = _generate(
+                generate, prompt, _ReviewResponse, lambda output: _review(output, docs, ground, base, evidence, posting, company),
+                stats, hooks.cancelled,
+            )
             final_findings = {'cv': cv_findings, 'letter': letter_findings}
             for kind, doc in reviewed.items():
                 if doc != docs[kind]:
@@ -1382,11 +1369,11 @@ def prepare_documents(
                         )
             docs = reviewed
             findings = final_findings['cv'] + final_findings['letter'] + review_findings
-            timing = complete(stats, started, state)
+            timing = complete(stats, started, 'completed')
             saved = _ReviewCheckpoint(cv=docs['cv'], letter=docs['letter'], findings=findings,
                                       upstream_digest=upstream_digest, render=renders,
                                       applied_patches=applied, malformed_items=malformed,
-                                      **timing) if state == 'completed' else None
+                                      **timing)
             commit(key, saved, docs, findings)
 
     _check_cancelled(hooks.cancelled)

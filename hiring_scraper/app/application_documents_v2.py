@@ -119,7 +119,7 @@ def public_task(record: dict | None) -> dict | None:
     if not record:
         return None
     task = {key: record.get(key) for key in (
-        'id', 'kind', 'state', 'stage', 'attempts', 'error_code', 'error', 'next_attempt_at', 'stages')}
+        'id', 'kind', 'state', 'stage', 'attempts', 'error_code', 'error', 'next_attempt_at', 'stages', 'failed_stage')}
     task['kind'] = task['kind'] or 'legacy'
     task['stages'] = task['stages'] or {}
     task['attempts'] = task['attempts'] or 0

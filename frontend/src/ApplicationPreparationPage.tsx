@@ -232,7 +232,7 @@ function Preparation({ job, profile, editHref }: { job: Job; profile: Profile; e
   const retryUnit = retryRevision && revisionDraft.body && findUnitById(revisionDraft.body, retryRevision.unit_id)
   const canRetryRevision = canRevise && retryVersion !== undefined && retryUnit
     && !revisionDraft.dirty && !revisionDraft.saving && !revisionDraft.conflict
-  const retryPrepare = task?.kind === 'prepare' && (task.state === 'failed' || task.state === 'cancelled')
+  const retryPrepare = task?.kind === 'prepare' && (task.state === 'failed' || task.state === 'partial' || task.state === 'cancelled')
   const retryMatchesControls = !task?.preparation || (task.preparation.language === language && task.preparation.mode === mode)
 
   return <div className="application-preparation-v2">
@@ -269,14 +269,14 @@ function Preparation({ job, profile, editHref }: { job: Job; profile: Profile; e
       {!!form?.fields.length && <p className="finish-help">{form.fields.length} questions captured by the application companion. Open the employer form to review them.</p>}
       <div className="preparation-actions">
         <button type="button" className="primary-button" disabled={!canPrepare} onClick={prepare}>
-          {busy && !active ? 'Starting…' : retryPrepare && retryMatchesControls ? 'Retry preparation' : 'Prepare documents'}
+          {busy && !active ? 'Starting…' : retryPrepare && retryMatchesControls ? (task?.failed_stage === 'review' ? 'Retry review' : 'Retry preparation') : 'Prepare documents'}
         </button>
         {retryPrepare && !retryMatchesControls && <button type="button" disabled={!task?.preparation || baseDirty || baseSaving}
           onClick={() => { if (task?.preparation) { setLanguage(task.preparation.language); setMode(task.preparation.mode) } }}>
           Restore previous preparation settings
         </button>}
       </div>
-      {task && (active || task.state === 'failed' || task.state === 'cancelled') && <PreparationStatus task={task}>
+      {task && (active || task.state === 'failed' || task.state === 'partial' || task.state === 'cancelled') && <PreparationStatus task={task}>
         {task.state === 'running' && <button type="button" disabled={busy} onClick={() => void taskAction(
           `${documentsUrl}/task/cancel${query}&task_id=${encodeURIComponent(task.id)}`, {},
         )}>Cancel {task.kind === 'revise' ? 'revision' : 'preparation'}</button>}
@@ -329,8 +329,10 @@ function PreparationStatus({ task, children }: { task: Task; children: React.Rea
   const eta = Number.isFinite(retryAt) ? Math.max(0, Math.ceil((retryAt - Date.now()) / 1000)) : null
   const stages = preparationStages(task.preparation?.mode)
   const stage = stages.find(step => step === task.stage)
+  const failedStage = stages.find(step => step === task.failed_stage)
   const label = task.state === 'cancelling' ? 'Cancelling…'
     : task.state === 'cancelled' ? 'Cancelled'
+      : task.state === 'partial' ? 'Preparation partially complete'
       : task.state === 'failed' ? (task.kind === 'revise' ? 'Revision failed' : 'Preparation failed')
         : task.stage === 'retry_wait' ? 'Waiting to retry'
           : task.stage === 'queued' ? 'Queued'
@@ -339,10 +341,12 @@ function PreparationStatus({ task, children }: { task: Task; children: React.Rea
                 : stage === 'review' ? 'Reviewing documents'
                   : stage ? `Preparing ${LABELS[stage]}` : 'Starting preparation'
   return <div className="generation-status">
-    <div role={task.state === 'failed' ? 'alert' : 'status'}>
+    <div role={task.state === 'failed' || task.state === 'partial' ? 'alert' : 'status'}>
       <strong>{label}</strong>
       {task.attempts > 0 && task.kind !== 'legacy' && <p>Attempt {task.attempts} of 3</p>}
       {eta !== null && <p>Next retry {eta > 0 ? `in about ${eta} seconds` : 'is due now'}.</p>}
+      {failedStage && (task.state === 'partial' || task.state === 'failed' || task.stage === 'retry_wait')
+        && <p>{LABELS[failedStage]} could not finish.{task.state === 'partial' && ' Your drafts are still available.'}</p>}
       {task.error_code && <p>{taskErrorMessage(task)}</p>}
     </div>
     {active && task.kind === 'prepare' && <ol aria-label="Preparation progress">
