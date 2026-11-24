@@ -703,6 +703,19 @@ class PipelineTests(unittest.TestCase):
             for issue in letter_issues
         ))
 
+    def test_review_patch_rejects_newly_introduced_repeated_letter_ending(self):
+        # Paragraph 1 ends with 'I am eager to ...'; patching paragraph 3 to end with the same 3-word opener is rejected.
+        patched_p3 = (
+            'I am curious how your staff test activities with visitors before an exhibit opens. '
+            'I am eager to bring practical setup habits to your gallery floor.'
+        )
+        result = self.run_with(review={
+            'findings': [],
+            'patches': [{'document': 'letter', 'unit_id': 'u-letter-p3', 'kind': 'rephrase', 'text': patched_p3}],
+        })
+        self.assertEqual(result.telemetry['applied_patches'], [])
+        self.assertEqual(result.letter['paragraphs'][2]['text'], letter_reply()['paragraphs'][2]['text'])
+
     def test_unknown_entry_does_not_replace_source_bullets(self):
         cv = cv_reply()
         cv['entries'][0]['entry_id'] = 'invented'

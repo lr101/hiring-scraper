@@ -1221,9 +1221,21 @@ def _valid_review_edit(
     new_cv_issues = blocking_keys(_cv_prose_issues(cv))
     if new_cv_issues - old_cv_issues:
         return False
-    old_letter_issues = blocking_keys(_letter_prose_issues(docs['letter'], docs['cv'], base, company))
-    new_letter_issues = blocking_keys(_letter_prose_issues(letter, cv, base, company))
+    old_letter_all = _letter_prose_issues(docs['letter'], docs['cv'], base, company)
+    new_letter_all = _letter_prose_issues(letter, cv, base, company)
+    old_letter_issues = blocking_keys(old_letter_all)
+    new_letter_issues = blocking_keys(new_letter_all)
     if new_letter_issues - old_letter_issues:
+        return False
+    _no_regress = frozenset({
+        'letter_repeated_ending',
+        'letter_repeated_phrase',
+        'letter_repeated_opening',
+        'letter_conditional_count',
+    })
+    old_style = {(issue.code, issue.unit_id) for issue in old_letter_all if issue.code in _no_regress}
+    new_style = {(issue.code, issue.unit_id) for issue in new_letter_all if issue.code in _no_regress}
+    if new_style - old_style:
         return False
     if isinstance(candidate, CvDocument):
         before = {(f.unit_id, f.message) for f in _qualifier_findings(docs['cv'], evidence)}

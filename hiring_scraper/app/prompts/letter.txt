@@ -47,7 +47,8 @@ Check the final draft before returning it
   - Use at most ONE forward-looking conditional formula ("würde ich …" / "I would bring …" /
     "I would apply …") in the ENTIRE letter; use indicative, varied constructions everywhere
     else.
-  - Never end two body paragraphs with the same closing construction or bridge formula, and
+  - Never end two body paragraphs with the same closing construction or bridge formula (do
+    not repeat replacement formulas like "I am keen to …" across paragraphs either), and
     reserve "I look forward to" / "Ich freue mich auf" for the closing sentence only so no
     phrase repeats between a body paragraph and the closing.
   - Never start three or more consecutive sentences with "I <verb>" or the same opening
@@ -57,7 +58,8 @@ Check the final draft before returning it
   scope, stage and results exactly. Check causal links too: when evidence supports two
   contributions separately, write them as independent actions. Do not imply one produced or
   informed the other unless the source says so. Do not claim unsupported tenure, releases,
-  or decisions. Use "job" for facts about the posting only.
+  or decisions. Include "job" in sources whenever a paragraph names the target company, its
+  product, or a duty from the posting, and use "job" for facts about the posting only.
 - Spell out English contractions. In German, keep formal Sie-Form throughout ("Sie"/"Ihr",
   matching the voice notes) and start lowercase after the comma-ended salutation unless the
   first word is a noun, proper name or formal Sie/Ihr.
