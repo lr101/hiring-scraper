@@ -294,6 +294,39 @@ class ProductionPreparationTests(ProductionHarness):
         expect(prepared.get_by_text('1 questions captured by the application companion.', exact=False)).to_be_visible()
 
 
+    def test_companion_link_opens_the_v2_editor_and_downloads_a_verified_pdf(self):
+        from pypdf import PdfReader
+        from tests.test_application_documents_v2_unit import letter
+
+        self.setup_preparation()
+        endpoint = self.origin + '/api/v1/profiles/1/application-documents/letter?job_id=1574'
+        saved = self.context.request.put(endpoint, data={'body': letter(), 'expected_version': 0})
+        self.assertTrue(saved.ok, saved.text())
+
+        self.page.goto(LISTING)
+        popup = self.popup()
+        with self.context.expect_page() as opened:
+            popup.get_by_role('button', name='Prepare documents', exact=True).click()
+        application = opened.value
+        expect(application.get_by_role('heading', name='Prepare your application')).to_be_visible()
+        with application.expect_download(timeout=30000) as downloaded:
+            with application.expect_response(lambda response: '/letter/pdf?' in response.url) as first:
+                application.get_by_role('button', name='Download PDF', exact=True).click()
+            self.assertEqual(first.value.status, 202)
+            # Claim the real queue row and run the shipped renderer without
+            # starting the long-lived inference worker or touching a subscription.
+            subprocess.run([sys.executable, '-c', (
+                'from hiring_scraper.app.application_preparation_queue import process_render_once; '
+                'from hiring_scraper.app.application_preparation_worker import render; '
+                'assert process_render_once(render)'
+            )], cwd=ROOT.parents[1], check=True, timeout=25, env={**os.environ, 'DATABASE_URL': pg.url()})
+
+        artifact = downloaded.value
+        self.assertEqual(artifact.suggested_filename, 'application-letter-v1.pdf')
+        reader = PdfReader(artifact.path())
+        self.assertEqual(len(reader.pages), 1)
+        self.assertIn('I build reliable services.', reader.pages[0].extract_text())
+
     def test_document_editor_blocks_rich_drops_and_removes_rich_nodes(self):
         from tests.test_application_documents_v2_unit import letter
 

@@ -500,7 +500,7 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
           <details><summary>{text('Prompt for formatting my existing LaTeX CV', 'Prompt zum Formatieren meines LaTeX-Lebenslaufs')}</summary><p>{text('Paste this into ChatGPT with your original CV. Review the facts before uploading both files.', 'Füge diesen Prompt mit deinem ursprünglichen Lebenslauf in ChatGPT ein. Prüfe die Fakten, bevor du beide Dateien hochlädst.')}</p><textarea aria-label="CV formatting prompt" readOnly rows={12} value={contentLanguage === 'de' ? cvFormattingPromptDe : cvFormattingPrompt} /></details>
         </fieldset>
         <fieldset className="profile-section" id="profile-photo"><legend>{text('CV photo (optional)', 'Bewerbungsfoto (optional)')}</legend>
-          <p>{text('Save a photo once for CV previews and PDF exports in both languages. You can leave it out or choose a different photo for an individual application. It is not sent to ChatGPT.', 'Speichere ein Foto für die Lebenslauf-Vorschau und PDF-Exporte in beiden Sprachen. Du kannst es bei einzelnen Bewerbungen weglassen oder ersetzen. Es wird nicht an ChatGPT gesendet.')}</p>
+          <p>{text('Use a saved photo in CV previews and PDF exports in either language. Radius uses the photo locally.', 'Nutze ein gespeichertes Foto für Lebenslauf-Vorschauen und PDF-Exporte in beiden Sprachen. Radius verwendet das Foto lokal.')}</p>
           <label>{text('Profile photo', 'Profilfoto')}<input type="file" accept="image/png,.png" disabled={busy} onChange={event => {
             const file = event.target.files?.[0]
             event.target.value = ''
@@ -509,7 +509,7 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
             void readCVPhoto(file).then(preview => { setPendingPhoto({ file, preview }); setRemovePhoto(false) })
               .catch(reason => setError(reason.message)).finally(() => setBusy(false))
           }} /></label>
-          <small>{text('PNG up to 2 MiB and 4096 pixels per side. Your file can have any name. For a custom LaTeX CV, use portrait.png in the image reference; the source + photo ZIP supplies the matching file. Changes take effect when you save the profile.', 'PNG bis 2 MiB und 4096 Pixel pro Seite. Die Datei darf beliebig heißen. Verwende für ein eigenes LaTeX-CV portrait.png als Bildreferenz; das ZIP mit Quelltext und Foto enthält die passende Datei. Änderungen werden mit dem Profil gespeichert.')}</small>
+          <small>{text('PNG up to 2 MiB and 4096 pixels per side. Changes take effect when you save the profile.', 'PNG bis 2 MiB und 4096 Pixel pro Seite. Änderungen werden mit dem Profil gespeichert.')}</small>
           {(pendingPhoto || (form.photo && !removePhoto)) && <div className="profile-pending-cv">
             <img src={pendingPhoto?.preview ?? `${API}/api/v1/profiles/${form.id}/photo?v=${encodeURIComponent(form.photo!.updated_at)}`} alt={text('Profile photo preview', 'Profilfoto-Vorschau')} width={96} style={{ maxHeight: 128, objectFit: 'contain' }} />
             <p>{pendingPhoto ? `${pendingPhoto.file.name} · ${text('ready to save', 'bereit zum Speichern')}` : form.photo!.filename}</p>
