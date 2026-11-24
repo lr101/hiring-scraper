@@ -149,10 +149,10 @@ class RenderTests(unittest.TestCase):
         result = application_pdf.render_document('cv', doc.model_dump(), photo_png=PIXEL)
         self.assertEqual(self._passed(result, 'reading_order'), 'passed')
         self.assertTrue(result.telemetry['photo_used'])
-        self.assertNotIn('2020-2020', result.text)
-        self.assertIn('2021-heute', result.text)
+        self.assertNotIn('2020 – 2020', result.text)
+        self.assertIn('2021 – heute', result.text)
         self.assertNotIn('‐', result.text)
-        parts = ('BEISPIELWERK', 'Plante Prüfläufe', 'FIKTIVLABOR', '2020',
+        parts = ('Beispielwerk', 'Plante Prüfläufe', 'Fiktivlabor', '2020',
                  'Kalibrierte Sensoren', 'Python', 'Konstruktion', 'Messtechnik')
         positions = [result.text.index(part) for part in parts]
         self.assertEqual(positions, sorted(positions))
@@ -227,7 +227,7 @@ class RenderTests(unittest.TestCase):
         pages = [page.extract_text() for page in PdfReader(BytesIO(result.pdf)).pages]
         self.assertEqual(len(pages), 2)
         self.assertTrue(pages[1].lstrip().startswith('AUSBILDUNG'))
-        for company in ('FIKTIVLABOR 1', 'FIKTIVLABOR 2'):
+        for company in ('Fiktivlabor 1', 'Fiktivlabor 2'):
             self.assertIn(company, pages[1])
 
     def test_long_entry_avoids_single_orphan_bullet_at_top_of_page_two(self):
@@ -291,7 +291,7 @@ class RenderTests(unittest.TestCase):
         result = application_pdf.render_document('cv', doc.model_dump())
         pages = [page.extract_text() for page in PdfReader(BytesIO(result.pdf)).pages]
         self.assertEqual(len(pages), 2)
-        for part in ('FIKTIVLABOR', 'Übersicht über Kalibrierung', 'Kalibrierte Sensoren'):
+        for part in ('Fiktivlabor', 'Übersicht über Kalibrierung', 'Kalibrierte Sensoren'):
             self.assertIn(part, pages[1])
         self.assertNotIn('u-bullet', result.telemetry['split_units'])
 
@@ -325,7 +325,7 @@ class RenderTests(unittest.TestCase):
                     ],
                 ))
                 result = application_pdf.render_document('cv', doc.model_dump())
-                self.assertIn(expected, result.text)
+                self.assertIn(expected.upper(), result.text)  # role line is set in capitals
                 self.assertEqual(result.text.upper().count('APPLIED CRAFT FELLOWSHIP'), 1)
 
     def test_four_bullet_entry_splits_to_fill_page_one(self):
@@ -349,7 +349,7 @@ class RenderTests(unittest.TestCase):
         p2_items = [n for n in range(1, 5) if f'Messreihe {n}:' in pages[1]]
         self.assertEqual(p1_items, [1, 2])
         self.assertEqual(p2_items, [3, 4])
-        self.assertIn('FIKTIVLABOR', pages[0])
+        self.assertIn('Fiktivlabor', pages[0])
         ratios = result.telemetry['page_fill_ratios']
         self.assertEqual(len(ratios), 2)
         self.assertGreaterEqual(ratios[0], 0.80)
@@ -381,7 +381,7 @@ class RenderTests(unittest.TestCase):
         pages = [page.extract_text() for page in PdfReader(BytesIO(result.pdf)).pages]
         self.assertEqual(len(pages), 2)
         self.assertIn('AUSBILDUNG', pages[0])
-        self.assertIn('BEISPIELHOCHSCHULE', pages[0])
+        self.assertIn('Beispielhochschule', pages[0])
         self.assertIn('Schwerpunkt auf Batteriemodule', pages[0])
         self.assertGreaterEqual(result.telemetry['page_fill_ratios'][0], 0.80)
         self.assertEqual(self._passed(result, 'entry_pagination'), 'passed')
@@ -484,7 +484,7 @@ class RenderTests(unittest.TestCase):
         p2_projects = [n for n in range(1, 4) if f'Project Alpha {n}:' in pages[1]]
         self.assertEqual(p1_projects, [1])
         self.assertEqual(p2_projects, [2, 3])
-        for marker in ('EDUCATION', 'EXAMPLE TECHNICAL COLLEGE', 'Focused on thermal storage',
+        for marker in ('EDUCATION', 'Example Technical College', 'Focused on thermal storage',
                        'Selected Engineering Projects:'):
             self.assertIn(marker, pages[0])
         self.assertGreaterEqual(result.telemetry['page_fill_ratios'][0], 0.80)
@@ -523,7 +523,7 @@ class RenderTests(unittest.TestCase):
         # Header, degree note, list-label intro, and all 3 projects stay together on page 2.
         for marker in (
             'EDUCATION',
-            'EXAMPLE POLYTECHNIC INSTITUTE',
+            'Example Polytechnic Institute',
             'Concentration in modular prototyping',
             'Relevant Product Development Projects:',
             'Studio Project 1:',

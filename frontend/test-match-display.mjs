@@ -211,6 +211,24 @@ try {
   assert.doesNotMatch(breakdown, /Qualification gaps to check/)
   assert.doesNotMatch(breakdown, /AI assessed|Local estimate/)
   console.log('Local match display assertions passed')
+
+  const { CvView } = await server.ssrLoadModule('/src/documents/CvView.tsx')
+  const unit = (id, text) => ({ id, text, lead_in: '', origin: 'source', sources: [], role: '', hidden: false })
+  const cv = renderToStaticMarkup(React.createElement(CvView, { document: {
+    format: 'radius-cv-v2', language: 'en', template: 'classic-serif-v1', page: 'a4', photo: false,
+    header: { name: 'Alex Example', contacts: [] }, headline: unit('headline', 'Product'),
+    sections: [{ id: 'experience', kind: 'experience', title: 'Experience', group: '', layout: 'bullets', units: [], entries: [
+      { id: 'work-1', kind: 'work', label: '', intro: [], units: [unit('w1', 'Did things.')],
+        locked: { company: 'Example GmbH', title: 'Product Manager', location: 'Heidelberg', start: '2023-07', end: '2025-04', current: false } },
+      { id: 'work-2', kind: 'work', label: '', intro: [], units: [],
+        locked: { company: 'Other AG', title: 'Analyst', location: '', start: '2025-05', end: null, current: true } },
+    ] }],
+  } }))
+  // Role first with the location, then the employer with MM/YYYY dates.
+  assert.match(cv, /doc-cv-entry-primary">Product Manager<\/span><span class="doc-cv-entry-location">Heidelberg/)
+  assert.match(cv, /doc-cv-entry-secondary">Example GmbH<\/span><span class="doc-cv-entry-dates">07\/2023 – 04\/2025/)
+  assert.match(cv, /doc-cv-entry-dates">05\/2025 – present/)
+  console.log('CV entry header assertions passed')
 } finally {
   await server.close()
 }

@@ -250,6 +250,8 @@ function renderEntry(
     )
     : ''
   const titleText = showTitle ? localizedRoleLabel(trimmedTitle, language) || title : fallbackRoleTitle
+  const primaryLine = titleText || companyLine
+  const secondaryLine = titleText ? companyLine : ''
 
   const hasProjectList = entry.kind === 'study' || bulletUnits.some((unit) => Boolean(unit.lead_in.trim()))
   const entryClass = hasProjectList ? 'doc-cv-entry doc-cv-entry--projects' : 'doc-cv-entry'
@@ -257,16 +259,17 @@ function renderEntry(
   return (
     <article key={entry.id} className={entryClass} data-entry-id={entry.id}>
       {label && !genericEntryLabel.test(label) ? <p className="doc-cv-entry-label">{label}</p> : null}
+      {/* Role (or qualification) first in capitals with the location, then the employer (or school) with the dates. */}
       <div className="doc-cv-entry-header">
         <div className="doc-cv-entry-row">
-          <span className="doc-cv-entry-company">{renderPrintText(companyLine)}</span>
+          <span className="doc-cv-entry-primary">{renderPrintText(primaryLine)}</span>
           {location ? (
             <span className="doc-cv-entry-location">{location}</span>
           ) : null}
         </div>
-        {(titleText || dates) ? (
+        {(secondaryLine || dates) ? (
           <div className="doc-cv-entry-row">
-            <span className="doc-cv-entry-title">{renderPrintText(titleText)}</span>
+            <span className="doc-cv-entry-secondary">{renderPrintText(secondaryLine)}</span>
             {dates ? <span className="doc-cv-entry-dates">{dates}</span> : null}
           </div>
         ) : null}
