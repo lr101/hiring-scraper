@@ -281,6 +281,7 @@ def match_job_v3(
         return _pending_result(job, profile, enriched, gate_result)
 
     parts = components(analysis, evidence)
+    evidence_refs = {row.get('ref') for row in evidence.get('items') or [] if isinstance(row, dict)}
     values = parts['values']
     raw, contributions = raw_score(values, weights)
     context = ' · '.join(part for part in (analysis.get('occupation'), analysis.get('industry')) if part)
@@ -361,6 +362,11 @@ def match_job_v3(
     unknowns = [*(row['detail'] for row in qualification_review), *(flag['detail'] for flag in gate_result['flags'])]
     if not duties and not scored_req:
         unknowns.append('The posting lists no duties or requirements to compare with your CV.')
+    unchecked = [row for index, row in enumerate(analysis.get('requirements') or [])
+                 if row.get('kind') not in GATED_KINDS and f'r{index}' not in evidence_refs]
+    if unchecked:
+        unknowns.append(f'{len(unchecked)} further requirement(s) of this long posting were not checked against '
+                        f'your CV, for example: {unchecked[0].get("text", "")[:120]}')
     language_review = bool(gate_result['language_review'])
     mandatory_review = bool(gate_result['authorization_review'] or qualification_review)
     hard_review = bool(language_review or mandatory_review or gate_result['location']['status'] == 'unknown')

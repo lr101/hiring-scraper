@@ -1,6 +1,6 @@
 """Career-fact projection of a saved profile for evidence matching.
 
-Only work history, education, skills and roles are used. Contact details,
+Only work history, saved work evidence, education, skills and roles are used. Contact details,
 drafting preferences and application history never reach the matcher.
 """
 from __future__ import annotations
@@ -30,6 +30,12 @@ def profile_sources(profile: dict) -> tuple[tuple[str, str], ...]:
             sources.append((f'experience[{index}]', f'{title}: {text}' if title else text))
     if _text(profile.get('summary')):
         sources.append(('summary', _text(profile.get('summary'))))
+    # Work evidence the user saved on the Profile page (quotes of what they actually did).
+    for index, entry in enumerate((profile.get('duty_evidence') or [])[:20]):
+        quote = _text(entry.get('quote')) if isinstance(entry, dict) else ''
+        if quote:
+            reference = _text(entry.get('reference'))
+            sources.append((f'duty_evidence[{index}]', f'{reference}: {quote}' if reference else quote))
     for name, evidence in (profile.get('skill_evidence') or {}).items():
         note = evidence.get('note') if isinstance(evidence, dict) else None
         if isinstance(note, str) and note.strip():

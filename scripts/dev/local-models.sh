@@ -22,15 +22,22 @@ BIN="$HOME_DIR/bin/llama-$LLAMA_BUILD/llama-server"
 install() {
   mkdir -p "$HOME_DIR/bin" "$HOME_DIR/models"
   if [[ ! -x "$BIN" ]]; then
+    # SHA-256 digests published with the $LLAMA_BUILD release; the binary runs on the host.
     case "$(uname -s)-$(uname -m)" in
-      Linux-x86_64) asset=ubuntu-x64 ;;
-      Linux-aarch64) asset=ubuntu-arm64 ;;
-      Darwin-arm64) asset=macos-arm64 ;;
-      Darwin-x86_64) asset=macos-x64 ;;
+      Linux-x86_64) asset=ubuntu-x64; digest=7e6f56a0940e5db3744a766ba5480ab5e0ba30b61b656b682f3919666da6aae7 ;;
+      Linux-aarch64) asset=ubuntu-arm64; digest=22a4bcd39fd8e77158030b16380f13e7d26d2b16ef875e093f385dc9ab7bfa13 ;;
+      Darwin-arm64) asset=macos-arm64; digest=73371d09105a776f8025c9b4a9634865adfd31653aa5819a5f07c3f7822221b2 ;;
+      Darwin-x86_64) asset=macos-x64; digest=611d0666affdee08b7b93ba0943a67f01b0ef948f7ddeb9b1dd0a67383add437 ;;
       *) echo "Unsupported platform; install llama.cpp $LLAMA_BUILD manually" >&2; exit 1 ;;
     esac
     curl -fsSL -o "$HOME_DIR/llama.tgz" \
       "https://github.com/ggml-org/llama.cpp/releases/download/$LLAMA_BUILD/llama-$LLAMA_BUILD-bin-$asset.tar.gz"
+    if command -v sha256sum >/dev/null; then actual=$(sha256sum "$HOME_DIR/llama.tgz" | cut -d' ' -f1)
+    else actual=$(shasum -a 256 "$HOME_DIR/llama.tgz" | cut -d' ' -f1); fi
+    if [[ "$actual" != "$digest" ]]; then
+      rm -f "$HOME_DIR/llama.tgz"
+      echo "llama.cpp download does not match the pinned SHA-256; refusing to run it" >&2; exit 1
+    fi
     tar xzf "$HOME_DIR/llama.tgz" -C "$HOME_DIR/bin" && rm "$HOME_DIR/llama.tgz"
   fi
 }

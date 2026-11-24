@@ -272,7 +272,8 @@ export default function ApplicationsPage() {
       return requestApplicationPage(profileKey, selectedStatuses, sort, selectedOffset)
     }).then(page => {
       if (generation === cacheGenerationRef.current) {
-        if (page.matchingPending) pageCacheRef.current.clear()
+        // Pages change while matching or local analysis is still running: do not cache them.
+        if (page.matchingPending || (page.analysisBacklog ?? 0) > 0) pageCacheRef.current.clear()
         else cacheApplicationResults(pageCacheRef.current, key, page)
       }
       return page

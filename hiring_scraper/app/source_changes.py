@@ -30,12 +30,13 @@ import os
 from collections.abc import Iterable
 from uuid import uuid4
 
-from sqlalchemy import delete, event, inspect, insert, literal, select, text, update
+from sqlalchemy import delete, event, exists, func, inspect, insert, literal, select, text, true, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from hiring_scraper.app.models import (
     Company, Job, JobAnalysis, JobAnalysisQueue, JobFeed, JobLocation, JobSearchState, MatchDirtyJob, MatchEvidence,
+    MatchEvidenceQueue,
     ProfileCV, UserProfile, utcnow,
 )
 
@@ -118,6 +119,20 @@ def _mark_stale_analyses(session: Session, jobs: list[Job]) -> None:
         # A newer queued_at tells an in-flight analysis of the old text not to dequeue.
         session.execute(statement.on_conflict_do_update(
             index_elements=['job_id'], set_={'retry_at': None, 'queued_at': statement.excluded.queued_at}))
+    # Reopened postings keep their analysis, but their pair evidence may have been
+    # dropped while closed: queue pairs without evidence for the current output.
+    analysed = [job.id for job in jobs if job.is_active and job.id in stored and job.id not in stale
+                and stored[job.id][1] in ('ok', 'stale')]
+    if analysed:
+        from hiring_scraper.matching_v3.evidence import VERSION as EVIDENCE_VERSION
+        matching = exists(select(1).where(
+            MatchEvidence.profile_id == UserProfile.id, MatchEvidence.job_id == JobAnalysis.job_id,
+            MatchEvidence.version == EVIDENCE_VERSION, MatchEvidence.analysis_hash == JobAnalysis.result_hash))
+        missing = (select(UserProfile.id, JobAnalysis.job_id, func.clock_timestamp())
+                   .select_from(JobAnalysis).join(UserProfile, true())
+                   .where(JobAnalysis.job_id.in_(analysed), ~matching))
+        session.execute(pg_insert(MatchEvidenceQueue).from_select(
+            ['profile_id', 'job_id', 'queued_at'], missing).on_conflict_do_nothing())
 
 
 def _bump_profiles(session: Session, profile_ids) -> None:

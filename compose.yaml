@@ -113,6 +113,9 @@ services:
 
   job-analysis-worker:
     <<: *runtime
+    # No ChatGPT login state: this worker only talks to the database and local models.
+    volumes:
+      - ${HIRING_DOTENV_FILE:-./.env}:/run/app-bootstrap.env:ro
     environment:
       <<: *runtime_env
       SEMANTIC_EMBEDDING_URL: http://semantic-search-worker:8001/embed
@@ -140,6 +143,10 @@ services:
       - --no-webui
     volumes:
       - llm_models:/models
+    # The server parses untrusted posting text: no extra kernel capabilities.
+    init: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
     restart: unless-stopped
     cpu_shares: 256
     mem_limit: ${LLM_MEMORY_LIMIT:-4608m}
@@ -166,6 +173,10 @@ services:
       - --no-webui
     volumes:
       - llm_models:/models
+    # The server parses untrusted posting text: no extra kernel capabilities.
+    init: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
     restart: unless-stopped
     cpu_shares: 256
     mem_limit: ${LLM_RERANKER_MEMORY_LIMIT:-1536m}

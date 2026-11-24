@@ -136,5 +136,109 @@ class JobAnalysisWorkerTests(unittest.TestCase):
             self.assertEqual(session.get(models.JobAnalysis, self.near_id).status, 'ok')
 
 
+    def analyse_and_match_near(self):
+        worker.analyse_next_job(analyse=lambda lines: LLM_OUTPUT)
+        worker.refresh_profile_units_once(embed_fn=fake_embed)
+        worker.refresh_evidence_once(embed_fn=fake_embed, rerank_fn=fake_rerank)
+
+    def evidence_request(self, job_id):
+        with self.factory() as session:
+            return session.get(models.MatchEvidenceQueue, (self.profile_id, job_id))
+
+    def test_failed_evidence_is_retried_later_instead_of_dropped(self):
+        worker.analyse_next_job(analyse=lambda lines: LLM_OUTPUT)
+        worker.refresh_profile_units_once(embed_fn=fake_embed)
+
+        def broken(query, documents):
+            raise ValueError('bad reranker answer')
+        with self.assertLogs(worker.LOG, level='WARNING'):
+            worker.refresh_evidence_once(embed_fn=fake_embed, rerank_fn=broken)
+        request = self.evidence_request(self.near_id)
+        self.assertIsNotNone(request)
+        self.assertEqual(request.attempts, 1)
+        self.assertIsNotNone(request.retry_at)
+        self.assertTrue(self.match(self.near_id)['pending'])
+
+    def test_requeue_during_evidence_inference_keeps_the_newer_request(self):
+        worker.analyse_next_job(analyse=lambda lines: LLM_OUTPUT)
+        worker.refresh_profile_units_once(embed_fn=fake_embed)
+        calls = []
+
+        def rerank_while_cv_changes(query, documents):
+            if not calls:
+                with self.factory.begin() as session:
+                    worker.queue_evidence(session, profile_id=self.profile_id)
+            calls.append(query)
+            return fake_rerank(query, documents)
+        worker.refresh_evidence_once(embed_fn=fake_embed, rerank_fn=rerank_while_cv_changes)
+        # The result for the old request was not published over the newer one.
+        self.assertIsNotNone(self.evidence_request(self.near_id))
+        with self.factory() as session:
+            self.assertIsNone(session.get(models.MatchEvidence, (self.profile_id, self.near_id)))
+        worker.refresh_evidence_once(embed_fn=fake_embed, rerank_fn=fake_rerank)
+        self.assertIsNone(self.evidence_request(self.near_id))
+        self.assertFalse(self.match(self.near_id)['pending'])
+
+    def test_reopened_posting_gets_its_missing_evidence_queued(self):
+        worker.analyse_next_job(analyse=lambda lines: LLM_OUTPUT)
+        with self.factory.begin() as session:
+            session.get(models.Job, self.near_id).is_active = False
+            source_changes.jobs_changed(session, [self.near_id])
+        worker.refresh_profile_units_once(embed_fn=fake_embed)
+        worker.refresh_evidence_once(embed_fn=fake_embed, rerank_fn=fake_rerank)  # drops the closed pair
+        self.assertIsNone(self.evidence_request(self.near_id))
+        with self.factory.begin() as session:
+            session.get(models.Job, self.near_id).is_active = True
+            source_changes.jobs_changed(session, [self.near_id])
+        self.assertIsNotNone(self.evidence_request(self.near_id))
+
+    def test_failed_reanalysis_after_a_model_change_keeps_the_usable_analysis(self):
+        self.analyse_and_match_near()
+        with self.factory.begin() as session:
+            session.get(models.JobAnalysis, self.near_id).version = 'older-model'
+            session.execute(models.JobAnalysisQueue.__table__.delete())
+        worker.reconcile_queues()
+
+        def broken(lines):
+            raise ValueError('malformed answer')
+        with self.assertLogs(worker.LOG, level='WARNING'):
+            self.assertEqual(worker.analyse_next_job(analyse=broken), self.near_id)
+        with self.factory() as session:
+            row = session.get(models.JobAnalysis, self.near_id)
+            self.assertEqual(row.status, 'ok')
+            self.assertTrue(row.payload['duties'])
+        self.assertFalse(self.match(self.near_id)['pending'])
+
+    def test_new_analysis_output_never_reuses_evidence_of_the_old_output(self):
+        self.analyse_and_match_near()
+        with self.factory.begin() as session:
+            session.get(models.JobAnalysis, self.near_id).version = 'older-model'
+        worker.reconcile_queues()
+        # Same posting text, different output: the old pair evidence must not be attached.
+        worker.analyse_next_job(analyse=lambda lines: LLM_OUTPUT.replace(
+            'D 1 | Build Python services.\n', ''))
+        self.assertTrue(self.match(self.near_id)['pending'])
+        self.assertIsNotNone(self.evidence_request(self.near_id))
+
+    def test_posting_too_long_for_the_model_is_retried_with_fewer_lines(self):
+        from hiring_scraper.app.local_llm import ModelRequestRejected
+        with self.factory.begin() as session:
+            session.get(models.Job, self.near_id).description = '\n'.join(
+                ['Build Python services.', 'Experience with PostgreSQL.'] + [f'Detail number {i}.' for i in range(40)])
+            source_changes.jobs_changed(session, [self.near_id])
+        sizes = []
+
+        def small_context(lines):
+            sizes.append(len(lines))
+            if len(lines) > 20:
+                raise ModelRequestRejected('exceeds the available context size')
+            return LLM_OUTPUT
+        self.assertEqual(worker.analyse_next_job(analyse=small_context), self.near_id)
+        self.assertGreater(sizes[0], 20)
+        self.assertLessEqual(sizes[-1], 20)
+        with self.factory() as session:
+            self.assertEqual(session.get(models.JobAnalysis, self.near_id).status, 'ok')
+
+
 if __name__ == '__main__':
     unittest.main()

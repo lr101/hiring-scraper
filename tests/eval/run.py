@@ -26,11 +26,13 @@ from collections import Counter, defaultdict
 from collections.abc import Callable
 from pathlib import Path
 
+from hiring_scraper.job_analysis import VERSION as ANALYSIS_VERSION, job_lines, result_hash, source_hash
 from hiring_scraper.matching_v3 import VERSION as V3_VERSION
+from hiring_scraper.matching_v3.evidence import VERSION as EVIDENCE_VERSION, evidence_hash, units_hash, units_source
 from hiring_scraper.matching_v3 import match_job_v3
 from tests.eval import cv as private_dataset
 from tests.eval import public as public_dataset
-from tests.eval.ablation import ablate_lang_visa
+from tests.eval.ablation import ABLATED_MARKER, ablate_lang_visa
 from tests.eval.metrics import (
     GRADE_SCORE_BANDS,
     GRADE_SCORE_TARGETS,
@@ -115,10 +117,21 @@ def recorded_model_outputs(dataset: str) -> tuple[dict, dict]:
 
 
 def recorded_inputs(job: dict, profile: dict, dataset: str | None = None) -> tuple[dict | None, dict | None]:
+    """Recorded outputs for this case, only if they were produced from its current inputs
+    (model versions, posting lines and CV units). An ablated copy reuses the outputs of
+    its original posting on purpose; everything else must match exactly."""
     analyses, evidence = recorded_model_outputs(dataset or _ACTIVE_DATASET[0])
     analysis = analyses.get(str(job.get("id")))
     pair = evidence.get(f"{profile.get('id')}__{job.get('id')}")
     if not analysis or not pair:
+        return None, None
+    if analysis.get("version") != ANALYSIS_VERSION or pair.get("version") != EVIDENCE_VERSION:
+        return None, None
+    if analysis.get("result_hash") != result_hash(ANALYSIS_VERSION, analysis["payload"]):
+        return None, None
+    if not job.get(ABLATED_MARKER) and analysis.get("source_hash") != source_hash(job_lines(job)):
+        return None, None
+    if pair.get("hash") != evidence_hash(analysis["result_hash"], units_hash(units_source(profile))):
         return None, None
     return analysis["payload"], pair["payload"]
 

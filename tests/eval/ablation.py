@@ -544,6 +544,9 @@ def _ablate_metadata_dict(meta: dict[str, Any]) -> tuple[dict[str, Any], bool]:
     return result, changed
 
 
+ABLATED_MARKER = "_eval_ablated"
+
+
 def ablate_lang_visa(job: dict[str, Any]) -> tuple[dict[str, Any], bool]:
     """Return ``(ablated_job, changed)`` with language/visa requirements removed.
 
@@ -568,4 +571,8 @@ def ablate_lang_visa(job: dict[str, Any]) -> tuple[dict[str, Any], bool]:
             ablated["raw_metadata"] = cleaned_meta
             changed = True
 
+    # Recorded model outputs of the original posting are reused for the ablated copy
+    # (the removed clauses are scored by the gates); tell the fixture loader so.
+    if changed:
+        ablated[ABLATED_MARKER] = True
     return ablated, changed

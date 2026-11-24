@@ -18,7 +18,9 @@ import sys
 import time
 from pathlib import Path
 
-from hiring_scraper.job_analysis import VERSION as ANALYSIS_VERSION, analysis_payload, job_lines, source_hash
+from hiring_scraper.job_analysis import (
+    VERSION as ANALYSIS_VERSION, analysis_payload, job_line_entries, result_hash, source_hash,
+)
 from hiring_scraper.matching_v3.evidence import (
     VERSION as EVIDENCE_VERSION,
     compute_evidence,
@@ -64,14 +66,16 @@ def run_analyses(dataset_module, out: Path) -> None:
     data = load_fixture(path)
     jobs = dataset_module.load_jobs()
     for number, (job_id, job) in enumerate(sorted(jobs.items()), 1):
-        lines = job_lines(job)
+        entries = job_line_entries(job)
+        lines, scopes = [line for line, _ in entries], [scope for _, scope in entries]
         digest = source_hash(lines)
         row = data.get(job_id)
         if row and row.get('version') == ANALYSIS_VERSION and row.get('source_hash') == digest:
             continue
         started = time.monotonic()
-        payload = analysis_payload(lines, analyse_lines(lines))
-        data[job_id] = {'version': ANALYSIS_VERSION, 'source_hash': digest, 'payload': payload}
+        payload = analysis_payload(lines, analyse_lines(lines), scopes)
+        data[job_id] = {'version': ANALYSIS_VERSION, 'source_hash': digest,
+                        'result_hash': result_hash(ANALYSIS_VERSION, payload), 'payload': payload}
         _save(path, data)
         print(f'[{number}/{len(jobs)}] {job_id} {time.monotonic() - started:.0f}s '
               f'{len(payload["duties"])}D {len(payload["requirements"])}R', flush=True)
@@ -94,7 +98,7 @@ def run_evidence(dataset_module, out: Path) -> None:
             source = units_source(case['profile'])
             unit_cache[case['profile_id']] = (source, units_hash(source), embed_units(source, embed))
         source, profile_hash, vectors = unit_cache[case['profile_id']]
-        digest = evidence_hash(analysis['source_hash'], profile_hash)
+        digest = evidence_hash(analysis['result_hash'], profile_hash)
         row = data.get(case['id'])
         if row and row.get('version') == EVIDENCE_VERSION and row.get('hash') == digest:
             continue

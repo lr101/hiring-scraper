@@ -491,6 +491,8 @@ class JobAnalysis(Base):
     job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True)
     version: Mapped[str] = mapped_column(String(200), nullable=False)
     source_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    # Identity of this output (version + payload); pair evidence is valid only for the same value.
+    result_hash: Mapped[str] = mapped_column(String(64), nullable=False, default='')
     status: Mapped[str] = mapped_column(String(16), nullable=False, index=True)  # ok | stale | failed
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
@@ -518,7 +520,8 @@ class MatchEvidence(Base):
     profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
     job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True, index=True)
     version: Mapped[str] = mapped_column(String(200), nullable=False)
-    # Inputs that produced this row; either changing makes it stale (still shown until replaced).
+    # Inputs that produced this row (JobAnalysis.result_hash and the CV units hash); either
+    # changing makes it stale (still shown until replaced).
     analysis_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     units_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
@@ -541,6 +544,8 @@ class MatchEvidenceQueue(Base):
     profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
     job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True, index=True)
     queued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+    retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
 
 class MatchDirtyJob(Base):

@@ -8,6 +8,8 @@ not hide existing matches; a job that was never analysed stays pending.
 """
 from __future__ import annotations
 
+import hashlib
+
 from typing import Any
 
 from sqlalchemy import select
@@ -49,8 +51,11 @@ def load_match_documents(session, jobs, profiles) -> MatchDocuments:
 def evidence_stamp(analysis_hash: str | None, evidence_analysis_hash: str | None,
                    evidence_units_hash: str | None, evidence_version: str | None = None) -> str:
     """Identity of the model outputs behind a stored match (empty parts when absent)."""
+    # The full evidence version (reranker revision, E5 model) is hashed, not truncated,
+    # so any model change marks stored matches outdated.
+    version = hashlib.sha256((evidence_version or '').encode('utf-8')).hexdigest()[:16] if evidence_version else ''
     return ':'.join([analysis_hash or '', (evidence_analysis_hash or '')[:16], (evidence_units_hash or '')[:16],
-                     (evidence_version or '')[:24]])
+                     version])
 
 
 def pair_rows(documents, job_id: int | None, profile_id: int | None) -> tuple[Any, Any]:
@@ -61,7 +66,7 @@ def pair_rows(documents, job_id: int | None, profile_id: int | None) -> tuple[An
     if analysis is None or not _usable_analysis(analysis):
         return None, None
     # Evidence refers to duty/requirement indexes of one exact analysis.
-    if evidence is None or evidence.analysis_hash != analysis.source_hash or not isinstance(evidence.payload, dict):
+    if evidence is None or evidence.analysis_hash != analysis.result_hash or not isinstance(evidence.payload, dict):
         return analysis, None
     return analysis, evidence
 
@@ -69,7 +74,7 @@ def pair_rows(documents, job_id: int | None, profile_id: int | None) -> tuple[An
 def documents_stamp(documents, job_id: int | None, profile_id: int | None) -> str:
     analysis, evidence = pair_rows(documents, job_id, profile_id)
     return evidence_stamp(
-        getattr(analysis, 'source_hash', None) if analysis is not None else None,
+        getattr(analysis, "result_hash", None) if analysis is not None else None,
         getattr(evidence, 'analysis_hash', None), getattr(evidence, 'units_hash', None),
         getattr(evidence, 'version', None),
     )

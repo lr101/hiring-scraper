@@ -29,6 +29,7 @@ def upgrade():
         sa.Column('job_id', sa.Integer, sa.ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True),
         sa.Column('version', sa.String(200), nullable=False),
         sa.Column('source_hash', sa.String(64), nullable=False),
+        sa.Column('result_hash', sa.String(64), nullable=False, server_default=''),
         sa.Column('status', sa.String(16), nullable=False),
         sa.Column('payload', sa.JSON, nullable=False),
         sa.Column('attempts', sa.Integer, nullable=False, server_default='0'),
@@ -72,6 +73,8 @@ def upgrade():
                   primary_key=True),
         sa.Column('job_id', sa.Integer, sa.ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True),
         sa.Column('queued_at', sa.DateTime(timezone=True), nullable=False),
+        sa.Column('retry_at', sa.DateTime(timezone=True)),
+        sa.Column('attempts', sa.Integer, nullable=False, server_default='0'),
     )
     op.create_index('ix_match_evidence_queue_job_id', 'match_evidence_queue', ['job_id'])
     op.create_index('ix_match_evidence_queue_queued_at', 'match_evidence_queue', ['queued_at'])
@@ -88,6 +91,12 @@ def upgrade():
         )
     )
     op.execute(sa.update(_user_profiles).values(match_index_version=None, presentation_refresh_pending=False))
+    if op.get_bind().dialect.name == 'postgresql':
+        op.execute(
+            'GRANT SELECT, INSERT, UPDATE, DELETE ON '
+            'job_analyses, profile_evidence_units, match_evidence, job_analysis_queue, match_evidence_queue '
+            'TO hiring_app'
+        )
 
 
 def downgrade():
@@ -110,3 +119,6 @@ def downgrade():
         sa.Column('indexed_at', sa.DateTime(timezone=True), nullable=False),
         sa.CheckConstraint('(job_id IS NULL AND profile_id IS NOT NULL) OR '
                            '(job_id IS NOT NULL AND profile_id IS NULL)', name='ck_match_semantic_document_owner'))
+    if op.get_bind().dialect.name == 'postgresql':
+        op.execute('GRANT SELECT, INSERT, UPDATE, DELETE ON match_semantic_documents TO hiring_app')
+        op.execute('GRANT USAGE, SELECT ON SEQUENCE match_semantic_documents_id_seq TO hiring_app')

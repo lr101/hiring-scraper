@@ -70,6 +70,17 @@ try {
   }))
   assert.match(pendingEvidence, /Analysing this job/)
   assert.doesNotMatch(pendingEvidence, /0\/100/)
+  const pendingConflict = renderToStaticMarkup(React.createElement(JobEvidence, {
+    enrichment: { skills: [], languages: [], warnings: [], seniority: null, experience_years: null },
+    match: { score: 0, pending: true, eligible: false, uncertain: true, label: '', matched_skills: [],
+      missing_skills: [], reasons: [], conflicts: ['German C2 required; your level is B1'], unknowns: [],
+      prerequisite_conditions: [{ kind: 'language_cefr', status: 'fail', reason: 'German level too low',
+        job_quote: 'Deutsch auf Muttersprachniveau' }] },
+  }))
+  assert.match(pendingConflict, /Requirement or preference conflict/)
+  assert.match(pendingConflict, /German C2 required/)
+  assert.match(pendingConflict, /Deutsch auf Muttersprachniveau/)
+  assert.doesNotMatch(pendingConflict, /appears here and in Journey/)
   const evidence = review => renderToStaticMarkup(React.createElement(JobEvidence, {
     enrichment: { skills: [], languages: [], warnings: [], seniority: null, experience_years: null },
     match: {

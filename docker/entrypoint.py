@@ -249,7 +249,9 @@ def _workers_enabled() -> bool:
 
 
 def _worker_pool(module: str) -> dict[str, str]:
-    return PREPARATION_POOL if module == "application_preparation_worker" else WORKER_POOL
+    # Both run one item at a time; a small pool keeps the stack under max_connections.
+    small = {"application_preparation_worker", "job_analysis_worker"}
+    return PREPARATION_POOL if module in small else WORKER_POOL
 
 
 def _worker_command(module: str) -> list[str]:

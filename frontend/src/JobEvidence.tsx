@@ -26,6 +26,7 @@ export type ProfileMatch = {
     evidence_quote: string; evidence_reference?: string; evidence_context?: string
   }[] }
   gates?: Record<string, { status: string; reason: string }>
+  truncated?: boolean
   fit_tier?: 'recommended' | 'possible' | 'unlikely'; requirement_gaps?: string[]; refreshing?: boolean
   pending?: boolean; job_context?: { occupation: string; industry: string }
   score: number; eligible: boolean; uncertain: boolean; label: string
@@ -53,8 +54,17 @@ export default function JobEvidence({ enrichment, match }: { enrichment: Enrichm
   return <section className="detail-panel evidence-panel">
     <p className="eyebrow">How this job fits</p>
     {match?.pending ? <>
-      <h2>Analysing this job</h2>
-      <p className="muted">A local model is reading the posting's duties and requirements and checking them against your CV. The match appears here and in Journey once that finishes.</p>
+      <h2>{match.eligible ? 'Analysing this job' : 'Requirement or preference conflict'}</h2>
+      <p className="muted">{match.eligible
+        ? 'A local model is reading the posting’s duties and requirements and checking them against your CV. The match appears here and in Journey once that finishes.'
+        : 'This posting states a requirement or condition that conflicts with your profile, so it stays out of Journey. The local model has not read the rest of it yet.'}</p>
+      {match.conflicts.length > 0 && <div className="error-banner"><strong>Requirements or preferences that conflict</strong><ul>{match.conflicts.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
+      {match.prerequisite_conditions?.filter(row => row.status === 'fail' && row.job_quote).map((row, index) =>
+        <div className="evidence-note" key={`${row.kind}:${index}`}>
+          <strong>{row.reason}</strong>
+          <p>Job <q>{row.job_quote}</q></p>
+          {row.profile_quote && <p>Saved evidence <q>{row.profile_quote}</q></p>}
+        </div>)}
     </> : match ? <>
       {match.job_context && (match.job_context.occupation || match.job_context.industry) && <p className="eyebrow">
         {[match.job_context.occupation, match.job_context.industry].filter(Boolean).join(' · ')}</p>}

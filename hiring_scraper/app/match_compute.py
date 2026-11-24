@@ -558,12 +558,15 @@ def _build_explanation_pass(
             max_items=len(ledger), text_chars=min(nested_chars, 160),
             numeric_fields=('contribution', 'max_points', 'supported', 'total'),
         )
-        explanation['prerequisite_conditions'], conditions_trimmed = _project_cited_rows(
-            result.get('prerequisite_conditions'),
-            ('kind', 'gate', 'status', 'reason', 'job_source', 'job_quote', 'profile_source', 'profile_quote'),
-            max_items=max(2, obs_limit), text_chars=nested_chars,
-        )
-        truncated = truncated or ledger_trimmed or conditions_trimmed
+        truncated = truncated or ledger_trimmed
+    # Cited gate outcomes are kept for pending jobs too: an explicit conflict is shown
+    # before the local models have read the posting.
+    explanation['prerequisite_conditions'], conditions_trimmed = _project_cited_rows(
+        result.get('prerequisite_conditions'),
+        ('kind', 'gate', 'status', 'reason', 'job_source', 'job_quote', 'profile_source', 'profile_quote'),
+        max_items=max(2, obs_limit), text_chars=nested_chars,
+    )
+    truncated = truncated or conditions_trimmed
     if stamp is not None:
         explanation[_STAMP_KEY] = _json_safe(stamp)
     if truncated:
@@ -781,7 +784,7 @@ def build_stored_match_snapshot_query(pairs: list[tuple[int, int]]):
             ProfileJobMatch.explanation.label('explanation'),
             ProfileJobMatch.score_version.label('score_version'),
             MatchDirtyJob.revision.label('dirty_revision'),
-            JobAnalysis.source_hash.label('analysis_hash'),
+            JobAnalysis.result_hash.label('analysis_hash'),
             MatchEvidence.analysis_hash.label('evidence_analysis_hash'),
             MatchEvidence.units_hash.label('evidence_units_hash'),
             MatchEvidence.version.label('evidence_version'),
@@ -808,7 +811,7 @@ def build_stored_match_snapshot_query(pairs: list[tuple[int, int]]):
             and_(
                 MatchEvidence.profile_id == UserProfile.id,
                 MatchEvidence.job_id == Job.id,
-                MatchEvidence.analysis_hash == JobAnalysis.source_hash,
+                MatchEvidence.analysis_hash == JobAnalysis.result_hash,
             ),
         )
     )

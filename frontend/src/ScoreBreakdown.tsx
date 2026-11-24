@@ -1,7 +1,8 @@
 import type { ProfileMatch, ScoreContribution } from './JobEvidence'
 
-const points = new Intl.NumberFormat('en', { maximumFractionDigits: 1 })
-const signedFormat = new Intl.NumberFormat('en', { maximumFractionDigits: 1, signDisplay: 'exceptZero' })
+// Two decimals, as stored: the rows then add up exactly to the points total.
+const points = new Intl.NumberFormat('en', { maximumFractionDigits: 2 })
+const signedFormat = new Intl.NumberFormat('en', { maximumFractionDigits: 2, signDisplay: 'exceptZero' })
 const signed = { format: (value: number) => signedFormat.format(value).replace('-', '\u2212') }
 
 const COMPONENT_LABELS: Record<string, string> = {
@@ -77,9 +78,14 @@ function PointsTable({ rows, scale }: { rows: ScoreContribution[]; scale: number
   </table>
 }
 
-function Checklist({ title, items }: { title: string; items: ChecklistItem[] }) {
+function Checklist({ title, items, total, supported }: {
+  title: string; items: ChecklistItem[]; total?: number | null; supported?: number | null
+}) {
   if (!items.length) return null
-  const shown = items.filter(item => item.strength !== 'none').length
+  // Long postings are stored with a shortened item list; the counts come from the full score.
+  const complete = total == null || total <= items.length
+  const shown = complete ? items.filter(item => item.strength !== 'none').length : supported ?? 0
+  const count = complete ? items.length : total
   const first = items.slice(0, 6)
   const rest = items.slice(6)
   const renderItem = (item: ChecklistItem, index: number) => <li key={`${item.text}:${index}`} className={`fit-item fit-item-${item.strength}`}>
@@ -90,9 +96,10 @@ function Checklist({ title, items }: { title: string; items: ChecklistItem[] }) 
     </div>
   </li>
   return <section className="fit-checklist" aria-label={title}>
-    <h4>{title} <span>{shown} of {items.length}</span></h4>
+    <h4>{title} <span>{shown} of {count}</span></h4>
     <ul>{first.map(renderItem)}</ul>
     {rest.length > 0 && <details><summary>Show {rest.length} more</summary><ul>{rest.map(renderItem)}</ul></details>}
+    {!complete && <p className="fit-checklist-note">Showing {items.length} of {count}.</p>}
   </section>
 }
 
@@ -113,6 +120,7 @@ function requirementItems(match: ProfileMatch, modality: 'must' | 'nice'): Check
 export default function ScoreBreakdown({ match }: { match: ProfileMatch }) {
   const ledger = match.explanation ?? []
   const parts = ledger.filter(isComponent)
+  const part = (signal: string) => parts.find(row => row.signal === signal)
   const adjustments = ledger.filter(row => !isComponent(row) && row.contribution !== 0)
   const earned = parts.reduce((total, row) => total + Math.max(0, row.contribution), 0)
   const deducted = adjustments.reduce((total, row) => total + Math.min(0, row.contribution), 0)
@@ -153,9 +161,9 @@ export default function ScoreBreakdown({ match }: { match: ProfileMatch }) {
       </p>}
     </>}
     {(duties.length > 0 || must.length > 0 || nice.length > 0) && <div className="fit-checklists">
-      <Checklist title="Duties" items={duties} />
-      <Checklist title="Must-haves" items={must} />
-      <Checklist title="Nice-to-haves" items={nice} />
+      <Checklist title="Duties" items={duties} total={part('duties')?.total} supported={part('duties')?.supported} />
+      <Checklist title="Must-haves" items={must} total={part('must')?.total} supported={part('must')?.supported} />
+      <Checklist title="Nice-to-haves" items={nice} total={part('nice')?.total} supported={part('nice')?.supported} />
     </div>}
   </figure>
 }

@@ -2,12 +2,14 @@
 
 Both servers are started with ``--alias <model key>``; every response is checked
 against the pinned key, so a swapped model can never write mislabeled analyses.
-Network or server failures raise ``OSError`` so workers back off and retry.
+Network or server failures raise ``OSError`` so workers back off and retry; a
+rejected input raises ``ModelRequestRejected``.
 """
 from __future__ import annotations
 
 import json
 import os
+from http.client import HTTPException
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -26,6 +28,14 @@ def rerank_url() -> str:
     return os.getenv('JOB_ANALYSIS_RERANK_URL', 'http://127.0.0.1:8092').rstrip('/')
 
 
+class ModelRequestRejected(ValueError):
+    """The server is up but refused this input (for example, longer than its context).
+
+    Item-specific, unlike ``OSError``: the worker retries that item later or with a
+    shorter prompt instead of pausing the whole stage.
+    """
+
+
 def _post(url: str, payload: dict, timeout: float) -> dict:
     request = Request(url, data=json.dumps(payload).encode('utf-8'),
                       headers={'Content-Type': 'application/json'}, method='POST')
@@ -33,8 +43,11 @@ def _post(url: str, payload: dict, timeout: float) -> dict:
         with urlopen(request, timeout=timeout) as response:
             return json.loads(response.read(8_000_000))
     except HTTPError as error:
+        if error.code in (400, 413, 422):
+            raise ModelRequestRejected(f'Local model server rejected the request (HTTP {error.code})') from error
         raise OSError(f'Local model server returned HTTP {error.code}') from error
-    except (URLError, TimeoutError, ValueError) as error:
+    except (URLError, TimeoutError, ValueError, HTTPException) as error:
+        # HTTPException: the server restarted or died mid-response (an outage, not bad input).
         raise OSError(f'Local model server unavailable: {error}') from error
 
 

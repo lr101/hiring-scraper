@@ -145,7 +145,7 @@ def _semantic_documents(job, profile, *, analysis=None, evidence=None):
     """Documents holding a published analysis and pair evidence for (profile, job)."""
     docs = _empty_documents()
     docs[('job', job.id)] = SimpleNamespace(
-        job_id=job.id, status='ok', source_hash=f'analysis-{job.id}', payload=analysis or ANALYSIS,
+        job_id=job.id, status='ok', source_hash=f'posting-{job.id}', result_hash=f'analysis-{job.id}', payload=analysis or ANALYSIS,
     )
     docs[('pair', profile.id, job.id)] = SimpleNamespace(
         profile_id=profile.id, job_id=job.id, version=EVIDENCE_VERSION, analysis_hash=f'analysis-{job.id}',
@@ -180,7 +180,7 @@ def _snapshot_from_docs(job, profile, docs, payload, *, dirty_revision=None):
         profile_source_version=1,
         match=match_state,
         dirty_revision=dirty_revision,
-        analysis_hash=getattr(job_doc, 'source_hash', None),
+        analysis_hash=getattr(job_doc, 'result_hash', None),
         evidence_analysis_hash=getattr(pair_doc, 'analysis_hash', None),
         evidence_units_hash=getattr(pair_doc, 'units_hash', None),
         evidence_version=getattr(pair_doc, 'version', None),
@@ -771,7 +771,7 @@ class StoredExplanationReadPathTests(unittest.TestCase):
         self.assertIsNone(match_compute.stored_match_explanation(
             indexed, job, profile, docs, expected_version=score_version, dirty_job_ids=set(), profile_stale=True))
         # 6. Stale semantic hash
-        docs[('job', job.id)] = SimpleNamespace(**{**docs[('job', job.id)].__dict__, 'source_hash': '0' * 64})
+        docs[('job', job.id)] = SimpleNamespace(**{**docs[('job', job.id)].__dict__, 'result_hash': '0' * 64})
         self.assertIsNone(match_compute.stored_match_explanation(
             indexed, job, profile, docs, expected_version=score_version, dirty_job_ids=set(), profile_stale=False))
 

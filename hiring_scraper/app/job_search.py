@@ -230,7 +230,7 @@ def _batch_source_snapshot(session: Session, ids, profile_ids) -> str:
         select(Company.id, Company.name, Company.domain, Company.state, Company.country_code,
                Company.category, Company.source)
             .where(Company.id.in_(employers) | Company.id.in_(feed_companies)).order_by(Company.id),
-        select(JobAnalysis.job_id, JobAnalysis.version, JobAnalysis.status, JobAnalysis.source_hash)
+        select(JobAnalysis.job_id, JobAnalysis.version, JobAnalysis.status, JobAnalysis.result_hash)
             .where(JobAnalysis.job_id.in_(ids)).order_by(JobAnalysis.job_id),
         select(MatchEvidence.profile_id, MatchEvidence.job_id, MatchEvidence.version,
                MatchEvidence.analysis_hash, MatchEvidence.units_hash)

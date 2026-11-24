@@ -15,7 +15,7 @@ from typing import Any
 
 import numpy as np
 
-from hiring_scraper.job_analysis import VERSION as ANALYSIS_VERSION, profile_units
+from hiring_scraper.job_analysis import VERSION as ANALYSIS_VERSION, clean_text, profile_units
 from hiring_scraper.matching_v3.profile_text import profile_roles
 from hiring_scraper.semantic_matching import MODEL_KEY as EMBEDDING_MODEL_KEY
 
@@ -33,6 +33,7 @@ DOMAIN_CANDIDATES = 6
 MAX_SCORED_ITEMS = 28
 # Language and work-permit clauses are handled by the eligibility gates.
 GATED_KINDS = frozenset({'language', 'authorization'})
+FORMAL_KINDS = frozenset({'education', 'certification'})
 
 Embed = Callable[[list[str], str], list[list[float]]]
 Rerank = Callable[[str, list[str]], list[float]]
@@ -73,12 +74,16 @@ def scored_items(analysis: dict) -> list[dict[str, Any]]:
         if requirement.get('kind') in GATED_KINDS:
             continue
         items.append({'ref': f'r{index}', 'type': 'requirement', 'text': requirement['text'],
-                      'need': requirement.get('need', 'must')})
+                      'need': requirement.get('need', 'must'), 'kind': requirement.get('kind', 'other')})
     # Bound the per-pair cost; requirements are kept before overflow duties.
     if len(items) > MAX_SCORED_ITEMS:
         duties = [item for item in items if item['type'] == 'duty']
         requirements = [item for item in items if item['type'] == 'requirement']
-        keep_req = requirements[:max(MAX_SCORED_ITEMS // 2, MAX_SCORED_ITEMS - len(duties))]
+        budget = max(MAX_SCORED_ITEMS // 2, MAX_SCORED_ITEMS - len(duties))
+        # Mandatory formal qualifications first, then other mandatory items, then preferred ones.
+        ranked = sorted(requirements, key=lambda item: (item['need'] == 'nice', item['kind'] not in FORMAL_KINDS))
+        kept = {item['ref'] for item in ranked[:budget]}
+        keep_req = [item for item in requirements if item['ref'] in kept]
         items = duties[:MAX_SCORED_ITEMS - len(keep_req)] + keep_req
     return items
 
@@ -134,7 +139,7 @@ def compute_evidence(
     """Score every extracted duty/requirement against the profile's best CV lines."""
     units = source['units']
     roles = source['roles']
-    context = _job_context(analysis, title)
+    context = _job_context(analysis, clean_text(title))  # posting title is untrusted text
     items = scored_items(analysis)
     result: dict[str, Any] = {'items': [], 'role': None, 'domain': None, 'context': context}
     matrix = unpack_unit_vectors(unit_vectors, len(units))

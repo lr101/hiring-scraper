@@ -62,6 +62,8 @@ def run_analysis_worker(max_rounds: int = 2000) -> bool:
     # Test fixtures often insert jobs without the ingestion declaration that
     # queues them; the worker's startup reconciliation picks those up.
     worker.reconcile_queues()
+    # Fixtures edit CV rows directly, without the profile revision bump the app makes.
+    worker._PROFILE_CACHE.clear()
     worked = False
     for _ in range(max_rounds):
         step = bool(worker.refresh_profile_units_once(embed_fn=embed))

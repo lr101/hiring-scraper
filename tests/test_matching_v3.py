@@ -162,6 +162,17 @@ class EvidenceComputationTests(unittest.TestCase):
         self.assertIn('Task the candidate will perform', rerank_query({'type': 'duty', 'text': 'x'}, 'ctx'))
         self.assertIn('Requirement the candidate must meet', rerank_query({'type': 'requirement', 'text': 'x'}, 'ctx'))
 
+    def test_budget_keeps_mandatory_formal_requirements_and_reports_the_rest(self):
+        analysis = {'duties': [{'text': f'duty {i}'} for i in range(14)],
+                    'requirements': [{'text': f'nice {i}', 'need': 'nice', 'kind': 'skill'} for i in range(14)]
+                    + [{'text': 'Zertifizierung als Schweißfachmann', 'need': 'must', 'kind': 'certification'}]}
+        refs = {item['ref'] for item in scored_items(analysis)}
+        self.assertIn('r14', refs)
+        evidence = {'items': [{'ref': ref, 'support': 0.5, 'quote': '', 'source': ''} for ref in refs],
+                    'role': None, 'domain': None}
+        result = match_job_v3(JOB, PROFILE, analysis=analysis, evidence=evidence)
+        self.assertTrue(any('were not checked' in reason for reason in result['unknowns']))
+
     def test_item_count_is_bounded_and_keeps_requirements(self):
         analysis = {'duties': [{'text': f'duty {i}'} for i in range(40)],
                     'requirements': [{'text': f'req {i}', 'need': 'must', 'kind': 'skill'} for i in range(10)]}

@@ -26,7 +26,9 @@ LLM_MODEL_REVISION = 'e87f176479d0855a907a41277aca2f8ee7a09523'
 LLM_MODEL_FILE = 'Qwen3.5-4B-Q4_K_M.gguf'
 LLM_MODEL_KEY = f'{LLM_MODEL_REPO}@{LLM_MODEL_REVISION[:12]}:{LLM_MODEL_FILE}'
 PROMPT_VERSION = 'job-analysis-v1'
-VERSION = f'{LLM_MODEL_KEY}:{PROMPT_VERSION}'
+# Grounding and section rules applied to the model output.
+PARSER_VERSION = 'parse-v2'
+VERSION = f'{LLM_MODEL_KEY}:{PROMPT_VERSION}:{PARSER_VERSION}'
 
 MAX_LINES = 90
 MAX_LINE_CHARS = 420
@@ -65,28 +67,42 @@ txt ::= [^\n]{1,300}
 
 _STRUCTURED_FIELDS = ('responsibilities', 'duties', 'skills', 'qualifications',
                       'experienceRequirements', 'educationRequirements')
+# Lines under employer-offer, company or application headings never yield items.
+EXCLUDED_SCOPES = frozenset({'benefits'})
+_NEGATIONS = frozenset({'not', 'no', 'never', 'without', 'nicht', 'kein', 'keine', 'keinen', 'keiner', 'keinerlei',
+                        'ohne', 'nie', 'niemals'})
 _SPACE_RE = re.compile(r'\s+')
 _WORD_RE = re.compile(r'[\w+#./-]+', re.UNICODE)
 
 
+# Chat-template and reasoning control tokens (Qwen and similar). Posting text is data;
+# it must never be able to open or close a turn in the analysis or reranker prompt.
+_CONTROL_TOKEN_RE = re.compile(r'<\|[^|<>]{0,40}\|>|</?think>', re.IGNORECASE)
+
+
 def _clean(text: str) -> str:
-    return _SPACE_RE.sub(' ', unicodedata.normalize('NFC', str(text or ''))).strip()
+    text = _CONTROL_TOKEN_RE.sub(' ', unicodedata.normalize('NFC', str(text or '')))
+    return _SPACE_RE.sub(' ', text).strip()
 
 
-def job_lines(job: dict) -> list[str]:
-    """Bounded, numbered source lines (title first) that the model may cite."""
-    lines: list[str] = []
+clean_text = _clean
+
+
+def job_line_entries(job: dict) -> list[tuple[str, str]]:
+    """Bounded, numbered source lines (title first) with the posting section each came from."""
+    lines: list[tuple[str, str]] = []
     seen: set[str] = set()
 
-    def add(text: str) -> None:
+    def add(text: str, scope: str) -> None:
         text = _clean(text)[:MAX_LINE_CHARS]
         key = text.casefold()
         if len(text) < 2 or key in seen or len(lines) >= MAX_LINES:
             return
         seen.add(key)
-        lines.append(text)
+        lines.append((text, scope))
 
-    add(f"Job title: {job.get('title') or ''}")
+    title = str(job.get('title') or '')
+    add(f"Job title: {'' if is_source_instruction(title) else title}", 'title')
     texts = [('description', job.get('description') or '')]
     raw = job.get('raw_metadata') or {}
     for prefix, values in (('structured', raw), ('detail', raw.get('detail_requirements') or {})):
@@ -96,14 +112,35 @@ def job_lines(job: dict) -> list[str]:
             if values.get(field):
                 texts.extend(structured_requirement_texts({field: values[field]}, prefix))
     for _, text in texts:
-        for sentence, _scope in scoped_sentences(structured_text(text)):
+        section, previous = 'neutral', 'neutral'
+        for sentence, scope in scoped_sentences(structured_text(text)):
+            scope = str(scope or 'neutral')
+            if scope != previous:
+                # The splitter also switches on inline sentences ("we offer visa sponsorship");
+                # only a heading-like line may open an excluded section.
+                words = _words(sentence)
+                heading = len(words) <= 5 and not any(word in _NEGATIONS for word in words)
+                if scope not in EXCLUDED_SCOPES or heading:
+                    section = scope
+                previous = scope
             if not is_source_instruction(sentence):
-                add(sentence)
+                add(sentence, section)
     # Keep the prompt bounded while preserving the end of long postings, where
     # requirements and benefits usually live.
-    while sum(len(line) + 6 for line in lines) > MAX_PROMPT_CHARS and len(lines) > 2:
+    while sum(len(line) + 6 for line, _ in lines) > MAX_PROMPT_CHARS and len(lines) > 2:
         lines.pop(len(lines) // 2)
     return lines
+
+
+def job_lines(job: dict) -> list[str]:
+    """Bounded, numbered source lines (title first) that the model may cite."""
+    return [line for line, _ in job_line_entries(job)]
+
+
+def trim_lines(lines: list[str], scopes: list[str], keep: int) -> tuple[list[str], list[str]]:
+    """Shorter prompt for a posting the model's context cannot hold: keep the title and the
+    first ``keep`` other lines (line numbers stay valid because only the tail is cut)."""
+    return lines[:keep + 1], scopes[:keep + 1]
 
 
 def source_hash(lines: list[str]) -> str:
@@ -120,10 +157,12 @@ def _words(text: str) -> list[str]:
 
 
 def ground_quote(quote: str, line: str) -> str | None:
-    """Return the cited span of ``line`` when ``quote`` is (almost) verbatim, else None.
+    """Return the contiguous span of ``line`` that ``quote`` cites, else None.
 
-    Small models sometimes drop a word or change case. Accept when at least 85% of
-    the quote's words occur in the line; never accept translated or invented text.
+    Small models sometimes drop a word or change case. The quote's words must appear
+    in the line in order (at least 85% of them) within a span of at most two extra
+    words; the stored text is always that span of the posting, never the model's
+    wording. A span with a negation the quote left out ("not required") is rejected.
     """
     quote = _clean(quote).strip(' -•*')
     if not quote:
@@ -134,15 +173,36 @@ def ground_quote(quote: str, line: str) -> str | None:
     words = [word for word in _words(quote) if word]
     if not words:
         return None
-    line_words = set(_words(line))
-    hits = sum(1 for word in words if word in line_words)
-    if hits / len(words) >= 0.85:
-        return quote
-    return None
+    tokens = [(match.start(), match.end(), _words(match.group(0))[0] if _words(match.group(0)) else '')
+              for match in _WORD_RE.finditer(line)]
+    best = None
+    for start_index, token in enumerate(tokens):
+        if token[2] not in words[:2]:
+            continue  # The span starts at the quote's first (or, if dropped, second) word.
+        matched, cursor, last = 0, start_index, None
+        for word in words:
+            # Each next quote word must follow within the next three line words.
+            for index in range(cursor, min(len(tokens), cursor + 3)):
+                if tokens[index][2] == word:
+                    matched, cursor, last = matched + 1, index + 1, index
+                    break
+        if last is None:
+            continue
+        span_words = [row[2] for row in tokens[start_index:last + 1]]
+        if matched / len(words) < 0.85 or len(span_words) > len(words) + 2:
+            continue
+        if any(word in _NEGATIONS for word in span_words if word not in words):
+            continue
+        if best is None or matched > best[0]:
+            best = (matched, token[0], tokens[last][1])
+    if best is None:
+        return None
+    return line[best[1]:best[2]]
 
 
-def parse_output(text: str, lines: list[str]) -> dict[str, Any]:
-    """Parse and ground the model's line format. Ungrounded items are dropped."""
+def parse_output(text: str, lines: list[str], scopes: list[str] | None = None) -> dict[str, Any]:
+    """Parse and ground the model's line format. Ungrounded items, and items from
+    benefit, company or application sections, are dropped."""
     occupation = industry = ''
     duties: list[dict[str, Any]] = []
     requirements: list[dict[str, Any]] = []
@@ -162,7 +222,7 @@ def parse_output(text: str, lines: list[str]) -> dict[str, Any]:
             continue
         index = int(match.group(2))
         quote = match.group(match.lastindex)
-        if index <= 0 or index >= len(lines):
+        if index <= 0 or index >= len(lines) or (scopes and index < len(scopes) and scopes[index] in EXCLUDED_SCOPES):
             dropped += 1
             continue
         grounded = ground_quote(quote, lines[index])
@@ -187,9 +247,16 @@ def parse_output(text: str, lines: list[str]) -> dict[str, Any]:
     }
 
 
-def analysis_payload(lines: list[str], output: str) -> dict[str, Any]:
-    parsed = parse_output(output, lines)
-    return {'lines': lines, **parsed}
+def analysis_payload(lines: list[str], output: str, scopes: list[str] | None = None) -> dict[str, Any]:
+    parsed = parse_output(output, lines, scopes)
+    return {'lines': lines, **({'scopes': scopes} if scopes is not None else {}), **parsed}
+
+
+def result_hash(version: str, payload: dict) -> str:
+    """Identity of one analysis output. Pair evidence refers to item indexes of exactly
+    this output, so a re-analysis (new model, prompt or parser) never reuses it."""
+    return hashlib.sha256(json.dumps([version, payload], ensure_ascii=False, sort_keys=True,
+                                     separators=(',', ':')).encode('utf-8')).hexdigest()
 
 
 # ---------------------------------------------------------------------------

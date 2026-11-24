@@ -2053,6 +2053,7 @@ html[data-theme="dark"] .journey-reward-progress-label { color: #aab4b9; }
 .fit-item-none > div > p:first-child { color: var(--sb-muted); }
 .evidence-panel .fit-checklist .fit-item-quote { margin-top: 3px; font-size: 12px; color: var(--sb-muted); }
 .fit-item-quote span { font-weight: 600; }
+.evidence-panel .fit-checklist .fit-checklist-note { margin: 4px 0 0; font-size: 12px; color: var(--sb-muted); }
 .fit-checklist details summary { padding: 4px 0; font-size: 12px; font-weight: 600; color: var(--sb-earned); cursor: pointer; }
 .fit-checklist details summary:focus-visible { outline: 2px solid var(--sb-earned); outline-offset: 2px; border-radius: 3px; }
 .fit-icon { margin-top: 2px; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }

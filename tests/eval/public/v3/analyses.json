@@ -49,10 +49,23 @@
      "need": "must",
      "text": "Sehr gute Deutsch- und Englischkenntnisse"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "e211e22370760403e59568e7907c6ef1503e9be49d32ac4a2fbc0dbfbaf42d00",
   "source_hash": "ba37ec8e2ec4e43c2aea15d6800bd7fe72ef9707e740aef4b00d9aa13df99b96",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0002": {
   "payload": {
@@ -104,10 +117,23 @@
      "need": "must",
      "text": "Strong written English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "26699d7c15af47a3a6bbdd11d93a718486aed6ed5c629d7f895167d3bf0b3bbb",
   "source_hash": "9313b38d94a894e66fb35dd1598fb3358b4830997ce5641950fce9af0feb4c91",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0003": {
   "payload": {
@@ -170,10 +196,24 @@
      "need": "nice",
      "text": "German B2 is preferred because some cohorts are German-speaking"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "d60c6fee3170a102421e558808c9c31a00b9cf71d69ba0b387fa3c79b8b86d46",
   "source_hash": "3e8d1e5be2f68991cad167484cb94b3a8ca27d66829d52fa8d3b5627ecd48ecb",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0004": {
   "payload": {
@@ -254,10 +294,28 @@
      "need": "must",
      "text": "Excellent English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "ff141378a0a95847d2c2c0d2ea42d37268ee575dc39cb2ad499c4360cc3a870e",
   "source_hash": "8d4bb37842204d6c2bf15a97c4c719b16340209f88dcd3eb489b02659073f2bb",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0005": {
   "payload": {
@@ -305,10 +363,23 @@
      "need": "nice",
      "text": "Good English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "d7d4e5a2017294f9ad87e4c29355fbc4ae2ef1b287c6764918bebe2774914481",
   "source_hash": "2123da6932db0f3a597f90b87839f617327e9d6e7bc490fdbd644da9553e5f0f",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0006": {
   "payload": {
@@ -365,10 +436,24 @@
      "need": "nice",
      "text": "Weiterbildung zum Logistikmeister oder Betriebswirt wünschenswert"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "a3d8f95071b0c305f78b2652f68d4df379dede725af9f54c2b9dbd79edb681d5",
   "source_hash": "92a72a66063ed21281a750d3d4350f5bb14df8a1f50cd939cfb5a10f27255153",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0007": {
   "payload": {
@@ -424,10 +509,23 @@
      "need": "must",
      "text": "Forklift licence"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "b3efd00826bbd8607ee29da46e196dcebf2a86adfe7c33155eb519b63018de02",
   "source_hash": "e41a2bf428e64fa6ffb8763df039c9b9e9fb58a9b91065e846ad947af1596832",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0008": {
   "payload": {
@@ -492,10 +590,26 @@
      "need": "must",
      "text": "Genaue, strukturierte Arbeitsweise"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "21abf009633cf6343eb54356450475935d735fb14aa13a6e06fff7da3b3f91fb",
   "source_hash": "53cb01c70f60772696c42652b97d247ae67b091285fb154434b46a03c55e57a9",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0009": {
   "payload": {
@@ -551,10 +665,23 @@
      "need": "nice",
      "text": "Basic English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "9a4d12a878e5c90eeb170c2562459978c447a3efdaa1dd588b3250c85b40d16e",
   "source_hash": "8c05b99024c5ee8ce6ece32f972912a20b6e6e91256eff5071675a18181a8f4d",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0010": {
   "payload": {
@@ -587,7 +714,7 @@
      "kind": "experience",
      "line": 6,
      "need": "must",
-     "text": "Erfahrung in der Projektleitung oder Projektkoordination im Maschinenbau, bei der Sie Termine, Kosten und Qualität mehrerer paralleler Aufträge im Blick behalten, Lieferanten und interne Abteilungen koordinieren, Änderungen an Stücklisten und Konstruktionsständen nachverfolgen, Statusberichte fürdie"
+     "text": "Erfahrung in der Projektleitung oder Projektkoordination im Maschinenbau, bei der Sie Termine, Kosten und Qualität mehrerer paralleler Aufträge im Blick behalten, Lieferanten und interne Abteilungen koordinieren, Änderungen an Stücklisten und Konstruktionsständen nachverfolgen, Statusberichte"
     },
     {
      "kind": "experience",
@@ -607,10 +734,22 @@
      "need": "must",
      "text": "Englischkenntnisse für Zulieferer"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "c2d3af932bfdb96c36560d3830c3c323c129e40a4912749164e12048788662c1",
   "source_hash": "7c9afeffc1541cd31d8a433fca58b4a356b32c7cdf22e324185727b2997e2116",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0011": {
   "payload": {
@@ -672,10 +811,25 @@
      "need": "must",
      "text": "Verständnis von Schnittstellen und Datenmodellen"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "aa39a71ff05e44e4b41f2bb92dfcaed382c77eeb9a8404d4b8365b91e905facc",
   "source_hash": "99982bd7d9b84254ebbe5c8488915b970febf52a26555b7de4412dda9ba6c549",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0012": {
   "payload": {
@@ -734,10 +888,24 @@
      "need": "nice",
      "text": "Freundlicher Umgang mit Kunden"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "c9fe5f65af714c02eaf6e6339e069c0216421c23fd4e253368ec9b57db00ba11",
   "source_hash": "a058173c64917413f7039e113a89330a2d7903c466f13171dbb42c0a6951b98c",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0013": {
   "payload": {
@@ -784,10 +952,22 @@
      "need": "nice",
      "text": "German is a plus"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "a62b96d7ac771f8c8a14c40e29078e0049d35aa712847a84fc5b4333569a1b91",
   "source_hash": "11d41be3e911c7f221c062104f9993a8ebbad62bf492e869a425fd25580dc377",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0014": {
   "payload": {
@@ -851,10 +1031,25 @@
      "need": "must",
      "text": "Gute Deutschkenntnisse und Englisch für die Dokumentation"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "776eae8e69553c303aa0fddbd013506a9565b16b46daf849c9a2a4a068cc08ec",
   "source_hash": "25722a571be7ba306e4c2d78ccefa5b432cd657a76cf4cf8cf86c1209b458a93",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0015": {
   "payload": {
@@ -917,10 +1112,24 @@
      "need": "must",
      "text": "Good English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "45af2053101c29e5f21dd2c07680f32304529c80558a4752be834e043c618679",
   "source_hash": "e42d593eb0c0d9f2de8e7c8b6008fbfe9b6b24558cf69382e7619677b0897b15",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0016": {
   "payload": {
@@ -972,10 +1181,23 @@
      "need": "must",
      "text": "Bereitschaft zur Schichtarbeit"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "abb05019dcc41e5debd681c5dd5af10d87b60a333b5b284a19ef8bc7cdf6d09a",
   "source_hash": "67432692316469eb3a780c6bf4407c0b94f3a504b5b7cb583e3baaedf04676ae",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0017": {
   "payload": {
@@ -1022,10 +1244,24 @@
      "need": "must",
      "text": "Gute Deutschkenntnisse in Wort und Schrift"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "78e5715527c4fd0ba045c2aab66228fa965b56e697734e8cdd83408cb5d79823",
   "source_hash": "3ed1d9fd41a8075f18e9661f4022d44ef628041cfdea53de41252a23e6ce2aee",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0018": {
   "payload": {
@@ -1081,10 +1317,23 @@
      "need": "must",
      "text": "SAP PP and Excel"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "7d83eb297bbffaea4953a71b4c04fb3cd9eb22d0bf0ad4414e0e7613d106f43c",
   "source_hash": "e6d9274b7daa7a78cf2718215794fcddded8452b3157d5acc979e9676c269a23",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0019": {
   "payload": {
@@ -1149,10 +1398,26 @@
      "need": "must",
      "text": "Flurförderzeugschein"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "126ab6aa725ba2db4ce87adb8b1c806897aae8d798862152b7c02b54a1936023",
   "source_hash": "c62af4260b67557b0acf887ad03ed50051467552de461df0aa6c7711ca6daa7b",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0020": {
   "payload": {
@@ -1215,10 +1480,24 @@
      "need": "must",
      "text": "good English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "31d4c2083b30a17900e1828492b30adc8b16803a51e7c9d1a95030b45ac8f6f1",
   "source_hash": "e9b35c7534757918192cf1856239e82e91084182c57ba1f3cc84953579b999de",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0021": {
   "payload": {
@@ -1274,10 +1553,23 @@
      "need": "must",
      "text": "Good English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "86ff216a589e8a9140a73f005d666e79e7f1cfd2eac4f1718f3b8b1c177fc890",
   "source_hash": "ef73f29bbe9d0b84c36faf8cd27d98b09244470d7c9daeb3d043106c6b638840",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0022": {
   "payload": {
@@ -1333,10 +1625,23 @@
      "need": "must",
      "text": "Forklift licence"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "e1f604e24692fe28260e4c946d090650f6bcb34a6505fec224473660c865314a",
   "source_hash": "4af6be150b1b74c3decfa3aae2973f05cfe0be42e2028f7b5875ac6f1d16b2e5",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0023": {
   "payload": {
@@ -1392,10 +1697,23 @@
      "need": "must",
      "text": "Good English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "945bf57274f6ce9b8c1deb10236b176d0c679792918ee79be7f27fe9d9587b41",
   "source_hash": "58a1ededa7ea21a6ebd5bf895ddc9e852c95ecc39e1373904704bf9f249106fa",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0024": {
   "payload": {
@@ -1451,10 +1769,23 @@
      "need": "must",
      "text": "Good English for supplier communication"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "9d93b0263a46182c4a641b0a6a3a60821582d0a6f2a1ff284f88a64e7237fbfc",
   "source_hash": "80c9a21db9d00ba5c65ddaccb440909e41db55dc59b41bed4e7b42e371518659",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0025": {
   "payload": {
@@ -1525,10 +1856,26 @@
      "need": "must",
      "text": "the company language is English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "8d45a630fc2b0c509ca32cc38ce0b03bc6cf86d2c73899326caae9f4f356a9db",
   "source_hash": "d4eefca1bfd48428898604767ea3956330807d4bc2c10d3308d933875aae320e",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0026": {
   "payload": {
@@ -1584,10 +1931,23 @@
      "need": "must",
      "text": "Gute Deutschkenntnisse"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "2edf583e92529bda0e5c2a6d74426ef8d943df83fd8ec214cf1577aa512c6159",
   "source_hash": "96754dd2df8f55650a82ca51ea913f5b8ffe1a151bf1811f8a1e6cbf33359e40",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0027": {
   "payload": {
@@ -1650,10 +2010,24 @@
      "need": "must",
      "text": "good German"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "eda0c34850df2a2c22a03cea2977b8ee9585f6f3dda3e08a54967621c1c39509",
   "source_hash": "f713dd064a9d0a2766969f5d091eef371867081dfcbfbc3ca66ee49bdf7cab36",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0028": {
   "payload": {
@@ -1705,10 +2079,23 @@
      "need": "must",
      "text": "Deutsch B2 und gutes Englisch"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "b2c443614187c12a6a76b062b5642f0078f972b220be06e2e443ceef4a8fd9d7",
   "source_hash": "34e0564dd67a9cb9da127823ff793d977b28d00f0c211f7769bcba417d189cbc",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0029": {
   "payload": {
@@ -1760,10 +2147,23 @@
      "need": "must",
      "text": "Kenntnisse in SAP EWM oder einem vergleichbaren System"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "f3870ae62ee28651a3cb920a2a41b0452ce4fae36f3cf2688bc15394c6f2e9c4",
   "source_hash": "109144d3396d831d059b15d3d16ddc63063fa54199e37a90d66ad7a9c425e3b3",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0030": {
   "payload": {
@@ -1819,10 +2219,23 @@
      "need": "must",
      "text": "Organisationstalent und Belastbarkeit"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "9d4006b0a4a2a2238da890a788096a56608e5a9749c4babc96a0458fb6e271cf",
   "source_hash": "52eb7b24dcf6ac95634eefec80ac2c4c0f12c51537729703c15c0acd689e9d90",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0031": {
   "payload": {
@@ -1874,10 +2287,23 @@
      "need": "nice",
      "text": "Englisch auf Grundniveau reicht aus"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "2216f97d10e18e1ae8690d6dbfe7a9610d99bd1d5ac5bd06596ce498aa3b12a6",
   "source_hash": "e9f0e771faa051e846084ce4ac5cd605ab5f0599e158e619ec915eed319305b0",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0032": {
   "payload": {
@@ -1936,10 +2362,24 @@
      "need": "nice",
      "text": "German is a plus"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "650317caeaf2e4aabcbe74e4d63c897bca2ae2f6edcb45291101badd18fc6c2a",
   "source_hash": "44fb713ef35307f20d284b3ab02868fe3c5328a14ee304c108e1b776f6301e4a",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0033": {
   "payload": {
@@ -2004,10 +2444,26 @@
      "need": "must",
      "text": "Gutes Deutsch und Englisch"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "d0452f0576efb3aedee521e9bd4adcd3fa8e99da6e369cd261ad7ab26d9605c0",
   "source_hash": "47857ea1beafa7a9f9f6a259b7e4773de88c76758a06c3b53692e030e1b8fba4",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0034": {
   "payload": {
@@ -2086,10 +2542,28 @@
      "need": "nice",
      "text": "German is helpful but not required"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "45066a281fa016bbf4d25090a32fd7745f5bee72e0c4662a9ff8e39d94c2bbd9",
   "source_hash": "057a3ade0f4e4d587410e1c6fc0250dbcb117e94deac518c4584062cfc57e432",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0035": {
   "payload": {
@@ -2160,10 +2634,26 @@
      "need": "must",
      "text": "English is the team language, German is a plus"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "5d288c527a6efaf780e998d43bd2bb4e7ffcf20ef7295cf64d29572f96775a8e",
   "source_hash": "e7ef30eee709700587c4fc28f1b1cdf4a36fcb6730b378281fa27b9edef670a8",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0036": {
   "payload": {
@@ -2215,10 +2705,23 @@
      "need": "must",
      "text": "Fluent English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "5f925b18ce8de26d8011be61aa314c860f3ac90c655a08d95c4d36873ba223a7",
   "source_hash": "87169b52eedcf15f732379285e4909301461b48599f1836db82d80fe4889d74b",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0037": {
   "payload": {
@@ -2294,10 +2797,27 @@
      "need": "must",
      "text": "the working language is English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "914582eeeea63826c48709d4970693135d15034fa9ab12e67255826558567ed6",
   "source_hash": "84bfefc1967f0bdc601d859af10122cd088ad340e328f45138fbf8e05b663b0c",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0038": {
   "payload": {
@@ -2353,10 +2873,23 @@
      "need": "must",
      "text": "Good English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "9830fd6c78761089ad61b6a5eb4a2e3dc6b99c4986226cf814aaba04b11874c8",
   "source_hash": "94ff3a49750541b5433e97bbfd3e7ae9125787f38e81ddde29860f78cd8fe71e",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0039": {
   "payload": {
@@ -2412,10 +2945,23 @@
      "need": "must",
      "text": "Excellent English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "2f6828f5c00ca274b983b8890af20f0549a7af6fbc5157e610dba39ab9fa86db",
   "source_hash": "7e80518c2f7dcbd01322a1f7c24ff479ec9aaa972ccfba6397ecc40c45fb08b8",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0040": {
   "payload": {
@@ -2478,10 +3024,24 @@
      "need": "nice",
      "text": "German is a plus"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "c0233ab175f0af081045274adbfe134d2f48bb3aa6359e46a87831b3ed0f9c03",
   "source_hash": "13c3a81051093af7dac980f2064c13acbf7fe34654ce4da8a71b2f554be01925",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0041": {
   "payload": {
@@ -2541,10 +3101,25 @@
      "need": "must",
      "text": "Gute Deutschkenntnisse"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "544a3c1f5c09ed9c2eae529f72bc8c81c61daecebcdb10e6eb67eb0bea20f628",
   "source_hash": "ac95baea8fd34b0e112c028ac65be5027cd1337df2056d3eb46905288ac6ebe4",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0042": {
   "payload": {
@@ -2621,10 +3196,26 @@
      "need": "must",
      "text": "German at B1"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "cdc4e3e5d4018b4c7d015e745805a5f95e991697c0796937da8cbd93b09bae9b",
   "source_hash": "7aed203513915eaabbfe1607ce5fe412f8132a61511389ee27bb2a8223b731a9",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0043": {
   "payload": {
@@ -2681,10 +3272,24 @@
      "need": "must",
      "text": "Presence at our headquarters is mandatory"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "8a43c959bf84d153cca4b921eb054dc0214bd3c2c5bee4a808373f634665625d",
   "source_hash": "7966deb61010c18cdcf82b3dd94cd6bf68f8f2f588d6baac1ac50bf19a54610f",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0044": {
   "payload": {
@@ -2736,10 +3341,23 @@
      "need": "must",
      "text": "Kommunikationsstärke"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "83d07d22a8a8636023bc2b74a5f1606ad4c4d401cd9349fce365d73f258dd1d0",
   "source_hash": "f47a71d1c1528142f0311f8541e78edab00f73db3e6220e6e2342459f58b6dbe",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0045": {
   "payload": {
@@ -2791,10 +3409,23 @@
      "need": "nice",
      "text": "Excel, idealerweise Power BI"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "9b4c624b3f42d8f735cb3b92b1964a7673e0deda0f9fec269f6a7891e8bb4424",
   "source_hash": "d60d70b652ba604d99afb275fc79cf3755ac2357f4dbfe5db43561bb403d8ccd",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0046": {
   "payload": {
@@ -2847,10 +3478,24 @@
      "need": "must",
      "text": "Gutes Deutsch und Englisch"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "47fb44cb99ad5e60f37607d303707e8ec50a1cec8b477272ada4a81f06ba9bd1",
   "source_hash": "bec2ab9d543a284d39363e56b9aca835b2f0d16818e30abbb3c2a2c4b4d3aadd",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0047": {
   "payload": {
@@ -2914,10 +3559,25 @@
      "need": "must",
      "text": "Verhandlungssichere Deutschkenntnisse, Englisch von Vorteil"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "d76ed4c612b21c51bd2ca846ad3a7183b62015171f61a4e91af2a0f64d2c8a5b",
   "source_hash": "e1cc1ef2090d861d56bc97e21d094a25fd19cbf2d337579d66bb0dc2ca069275",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0048": {
   "payload": {
@@ -2980,10 +3640,24 @@
      "need": "nice",
      "text": "German at B1 is enough for communication with colleagues"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "6e3eb058acd9f506aac85fc1fbe4c7399a8779380e9c77adec71807332ea4bc8",
   "source_hash": "9d004b3388890cf37d6a3f775ea2fcc6c657f2b7dbc4feb2731423e960d85316",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0049": {
   "payload": {
@@ -3049,10 +3723,25 @@
      "need": "must",
      "text": "Forklift licence"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "5561a26e71ae1fde367e78081d43dc6339004e1d9c36cda1ee1cd8875b5c9923",
   "source_hash": "91190b36975a76f59db74c44f409d3885ec3b629a9e7f5834c8fbe3a11640325",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0050": {
   "payload": {
@@ -3060,7 +3749,7 @@
    "duties": [
     {
      "line": 3,
-     "text": "Leitung von Anlaufprojekten mit Budgets bis 2 Mio. Euro"
+     "text": "Leitung von Anlaufprojekten mit Budgets bis 2 Mio."
     },
     {
      "line": 5,
@@ -3117,10 +3806,26 @@
      "need": "must",
      "text": "Gute Englischkenntnisse für die Abstimmung mit dem Konzern"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "a543c34ff1a7eb40c4ca594bf7bf0e3e8b43ce363b0e5de2a6100f20e0c3059a",
   "source_hash": "59dd80086e62131613f97550af7034429871cb0e6f1bdab33249001e1503488d",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0051": {
   "payload": {
@@ -3184,10 +3889,25 @@
      "need": "must",
      "text": "Kenntnisse in Inventor oder SolidWorks"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "e6145a978d6e5e0c362bc658951eff2ed10643240a4e81b50899e8f7ccfd6fab",
   "source_hash": "35d7a32b8f04285c025e1cbe8170b409c258a7a3320c6a2d793fde4787571bc4",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0052": {
   "payload": {
@@ -3247,10 +3967,25 @@
      "need": "nice",
      "text": "Good English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "7dabce70f13a626af3e96d195e18fb185fbef282f2a48bd2a13bbd7001a5d728",
   "source_hash": "af4f55f9337e312a7d095795b1274abf3b900e67eb7e7f7e3bf777a8a400c482",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0053": {
   "payload": {
@@ -3302,10 +4037,23 @@
      "need": "must",
      "text": "Kenntnisse in einem Warenwirtschaftssystem"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "743a267d0f54bd4304dc260699072fdeaa742e1534eaf2eae0fd40100d09dcb9",
   "source_hash": "b8a4ed033a965beb56fe9584f3747a50677d472901478cbf0f6b1218dd89d93f",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0054": {
   "payload": {
@@ -3364,10 +4112,24 @@
      "need": "must",
      "text": "Gutes Deutsch und Englisch"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "912152c7c7249e0bc6106e9505b646dfa61b97818b9b7665ce3fe06853e28af0",
   "source_hash": "9e6f523972a5c094c21172fb09874dc960f09225812d11e5e3b332de1c9417a3",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0055": {
   "payload": {
@@ -3422,10 +4184,26 @@
      "need": "nice",
      "text": "Deutsch- und Englischkenntnisse"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "21be752f70edcb2f6f9eefc483b012396e9f4166fb10995cc86ac71598867396",
   "source_hash": "2d74423c7bee124c22828fc7fed1cf81343c164ec20204c738fe45daac5a39d3",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0056": {
   "payload": {
@@ -3477,10 +4255,23 @@
      "need": "must",
      "text": "Good German and English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "52123def0f9be0c5885b8d6b1ca7e918b299961d1d107119c0a5991b73cdd9fc",
   "source_hash": "f2fb98fc3d7723be5d840f1f21d0636ed650c436414139a8612e6a7aaee3ca45",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0057": {
   "payload": {
@@ -3539,10 +4330,24 @@
      "need": "nice",
      "text": "Englischkenntnisse"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "da90b72bf847328e6648c667da7030ada5d7b718024dfcd6c5b13e996a0ee39d",
   "source_hash": "6108be5c56c7b8deeba17a757d3ee389e3ab63496abf006a66f2a96e6be1c249",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0058": {
   "payload": {
@@ -3602,10 +4407,25 @@
      "need": "nice",
      "text": "Very good English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "03888340993c909a55a24d2c53e1ec2572196d3bf13d053ceb1a79eca57824f4",
   "source_hash": "4d1361d650f34e0fb84d14f788178e59793591f11b890a576a4053a5cc965624",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0059": {
   "payload": {
@@ -3676,10 +4496,26 @@
      "need": "must",
      "text": "Familiar with Jira and Scrum"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "b082e5251fb03927c9be786cf5c54a42ff5cc4897ba7c1138130412c64b5adc8",
   "source_hash": "497d30db879d789190dd8761e7d6f9dce62d40fee0b0a60b2c7c7a2deea33f8b",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0060": {
   "payload": {
@@ -3743,10 +4579,25 @@
      "need": "must",
      "text": "English at a professional level"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "e0e47904c728f3656ea51e56839feccbd92aec86183764bf09dca5faec4e85c0",
   "source_hash": "ec44b902137ae6a6f98ca575bca08e977244b1cd20a6caf70806d81af295dfd1",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0061": {
   "payload": {
@@ -3814,10 +4665,25 @@
      "need": "nice",
      "text": "Good English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "cf88a4a312720c83a8dd08a052a80c78e0fa03f4bc824e76837f41d555aaa3e8",
   "source_hash": "9d56c282a63f32ea55fc59f3b859c01ea9e90a15c130ff12e42cf58401b7decc",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0062": {
   "payload": {
@@ -3874,10 +4740,24 @@
      "need": "must",
      "text": "Fluent business English, as you will report to our site in the US"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "c7a11472e87cff9b1eed646fd8767ea922d3259bbc6d03fbbcc9a3d89df0b958",
   "source_hash": "e6e51962f3edfe4eee0e6b9fd8add80c8a950161fe391769c4f0711cefecd0ce",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0063": {
   "payload": {
@@ -3929,10 +4809,23 @@
      "need": "must",
      "text": "Good facilitation skills"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "d0f814a5bec40516c3bba467756ed09ebddf083ff60f55b28ac2bf00a3f0e5e0",
   "source_hash": "1fbfff0c1f7031482c03700b33b79feb3abe45516f582903b771f54fbdbc4693",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0064": {
   "payload": {
@@ -3981,10 +4874,22 @@
      "need": "must",
      "text": "Sicherer Umgang mit Excel"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "42f79ed9d24f5fd7d132a3d68e9cbf17969bfcdd9803676793255d7d57b06a84",
   "source_hash": "794c92651312d8c3b1214a2c79382bcf4a328b30986704b47fc33e1b0e35e4ea",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0065": {
   "payload": {
@@ -4041,10 +4946,24 @@
      "need": "must",
      "text": "English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "c097f29a78f4559637af5949abff6161d61da1149c56df41f4d4f473be8e09b8",
   "source_hash": "5d9280ff9bef4d6d33ce890130e72ed4b9fc606e688fc9c84bf1b70ddd06975c",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0066": {
   "payload": {
@@ -4095,10 +5014,22 @@
      "need": "nice",
      "text": "Good English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "e76e389336cdea7c8af0d084f220ca2d067616a74536ec157dd7816071abe506",
   "source_hash": "ecdea15b0c02d27cdf9e6a455e8719585cd3a7c0a7007d1a4754546d5359e8f9",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0067": {
   "payload": {
@@ -4155,10 +5086,24 @@
      "need": "must",
      "text": "Excellent English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "ad5d547a9a3554c1c1614ae6604dc48e753aa77c336dee7acdfef0c8724699bd",
   "source_hash": "a7738dd4e5a36d9f8cf192c218e5148f489c7ecee4d90c522d3725b42b0a13a7",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0068": {
   "payload": {
@@ -4217,10 +5162,24 @@
      "need": "nice",
      "text": "Gute Englischkenntnisse"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "c41c21ad08c509cefaf8a4ac8ef465cf4a77177d14c1b29c52cc5bd6d42d3acc",
   "source_hash": "8a380dbd557392d03d348f42583d3652c1581cf6714c66385bedeeb448c798b7",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0069": {
   "payload": {
@@ -4289,10 +5248,26 @@
      "need": "must",
      "text": "Gutes Deutsch in Wort und Schrift"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "1c4f547c8ec3a4beee3621769366c8c4ba780de33a5f5f8d4e946178dd7d1632",
   "source_hash": "dcb94faf31579f3c83f3c0ab627bab83b5d947ccd7a67e3278971ed757931986",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0070": {
   "payload": {
@@ -4344,10 +5319,23 @@
      "need": "must",
      "text": "Sehr gute Kenntnisse von Lagersystemen und Kennzahlen"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "c70f9f35c3b3dd6dedbb25fe180259012b47444f60f41b92b1cd041f434e3a94",
   "source_hash": "4229b2dfd3ab2d6c11c60740edd29579c345443fd1e598f1f6c0a4c3e106ab9b",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0071": {
   "payload": {
@@ -4403,10 +5391,23 @@
      "need": "must",
      "text": "Genauigkeit"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "1f59572ce5677aecc144dc6d7c6a220dffea9d8e059f5cddea4ef256b10a0e27",
   "source_hash": "5a72464f450870f0f9c66dcd3f808e96f5dfa665a053f4ec3abfbc9e3b4d071f",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0072": {
   "payload": {
@@ -4462,10 +5463,23 @@
      "need": "nice",
      "text": "Good English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "1591d0b0e4b687a5674e48d49d61374b180651682cd747b730836a1b819e9f7b",
   "source_hash": "4ebc9067593fa1446b842cebb81289f0953927f573174054c766d527170ab2ab",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0073": {
   "payload": {
@@ -4521,10 +5535,23 @@
      "need": "must",
      "text": "Good communication in English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "a1c6a063c59ca0eeb1f1dd956678d055845d9dd545c40e3f24867056b5d74192",
   "source_hash": "4e2da76b0867bb4f85e3788768daf6ed08ba2909b3366a35dca18afa73a1f7cc",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0074": {
   "payload": {
@@ -4580,10 +5607,23 @@
      "need": "must",
      "text": "Sicher in Excel"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "3ec58d007a6b546254eefb9cd345c873db016ff7c0c1cd2435f612d067a39cec",
   "source_hash": "17805b6292d1db8e8664d4feb721d0fa40d6b1dbc3267c2cb9be045437a28bfb",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0075": {
   "payload": {
@@ -4632,10 +5672,22 @@
      "need": "nice",
      "text": "Good English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "9b42b5dfdadc189409b234295eeb5a34c92e10f52d470baff9fe7f2d4780afa2",
   "source_hash": "9918844cb104fa5a5b8039955923d82145310687690c98f82348c33ebd910a3f",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0076": {
   "payload": {
@@ -4687,10 +5739,23 @@
      "need": "nice",
      "text": "Flexibilität bei Arbeitszeiten"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "cc71bfe64c991a3e3cbea12f20d14c2b2d58d8f358343433fd6861dc95f2fde2",
   "source_hash": "31576e3234f802c82f6030938dd55b3c903e45fe5e82d024eae1b7f122cf7d18",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0077": {
   "payload": {
@@ -4750,10 +5815,25 @@
      "need": "must",
      "text": "Deutschkenntnisse ab B1"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "e01458bf01c5e7b3dbe0cb4f662b5d3e1014ec3e79674fd1a8a5b309c8f95b70",
   "source_hash": "30c31ff8eddd6d3da1e10cda39d42c59f375aacf0365d0a3632830d9988a7f08",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0078": {
   "payload": {
@@ -4817,10 +5897,25 @@
      "need": "must",
      "text": "Sehr gute Deutschkenntnisse, mindestens Niveau C1, da Trainings und Dokumente ausschließlich auf Deutsch stattfinden"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "d8c68b03faab0a95c85f50a40fd18e91279ee309b82305a13919af1025e94cf2",
   "source_hash": "b3de438ad3e5e34be9a238dafe512bfef3fe4f3e8b8cb0149f96019d19ef94a0",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0079": {
   "payload": {
@@ -4845,10 +5940,23 @@
     "Kenntnisse in Incoterms und Zoll"
    ],
    "occupation": "Project Manager Export Machinery",
-   "requirements": []
+   "requirements": [],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
   },
+  "result_hash": "0a25212684253f112dd275e19c47fde27ef89c25a8b2f8851362a980f648031e",
   "source_hash": "ec5999dd718d432801428ccbc57e3512fb3f4e6192bd7cf2812f26ccf008fa1c",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0080": {
   "payload": {
@@ -4908,10 +6016,25 @@
      "need": "must",
      "text": "Good English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "ec0b8e6912b7b3ae81518ecf6a79b2db70d42c7c37299f8e587855b0c3c14fe1",
   "source_hash": "162f6d12b51fd7c7fa285c1f883feda91210670bfcd68cd62c5b2935e8511c7f",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0081": {
   "payload": {
@@ -4967,10 +6090,23 @@
      "need": "must",
      "text": "Business English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "3ee45697d2b42f41ee02f1299fbd4509f59bc278b432f478f71767f93be2baed",
   "source_hash": "0a90c39df53c0d1c5602688978deaa37c02398c67c0c33074a43b9f4f87968a3",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0082": {
   "payload": {
@@ -5022,10 +6158,23 @@
      "need": "must",
      "text": "Sehr gutes Deutsch und Englisch"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "19339e086eb503e025429e6df76af8d49aa0ca47016addbdb19ef87de781792d",
   "source_hash": "03e90b03ebe8ee1dab93396bd450919743500e9ac70841762b0174a939c81acf",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0083": {
   "payload": {
@@ -5081,10 +6230,23 @@
      "need": "must",
      "text": "Strong leadership skills"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "d06abac12514ef4ee0f11af2fa5116e7f67de9a0fd71947050c3d32403c39968",
   "source_hash": "ff9a40e47a8d778eccbdcb29fa80f0ca7103e7a97a5656b1efe796e24fe7f940",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0084": {
   "payload": {
@@ -5136,10 +6298,23 @@
      "need": "must",
      "text": "Englisch"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "445275f27bd99fc8c305c6e94ad1c52b242ee27eceb2b2a711a80ff7e2a9c8d1",
   "source_hash": "8228d38318e8f574122f97c07f9cacada71807c07cfc1e9aba885fa577f0e458",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0085": {
   "payload": {
@@ -5195,10 +6370,23 @@
      "need": "must",
      "text": "Good knowledge of German labour law basics"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "107d9959c6c1c4e92007287a5a841f5ec5355dbdadae74495b7ef4eae19f00eb",
   "source_hash": "3125b7a10cbaababd62f82fd30818f0d83d91fa5f88134603d759c416c92929c",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0086": {
   "payload": {
@@ -5255,10 +6443,24 @@
      "need": "must",
      "text": "Bereitschaft zum Schichtdienst"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "0911eb2c4a950aadcd6eabb7473d7ab8122746b2af4b0c19fac030bb9dca5707",
   "source_hash": "eded442fa80cefb059f526f5c40cbde87fa03e0d020962cf66827142b20642cb",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0087": {
   "payload": {
@@ -5302,10 +6504,21 @@
      "need": "must",
      "text": "Sicherer Umgang mit Excel"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "81ffa8bc2f816cf2e4aa399601d4b2343aeaab938d4dc76bec11c72e167a903d",
   "source_hash": "a759a0147ebc001c928679e316a1542125da67d742c6e7ab9c881485aff30ccf",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0088": {
   "payload": {
@@ -5364,10 +6577,24 @@
      "need": "nice",
      "text": "the team language is English and B2 is enough"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "ef0f70f9d77b61d8479f2d96191bc804a6e479caade81ce3da44c72dfbded7de",
   "source_hash": "0b0c8635819fd17c9ab1408f671aab8f6bf1c749e09b3c4eff3da86a45bf51f5",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0089": {
   "payload": {
@@ -5423,10 +6650,23 @@
      "need": "nice",
      "text": "Good English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "fac094329f74ef4b82cb39659dc14e5b3eeeed3bb5e3fc03a2930bf6da1dccce",
   "source_hash": "addc740b75060d606df11eeb536d5d9d89f9e78b1f8527c538f5c28bb182eecd",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0090": {
   "payload": {
@@ -5495,10 +6735,26 @@
      "need": "must",
      "text": "Englisch für die Kommunikation mit Zulieferern"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "956e4ccab097b1f9e0ae7348083924ce682cce67549208db3f255e39995a63ca",
   "source_hash": "2900becf7d9f7d80ef828b3cc8bbd0a0f3a5d8b5ef9a5c536e61e8c1cba842be",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0091": {
   "payload": {
@@ -5557,10 +6813,24 @@
      "need": "must",
      "text": "English at C1 level (written and spoken), because the customer correspondence and status meetings are in English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "5a04d27977c0670055726a932b387ac09fd8d7f6a6436f07242ebb7803cc258e",
   "source_hash": "8334ba43bafbd123c8e717f09a28d5b5d766187bd0e59f814ae528073503cef5",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0092": {
   "payload": {
@@ -5612,10 +6882,23 @@
      "need": "must",
      "text": "Verhandlungssicheres Deutsch"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "d6e8657d9a770b4d4661d5604510d4f5e379f7bf6d895b7fe8b16b5c5618932b",
   "source_hash": "0bfcfe8688fb124869998a0e7f775a396241e57f1ebca9bda0f5e912b12475fd",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0093": {
   "payload": {
@@ -5679,10 +6962,25 @@
      "need": "must",
      "text": "Erfahrung mit LMS und Autorenwerkzeugen"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "3140d57d692f70e40b46a0450f248b4c0fc9f041190ca9ff8c40347267688c69",
   "source_hash": "fc6aef32b9b5ae4f679286bc5d97307f851bd50b8b0c54e90112e9d3fbc77698",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0094": {
   "payload": {
@@ -5732,10 +7030,23 @@
      "need": "must",
      "text": "Authoring tools and LMS knowledge"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "40646af992e9591c14cc764b337825c0c7060534edf047f4859fdecfe2b672da",
   "source_hash": "cbdddb03803655efa86e16ceb489764331c5f6809d400e1ffa46bdcb6a57814f",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0095": {
   "payload": {
@@ -5787,10 +7098,23 @@
      "need": "nice",
      "text": "Flexible Arbeitszeiten"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "f8ec774259d51ba58ab9f60be30786ea45b809dc7f222bf5ba303c096ee75267",
   "source_hash": "5f8cf5c492e1e246a1a2b65b70d5b5058956e75c40eda2137c672649a468fdd9",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0096": {
   "payload": {
@@ -5842,10 +7166,23 @@
      "need": "must",
      "text": "Strong stakeholder management and written English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "2f6a96df11b74c350433a634e0dca2a72ccb1c21a57478c7e24b44cf81d2ba50",
   "source_hash": "757c7b725cb2665bd1af69c11c0b3eedb9d25aaac8addde0ed08b7fdebf9ed78",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0097": {
   "payload": {
@@ -5897,10 +7234,23 @@
      "need": "must",
      "text": "Sehr gute Deutschkenntnisse und Englisch"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "c8b1b361711b9982720d9fe138d431ac9fa4c78525b469c91119f944e71ceb83",
   "source_hash": "ab5a5920e0e82a8fdffa7297cfb94ef02a972861bed939370601353d896d2e7e",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0098": {
   "payload": {
@@ -5956,10 +7306,23 @@
      "need": "must",
      "text": "Strong English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "99b6752cfda894e52de856477cc01365139e6ce34f3ae33780ad64dc8d9b0730",
   "source_hash": "40326db76a520891a40ad40e40cb1dedb2f8919bbad01a20c84786131782a203",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0099": {
   "payload": {
@@ -6011,10 +7374,23 @@
      "need": "must",
      "text": "Fluent English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "b43ec5abdcf184d4b5232bea66740375ea040a4cc582da2c41f167f9797ed012",
   "source_hash": "6de9736092c4402989175c5bcbb175cba26e9006562365175378b29ceacf2886",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0100": {
   "payload": {
@@ -6074,10 +7450,27 @@
      "need": "must",
      "text": "Deutsch mindestens B2 sowie gutes Englisch"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "b3bddeae8a901bb907c4a520911ce4f3d41546fc99625f52603accab8fdec04d",
   "source_hash": "8b0030a08980937c8a64d5a2b7746f1da8ce79839a7fdc9205cc5ce7908c8ed7",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0101": {
   "payload": {
@@ -6129,10 +7522,25 @@
      "need": "must",
      "text": "Strong facilitation skills in English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "8450667591ed973e9043aece330b41373fa870a21374e1cac558a594aef9dec3",
   "source_hash": "c66c22037bfbfc4216b8bce05b320bcf76b41f003814e6d999745f9832ef8134",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0102": {
   "payload": {
@@ -6178,10 +7586,24 @@
      "need": "nice",
      "text": "Gute Deutsch- und Englischkenntnisse"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "df2d17ee47c863291318142546e1cebada629870853783945a63fd022f4c0470",
   "source_hash": "681783fc989d3946d451f6aa78ac30a6545b963afe22ea31ef3d7409c3e5acfe",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0103": {
   "payload": {
@@ -6227,10 +7649,23 @@
      "need": "must",
      "text": "Sicherer Umgang mit Excel"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "454fcf13329353a62f7561ba10f1bb0cc15c3e81f2a27fc36ef5a4cb0d14b4ea",
   "source_hash": "b62168ce392fdf5f4e86c64a2f99234ec3a4a9d426f190043563d14e5b98b93a",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0104": {
   "payload": {
@@ -6286,10 +7721,23 @@
      "need": "must",
      "text": "Good English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "f29a07ad643b4c2d19eead2446a2bc0f0dfbdc70a94c50c7c93bb70f6815cebf",
   "source_hash": "be61a6ce954993c68945f7a00e6beb5ef819ac7f6c235bfd72438c8470f11c81",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0105": {
   "payload": {
@@ -6341,10 +7789,23 @@
      "need": "nice",
      "text": "Erste Erfahrung im Lager von Vorteil"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "1a89e09f9bd836a88d055d0ae492cf3b9251839e28d6c9ed4ccc880a359f34e8",
   "source_hash": "8505342e99d9403125e128f1bcbee7a28efb833ad2e242d37afa9dbe740d894e",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0106": {
   "payload": {
@@ -6397,10 +7858,24 @@
      "need": "must",
      "text": "Kenntnisse in MS Project"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "066f017dd62827254c8a888d7ff19120026bdcc56b318d12e547e31cbca5a4d7",
   "source_hash": "8e9bdc266c85052be95afb9caa01a8b104be29c6a9266a21d2632687fc39239c",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0107": {
   "payload": {
@@ -6466,10 +7941,27 @@
      "need": "must",
      "text": "German (native or C1) and basic English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "b94164d2ce5810c2d65a836472cb9662e834f65db303cf2833288118e5a400c4",
   "source_hash": "b6e38d15e7d6316493aaa93801e479b44232f516f1333b4c90529aec6b18ef44",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0108": {
   "payload": {
@@ -6528,10 +8020,24 @@
      "need": "must",
      "text": "Englischkenntnisse (B1)"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "aaf3ae00033c7fe028a7e124cff722ce7ac46c76e8cc7bfc2c9a36e9049fade9",
   "source_hash": "e42284b9c43fcef6bc6cfbdc2a7b7027cb3858cf3d9c33f90e145e0d5a9f4a7b",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0109": {
   "payload": {
@@ -6583,10 +8089,23 @@
      "need": "nice",
      "text": "English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "bead796a4025cd210c4222c3a810eadd5fae2d49afef1dac788c563c198303af",
   "source_hash": "33619b49c5340176cf31d3c6184510f61d51d68353501f91735dbacbf4279994",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0110": {
   "payload": {
@@ -6643,10 +8162,24 @@
      "need": "must",
      "text": "Sicherer Umgang mit LMS und Excel"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "123e0b09d3ce76f87ae522fa6c9e2ca40193141d78522f5d5be92da19cb53747",
   "source_hash": "ceb419b393b20395a0ac538de9d5bf630d25d9508c1b53ba3b53498cb763f0d9",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0111": {
   "payload": {
@@ -6717,10 +8250,26 @@
      "need": "nice",
      "text": "basic German is helpful"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "3a8f8b382afeadfeef5d48d56ec9da92f7b910421312dd3aaed3e8f8b5f8a7ee",
   "source_hash": "e6ee036903a9f1e95deb76a0dfd836c356f78c086c4f47eaf5841fb2705f8368",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0112": {
   "payload": {
@@ -6776,10 +8325,23 @@
      "need": "must",
      "text": "Good English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "0c88b7e02a0406f247e13bc4011bd62970aacd356dd3ca019a09e78576d2163e",
   "source_hash": "b708250950b19f33244f30747538da6e83e64110af6fdebdfd6392049c78a383",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0113": {
   "payload": {
@@ -6831,10 +8393,23 @@
      "need": "nice",
      "text": "Teamfähigkeit"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "450e6718c6b1ab9469a8b116dac1c53aeaa566c7bd25e44141c91f1a3924df24",
   "source_hash": "3309a097abc8f71cc2a1789a71b055a51363b480a4662868742d79751210ab24",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0114": {
   "payload": {
@@ -6886,10 +8461,23 @@
      "need": "must",
      "text": "Zuverlässigkeit"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "e4abd35b809c91073e228faca29b18632e87c14061e5d94e7a70c73d247b9c8d",
   "source_hash": "ce7d92a2a990837f293d1ce8c25b3867dc306d2e8752124ca4f9cc3c900aa9d3",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0115": {
   "payload": {
@@ -6946,10 +8534,24 @@
      "need": "must",
      "text": "Kenntnisse in SAP EWM"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "ceb5d643da5399ca589eee5187c8434b481773219570e35fc9a762cadee4d0e0",
   "source_hash": "4fee766e17495b3f36b1ff54609dba761ff47336d45c7e8eb1f4be02f2dac13a",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0116": {
   "payload": {
@@ -7005,10 +8607,23 @@
      "need": "must",
      "text": "Gutes Deutsch und Englisch"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "1bf74ae956632f7f02e823c2154d45f03e01f7c08c9f3de864d349ff44eec18c",
   "source_hash": "7268e2bd1b37d1c7c8472cc41568222d36f87078f58596be00f57b79e3eabd4b",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0117": {
   "payload": {
@@ -7064,10 +8679,23 @@
      "need": "must",
      "text": "Fluent English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "216daa9fd84f59ee5c52ddf0d83085b35519445ef7ed35d3fa2fcbb0f86a6f50",
   "source_hash": "0880700e9b46a435157d0f4a91605dea0534395f07dcfb579c43690248107f69",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0118": {
   "payload": {
@@ -7119,10 +8747,23 @@
      "need": "must",
      "text": "Excellent English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "b313f9b88eb411e484248508ea6d2b4068cb858ffc16419e4073b18aaab3a2b0",
   "source_hash": "b87da1631274489275a08408a79628cc98cca43272510c9e13bac8e75c9552b4",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0119": {
   "payload": {
@@ -7187,10 +8828,26 @@
      "need": "must",
      "text": "Sehr gute Deutschkenntnisse und gutes Englisch"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "f1ca75aefd82221375b7ea2d7aa1e3388bae535e6b6850a2d1d279cf2f2aa4ad",
   "source_hash": "f2fba3e0f6071da2cbcda6eb3d392d4914384fd3099482640fad01316f776ddd",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0120": {
   "payload": {
@@ -7216,10 +8873,24 @@
     "Gute Englischkenntnisse"
    ],
    "occupation": "Process Manager",
-   "requirements": []
+   "requirements": [],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
   },
+  "result_hash": "62bf7b0a3073b0ee38dc9137b204dedc9abaad4567a082318d3890f94fe7c650",
   "source_hash": "689d62ddaecf33d4f580e6a9b94f6ee672b26256c1b0d08c4016a898de484ec6",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0121": {
   "payload": {
@@ -7276,10 +8947,24 @@
      "need": "must",
      "text": "Fluent business English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "a63c69a0d329f4e852dad3f73b78bf0a1e93f1ea14bec179bb67181b185ae5e4",
   "source_hash": "127ce578af475fcb8d480f474b699cc15e09bf28dc0aa1f589394e019bf5a918",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0122": {
   "payload": {
@@ -7331,10 +9016,23 @@
      "need": "must",
      "text": "Genaue Arbeitsweise"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "442eadebd5fe8dda6524f8e325d79a31f9fe42f7b92d06efb13fa419e5761539",
   "source_hash": "17983818f0e9e244918c4b645ad0e9196aa9d910ef9b1457c47330d593be7e11",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0123": {
   "payload": {
@@ -7390,10 +9088,23 @@
      "need": "must",
      "text": "Fluent English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "9bb9ee7c265067cc2321f6572ba1a55af16db0fa2fcbb94e05c901839d6fb631",
   "source_hash": "fdbce551d3d1e1110fb9736dce46abdf10fd16908fd62a7e7ae9bb256ca03430",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0124": {
   "payload": {
@@ -7452,10 +9163,24 @@
      "need": "nice",
      "text": "Englisch fließend"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "0564b3c207593ab080896ac9d1422cced6a09207928ede27d78afbbfc8bb00b4",
   "source_hash": "559a5288bf2029b3a914fa7fcbf137b9f1ee74e47684bbf41a32a96db6a10b53",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0125": {
   "payload": {
@@ -7504,10 +9229,22 @@
      "need": "must",
      "text": "A degree in business, information systems or a related field and experience in documenting,"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "abe4e0c20221bae2b752144310a8b70b6a696759959fdd426967c980137758c4",
   "source_hash": "cde8b3a4861dc92c14f0491fb8aab5ebf73bb25f2c21251560cb2be8b706a9fd",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0126": {
   "payload": {
@@ -7560,10 +9297,24 @@
      "need": "nice",
      "text": "Führungserfahrung wünschenswert"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "99d87fdfa18a0e3d6c23a49d5b9975bd2fb1c78e40808aed4461ca9ab6222379",
   "source_hash": "e82a0f0c89dcc6cd09149c290b30e07c5567f37d96d23dc9b9f32968d1b8b648",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0127": {
   "payload": {
@@ -7615,10 +9366,23 @@
      "need": "must",
      "text": "Führerschein Klasse B"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "0623b34773e0ddb37e896a1380282ee7b73c7ddbad040eb09f5f817b3b0096ea",
   "source_hash": "6e1622063c28187b703ff47d9d46c48d906a997c1c10300564be80c03d91c56b",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0128": {
   "payload": {
@@ -7674,10 +9438,23 @@
      "need": "must",
      "text": "Good English"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "1e2577fe1f40f506efc920fb27d374b19d02fc65094920ea4f0832469f4efe78",
   "source_hash": "f44efa58ca63c2dbc8891105e54a8b974d414ab8a3202d08cfd845f293b0e66b",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0129": {
   "payload": {
@@ -7702,10 +9479,23 @@
     "Good English and German"
    ],
    "occupation": "Inventory Control Supervisor",
-   "requirements": []
+   "requirements": [],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
   },
+  "result_hash": "b388c07297f3d3d1ab94d47a86acc3e884a1e08bbada2d93170d3620996ca7b1",
   "source_hash": "ba1b480f8c84d930678eae2bd96587992e02e5a20ebbdc6149d1146f25fffece",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0130": {
   "payload": {
@@ -7730,10 +9520,23 @@
     "Deutsch ab B1"
    ],
    "occupation": "Testing Engineer",
-   "requirements": []
+   "requirements": [],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
   },
+  "result_hash": "100b9890eb89f6194a57baadc9242001f774134243084c5201e9404642712eb4",
   "source_hash": "89c95bd9a96dd36119f7eed3827bf693998e12998261b7a445879270ef29ec10",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0131": {
   "payload": {
@@ -7796,10 +9599,24 @@
      "need": "must",
      "text": "Business English at C1 level"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "0f8d17f16c5d8e9a6029f1044ec180c236cfc1eaf567c0c942f7b1cda3879049",
   "source_hash": "792b7555b88399c74bf1957ae26382b2c8445d0846d5ceca24cda1746042cd02",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0132": {
   "payload": {
@@ -7855,10 +9672,23 @@
      "need": "must",
      "text": "Deutsch auf B1-Niveau oder höher"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "9a38665dc37704eeab9ff46b05b58db108f08ef61d80147829734ed40f2e1cc5",
   "source_hash": "21f2caa4483d7c65aefcf4780ee34a1f8b851a3d57095b25343a40cde8a9ce47",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0133": {
   "payload": {
@@ -7914,10 +9744,23 @@
      "need": "must",
      "text": "Very good German and English skills"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "d601bfe83c5a5c55f9e0b6cc8ca21d8db25109297361440f2fee8609c554b41f",
   "source_hash": "13fe5c97b73965b693d7878bbd6e3c47b3086b14c8957991708e8bf9bebbe766",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0134": {
   "payload": {
@@ -7950,10 +9793,24 @@
      "need": "nice",
      "text": "Further training as a logistics master (Logistikmeister) or business economist (Betriebswirt) is desirable"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "6ffe4876711b10fe59b94e96b93016433cffac0257c5304287d22c0a7f3cc9e7",
   "source_hash": "513d57329fd349e53fd13da5fd3a17a1761b66c2918b2198b6e8322d3117a23d",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0135": {
   "payload": {
@@ -8012,10 +9869,22 @@
      "need": "must",
      "text": "English skills for dealing with suppliers"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "fea0f3ec3dfe6bb261f2f9771d44efe74810dfb7b4315c194810f09b1240258a",
   "source_hash": "ac865eb8d226df2fda21bfc3eb8672f748ec487394c4fa686c602b7f3ada8a4f",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0136": {
   "payload": {
@@ -8067,10 +9936,23 @@
      "need": "must",
      "text": "Knowledge of SAP EWM or a comparable system"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "d75bfdf2504af96176c3366ca5847d0a31d98707e04f6d018e88b44993d2b29e",
   "source_hash": "eff2c8d8cec5b111b1941aceb74218d03e118c9582721769728ea62548adb9d2",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0137": {
   "payload": {
@@ -8122,10 +10004,23 @@
      "need": "must",
      "text": "Knowledge of a merchandise management system"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "82f5629c3dd44ceda2458a154a358368bb228513e84ef7a7feceb3da967e80cb",
   "source_hash": "fdd8dce1da83ba372039b8c4e216a9a1f3b4ef75a62caca9602d2b34cc21af84",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0138": {
   "payload": {
@@ -8184,10 +10079,24 @@
      "need": "nice",
      "text": "English skills"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "0ca1c2c384497d9d349b72c79c0e4072d18c9408662d003287337a2657a66e25",
   "source_hash": "92e6f4cb1277ac61932054123f9addf3aaaa5f9542e7bec18e3e383a77d8ee36",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0139": {
   "payload": {
@@ -8240,10 +10149,24 @@
      "need": "must",
      "text": "German skills from B1 upwards"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "755403a0eab0e2b32557e42ba55fc1fd1f84f5e9a49cbee729c0e3164ed8bbf6",
   "source_hash": "129ce2c6ee0f99e23ff090085e8194c911e3758524ad7ce15540947a0622ec09",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0140": {
   "payload": {
@@ -8296,10 +10219,24 @@
      "need": "nice",
      "text": "Leadership experience desirable"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "5fd5786ad5356557cc20a33dca207cd929b396df392d1d14d31dbee224aafe35",
   "source_hash": "c135a32011e7d3584a65cece9e8c036bb2b078994daae46c76f3b9818da5f157",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0141": {
   "payload": {
@@ -8351,10 +10288,23 @@
      "need": "must",
      "text": "Sehr gute schriftliche Englischkenntnisse"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "b7806f2b423a9f38d3bc57e87ad46912e52a7bdcdb62a63405ac0c260905b21f",
   "source_hash": "7fe09d3563caa4678bee01b7fb1fa3067070ca71f6670d6d2473d66b0234ef0e",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0142": {
   "payload": {
@@ -8410,10 +10360,23 @@
      "need": "must",
      "text": "Staplerschein"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "4eb4b070c108df832648048685be51372df977105aab7a557f0ecd927e9d7972",
   "source_hash": "2d7c4f1c7d0ce9fd0b27a26b60f27a9baa1158063b007a3ec9f7b2979cd70190",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0143": {
   "payload": {
@@ -8465,10 +10428,23 @@
      "need": "must",
      "text": "Staplerschein"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "f2cf1d8b3f54b516ec100eda094181510e716445c7c85bba061ae991c3694242",
   "source_hash": "2096afc7b0d26b4a53b9d7d4addb1e7d7fc7af114d230e025cdc67cb53d9f068",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0144": {
   "payload": {
@@ -8520,10 +10496,23 @@
      "need": "must",
      "text": "Exzellente Englischkenntnisse"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "a4e24c59c9454b733a9f9d941144ffb557faa1df5f3b1d9c1afd3911598701c6",
   "source_hash": "82dadeda001137e5dfe9700b1c1de59f45afa4214966f5006805161d53042454",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0145": {
   "payload": {
@@ -8582,10 +10571,24 @@
      "need": "must",
      "text": "das Team arbeitet vor Ort und bietet kein Remote-Arbeiten an"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "41f4f2b12bba866b080ab0ec326337b3d5022871dc466a2613dfd24f4955871b",
   "source_hash": "f22ede2c1a5851578ab2df55de96d665a3164ec01b981905684899fe5aaf3295",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0146": {
   "payload": {
@@ -8638,10 +10641,24 @@
      "need": "must",
      "text": "Arbeitssprache ist Englisch"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "e225ce2d5aeacd07f73d48c4a04c1e0c8f8359744f850cf55a94421ad16adb8a",
   "source_hash": "41a91d1122fc6ba178e9d7ca647c02dceb22c2676a439988ca4579b7049ebdfc",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0147": {
   "payload": {
@@ -8666,10 +10683,23 @@
     "Starke Führungskompetenz"
    ],
    "occupation": "Senior Prototyping Engineer",
-   "requirements": []
+   "requirements": [],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
   },
+  "result_hash": "df3c5a9fc584265c57969178f4be166390c2730415eeaff2481d5b84a4996b58",
   "source_hash": "e7f6c706b9dd53e265a5828fd4a4d99d193eecac8152f7546fcb377b26a5f67b",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0148": {
   "payload": {
@@ -8735,10 +10765,25 @@
      "need": "must",
      "text": "Staplerschein"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "40643ef8602ea408e3a5df39ca04312563e92c811ad6f49b782bd0150a79a853",
   "source_hash": "29ca6a0b9c4b88b4f907409e977f181106ff400427fa7fdb809f62df5a80debf",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  },
  "job_0149": {
   "payload": {
@@ -8798,9 +10843,24 @@
      "need": "must",
      "text": "Gute Englischkenntnisse"
     }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
    ]
   },
+  "result_hash": "5b48f0b5a10164f8b10face502af3d26c2c005f71cd205140a44d5ba64be1312",
   "source_hash": "26dca90e090ebfd6358b659d996c7912a0c25642ea9d5001e67a2415b6e1e322",
-  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1"
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
  }
 }

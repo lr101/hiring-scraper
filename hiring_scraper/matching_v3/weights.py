@@ -1,9 +1,11 @@
 """Versioned v3 weights, support transform and calibration knots.
 
-Fitted on the DEV split of the public evaluation set from recorded model outputs
-(``python -m tests.eval.fit_v3``). The low end is a fixed ramp so jobs with little
-evidence spread over 0-29 instead of sharing one score; knots above raw 25 were
-searched against the score-range gates (strong >= 80, irrelevant < 30, no plateau).
+Fitted on the DEV split of the public evaluation set from recorded model outputs;
+``python -m tests.eval.fit_v3 --keep-weights`` reproduces these knots exactly. The
+low end is a fixed ramp (``fit_v3.LOW_RAMP``) so jobs with little evidence spread
+over 0-27; above it, isotonic regression of grade-band targets is sampled at raw
+quantiles, and a small grid (knot count, straight-line blend, strong-case margin) is
+chosen by the target acceptance gates on DEV. HELDOUT is never used for fitting.
 """
 from __future__ import annotations
 
@@ -46,14 +48,15 @@ CALIBRATION_KNOTS: tuple[tuple[float, float], ...] = (
     (3.0, 20.0),
     (5.0, 23.0),
     (7.5, 27.0),
-    (25.0, 39.22),
-    (50.0, 56.84),
-    (60.0, 60.0),
-    (70.0, 64.03),
-    (80.0, 70.39),
-    (86.0, 79.54),
-    (90.0, 81.37),
-    (95.0, 87.57),
+    (16.32, 39.7),
+    (32.54, 46.27),
+    (58.35, 63.84),
+    (70.0, 68.71),
+    (78.55, 71.91),
+    (86.1, 78.23),
+    (89.95, 83.0),
+    (91.63, 85.08),
+    (98.39, 96.17),
     (100.0, 100.0),
 )
 CALIBRATION_TAIL_SLOPE = 0.5

@@ -200,6 +200,22 @@ def list_job_applications(profile_id: int,
 
 
 @router.get('/api/v1/applications')
+
+def _analysis_backlog(session, profile_ids) -> int:
+    """Active postings still waiting for the local models (analysis, or pair evidence for
+    the selected profiles). Closed postings and ones waiting for a retry are not counted."""
+    from sqlalchemy import or_, union
+    from hiring_scraper.app.models import Job, MatchEvidenceQueue, utcnow
+    now = utcnow()
+    analysis = (select(JobAnalysisQueue.job_id).join(Job, Job.id == JobAnalysisQueue.job_id)
+                .where(Job.is_active.is_(True),
+                       or_(JobAnalysisQueue.retry_at.is_(None), JobAnalysisQueue.retry_at <= now)))
+    evidence = (select(MatchEvidenceQueue.job_id).join(Job, Job.id == MatchEvidenceQueue.job_id)
+                .where(Job.is_active.is_(True), MatchEvidenceQueue.profile_id.in_(list(profile_ids)),
+                       or_(MatchEvidenceQueue.retry_at.is_(None), MatchEvidenceQueue.retry_at <= now)))
+    waiting = union(analysis, evidence).subquery()
+    return int(session.scalar(select(func.count()).select_from(waiting)) or 0)
+
 def list_applications(profile_ids: str = Query(..., max_length=1200),
                       statuses: str | None = Query(None, max_length=160),
                       sort: Literal['match', 'posted', 'discovered'] = 'match',
@@ -314,7 +330,7 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
         item['profile_match'] = cards[(application.profile_id, application.job_id)]
         items.append(item)
     # Postings the local models still have to read; they join Journey once analysed.
-    analysis_backlog = int(session.scalar(select(func.count()).select_from(JobAnalysisQueue)) or 0)
+    analysis_backlog = _analysis_backlog(session, selected_ids)
     return {'profile_ids': selected_ids, 'items': items, 'counts': counts,
             'total': total,
             'offset': offset, 'limit': limit, 'sort': sort, 'matching_pending': matching_pending,

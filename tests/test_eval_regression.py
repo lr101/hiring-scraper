@@ -618,12 +618,13 @@ class TestEvalMetricsUnit(unittest.TestCase):
 
     def test_v3_scores_from_recorded_model_outputs(self) -> None:
         self.assertIn("v3", MATCHERS)
-        cases = load_cases()
-        sample = cases[0]
-        res = get_matcher("v3")(sample["job"], sample["profile"])
-        self.assertIsInstance(res["eligible"], bool)
-        self.assertTrue(0.0 <= float(res["score"]) <= 100.0)
-        self.assertFalse(res.get("pending"), "Every public case needs recorded model outputs")
+        # Every case, not a sample: recorded outputs are used only when their versions and
+        # input hashes match the current posting, CV and models.
+        for case in load_cases(split="all"):
+            res = get_matcher("v3")(case["job"], case["profile"])
+            self.assertIsInstance(res["eligible"], bool)
+            self.assertTrue(0.0 <= float(res["score"]) <= 100.0)
+            self.assertFalse(res.get("pending"), f"{case['id']} needs current recorded model outputs")
 
     def test_split_evaluation_partitions_dataset(self) -> None:
         name = "_test_split_dummy"
