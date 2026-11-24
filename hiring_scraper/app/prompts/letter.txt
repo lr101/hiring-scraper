@@ -15,11 +15,13 @@ Structure
   or documented decision). Select the telling details instead of summarizing the CV. Connect
   the example to a particular responsibility through the work itself. Make the transfer
   legible by naming the comparable decision, deliverable or collaboration in the target role.
-  Prioritize core analytical or delivery requirements when comparable evidence exists.
-  If the role explicitly calls for a particular kind of analysis (for example, market,
-  benchmark, pricing or component cost analysis), use a verified example of that method
-  ahead of a general coordination example. Show the resulting decision or artifact. Avoid naming the target company or using
-  formulaic fit statements in example paragraphs. Name the verified discipline when discussing
+  Before choosing examples, identify the posting's most specific core duties and find the
+  closest cited contribution for each. If an explicitly requested analytical method is
+  verified, reserve one example for it. For a role asking for pricing or component cost
+  analysis, a verified costing calculation or costed deliverable makes that connection
+  directly. A general design comparison, user study or coordination example belongs in a
+  different paragraph. Name the actual method and resulting artifact or decision at the
+  verified scope. Avoid naming the target company or using formulaic fit statements. Name the verified discipline when discussing
   the applicant's studies. When prior scope differs, name the actual stage and make the closest
   relevant method clear.
 - If the posting requires English or travel and evidence supports it, include one sentence on
