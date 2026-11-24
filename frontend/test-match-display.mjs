@@ -39,6 +39,21 @@ try {
   assert.match(refreshing, /match-recommended/)
   assert.doesNotMatch(refreshing, /Local estimate|AI assessed|None identified yet/)
 
+  const pending = renderToStaticMarkup(React.createElement(JobFeedCard, {
+    job: {
+      id: 1,
+      title: 'Engineer',
+      company_name: 'Example',
+      location_text: null,
+      profile_match: { score: 0, matched_skills: [], pending: true },
+    },
+    href: '/jobs/1',
+    profileId: 3,
+    onAction() {},
+  }))
+  assert.match(pending, /Analysing job…/)
+  assert.doesNotMatch(pending, /0\/100 fit/)
+
   const noMatch = renderToStaticMarkup(React.createElement(JobFeedCard, {
     job: { id: 2, title: 'Engineer', company_name: 'Example', location_text: null, profile_match: null },
     href: '/jobs/2',
@@ -48,6 +63,13 @@ try {
   assert.doesNotMatch(noMatch, /Updating match…|fit<\/span>/)
 
   const { default: JobEvidence } = await server.ssrLoadModule('/src/JobEvidence.tsx')
+  const pendingEvidence = renderToStaticMarkup(React.createElement(JobEvidence, {
+    enrichment: { skills: [], languages: [], warnings: [], seniority: null, experience_years: null },
+    match: { score: 0, pending: true, eligible: true, uncertain: true, label: '', matched_skills: [],
+      missing_skills: [], reasons: [], conflicts: [], unknowns: [] },
+  }))
+  assert.match(pendingEvidence, /Analysing this job/)
+  assert.doesNotMatch(pendingEvidence, /0\/100/)
   const evidence = review => renderToStaticMarkup(React.createElement(JobEvidence, {
     enrichment: { skills: [], languages: [], warnings: [], seniority: null, experience_years: null },
     match: {

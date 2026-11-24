@@ -12,7 +12,6 @@ x-runtime: &runtime
     SEARCH_SNAPSHOT_PREWARM_SECONDS: ${SEARCH_SNAPSHOT_PREWARM_SECONDS:-60}
     APPLICATION_WEEKLY_GOAL: ${APPLICATION_WEEKLY_GOAL:-10}
     APPLICATION_AI_MODEL: ${APPLICATION_AI_MODEL:-}
-    RADIUS_MATCHER: ${RADIUS_MATCHER:-v2}
     RADIUS_APPLICATION_AI_CONCURRENCY: ${RADIUS_APPLICATION_AI_CONCURRENCY:-25}
     RADIUS_CODEX_STATE_DIR: /var/lib/radius/codex
     DB_POOL_SIZE: ${DB_POOL_SIZE:-}
@@ -109,11 +108,73 @@ services:
 
   profile-match-worker:
     <<: *runtime
+    command: ["--worker", "profile_match_worker"]
+    restart: on-failure
+
+  job-analysis-worker:
+    <<: *runtime
     environment:
       <<: *runtime_env
       SEMANTIC_EMBEDDING_URL: http://semantic-search-worker:8001/embed
-    command: ["--worker", "profile_match_worker"]
+      JOB_ANALYSIS_LLM_URL: http://llm:8080
+      JOB_ANALYSIS_RERANK_URL: http://llm-reranker:8080
+    command: ["--worker", "job_analysis_worker"]
     restart: on-failure
+
+  # Local models for job analysis (see docs/local-models.md). CPU-only; together
+  # they stay within about 6 GB RAM. The worker calls them one at a time, so
+  # they share the same cores without competing. Weights download once, from a
+  # pinned Hugging Face revision, into the llm_models volume.
+  llm:
+    image: ${LLM_SERVER_IMAGE:-ghcr.io/ggml-org/llama.cpp:server-b12098@sha256:ba68b6996ba6d27a49a9864452194128e118a1fcb96dd663f223a13e0a2857a8}
+    command:
+      - --host=0.0.0.0
+      - --port=8080
+      - --model=/models/Qwen3.5-4B-Q4_K_M.gguf
+      - --model-url=https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/e87f176479d0855a907a41277aca2f8ee7a09523/Qwen3.5-4B-Q4_K_M.gguf
+      - --alias=unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf
+      - --threads=${LLM_THREADS:-4}
+      - --ctx-size=8192
+      - --parallel=1
+      - --chat-template-kwargs={"enable_thinking":false}
+      - --no-webui
+    volumes:
+      - llm_models:/models
+    restart: unless-stopped
+    cpu_shares: 256
+    mem_limit: ${LLM_MEMORY_LIMIT:-4608m}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15m
+
+  llm-reranker:
+    image: ${LLM_SERVER_IMAGE:-ghcr.io/ggml-org/llama.cpp:server-b12098@sha256:ba68b6996ba6d27a49a9864452194128e118a1fcb96dd663f223a13e0a2857a8}
+    command:
+      - --host=0.0.0.0
+      - --port=8080
+      - --model=/models/qwen3-reranker-0.6b-q8_0.gguf
+      - --model-url=https://huggingface.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF/resolve/a02f48bb4f057028298c21fa033da2b30d7742d5/qwen3-reranker-0.6b-q8_0.gguf
+      - --alias=ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf
+      - --reranking
+      - --threads=${LLM_THREADS:-4}
+      - --ctx-size=8192
+      - --batch-size=2048
+      - --ubatch-size=2048
+      - --no-webui
+    volumes:
+      - llm_models:/models
+    restart: unless-stopped
+    cpu_shares: 256
+    mem_limit: ${LLM_RERANKER_MEMORY_LIMIT:-1536m}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10m
 
   semantic-search-worker:
     <<: *runtime
@@ -131,3 +192,4 @@ services:
 volumes:
   hiring_db:
   radius_codex:
+  llm_models:

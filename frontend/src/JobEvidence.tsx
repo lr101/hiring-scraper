@@ -21,6 +21,7 @@ export type ProfileMatch = {
   }[] }
   gates?: Record<string, { status: string; reason: string }>
   fit_tier?: 'recommended' | 'possible' | 'unlikely'; requirement_gaps?: string[]; refreshing?: boolean
+  pending?: boolean; job_context?: { occupation: string; industry: string }
   score: number; eligible: boolean; uncertain: boolean; label: string
   custom_skill_evidence?: { name: string; evidence: string; source: string }[]
   local_context?: {
@@ -63,8 +64,8 @@ function ScoreGraphic({ match }: { match: ProfileMatch }) {
   </figure>
 }
 
-const scorePoints = new Intl.NumberFormat('en', { maximumFractionDigits: 4 })
-const signedPoints = new Intl.NumberFormat('en', { maximumFractionDigits: 4, signDisplay: 'exceptZero' })
+const scorePoints = new Intl.NumberFormat('en', { maximumFractionDigits: 1 })
+const signedPoints = new Intl.NumberFormat('en', { maximumFractionDigits: 1, signDisplay: 'exceptZero' })
 
 function ContributionLedger({ entries, calibration }: {
   entries: ScoreContribution[]; calibration: NonNullable<ProfileMatch['calibration']>
@@ -95,9 +96,14 @@ export default function JobEvidence({ enrichment, match }: { enrichment: Enrichm
   const skillEvidence = [...enrichment.skills, ...(match?.custom_skill_evidence ?? [])]
   return <section className="detail-panel evidence-panel">
     <p className="eyebrow">How this job fits</p>
-    {match ? <>
+    {match?.pending ? <>
+      <h2>Analysing this job</h2>
+      <p className="muted">A local model is reading the posting's duties and requirements and checking them against your CV. The match appears here and in Journey once that finishes.</p>
+    </> : match ? <>
+      {match.job_context && (match.job_context.occupation || match.job_context.industry) && <p className="eyebrow">
+        {[match.job_context.occupation, match.job_context.industry].filter(Boolean).join(' · ')}</p>}
       <h2>{!match.eligible ? 'Requirement or preference conflict' : match.mandatory_review ? 'Verify mandatory eligibility' : match.fit_tier === 'recommended' ? 'Recommended match' : match.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'} · {match.score}/100</h2>
-      <p className="muted">Match score based on saved task, skill and requirement evidence. Shared tools may be incidental; verify the main work and mandatory requirements before applying. This is not a prediction of hiring success.</p>
+      <p className="muted">Match score based on how well lines of your CV show the posting's duties and requirements in its field. Verify the main work and mandatory requirements before applying. This is not a prediction of hiring success.</p>
       <ScoreGraphic match={match} />
       {match.calibration && match.explanation && <ContributionLedger entries={match.explanation} calibration={match.calibration} />}
       {match.calibration && match.language_review && <p className="evidence-note">Verify language proficiency against the stated requirement.</p>}
