@@ -18,7 +18,7 @@ development, run the same modules with `python -m hiring_scraper.app.<module>`.
 | API | `app.api` | FastAPI HTTP API and the built React frontend. Reads cached data only; it never crawls or runs model inference inside a request. |
 | Feed worker | `app.worker` | Leases due job feeds one at a time, fetches them, and saves new, changed and closed postings. Seeds the default RSS sources. |
 | Discovery worker | `app.discovery_worker` | Runs search-area campaigns: finds employers from OpenStreetMap, resolves missing homepages, and discovers career pages and ATS feeds. |
-| Search snapshot worker | `app.search_snapshot_worker` | Rebuilds materialized job-search snapshots so browsing does not wait for ranking. |
+| Search snapshot worker | `app.search_snapshot_worker` | Rebuilds materialized job-search snapshots so browsing does not wait for ranking, and backfills stale precomputed Germany/state job scope columns (`job_location_scope.py`) in bounded batches. |
 | Semantic search worker | `app.semantic_search_worker` | Hosts the pinned local multilingual E5 embedding model and indexes companies and jobs. |
 | Job analysis worker | `app.job_analysis_worker` | Drains the job analysis and pair evidence queues with the local `llm` and `llm-reranker` containers (see `docs/local-models.md`). |
 | Model containers | `llm`, `llm-reranker` | llama.cpp servers for the pinned Qwen3.5-4B (posting analysis) and Qwen3-Reranker-0.6B (CV evidence checks). CPU only. |
@@ -143,7 +143,8 @@ Several processes write to the same PostgreSQL database. Keep these rules when a
   holds the owning profiles `FOR SHARE` (through `before_publish`) while closing them.
 - **Declare every source change.** After editing jobs, feeds, companies, profiles or
   model outputs, call the matching `source_changes.*_changed()` function before
-  commit. It drops caches whose inputs changed and queues rematching. Undeclared tracked
+  commit. It drops caches whose inputs changed, refreshes precomputed Germany/state job
+  location scopes (`job_location_scope.py`), and queues rematching. Undeclared tracked
   writes fail tests (strict mode) and log an error in production.
 - **Derived data is rebuilt from queues.** A declared job change is queued in `match_dirty_jobs` and, when its text
   changed or it was never analysed, in `job_analysis_queue`; companies and jobs needing search vectors are queued

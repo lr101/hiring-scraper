@@ -283,8 +283,11 @@ def save_companion_job(request: SaveJobRequest,
                         JobFeed.company_id == company.id, JobFeed.provider == 'manual_job',
                         JobFeed.feed_url == (website_url or url))))
         external_id = hashlib.sha256(url.encode('utf-8')).hexdigest()
+        from hiring_scraper.app import job_location_scope
         job_id = session.scalar(insert(Job).values(
             feed_id=feed.id, external_id=external_id, title=title, url=url,
+            germany_candidate=False, location_states=[],
+            location_scope_version=job_location_scope.LOCATION_SCOPE_VERSION,
             raw_metadata={'source': 'browser_extension', 'manually_added': True},
         ).on_conflict_do_nothing(index_elements=['feed_id', 'external_id']).returning(Job.id))
         created = job_id is not None

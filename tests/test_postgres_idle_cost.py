@@ -17,7 +17,7 @@ from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import (
-    application_preparation_queue, discovery_worker, job_analysis_worker, job_search,
+    application_preparation_queue, discovery_worker, job_analysis_worker, job_location_scope, job_search,
     search_snapshots, semantic_search_worker, worker,
 )
 from hiring_scraper.app.models import ProfileEvidenceUnits, SemanticSearchIndexState, UserProfile
@@ -43,6 +43,7 @@ def _idle_cycles():
         'feed scan': worker.scan_once,
         'company discovery': discovery_worker.process_batch,
         'search snapshot refresh': search_snapshots.process_search_snapshot_refresh_once,
+        'job location scope backfill': search_snapshots.backfill_job_location_scopes_once,
         'application preparation claim': lambda: application_preparation_queue.process_once(
             lambda *_args: None),
         'job analysis': lambda: (
@@ -52,6 +53,35 @@ def _idle_cycles():
         'application render claim': lambda: application_preparation_queue.process_render_once(
             lambda *_args: None),
     }
+
+
+def _scope_queries():
+    return {
+        'germany scope snapshot': search_snapshots._scoped_job_rows_statement(
+            employer_country='DE',
+            state=None,
+            location_scope='area_remote',
+            company_id=None,
+            normalized_query=None,
+            work_style='all',
+            posting_status='open',
+        ),
+        'state scope snapshot': search_snapshots._scoped_job_rows_statement(
+            employer_country=None,
+            state='Bayern',
+            location_scope='area_remote',
+            company_id=None,
+            normalized_query=None,
+            work_style='all',
+            posting_status='open',
+        ),
+    }
+
+
+def _plan_nodes(node):
+    yield node
+    for child in node.get('Plans', ()):
+        yield from _plan_nodes(child)
 
 
 class IdleWorkerCostTests(unittest.TestCase):
@@ -75,10 +105,13 @@ class IdleWorkerCostTests(unittest.TestCase):
         cls.stack.enter_context(patch.object(semantic_search_worker, '_embedder', NoIdleEmbedding()))
         cls.seed_profile()
         cls.costs = {}
+        cls.scope_costs = {}
         cls.add_jobs(1, SMALL)
         cls.costs[SMALL] = cls.measure()
+        cls.scope_costs[SMALL] = cls.measure_scopes()
         cls.add_jobs(SMALL + 1, LARGE)
         cls.costs[LARGE] = cls.measure()
+        cls.scope_costs[LARGE] = cls.measure_scopes()
 
     @classmethod
     def tearDownClass(cls):
@@ -125,11 +158,29 @@ class IdleWorkerCostTests(unittest.TestCase):
         with cls.engine.begin() as connection:
             connection.execute(text("""
                 INSERT INTO jobs(feed_id, external_id, title, url, description, raw_metadata, enrichment,
-                                 first_seen_at, last_seen_at, is_active, is_remote, missing_complete_scans)
+                                 first_seen_at, last_seen_at, is_active, is_remote, missing_complete_scans,
+                                 location_text, germany_candidate, location_states, location_scope_version)
                 SELECT (SELECT min(id) FROM job_feeds) + (g % 200), g::text, 'Engineer ' || g,
                        'https://example.invalid/j/' || g, repeat('Build services. ', 40), '{}', '{}',
-                       now(), now(), true, false, 0
-                FROM generate_series(CAST(:first AS integer), CAST(:last AS integer)) g"""), {'first': first, 'last': last})
+                       now(), now(), true, (g IN (6, 7)), 0,
+                       CASE
+                           WHEN g BETWEEN 1 AND 3 THEN 'München'
+                           WHEN g BETWEEN 4 AND 5 THEN 'Berlin'
+                           WHEN g IN (6, 7) THEN 'Remote'
+                           ELSE 'Paris, France'
+                       END,
+                       (g BETWEEN 1 AND 5),
+                       CASE
+                           WHEN g BETWEEN 1 AND 3 THEN ARRAY['Bayern']::text[]
+                           WHEN g BETWEEN 4 AND 5 THEN ARRAY['Berlin']::text[]
+                           ELSE ARRAY[]::text[]
+                       END,
+                       :scope_version
+                FROM generate_series(CAST(:first AS integer), CAST(:last AS integer)) g"""), {
+                    'first': first,
+                    'last': last,
+                    'scope_version': job_location_scope.LOCATION_SCOPE_VERSION,
+                })
             for kind, table in (('job', 'jobs'), ('company', 'companies')):
                 connection.execute(text(f"""
                     INSERT INTO semantic_search_documents(entity_type, entity_id, content_hash, model_revision,
@@ -170,6 +221,41 @@ class IdleWorkerCostTests(unittest.TestCase):
         return costs
 
     @classmethod
+    def measure_scopes(cls):
+        results = {}
+        for name, stmt in _scope_queries().items():
+            captured = []
+
+            def record(_connection, _cursor, statement, parameters, _context, many):
+                if not many and statement.lstrip().upper().startswith('SELECT'):
+                    captured.append((statement, parameters))
+
+            event.listen(cls.engine, 'before_cursor_execute', record)
+            try:
+                with cls.factory() as session:
+                    rows = session.execute(stmt).all()
+            finally:
+                event.remove(cls.engine, 'before_cursor_execute', record)
+            statement, parameters = captured[-1]
+            plan = cls.explain_plan(statement, parameters)
+            top = plan[0]['Plan']
+            bufs = int(top.get('Shared Hit Blocks', 0)) + int(top.get('Shared Read Blocks', 0))
+            results[name] = (bufs, len(rows), plan, statement)
+        return results
+
+    @classmethod
+    def explain_plan(cls, statement, parameters):
+        raw = cls.engine.raw_connection()
+        try:
+            cursor = raw.cursor()
+            cursor.execute('EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) ' + statement, parameters)
+            plan = cursor.fetchone()[0]
+            return json.loads(plan) if isinstance(plan, str) else plan
+        finally:
+            raw.rollback()
+            raw.close()
+
+    @classmethod
     def buffers(cls, statement, parameters):
         raw = cls.engine.raw_connection()
         try:
@@ -202,6 +288,38 @@ class IdleWorkerCostTests(unittest.TestCase):
                 failures.append(f'{name}: {small} -> {large} buffers; costliest statement: '
                                 f'{" ".join(worst.split())[:300]}')
         self.assertEqual(failures, [], '\n'.join(failures))
+
+    def test_germany_and_state_scope_snapshot_queries_use_indexes_and_stay_flat(self):
+        expected_counts = {'germany scope snapshot': 7, 'state scope snapshot': 5}
+        expected_indexes = {
+            'germany scope snapshot': 'ix_jobs_germany_candidate',
+            'state scope snapshot': 'ix_jobs_location_states',
+        }
+        for name in _scope_queries():
+            small_bufs, small_rows, _, _ = self.scope_costs[SMALL][name]
+            large_bufs, large_rows, plan, statement = self.scope_costs[LARGE][name]
+            self.assertEqual(small_rows, expected_counts[name], name)
+            self.assertEqual(large_rows, expected_counts[name], name)
+            self.assertLessEqual(
+                large_bufs,
+                small_bufs * GROWTH_FACTOR + GROWTH_SLACK,
+                f'{name}: {small_bufs} -> {large_bufs} buffers; SQL: {" ".join(statement.split())[:300]}',
+            )
+            nodes = list(_plan_nodes(plan[0]['Plan']))
+            used_indexes = {node.get('Index Name') for node in nodes if node.get('Index Name')}
+            self.assertIn(expected_indexes[name], used_indexes, f'{name} plan indexes: {sorted(used_indexes)}')
+            self.assertIn('ix_jobs_location_scope_version', used_indexes, f'{name} plan indexes: {sorted(used_indexes)}')
+            self.assertIn('ix_jobs_remote_candidate_active', used_indexes, f'{name} plan indexes: {sorted(used_indexes)}')
+            job_seq_scans = [
+                node for node in nodes
+                if node.get('Node Type') == 'Seq Scan' and node.get('Relation Name') == 'jobs'
+            ]
+            self.assertEqual(job_seq_scans, [], f'{name} performed a Seq Scan on jobs')
+            executed_location_scans = [
+                node for node in nodes
+                if node.get('Relation Name') == 'job_locations' and int(node.get('Actual Loops', 0)) > 0
+            ]
+            self.assertEqual(executed_location_scans, [], f'{name} scanned job_locations despite up-to-date scope')
 
 
 if __name__ == '__main__':

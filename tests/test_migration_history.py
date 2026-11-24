@@ -217,8 +217,9 @@ class HistoricalUpgradeTests(unittest.TestCase):
             old_config.set_main_option('script_location', str(migrations))
             with TemporaryDirectory() as folder, patch.dict(os.environ, {'DATABASE_URL': self.target}):
                 for file in (migrations / 'versions').glob('*.py'):
-                    # The previous image shipped neither application documents v2 nor local job analysis.
-                    if not file.name.startswith(('0044_', '0045_')):
+                    # The previous image shipped none of 0044 (application documents v2),
+                    # 0045 (local job analysis), or 0046 (precomputed job location scopes).
+                    if not file.name.startswith(('0044_', '0045_', '0046_')):
                         (Path(folder) / file.name).symlink_to(file)
                 old_config.set_main_option('version_locations', folder)
                 command.upgrade(old_config, 'head')
@@ -237,6 +238,121 @@ class HistoricalUpgradeTests(unittest.TestCase):
                     'SELECT pdf FROM application_document_renders')), b'fictional PDF')
                 self.assertEqual(connection.scalar(text(
                     "SELECT record->>'kind' FROM application_document_preparation_tasks")), 'prepare')
+
+    def test_0046_job_location_scope_up_down_up_and_backfill(self):
+        from hiring_scraper.app.job_location_scope import LOCATION_SCOPE_VERSION
+
+        expected_columns = {'germany_candidate', 'location_states', 'location_scope_version'}
+        expected_indexes = {
+            'ix_jobs_germany_candidate',
+            'ix_jobs_location_states',
+            'ix_jobs_location_scope_version',
+            'ix_jobs_remote_candidate_active',
+        }
+        with patch.dict(os.environ, {'DATABASE_URL': self.target}):
+            command.upgrade(self.config, '0045_local_job_analysis')
+            engine = create_engine(self.target)
+            self.addCleanup(engine.dispose)
+            with engine.begin() as connection:
+                connection.execute(text(
+                    "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'hiring_app') "
+                    "THEN CREATE ROLE hiring_app; END IF; END $$"))
+                connection.execute(text('GRANT USAGE ON SCHEMA public TO hiring_app'))
+                company_id = connection.execute(text(
+                    "INSERT INTO companies (source, source_id, name, career_status, discovery_attempt_count) "
+                    "VALUES ('manual', 'c-scope', 'Scope GmbH', 'not_checked', 0) RETURNING id"
+                )).scalar_one()
+                feed_id = connection.execute(text(
+                    "INSERT INTO job_feeds (company_id, provider, feed_url, status, enabled, attempt_count) "
+                    "VALUES (:company_id, 'rss', 'https://example.com/scope.xml', 'ok', TRUE, 0) RETURNING id"
+                ), {'company_id': company_id}).scalar_one()
+                seed_jobs = [
+                    ('munich', 'München', None),
+                    ('berlin-cc', 'Remote', ('Berlin Office', 'DE', None, None)),
+                    ('bayern-coords', 'Werk', ('South Site', None, 48.1351, 11.5820)),
+                    ('paris', 'Paris, France', ('Paris', 'FR', 48.8566, 2.3522)),
+                ]
+                job_ids: dict[str, int] = {}
+                for ext, location_text, loc in seed_jobs:
+                    job_id = connection.execute(text(
+                        "INSERT INTO jobs (feed_id, external_id, title, url, location_text, is_remote, "
+                        "raw_metadata, enrichment, first_seen_at, last_seen_at, is_active, missing_complete_scans) "
+                        "VALUES (:feed_id, :ext, :title, :url, :loc, FALSE, '{}', '{}', now(), now(), TRUE, 0) "
+                        "RETURNING id"
+                    ), {
+                        'feed_id': feed_id,
+                        'ext': ext,
+                        'title': f'Role {ext}',
+                        'url': f'https://example.com/jobs/{ext}',
+                        'loc': location_text,
+                    }).scalar_one()
+                    job_ids[ext] = job_id
+                    if loc is not None:
+                        label, country_code, lat, lon = loc
+                        connection.execute(text(
+                            "INSERT INTO job_locations (job_id, label, country_code, latitude, longitude) "
+                            "VALUES (:job_id, :label, :country_code, :lat, :lon)"
+                        ), {
+                            'job_id': job_id,
+                            'label': label,
+                            'country_code': country_code,
+                            'lat': lat,
+                            'lon': lon,
+                        })
+
+            def assert_upgraded():
+                with engine.connect() as connection:
+                    self.assertEqual(
+                        connection.scalar(text('SELECT version_num FROM alembic_version')),
+                        '0046_job_location_scope',
+                    )
+                    cols = set(connection.scalars(text(
+                        "SELECT column_name FROM information_schema.columns "
+                        "WHERE table_schema = 'public' AND table_name = 'jobs'"
+                    )).all())
+                    self.assertTrue(expected_columns.issubset(cols))
+                    indexes = set(connection.scalars(text(
+                        "SELECT indexname FROM pg_indexes "
+                        "WHERE schemaname = 'public' AND tablename = 'jobs'"
+                    )).all())
+                    self.assertTrue(expected_indexes.issubset(indexes))
+                    connection.execute(text('SET LOCAL ROLE hiring_app'))
+                    rows = {
+                        row[0]: (row[1], sorted(row[2] or []), row[3])
+                        for row in connection.execute(text(
+                            "SELECT external_id, germany_candidate, location_states, location_scope_version "
+                            "FROM jobs"
+                        )).all()
+                    }
+                    self.assertEqual(rows['munich'], (True, ['Bayern'], LOCATION_SCOPE_VERSION))
+                    self.assertEqual(rows['berlin-cc'], (True, ['Berlin'], LOCATION_SCOPE_VERSION))
+                    self.assertEqual(rows['bayern-coords'][0], True)
+                    self.assertIn('Bayern', rows['bayern-coords'][1])
+                    self.assertEqual(rows['bayern-coords'][2], LOCATION_SCOPE_VERSION)
+                    self.assertEqual(rows['paris'], (False, [], LOCATION_SCOPE_VERSION))
+
+            command.upgrade(self.config, 'head')
+            assert_upgraded()
+
+            command.downgrade(self.config, '0045_local_job_analysis')
+            with engine.connect() as connection:
+                self.assertEqual(
+                    connection.scalar(text('SELECT version_num FROM alembic_version')),
+                    '0045_local_job_analysis',
+                )
+                cols = set(connection.scalars(text(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_schema = 'public' AND table_name = 'jobs'"
+                )).all())
+                self.assertTrue(expected_columns.isdisjoint(cols))
+                indexes = set(connection.scalars(text(
+                    "SELECT indexname FROM pg_indexes "
+                    "WHERE schemaname = 'public' AND tablename = 'jobs'"
+                )).all())
+                self.assertTrue(expected_indexes.isdisjoint(indexes))
+
+            command.upgrade(self.config, 'head')
+            assert_upgraded()
 
 
 if __name__ == '__main__':

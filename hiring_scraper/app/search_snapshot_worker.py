@@ -6,7 +6,9 @@ import os
 import time
 
 from hiring_scraper.app.search_snapshots import (
-    prewarm_profile_location_snapshots_once, process_search_snapshot_refresh_once,
+    backfill_job_location_scopes_once,
+    prewarm_profile_location_snapshots_once,
+    process_search_snapshot_refresh_once,
 )
 
 
@@ -31,7 +33,13 @@ def main() -> None:
             except Exception:
                 logging.getLogger(__name__).exception("Could not prewarm profile/location search snapshots")
             last_prewarm = now
-        if not process_search_snapshot_refresh_once():
+        backfilled = 0
+        try:
+            backfilled = backfill_job_location_scopes_once()
+        except Exception:
+            logging.getLogger(__name__).exception("Could not backfill job location scopes")
+        refreshed = process_search_snapshot_refresh_once()
+        if not backfilled and not refreshed:
             time.sleep(POLL_SECONDS)
 
 

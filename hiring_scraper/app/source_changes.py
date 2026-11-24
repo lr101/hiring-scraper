@@ -44,6 +44,8 @@ LOG = logging.getLogger(__name__)
 _DECLARED = 'source_changes_declared'
 _DETECTED = 'source_changes_detected'
 _DIRTY = 'source_changes_search_dirty'
+_SCOPE_DIRTY = 'source_changes_location_scope_dirty'
+_ORM_UPDATED_JOBS = 'source_changes_orm_updated_jobs'
 
 # Fields whose changes affect search or matching.
 TRACKED_FIELDS = {
@@ -144,17 +146,42 @@ def _bump_profiles(session: Session, profile_ids) -> None:
 def jobs_changed(session: Session, job_ids: Iterable[int]) -> None:
     """Declare created, edited, closed or deleted jobs (including their locations).
 
-    Flags job analyses whose inputs changed, queues the jobs for rematching and marks
-    search snapshots stale. Lock the rows first with ``reserve_job_source_rows``
-    when writing more than one job.
+    Recomputes precomputed Germany/state search scope columns, flags job analyses
+    whose inputs changed, queues the jobs for rematching and marks search
+    snapshots stale. Lock the rows first with ``reserve_job_source_rows`` when
+    writing more than one job.
     """
+    from sqlalchemy.orm import selectinload, undefer
+    from hiring_scraper.app.job_location_scope import refresh_job_location_scopes
+
     ids = _ids(job_ids)
     if not ids:
         return
     session.flush()
     _declare(session, 'job', ids)
-    jobs = session.scalars(select(Job).where(Job.id.in_(ids))).all()
+    jobs = session.scalars(
+        select(Job)
+        .where(Job.id.in_(ids))
+        .options(
+            selectinload(Job.locations),
+            undefer(Job.germany_candidate),
+            undefer(Job.location_states),
+            undefer(Job.location_scope_version),
+        )
+        .execution_options(populate_existing=True)
+    ).all()
     if jobs:
+        scope_dirty = session.info.get(_SCOPE_DIRTY, set())
+        orm_updated = session.info.get(_ORM_UPDATED_JOBS, set())
+        # Skip jobs whose non-location fields were already updated in this
+        # transaction: a second UPDATE on the same Job row forces PostgreSQL
+        # RI_FKey_check_upd to acquire FOR KEY SHARE on job_feeds, which can
+        # deadlock with concurrent managed-feed edits. Location writes already
+        # stamp scope columns before flush via replace_job_locations; stale
+        # rows are handled by SQL fallback and bounded worker backfill.
+        scope_jobs = [job for job in jobs if job.id in scope_dirty or job.id not in orm_updated]
+        if scope_jobs:
+            refresh_job_location_scopes(session, scope_jobs)
         _mark_stale_analyses(session, jobs)
         _queue_rematch(session, [job.id for job in jobs])
     session.info[_DIRTY] = True
@@ -271,7 +298,39 @@ def _from_test_code() -> bool:
     return False
 
 
+def _record_scope_flush_state(session: Session) -> None:
+    scope_dirty = session.info.setdefault(_SCOPE_DIRTY, set())
+    orm_updated = session.info.setdefault(_ORM_UPDATED_JOBS, set())
+    for item in session.new:
+        if isinstance(item, Job) and item.id is not None:
+            scope_dirty.add(item.id)
+        elif isinstance(item, JobLocation):
+            job_id = item.job_id or (item.job.id if item.job is not None else None)
+            if job_id is not None:
+                scope_dirty.add(job_id)
+    for item in session.dirty:
+        if isinstance(item, Job) and item.id is not None:
+            state = inspect(item)
+            if state.attrs.location_text.history.has_changes() or state.attrs.locations.history.has_changes():
+                scope_dirty.add(item.id)
+            if any(
+                state.attrs[name].history.has_changes()
+                for name in TRACKED_FIELDS[Job]
+            ):
+                orm_updated.add(item.id)
+        elif isinstance(item, JobLocation) and _changed(session, item):
+            job_id = item.job_id or (item.job.id if item.job is not None else None)
+            if job_id is not None:
+                scope_dirty.add(job_id)
+    for item in session.deleted:
+        if isinstance(item, JobLocation):
+            job_id = item.job_id or (item.job.id if item.job is not None else None)
+            if job_id is not None:
+                scope_dirty.add(job_id)
+
+
 def _detect(session: Session, _flush_context) -> None:
+    _record_scope_flush_state(session)
     # Strict mode checks application write paths; test fixtures that insert
     # rows directly simulate existing data and are not write paths.
     if strict() and _from_test_code():
@@ -318,7 +377,7 @@ def _verify(session: Session) -> None:
 
 
 def _reset(session: Session) -> None:
-    for key in (_DECLARED, _DETECTED, _DIRTY, 'source_changes_finished'):
+    for key in (_DECLARED, _DETECTED, _DIRTY, _SCOPE_DIRTY, _ORM_UPDATED_JOBS, 'source_changes_finished'):
         session.info.pop(key, None)
 
 

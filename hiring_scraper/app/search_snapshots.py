@@ -4,17 +4,25 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-import re
-import unicodedata
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from urllib.parse import urlsplit
 from uuid import uuid4
 
 from fastapi import HTTPException
-from sqlalchemy import and_, case, delete, func, or_, select, text, true, update
+from sqlalchemy import Text, and_, any_, case, delete, false, func, literal, or_, select, text, true, union, update
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 
+from hiring_scraper.app import job_location_scope
+from hiring_scraper.app.job_location_scope import (
+    GERMANY_COUNTRY_CODE_PATTERNS,
+    backfill_job_location_scopes_once,
+    germany_bounds,
+    germany_text_patterns,
+    location_text_patterns,
+    state_text_patterns,
+)
 from hiring_scraper.app.application_deduplication import index_vacancy_identities
 from hiring_scraper.app.database import dialect_insert, SessionLocal
 from hiring_scraper.app.models import (
@@ -41,7 +49,7 @@ from hiring_scraper.matching import VERSION as MATCHING_VERSION
 from hiring_scraper.semantic_matching import MODEL_KEY as SEMANTIC_MODEL_KEY
 from hiring_scraper.app.board_scope import (
     deduplicate_jobs, expiry, fully_remote, geographic_scope, remote_countries,
-    german_location_text_names, german_state_bounds, location_text_names,
+    german_state_bounds, location_text_names,
     vacancy_keys, vacancy_text_scope,
 )
 
@@ -56,20 +64,7 @@ WORK_LOCATION_GEOGRAPHY_VERSION = 'work-location-text-v2'
 
 
 def _location_text_patterns(value: str) -> set[str]:
-    source = value.strip().casefold().replace('ß', 'ss')
-    normalized = unicodedata.normalize('NFKD', source)
-    normalized = ''.join(char for char in normalized if not unicodedata.combining(char))
-    transliterated = source.translate(str.maketrans({'ä': 'ae', 'ö': 'oe', 'ü': 'ue'}))
-    patterns = set()
-    for raw in {value.strip().casefold(), value.strip().upper()}:
-        raw_words = re.sub(r'[^A-Za-z0-9äöüÄÖÜ]+', '%', raw).strip('%')
-        if raw_words:
-            patterns.add(f'%{raw_words}%')
-    for variant in {normalized, transliterated}:
-        words = re.sub(r'[^a-z0-9]+', '%', variant).strip('%')
-        if words:
-            patterns.add(f'%{words}%')
-    return patterns
+    return location_text_patterns(value)
 
 
 def _job_location_text_candidate(value: str):
@@ -103,44 +98,156 @@ def _job_area_candidates(latitude: float, longitude: float, radius_km: float,
 
 
 def _job_state_text_candidates(state: str):
-    patterns = {pattern for value in german_location_text_names(state)
-                for pattern in _location_text_patterns(value)}
-    candidates = [*(Job.location_text.ilike(pattern) for pattern in patterns),
-                  *(Job.locations.any(JobLocation.label.ilike(pattern)) for pattern in patterns)]
+    patterns = sorted(state_text_patterns(state))
+    pattern_array = literal(patterns, ARRAY(Text))
+    location_clauses = [JobLocation.label.ilike(any_(pattern_array))]
     if bounds := german_state_bounds().get(state):
         west, south, east, north = bounds
-        candidates.append(Job.locations.any(and_(
+        location_clauses.append(and_(
             JobLocation.latitude.between(south, north),
             JobLocation.longitude.between(west, east),
-        )))
-    return or_(*candidates)
+        ))
+    return or_(
+        Job.location_text.ilike(any_(pattern_array)),
+        Job.locations.any(or_(*location_clauses)),
+    )
 
 
 def _job_germany_text_candidates():
-    patterns = {pattern for value in ('Germany', 'Deutschland', *german_location_text_names())
-                for pattern in _location_text_patterns(value)}
-    country_code_patterns = (
-        'DE', 'DE %', 'DE,%', 'DE/%', 'DE-%', 'DE)%',
-        '%, DE', '%, DE %', '%, DE,%', '%,DE', '%,DE %',
-        '% DE', '% DE %', '% DE,%', '%/DE', '%/DE %', '%/DE,%',
-        '%(DE)%', '% (DE)%', '%(DE %', '% (DE %',
-        '%;DE%', '%; DE%', '%|DE%', '%| DE%', '%\nDE%',
-    )
-    candidates = [*(Job.location_text.ilike(pattern) for pattern in patterns),
-                  *(Job.locations.any(JobLocation.label.ilike(pattern)) for pattern in patterns),
-                  *(Job.location_text.ilike(pattern) for pattern in country_code_patterns),
-                  *(Job.locations.any(JobLocation.label.ilike(pattern)) for pattern in country_code_patterns)]
-    bounds = tuple(german_state_bounds().values())
-    if bounds:
-        west = min(bound[0] for bound in bounds)
-        south = min(bound[1] for bound in bounds)
-        east = max(bound[2] for bound in bounds)
-        north = max(bound[3] for bound in bounds)
-        candidates.append(Job.locations.any(and_(
+    patterns = sorted(germany_text_patterns() | set(GERMANY_COUNTRY_CODE_PATTERNS))
+    pattern_array = literal(patterns, ARRAY(Text))
+    location_clauses = [JobLocation.label.ilike(any_(pattern_array))]
+    if bounds := germany_bounds():
+        west, south, east, north = bounds
+        location_clauses.append(and_(
             JobLocation.latitude.between(south, north),
             JobLocation.longitude.between(west, east),
-        )))
-    return or_(*candidates)
+        ))
+    return or_(
+        Job.location_text.ilike(any_(pattern_array)),
+        Job.locations.any(or_(*location_clauses)),
+    )
+
+
+def _job_germany_fallback_candidates():
+    patterns = sorted(germany_text_patterns() | set(GERMANY_COUNTRY_CODE_PATTERNS))
+    pattern_array = literal(patterns, ARRAY(Text))
+    location_clauses = [
+        func.lower(JobLocation.country_code) == "de",
+        JobLocation.label.ilike(any_(pattern_array)),
+    ]
+    if bounds := germany_bounds():
+        west, south, east, north = bounds
+        location_clauses.append(and_(
+            JobLocation.latitude.between(south, north),
+            JobLocation.longitude.between(west, east),
+        ))
+    return or_(
+        Job.location_text.ilike(any_(pattern_array)),
+        Job.locations.any(or_(*location_clauses)),
+    )
+
+
+def _job_location_scope_stale_filter():
+    version = job_location_scope.LOCATION_SCOPE_VERSION
+    return or_(
+        Job.location_scope_version.is_(None),
+        Job.location_scope_version < version,
+        Job.location_scope_version > version,
+    )
+
+
+def _job_germany_precomputed_or_fallback():
+    version = job_location_scope.LOCATION_SCOPE_VERSION
+    return or_(
+        and_(Job.location_scope_version == version, Job.germany_candidate.is_(True)),
+        case(
+            (_job_location_scope_stale_filter(), _job_germany_fallback_candidates()),
+            else_=false(),
+        ),
+    )
+
+
+def _job_state_precomputed_or_fallback(state: str):
+    version = job_location_scope.LOCATION_SCOPE_VERSION
+    return or_(
+        and_(Job.location_scope_version == version, Job.location_states.contains([state])),
+        case(
+            (_job_location_scope_stale_filter(), _job_state_text_candidates(state)),
+            else_=false(),
+        ),
+    )
+
+
+def _scope_candidate_branches(
+    employer_country: str | None,
+    state: str | None,
+    location_scope: str,
+    work_style: str,
+    posting_status: str,
+) -> list[Any]:
+    """Build index-friendly UNION branches for Germany-wide or German-state scopes.
+
+    Separating cross-table OR branches (company/employer state vs precomputed
+    job columns vs remote jobs) lets PostgreSQL use each table's index instead
+    of scanning the full job inventory. Any row whose precomputed scope is NULL
+    or stamped with an older version falls back to the legacy ILIKE/bounds
+    predicate via ``ix_jobs_location_scope_version``.
+    """
+    version = job_location_scope.LOCATION_SCOPE_VERSION
+    posting_filter = posting_status_filter(posting_status)
+    include_remote = location_scope in {"remote", "area_remote"} or work_style == "remote"
+    employer_company = aliased(Company)
+    branches: list[Any] = []
+    if employer_country:
+        branches.extend([
+            select(Job.id, Job.feed_id).join(Job.feed).join(JobFeed.company).where(
+                posting_filter,
+                or_(german_company_filter(Company), Company.source == "default_job_feed"),
+            ),
+            select(Job.id, Job.feed_id).join(
+                employer_company, Job.employer_company_id == employer_company.id
+            ).where(
+                posting_filter,
+                german_company_filter(employer_company),
+            ),
+            select(Job.id, Job.feed_id).where(
+                posting_filter,
+                Job.location_scope_version == version,
+                Job.germany_candidate.is_(True),
+            ),
+            select(Job.id, Job.feed_id).where(
+                posting_filter,
+                _job_location_scope_stale_filter(),
+                _job_germany_fallback_candidates(),
+            ),
+        ])
+    elif state:
+        branches.extend([
+            select(Job.id, Job.feed_id).join(Job.feed).join(JobFeed.company).where(
+                posting_filter,
+                Company.state == state,
+            ),
+            select(Job.id, Job.feed_id).join(
+                employer_company, Job.employer_company_id == employer_company.id
+            ).where(
+                posting_filter,
+                employer_company.state == state,
+            ),
+            select(Job.id, Job.feed_id).where(
+                posting_filter,
+                Job.location_scope_version == version,
+                Job.location_states.contains([state]),
+            ),
+            select(Job.id, Job.feed_id).where(
+                posting_filter,
+                _job_location_scope_stale_filter(),
+                _job_state_text_candidates(state),
+            ),
+        ])
+    if include_remote:
+        branches.append(select(Job.id, Job.feed_id).where(posting_filter, _remote_job_candidate()))
+    return branches
 
 
 def _sort_jobs(jobs: list[Job], sort: str) -> list[Job]:
@@ -790,6 +897,59 @@ def posting_status_filter(posting_status: str):
     return true() if posting_status == 'all' else Job.is_active.is_(posting_status == 'open')
 
 
+def _scoped_job_rows_statement(
+    *,
+    employer_country: str | None,
+    state: str | None,
+    location_scope: str,
+    company_id: int | None,
+    normalized_query: str | None,
+    work_style: str,
+    posting_status: str,
+):
+    """Build one query returning ``(job_id, feed_id)`` for Germany or state scopes."""
+    posting_filter = posting_status_filter(posting_status)
+    has_extra_filters = company_id is not None or bool(normalized_query) or work_style in {'hybrid', 'onsite'}
+    if work_style == 'remote' and not has_extra_filters:
+        # When work_style == 'remote', remote is both an OR branch of the scope
+        # filter and an AND requirement, so (other OR remote) AND remote == remote.
+        return select(Job.id, Job.feed_id).where(posting_filter, _remote_job_candidate()).order_by(Job.id.asc())
+
+    if not has_extra_filters and work_style == 'all':
+        branches = _scope_candidate_branches(
+            employer_country, state, location_scope, work_style, posting_status
+        )
+        scope_rows = union(*branches).subquery()
+        return select(scope_rows.c.id, scope_rows.c.feed_id).order_by(scope_rows.c.id.asc())
+
+    employer_company = aliased(Company)
+    filters = [posting_filter]
+    if work_style == 'remote':
+        filters.append(_remote_job_candidate())
+    else:
+        branches = _scope_candidate_branches(
+            employer_country, state, location_scope, work_style, posting_status
+        )
+        scope_ids = union(*(branch.with_only_columns(Job.id) for branch in branches))
+        filters.append(Job.id.in_(scope_ids))
+    if company_id is not None:
+        filters.append(or_(JobFeed.company_id == company_id, Job.employer_company_id == company_id))
+    if normalized_query:
+        pattern = f"%{normalized_query}%"
+        filters.append(or_(Job.title.ilike(pattern), Company.name.ilike(pattern), Company.domain.ilike(pattern),
+                           employer_company.name.ilike(pattern), employer_company.domain.ilike(pattern),
+                           Job.raw_metadata["hiring_organization"]["name"].as_string().ilike(pattern)))
+    if work_style in {'hybrid', 'onsite'}:
+        filters.append(Job.work_arrangement == work_style)
+    return (
+        select(Job.id, Job.feed_id)
+        .join(Job.feed).join(JobFeed.company)
+        .outerjoin(employer_company, Job.employer_company_id == employer_company.id)
+        .where(*filters)
+        .order_by(Job.id.asc())
+    )
+
+
 def materialize_search_snapshot(session: Session, profiles: list[UserProfile], key: str,
                                  generation: int, criteria: dict[str, Any],
                                  thresholds: dict[int | None, tuple[int, bool]],
@@ -809,62 +969,62 @@ def materialize_search_snapshot(session: Session, profiles: list[UserProfile], k
     work_style = criteria['work_style']
     posting_status = criteria.get('posting_status', 'open')
 
-    employer_company = aliased(Company)
-    candidate_statement = (select(Job.id).join(Job.feed).join(JobFeed.company)
-                           .outerjoin(employer_company, Job.employer_company_id == employer_company.id))
-    filters = [posting_status_filter(posting_status)]
-    if employer_country:
-        scope_candidates = [german_company_filter(employer_company), german_company_filter(Company),
-                            Company.source == "default_job_feed",
-                            Job.locations.any(func.lower(JobLocation.country_code) == "de"),
-                            _job_germany_text_candidates()]
-        if location_scope in {"remote", "area_remote"} or work_style == "remote":
-            scope_candidates.append(_remote_job_candidate())
-        filters.append(or_(*scope_candidates))
-    elif state:
-        scope_candidates = [Company.state == state, employer_company.state == state,
-                            _job_state_text_candidates(state)]
-        if location_scope in {"remote", "area_remote"} or work_style == "remote":
-            scope_candidates.append(_remote_job_candidate())
-        filters.append(or_(*scope_candidates))
-    if company_id is not None:
-        filters.append(or_(JobFeed.company_id == company_id, Job.employer_company_id == company_id))
-    if normalized_query:
-        pattern = f"%{normalized_query}%"
-        filters.append(or_(Job.title.ilike(pattern), Company.name.ilike(pattern), Company.domain.ilike(pattern),
-                           employer_company.name.ilike(pattern), employer_company.domain.ilike(pattern),
-                           Job.raw_metadata["hiring_organization"]["name"].as_string().ilike(pattern)))
-    if work_style == 'remote':
-        remote_clause = or_(Job.work_arrangement == 'remote',
-                            and_(Job.is_remote.is_(True), Job.work_arrangement.is_(None)))
-        filters.append(remote_clause)
-    elif work_style in {'hybrid', 'onsite'}:
-        filters.append(Job.work_arrangement == work_style)
-    source_filters = list(filters)
-    if not state and not employer_country:
+    if employer_country or state:
+        # For country/state scopes, source_filters and candidate filters are
+        # identical, so compute source_count, source_feed_count and candidate_ids
+        # in one indexed pass instead of running the scope filter twice.
+        rows = session.execute(_scoped_job_rows_statement(
+            employer_country=employer_country,
+            state=state,
+            location_scope=location_scope,
+            company_id=company_id,
+            normalized_query=normalized_query,
+            work_style=work_style,
+            posting_status=posting_status,
+        )).all()
+        candidate_ids = [int(row[0]) for row in rows]
+        source_count = len(rows)
+        source_feed_count = len({int(row[1]) for row in rows})
+    else:
+        employer_company = aliased(Company)
+        candidate_statement = (select(Job.id).join(Job.feed).join(JobFeed.company)
+                               .outerjoin(employer_company, Job.employer_company_id == employer_company.id))
+        filters = [posting_status_filter(posting_status)]
+        if company_id is not None:
+            filters.append(or_(JobFeed.company_id == company_id, Job.employer_company_id == company_id))
+        if normalized_query:
+            pattern = f"%{normalized_query}%"
+            filters.append(or_(Job.title.ilike(pattern), Company.name.ilike(pattern), Company.domain.ilike(pattern),
+                               employer_company.name.ilike(pattern), employer_company.domain.ilike(pattern),
+                               Job.raw_metadata["hiring_organization"]["name"].as_string().ilike(pattern)))
+        if work_style == 'remote':
+            filters.append(_remote_job_candidate())
+        elif work_style in {'hybrid', 'onsite'}:
+            filters.append(Job.work_arrangement == work_style)
+        source_filters = list(filters)
         filters.append(_job_area_candidates(latitude, longitude, radius_km, place, location_scope))
 
-    candidate_cache_key = (generation, WORK_LOCATION_GEOGRAPHY_VERSION, company_id, normalized_query, state, employer_country,
-                           work_style, latitude, longitude, radius_km, place,
-                           scope_country, location_scope, posting_status)
-    reusable = (not normalized_query and company_id is None and state is None and
-                employer_country is None and work_style == 'all')
-    cached = session.info.get('job_search_candidate_ids') if reusable else None
-    source_rows = select(Job.id.label('job_id'), Job.feed_id.label('feed_id')).join(
-        Job.feed).join(JobFeed.company).outerjoin(
-            employer_company, Job.employer_company_id == employer_company.id
-        ).where(*source_filters).subquery()
-    source_count, source_feed_count = session.execute(select(
-        func.count(source_rows.c.job_id), func.count(func.distinct(source_rows.c.feed_id))
-    )).one()
-    if cached and cached[0] == candidate_cache_key:
-        candidate_ids = cached[1]
-    else:
-        candidate_ids = session.scalars(
-            candidate_statement.where(*filters).order_by(Job.id.asc())
-        ).all()
-        if reusable:
-            session.info['job_search_candidate_ids'] = (candidate_cache_key, candidate_ids)
+        candidate_cache_key = (generation, WORK_LOCATION_GEOGRAPHY_VERSION, company_id, normalized_query, state, employer_country,
+                               work_style, latitude, longitude, radius_km, place,
+                               scope_country, location_scope, posting_status)
+        reusable = (not normalized_query and company_id is None and state is None and
+                    employer_country is None and work_style == 'all')
+        cached = session.info.get('job_search_candidate_ids') if reusable else None
+        source_rows = select(Job.id.label('job_id'), Job.feed_id.label('feed_id')).join(
+            Job.feed).join(JobFeed.company).outerjoin(
+                employer_company, Job.employer_company_id == employer_company.id
+            ).where(*source_filters).subquery()
+        source_count, source_feed_count = session.execute(select(
+            func.count(source_rows.c.job_id), func.count(func.distinct(source_rows.c.feed_id))
+        )).one()
+        if cached and cached[0] == candidate_cache_key:
+            candidate_ids = cached[1]
+        else:
+            candidate_ids = session.scalars(
+                candidate_statement.where(*filters).order_by(Job.id.asc())
+            ).all()
+            if reusable:
+                session.info['job_search_candidate_ids'] = (candidate_cache_key, candidate_ids)
     prefilter_excluded = max(0, int(source_count) - len(candidate_ids))
     prefilter_filtered = {}
     if prefilter_excluded:
@@ -1112,14 +1272,13 @@ def semantic_jobs_page(session: Session, vector: list[float], *,
     if employer_country:
         scope_candidates = [german_company_filter(employer_company), german_company_filter(Company),
                             Company.source == "default_job_feed",
-                            Job.locations.any(func.lower(JobLocation.country_code) == "de"),
-                            _job_germany_text_candidates()]
+                            _job_germany_precomputed_or_fallback()]
         if location_scope in {"remote", "area_remote"} or work_style == "remote":
             scope_candidates.append(_remote_job_candidate())
         filters.append(or_(*scope_candidates))
     elif state:
         scope_candidates = [Company.state == state, employer_company.state == state,
-                            _job_state_text_candidates(state)]
+                            _job_state_precomputed_or_fallback(state)]
         if location_scope in {"remote", "area_remote"} or work_style == "remote":
             scope_candidates.append(_remote_job_candidate())
         filters.append(or_(*scope_candidates))

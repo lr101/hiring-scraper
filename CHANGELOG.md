@@ -84,6 +84,7 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Precompute per-job Germany and German-state scope membership (`germany_candidate`, `location_states`, `location_scope_version`) on write and via batched backfill in migration `0046_job_location_scope`, and compute Germany/state snapshot candidate IDs and source counts in one indexed query so `search-snapshot-worker` no longer hits statement timeouts scanning hundreds of `ILIKE` patterns.
 - Prevent a deadlock between editing a managed feed and a concurrent crawl of the same feed.
 - Match jobs saved from the browser companion like crawled jobs, so they appear in Journey with a score.
 - Upgrade populated databases through migration `0033` again and keep a Journey stage saved while duplicates are being consolidated.
