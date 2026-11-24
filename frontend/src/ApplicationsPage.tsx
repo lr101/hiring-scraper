@@ -49,8 +49,8 @@ type MatchingJob = {
 }
 type ProfiledJob = MatchingJob & { profileId: number; profileName: string }
 type SavedProfile = Profile & { id: number }
-type JobsPage = { items: Array<MatchingJob & { profile_id: number; profile_name: string }>; total: number; counts: Record<ApplicationStatus, number>; matching_pending?: boolean }
-type ApplicationResultsPage = { jobs: ProfiledJob[]; total: number; counts: Record<ApplicationStatus, number>; matchingPending: boolean }
+type JobsPage = { items: Array<MatchingJob & { profile_id: number; profile_name: string }>; total: number; counts: Record<ApplicationStatus, number>; matching_pending?: boolean; analysis_backlog?: number }
+type ApplicationResultsPage = { jobs: ProfiledJob[]; total: number; counts: Record<ApplicationStatus, number>; matchingPending: boolean; analysisBacklog?: number }
 
 const MAX_CACHED_RESULT_PAGES = 32
 
@@ -96,6 +96,7 @@ async function requestApplicationPage(
     counts: data.counts,
     total: data.total,
     matchingPending: data.matching_pending === true,
+    analysisBacklog: typeof data.analysis_backlog === 'number' ? data.analysis_backlog : 0,
   }
 }
 
@@ -154,6 +155,7 @@ export default function ApplicationsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [matchingPending, setMatchingPending] = useState(false)
+  const [analysisBacklog, setAnalysisBacklog] = useState(0)
   const [notice, setNotice] = useState('')
   const [noticeKind, setNoticeKind] = useState<'standard' | 'applied' | 'milestone'>('standard')
   const [momentum, setMomentum] = useState<ApplicationMomentum | null>(null)
@@ -344,6 +346,7 @@ export default function ApplicationsPage() {
       jobsRef.current = resultPage.jobs
       setJobs(resultPage.jobs)
       setMatchingPending(resultPage.matchingPending)
+      setAnalysisBacklog(resultPage.analysisBacklog ?? 0)
       setCounts(resultPage.counts)
       setCountsProfileKey(activeProfileKey)
       setTotalVisible(resultPage.total)
@@ -771,6 +774,9 @@ export default function ApplicationsPage() {
       {error && <div className="error-banner" role="alert">{error}</div>}
       {refreshingMatches && <p className="journey-notice" role="status">
         Finding matching roles… Your saved roles are available while matches update.
+      </p>}
+      {!refreshingMatches && analysisBacklog > 0 && <p className="journey-notice" role="status">
+        Reading {analysisBacklog === 1 ? '1 new posting' : `${analysisBacklog} new postings`} locally… Roles in your area come first and appear here once checked against your CV.
       </p>}
       {notice && <p className={`journey-notice ${noticeKind === 'standard' ? '' : `is-${noticeKind}`}`} role="status">
         <span aria-hidden="true">{noticeKind === 'milestone' ? '★' : '✓'}</span> {notice}</p>}

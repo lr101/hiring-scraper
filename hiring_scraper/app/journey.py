@@ -24,7 +24,8 @@ from hiring_scraper.app.job_search import (
     profile_match_index_stale,
 )
 from hiring_scraper.app.models import (
-    ApplicationMomentumEvent, Job, JobApplication, JobFeed, JobVacancyGroup, UserProfile, hold_profiles, utcnow,
+    ApplicationMomentumEvent, Job, JobAnalysisQueue, JobApplication, JobFeed, JobVacancyGroup, UserProfile, hold_profiles,
+    utcnow,
 )
 from hiring_scraper.app.profiles import require_profile
 
@@ -312,6 +313,9 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
         item['profile_name'] = profiles_by_id[application.profile_id].name
         item['profile_match'] = cards[(application.profile_id, application.job_id)]
         items.append(item)
+    # Postings the local models still have to read; they join Journey once analysed.
+    analysis_backlog = int(session.scalar(select(func.count()).select_from(JobAnalysisQueue)) or 0)
     return {'profile_ids': selected_ids, 'items': items, 'counts': counts,
             'total': total,
-            'offset': offset, 'limit': limit, 'sort': sort, 'matching_pending': matching_pending}
+            'offset': offset, 'limit': limit, 'sort': sort, 'matching_pending': matching_pending,
+            'analysis_backlog': analysis_backlog}

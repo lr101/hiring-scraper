@@ -68,7 +68,11 @@ class JobAnalysisWorkerTests(unittest.TestCase):
             return compute_match(job, profile, load_match_documents(session, [job], [profile]))
 
     def test_in_area_job_is_analysed_first_and_becomes_visible_after_evidence(self):
+        from hiring_scraper.app import api
         self.assertTrue(self.match(self.near_id)['pending'])
+        with self.factory() as session:
+            page = api.list_applications(profile_ids=str(self.profile_id), statuses='all', session=session)
+            self.assertEqual(page['analysis_backlog'], 2)
         self.assertEqual(worker.analyse_next_job(analyse=lambda lines: LLM_OUTPUT), self.near_id)
         with self.factory() as session:
             row = session.get(models.JobAnalysis, self.near_id)
