@@ -22,42 +22,52 @@ document), with a category:
 Severity is high (misleading or wrong), medium (weakens the application) or info.
 
 Patches: for AI-written units only, propose replacement text with a kind:
-- rephrase: same facts, better wording. If a supported action sounds broader than its cited
-  source, name the action and its verified scope. If a sentence joins independently
-  verified actions with an unsupported causal link, preserve both facts and rewrite them
-  as independent actions. Keep the underlying facts and leave out assertions about work
-  the applicant did not do.
+- rephrase: same facts, better wording. Always return a `rephrase` patch to resolve every
+  deterministic `review_style` finding in FINDINGS (such as repeated CV opening verbs, a
+  CV profile repeating a bullet or written as a single run-on sentence, three consecutive
+  "I <verb>" openings, repeated paragraph endings, or multiple "würde"/"would" conditionals
+  across the letter). If a supported action sounds broader than its cited source, name the
+  action and its verified scope. If a sentence joins independently verified actions with an
+  unsupported causal link, preserve both facts and rewrite them as independent actions.
+  Keep the underlying facts and leave out assertions about work the applicant did not do.
 - shorten: same facts, fewer words (use when RENDER shows overflow).
 - content: adds, removes or changes facts. These are shown to the applicant, not applied.
 A patch keeps the unit's cited facts and cites nothing new. Return empty lists when the drafts
 are already good.
 
 Check that:
-- CV headline uses evidence-backed role-family terms in at most 70 characters without
-  overstating the domain.
-- CV profile is a single noun-phrase-led summary. Lead with the strongest evidence for
-  the posting's core duties and name each of the 1–2 examples once. Use active clauses with
-  the applicant as actor, no pronouns referring to the applicant, no agentless passives, and
-  no noun three times. Flag a separate project
-  list or repeated wording. Check both keyword coverage and the scope supporting it.
+- CV headline is at most 70 characters and names only 2–3 verified functional areas the
+  applicant has actually worked in, ordered for the posting — never an unheld role-family
+  label (such as "Product Management" / "Produktmanagement" without formal PM tenure) and
+  never a standalone pillar backed only by a single student project.
+- CV profile is a single noun-phrase-led summary of 2–3 short, distinct sentences (never a
+  single run-on sentence). It synthesizes verified cross-cutting strengths against the
+  posting's core duties without repeating any bullet's wording or retelling an individual
+  project's details. Use active clauses with no pronouns referring to the applicant, no
+  agentless passives, and no content noun three times.
 - CV bullets avoid third-person pronouns referring to the applicant (never "die sie
   koordinierte", "she", "he"), avoid unsupported qualifiers ("technical"/"technisch",
-  "strategic", "software", etc.), give overlapping duties distinct wording, vary opening verbs (no verb
-  starting more than 2 bullets), and keep verified quantified results with the actions they
-  measure. In German, use direct active verbs and suspension hyphens in coordinated compounds
-  ("Markt- und Nutzerbedürfnisse").
+  "strategic", "software", etc.), preserve exact authorship/ownership (never weakening
+  revising/creating to merely "using"), give overlapping duties distinct wording, vary
+  opening verbs (hard cap: NO verb starting more than 2 bullets across the entire CV),
+  avoid clunky compounds, repeated stems, abrupt endings and passive filler lines, and keep
+  verified quantified results with the actions they measure. In German, use direct active
+  verbs and suspension hyphens in coordinated compounds ("Markt- und Nutzerbedürfnisse").
 - Competency additions are 1–4 words and use concrete wording supported by cited evidence.
   Keep the existing units and their citations intact.
 - Cover letter opens by connecting work stated in the posting to concrete verified experience.
   Check claims about the employer against the posting. Each experience paragraph connects one
   verified example to a named duty and adds a supported decision, method or result beyond the
   CV, or explains the transfer when the CV is the only evidence.
-- Integrate a verified language level into a sentence about working in that language or
-  collaborating internationally, or place it in the closing.
+- When the posting requires a language and the evidence verifies a strong level, ensure it is
+  woven into a substantive sentence (e.g. international collaboration), not omitted or tacked on.
 - Keep the letter to 4–5 paragraphs (~270–310 EN / ~260–320 DE words including closing). Name
   the study discipline and keep leadership scope exact. Use each employer or project once.
-  Keep examples to four sentences and include a verified outcome where available. Vary sentence
-  openings and paragraph endings, and check for repeated phrases. Ground proposed approaches
-  in verified methods and use at most one conditional per paragraph. End conversationally.
-  Spell out English contractions. In German, use formal Sie-Form and lowercase after the
-  comma-ended salutation unless the opening is a noun, proper name or formal Sie/Ihr.
+  Keep examples to four sentences and include a verified outcome where available. Use at most
+  ONE forward-looking conditional formula ("würde ich …" / "I would bring …") in the entire
+  letter, ensure no two body paragraphs end with the same construction, and never allow three
+  or more consecutive "I <verb>" sentence openings. Use "KPIs" over "performance indicators"
+  in English. Ensure the closing is a brief thank-you plus a warm, natural interview
+  invitation in the applicant's voice with NO new factual or technical claims.
+  Spell out English contractions. In German, keep formal Sie-Form throughout and lowercase
+  after the comma-ended salutation unless the opening is a noun, proper name or formal Sie/Ihr.

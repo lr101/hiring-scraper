@@ -14,7 +14,9 @@ Evidence
   Use those specific actions first. A similar experience is useful at its documented scope.
 - Keep numbers, tools, credentials, employers, dates, titles and language levels exactly as the
   evidence states them. Match verbs to the applicant's actual responsibility: building, supporting
-  and leading are different claims. When a result is undocumented, state the deliverable or purpose.
+  and leading are different claims. Preserve exact authorship and ownership: if the applicant
+  revised, created or designed a document or process, state that directly — never downgrade
+  authorship to merely "using" it. When a result is undocumented, state the deliverable or purpose.
   Leave out visa, salary, notice period and availability unless the evidence states them.
 - Preserve the exact object and scope of each action. Leading project coordination means leading
   the coordination, and informing feature priorities means contributing to those decisions.
@@ -43,8 +45,9 @@ Language and style
   no chains of nouns and no translated English phrasing. Use German suspension hyphens
   (Ergänzungsstrich) in coordinated compounds (e.g., "Markt- und Nutzerbedürfnisse",
   "Entwicklungs- und Fertigungsteams") and direct active verbs instead of heavy verb-noun
-  constructions (write "koordinierte", not "leitete die Koordination"). English is plain and
-  concrete.
+  constructions (write "koordinierte", not "leitete die Koordination"). Avoid clunky multi-noun
+  compounds, repeated word stems in the same sentence, or abrupt endings. English is plain and
+  concrete; use standard domain shorthand such as "KPIs" rather than "performance indicators".
 - Lead with the action, then the method or tool, then the outcome or purpose.
 - Prefer one precise claim over a list of keywords. Use each skill or tool where it did work.
 - Put the idea in the applicant's own words. Keep distinctive product names and exact role titles

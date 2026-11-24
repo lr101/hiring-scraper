@@ -55,7 +55,7 @@ def letter_reply():
         'paragraphs': [
             {'role': 'motivation', 'sources': ['job'],
              'text': 'I am drawn to the museum because your exhibits ask visitors to make something for themselves. '
-                     'I would like to design activities that make it easy for visitors to try a new material, '
+                     'I am eager to design activities that make it easy for visitors to try a new material, '
                      'ask a question and take that interest home with them.'},
             {'role': 'experience', 'sources': ['cv:work-1:b1'],
              'text': 'At Sedge Workshop I worked with librarians to design a public workshop. '
@@ -656,7 +656,7 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue({'cv_profile_repetition', 'cv_repeated_bullet_phrase'} <= codes)
 
 
-    def test_cv_normalizes_legacy_internship_titles_and_puts_qualified_skills_last(self):
+    def test_cv_normalizes_legacy_internship_titles_and_preserves_tailored_qualified_skill_order(self):
         for language, label, qualifier in [('en', 'Internship', 'Basics'), ('de', 'Praktikum', 'Grundlagen')]:
             with self.subTest(language=language):
                 data = deepcopy(self.inp.base_cv)
@@ -677,7 +677,31 @@ class PipelineTests(unittest.TestCase):
                 drafted, _ = pipeline._cv_draft(
                     reply, base, [{'entry_id': 'work-1', 'base_count': 1}], {}, '',
                 )
-                self.assertEqual(drafted.sections[2].units[-1].id, 'u-basics')
+                self.assertEqual(drafted.sections[2].units[0].id, 'u-basics')
+                self.assertEqual(drafted.sections[2].units[0].text, f'Clay & Glazes ({qualifier})')
+
+    def test_cv_profile_run_on_and_cross_paragraph_letter_conditionals_flagged(self):
+        base = CvDocument.model_validate(self.inp.base_cv)
+        reply = cv_reply()
+        reply['profile'][0]['text'] = (
+            'Exhibition designer with practical studio experience coordinating community workshops, '
+            'building clear prototype displays, testing accessible visitor guidance, documenting '
+            'repeatable setup routines, and aligning local library partners across regional cultural '
+            'programmes and seasonal family events.'
+        )
+        doc, _ = pipeline._cv_draft(reply, base, [{'entry_id': 'work-1', 'base_count': 1}], {}, '')
+        codes = {issue.code for issue in pipeline._cv_prose_issues(doc)}
+        self.assertIn('cv_profile_run_on', codes)
+
+        letter_data = letter_reply()
+        letter_data['paragraphs'][0]['text'] += ' I would value joining the programme.'
+        letter_data['paragraphs'][2]['text'] += ' I would bring structured prototyping habits.'
+        letter = pipeline._letter_draft(letter_data, self.inp, base)
+        letter_issues = pipeline._letter_prose_issues(letter, base, base, 'Wren Museum')
+        self.assertTrue(any(
+            issue.code == 'letter_conditional_count' and issue.unit_id == 'u-letter-p3'
+            for issue in letter_issues
+        ))
 
     def test_unknown_entry_does_not_replace_source_bullets(self):
         cv = cv_reply()

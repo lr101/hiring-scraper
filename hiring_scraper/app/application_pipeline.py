@@ -39,7 +39,7 @@ from hiring_scraper.documents.schema import (
 )
 from hiring_scraper.documents.text import unit_full_text
 
-PIPELINE_VERSION = 'application-documents-v2.6'
+PIPELINE_VERSION = 'application-documents-v2.7'
 SLEEP = time.sleep
 PROMPTS = Path(__file__).with_name('prompts')
 DocumentKind = Literal['cv', 'letter']
@@ -642,7 +642,7 @@ def _cv_draft(
                 additions.append(unit)
                 existing.add(unit.text.casefold())
             section.units = additions + section.units
-            editorial.normalize_skills(section)
+            editorial.normalize_skills(section, preserve_order=True)
     _show_named_skills(doc)
     issues.extend(_check_cv_coverage(doc, base))
     doc = CvDocument.model_validate(doc.model_dump())
@@ -729,6 +729,14 @@ def _cv_prose_issues(doc: CvDocument) -> list[_ProseIssue]:
                         f'Profile unit {idx} repeats a CV bullet; synthesize the strongest evidence in the CV profile without repeating a bullet.',
                         'review_style',
                         'The CV profile closely repeats an experience or project bullet.',
+                        unit_id=unit.id,
+                    ))
+                if len(editorial.sentences(unit.text)) < 2 and len(editorial.words(unit.text)) > 28:
+                    issues.append(_ProseIssue(
+                        'cv_profile_run_on',
+                        f'Profile unit {idx} is a single long sentence; write 2–3 short sentences synthesizing the strongest evidence.',
+                        'review_style',
+                        'The CV profile is a single long run-on sentence instead of 2–3 short sentences.',
                         unit_id=unit.id,
                     ))
                 if editorial.has_third_person_applicant(unit.text, doc.language):
@@ -924,6 +932,7 @@ def _letter_prose_issues(
         r'(?<!\w)' + r'[\W_]+'.join(map(re.escape, company_name.split())) + r'(?!\w)', re.I,
     ) if company_name else None
     other_company_mentions = 0
+    conditional_total = 0
     recent_openers: list[str] = []
     for idx, unit in enumerate(letter.paragraphs, 1):
         if unit.hidden:
@@ -1010,11 +1019,21 @@ def _letter_prose_issues(
         if conditionals > 1:
             issues.append(_ProseIssue(
                 'letter_conditional_count',
-                f'{label} uses {conditionals} conditionals (würde or would). Use at most one conditional per paragraph and prefer the indicative.',
+                f'{label} uses {conditionals} conditionals (würde or would). Use at most one conditional in the whole letter and prefer the indicative.',
                 'review_style',
                 f'{label} uses more than one conditional (würde or would).',
                 unit_id=unit.id,
             ))
+        elif conditionals == 1 and unit.role != 'close' and conditional_total >= 1:
+            issues.append(_ProseIssue(
+                'letter_conditional_count',
+                f'{label} uses another conditional (würde or would) after an earlier paragraph already used one. Use at most one conditional across the entire letter and rewrite this sentence in the indicative.',
+                'review_style',
+                f'{label} repeats a conditional (würde or would) used in an earlier paragraph.',
+                unit_id=unit.id,
+            ))
+        if unit.role != 'close':
+            conditional_total += conditionals
         if letter.language == 'de' and editorial.missing_german_compound_hyphens(unit.text):
             issues.append(_ProseIssue(
                 'letter_de_compound_hyphen',

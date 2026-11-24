@@ -260,7 +260,7 @@ def repeated_profile_term(text: str) -> bool:
     return any(count >= 3 for count in Counter(map(_stem, tokens)).values())
 
 
-def normalize_skills(section: Section) -> None:
+def normalize_skills(section: Section, *, preserve_order: bool = False) -> None:
     regular: list[Unit] = []
     qualified: list[Unit] = []
     for unit in section.units:
@@ -274,7 +274,8 @@ def normalize_skills(section: Section) -> None:
                 unit.text = normalized
         is_qualified = prefix or re.search(r'\((?:Grundlagen|Basics)\)$', unit.text, re.I)
         (qualified if is_qualified else regular).append(unit)
-    section.units = regular + qualified
+    if not preserve_order:
+        section.units = regular + qualified
 
 
 def normalize_internship(entry: Entry, language: DocumentLanguage) -> None:

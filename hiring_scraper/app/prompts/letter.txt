@@ -6,24 +6,35 @@ Structure
   only if it proves another core requirement or offers a specific application of a verified
   method. Aim for 270–310 words in English or 260–320 in German, including the closing.
 - Motivation: connect a duty stated in the posting to a concrete piece of verified work.
-  State interest directly and use the company's name in the opening and, if natural, in the
-  closing. Ground any description of the employer in the posting. Save the details of the example for its body paragraph.
-- Examples: choose and order examples by the posting's core duties. In each experience or
-  education paragraph, name one duty and connect it to one verified example. For product
-  training, cost or benchmark analysis, or agile delivery with engineers, pick evidence of
-  the closest actual work. Give a requested analytical method its own example when verified.
+  State interest directly and warmly in the applicant's voice; use the company's name in the
+  opening and, if natural, in the closing. Ground any description of the employer in the
+  posting. Save the details of the example for its body paragraph.
+- Examples: choose and order examples strictly by the posting's core duties. In each
+  experience or education paragraph, name one core duty and connect it to the closest
+  verified example:
+  - For a software or SaaS product role, prefer verified software platform development,
+    collaboration with developers on technical feasibility and iterative/agile delivery,
+    KPI/data work paired with a verified operational result (such as an onboarding-time
+    reduction), and research-to-prototype work over unrelated physical-product concepts.
+  - For a hardware or industrial product role, prefer verified CAD/BOM/costing work,
+    market or benchmark analysis, partner or customer collaboration, and training delivery.
   Add a verified decision, method or result the CV leaves out. When evidence is limited to
-  the CV, explain how the verified work transfers to the named duty.
-  Use each employer or education project once, name the discipline for study examples, and
-  keep each paragraph to three or four sentences.
-- Mention a verified language level only within a sentence about working in that language
-  or collaborating internationally, or in the closing. Cite the evidence in body paragraphs
-  and include international collaboration or travel only when separately verified.
+  the CV, explain how the verified work transfers to the named duty. Use each employer or
+  education project once, name the discipline for study examples, and keep each paragraph
+  to three or four sentences.
+- Language requirement: when the posting explicitly requires a language (for example,
+  English or German) and the evidence verifies a strong level, weave the verified level
+  naturally into a substantive body sentence (for instance alongside verified international
+  collaboration or working in that language). Never omit a required verified language level
+  and never tack it on as an isolated sentence. Cite the language evidence alongside the
+  collaboration evidence.
 - Use role "bring" only for a distinct, concrete application of a past method to a specific
-  posting task. Cite job and supporting profile/skill evidence. Use conditionals where natural.
-- Closing: end with a warm invitation to talk about a concrete part of the work. A brief
-  thank-you is welcome. Keep this conversational and concise. Cite achievements and other
-  qualifications in the body. Any language level in the closing still needs verified evidence.
+  posting task. Cite job and supporting profile/skill evidence.
+- Closing: end with a brief thank-you and a warm, natural invitation to a personal
+  conversation or interview in the applicant's voice (matching the tone of the voice
+  exemplars). Keep this concise and conversational. NEVER introduce a new factual claim,
+  project detail, or technical assertion in the closing — all qualifications and examples
+  belong in the body.
 
 Check the final draft before returning it
 - Assign each employer or education project to one paragraph only. Check the cited CV entry
@@ -32,14 +43,22 @@ Check the final draft before returning it
 - Read across paragraphs for repeated wording. Use fresh verbs and clauses for CV facts. No
   eight consecutive words may match the CV. Avoid repeating the posting's title or stock
   bridge phrases. Keep distinctive facts and short identifiers where they matter.
-- Vary sentence shapes and paragraph endings where it improves the flow.
+- Formula and rhythm checks:
+  - Use at most ONE forward-looking conditional formula ("würde ich …" / "I would bring …" /
+    "I would apply …") in the ENTIRE letter; use indicative, varied constructions everywhere
+    else.
+  - Never end two body paragraphs with the same closing construction or bridge formula.
+  - Never start three or more consecutive sentences with "I <verb>" or the same opening
+    pattern; vary openings by leading with context, purpose, tools, collaborators or outcomes.
+  - In English, use "KPIs" rather than "performance indicators".
 - Verify the action, method and outcome separately against cited evidence. Match leadership
   scope, stage and results exactly. Check causal links too: when evidence supports two
   contributions separately, write them as independent actions. Do not imply one produced or
   informed the other unless the source says so. Do not claim unsupported tenure, releases,
   or decisions. Use "job" for facts about the posting only.
-- Spell out English contractions. In German, use formal Sie-Form throughout. Start lowercase
-  after the comma-ended salutation unless the first word is a noun, proper name or formal Sie/Ihr.
+- Spell out English contractions. In German, keep formal Sie-Form throughout ("Sie"/"Ihr",
+  matching the voice notes) and start lowercase after the comma-ended salutation unless the
+  first word is a noun, proper name or formal Sie/Ihr.
 
 Use the role in "subject", with a reference number only if the posting explicitly provides it.
 In "contact_name", copy the name explicitly identified as the vacancy contact, without titles

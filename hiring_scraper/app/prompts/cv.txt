@@ -2,39 +2,49 @@ Task: tailor the CV to the posting. Preserve verified employers, titles, dates a
 order. Identify the core work the employer is hiring for and map it to the strongest evidence.
 
 Headline and profile
-- Write a one-line headline of at most 70 characters, preferably 45–60. Put the posting's
-  role-family keyword first when verified work is adjacent to that family. Frame it as a
-  functional focus, without implying a held title, seniority or ownership. Use the closest
-  truthful term if the role-family keyword would overstate the evidence. Add up to two
-  short, complementary focuses supported by the evidence. For example, for a Product Manager
-  posting with verified product discovery, requirements prioritization, or coordination of
-  early product development, use "Product Management" (German "Produktmanagement") as a
-  functional focus. Qualify it with the verified stage or focus, and add a domain such as
-  software or SaaS only if supported.
-- Return exactly one profile unit with 2–3 concise sentences. Open with a noun phrase naming
-  the applicant's verified professional identity or degree. Use active constructions with
-  the applicant as the actor (for example, "Engineer who mapped …" or "Ingenieurin, die …
-  entwickelte"). No explicit I/ich or she/he/sie/er, bare verb-first openings, or agentless
-  passives. Use the degree or professional identity once, in the first sentence only. Name
-  the project or deliverable that best proves a core duty near the start of the profile.
-  Include a second example only if it proves a different core duty.
-  Mention each once, even if its entry falls on page 2. Give just the detail needed to show
-  what the applicant can do for this role. Avoid miniature case studies, repeated job or
-  degree labels, and separate project lists. Choose precise terms when repeating a noun would distract.
-  Save motivation for the letter.
-- Cite the actual work supporting each claim. If the profile names a past employer, cite a
-  bullet or intro from that entry. Keep any evidence gap visible in the scope of the wording.
+- Write a one-line headline of at most 70 characters, preferably 45–65. Build it from 2–3
+  verified functional areas the applicant has actually worked in, chosen and ordered for
+  closest relevance to the posting (for example,
+  "Produktentwicklung | Projekt- & Schnittstellenkoordination | CAD & Kalkulation" or
+  "Product Development | Requirements & Prototyping | Stakeholder Alignment").
+  Never use a role-family label or job title that the applicant's verified titles and work
+  do not hold (do not use "Product Management" / "Produktmanagement" without formal PM
+  tenure). Every pillar must rest on substantial or recurring verified work — never elevate
+  a one-off activity from a single student project into a standalone headline pillar. Keep
+  each phrase idiomatic and complete (e.g. "Early Product Development", not "Early
+  Development"). Add a domain such as software or SaaS only if directly supported.
+- Return exactly one profile unit made of 2–3 short, distinct sentences (never one long
+  run-on sentence; aim for roughly 35–55 words total). Open the first sentence with a noun
+  phrase naming the applicant's verified professional identity or degree (use it once, in
+  the first sentence only). Synthesize the applicant's verified cross-cutting strengths
+  against the posting's core duties — such as verified product development methods and tools
+  (CAD, BOM/costing, prototyping, KPI analysis, iterative workflows), cross-functional,
+  supplier, or developer collaboration, training design with its verified quantified result,
+  external partnerships, and a verified language level when the posting explicitly requires
+  that language. Do NOT repeat any experience or project bullet's wording and do NOT retell
+  an individual employer or student project in detail (keep project specifics in their entry
+  bullets). Keep active, concrete phrasing with no explicit first-person (I/ich) or
+  third-person (she/he/sie/er) pronouns, no bare verb-first openings, and no agentless
+  passives. Avoid repeating a content noun three times. Save motivation for the letter.
+- Cite every evidence id supporting each capability, tool, quantified result, or language
+  level in the profile. Keep any evidence gap visible in the scope of the wording.
 
 Entries
 - For each listed entry, retain and reorder its bullets by relevance to the posting's CORE
-  responsibilities, including education projects. Give the strongest entries concrete bridges
-  to duties explicitly named in the posting by showing a verified comparable action and result.
-  Use posting keywords where they accurately describe cited work: agile or iterative for verified
-  Kanban or iterations, data-driven for work using KPI analysis, market analysis for verified
-  market research, and cost analysis for verified costing. Name the underlying method and
-  keep its scope exact. Cite the original bullet for every rewrite and any career evidence
-  that supplies further verified detail. Lead with the work closest to the hiring responsibilities rather than the biggest result in a less relevant area. Use only
-  evidence from the same employer or project.
+  responsibilities, including education projects. When an entry has a clear ownership or
+  scope bullet that matches a core duty, place that bullet first so the reader immediately
+  sees the scope before supporting details. Order education projects by relevance to the
+  posting (for example, lead with a verified costing/BOM project for a role involving cost
+  analysis, or with a verified research-to-prototype project for a software role).
+- Give the strongest entries concrete bridges to duties explicitly named in the posting by
+  showing verified comparable actions and results. Use truthful posting keywords where cited
+  evidence supports them: agile or iterative for verified Kanban or iterative delivery,
+  product discovery for verified user/market research and concept validation, working with
+  developers on technical feasibility where supported, data-driven for verified KPI analysis,
+  market analysis for verified market research, and cost analysis for verified costing. Name
+  the underlying verified method and keep its scope exact. Cite the original bullet for every
+  rewrite and any career evidence that supplies further verified detail. Use only evidence
+  from the same employer or project.
 - Every base bullet stays, including older roles, internship bullets and every education
   project. Return one output bullet per source in each entry's bullet bank. Put the matching
   base bullet citation first. Combine bullets only when they describe the same action and
@@ -44,15 +54,22 @@ Entries
   distinct details from its source.
 - Start each bullet with a direct past-tense active verb and concrete object (no explicit
   first-person OR third-person pronouns referring to the applicant — never write "I", "ich",
-  "she", "he", "die sie koordinierte", etc.). Vary opening verbs when the work calls for different actions.
+  "she", "he", "die sie koordinierte", etc.). Hard cap: NO opening verb may start more than
+  two bullets across the entire CV (track across all work and education entries). Also avoid
+  overusing the same verb inside multiple bullets when more exact active verbs fit.
   - In German, rotate direct active verbs (e.g. Erarbeitete, Analysierte, Konzipierte,
     Koordinierte, Steuerte, Begleitete, Erstellte, Strukturierte, Moderierte, Prüfte,
-    Übersetzte, Entwickelte, Organisierte, Stimmte … ab); avoid awkward verb-noun phrases like
-    "Leitete die Koordination" (write "Koordinierte") and avoid needless reflexive "sich"
-    constructions. For joint work, use "Wirkte an … mit" or "Trug zu … bei". Use suspension
-    hyphens in coordinated compounds (e.g. "Markt- und Nutzerbedürfnisse").
-  - In English, rotate direct active verbs (e.g. Defined, Translated, Mapped, Coordinated,
-    Facilitated, Prototyped, Evaluated, Structured, Prepared, Synthesized, Managed, Delivered).
+    Übersetzte, Entwickelte, Organisierte, Überarbeitete, Pflegte, Beriet, Stimmte … ab);
+    avoid awkward verb-noun phrases like "Leitete die Koordination" (write "Koordinierte"),
+    needless reflexive "sich" constructions, clunky multi-noun compounds, repeated word stems
+    within a bullet, and abrupt endings. For joint work, use "Wirkte an … mit" or "Trug zu …
+    bei". Use suspension hyphens in coordinated compounds (e.g. "Markt- und Nutzerbedürfnisse").
+  - In English, rotate direct active verbs (e.g. Led, Defined, Translated, Mapped, Coordinated,
+    Facilitated, Prototyped, Evaluated, Structured, Prepared, Synthesized, Managed, Delivered,
+    Revised, Built). Rewrite passive filler lines (such as "Explored emerging technologies…")
+    into the concrete verified action, domain, or deliverable from the cited source.
+- Preserve exact authorship and ownership: if the source says the applicant revised SOPs or
+  built a guide, state that they revised or built it — never weaken it to merely "using" it.
 - Aim for 16–24 words for most bullets and 22–32 for project bullets that need context. Use
   parallel objects and concise clauses. Retain distinguishing details (named collaborators,
   languages, tools, deliverables, suppliers, scope, verified metrics) once, where they best
@@ -67,9 +84,13 @@ Entries
 - Keep degree names in education headings. Do not repeat the degree in project bullets.
 
 Skills
-- Tailor competencies deliberately: return existing unit ids in relevance order in `unit_ids`
-  and use `hidden_ids` sparingly, only for clearly irrelevant items. Keep tools explicitly named in visible bullets. Keep relevant basic skills
-  qualified, self-contained, and last.
+- Tailor competencies and tools deliberately: return existing unit ids in strict relevance
+  order in `unit_ids` (for example, place BOM & costing skills right near the front for a
+  role involving cost analysis, and agile/prototyping/KPI items first for a software product
+  role). Keep verified foundational skills qualified and self-contained (e.g. "(Basics)" /
+  "(Grundlagen)"), ordered by relevance rather than buried at the end when they match a core
+  duty. Keep tools explicitly named in visible bullets. Use `hidden_ids` sparingly, only for
+  clearly irrelevant items.
 - Use `additions` for up to 4 short (1–4 words maximum) evidence-backed bridge tags across the
   CV, or an empty list. Build each label from concrete terms in the cited evidence. Use a
   posting term when that wording is supported by the evidence. Cite every supporting evidence
