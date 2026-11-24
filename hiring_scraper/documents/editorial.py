@@ -751,4 +751,3 @@ def normalize_study_entry(entry: Entry) -> None:
                 unit.text = text
             else:
                 unit.hidden = True
-

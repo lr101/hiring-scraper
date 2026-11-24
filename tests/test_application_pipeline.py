@@ -1005,6 +1005,3 @@ class PipelineTests(unittest.TestCase):
             reordered, base, [{'entry_id': 'work-1', 'base_count': 2}], evidence, self.inp.job['description'],
         )
         self.assertEqual(len(doc.sections[1].entries[0].units), 2)
-
-
-

@@ -642,4 +642,3 @@ def put_cv_structure(profile_id: int, request: StructureRequest, language: Langu
     mark_stale(session, profile_id)
     session.commit()
     return _json({'document': body, 'source': 'stored', 'errors': []})
-
