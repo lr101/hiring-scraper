@@ -21,6 +21,7 @@ import logging
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 from fastapi.routing import APIRoute
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -49,6 +50,9 @@ class NoStoreRoute(APIRoute):
         async def no_store(request):
             try:
                 response = await handler(request)
+            except RequestValidationError:
+                return JSONResponse({'detail': 'The request has invalid or missing fields.'},
+                                    status_code=422, headers=NO_STORE)
             except HTTPException as error:
                 error.headers = {**(error.headers or {}), **NO_STORE}
                 raise
@@ -504,8 +508,8 @@ def _hold_cv(session, profile_id, *, exclusive=False):
 def _validated(kind, body):
     try:
         return validate_body(kind, body)
-    except ValidationError as error:
-        raise HTTPException(422, f'The {kind} document is invalid: {error.errors()[0]["msg"]}') from None
+    except ValidationError:
+        raise HTTPException(422, f'The {kind} document is invalid. Review its text and structure.') from None
 
 
 def _base_revisions(session, profile_id, job_id):

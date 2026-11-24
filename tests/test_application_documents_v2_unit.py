@@ -282,6 +282,13 @@ class RouterValidationTests(unittest.TestCase):
                             {'expected_version': 0, 'body': letter(), 'origin': 'ai'}, b'job_id=1')
         self.assertEqual(status, 422)
 
+    def test_invalid_request_body_is_private_even_when_it_contains_personal_values(self):
+        status, payload, headers = call('POST', '/api/v1/profiles/1/application-documents/prepare',
+                                        {'job_id': 1, 'language': 'Fictional private note'})
+        self.assertEqual(status, 422)
+        self.assertEqual(headers.get(b'cache-control'), b'no-store')
+        self.assertNotIn('Fictional private note', json.dumps(payload))
+
     def test_save_conflict_is_409_and_responses_are_not_cached(self):
         with patch.object(documents, 'save_version', side_effect=documents.VersionConflict(3)), \
                 patch.object(documents, 'get_version', return_value=None):
