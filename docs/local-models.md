@@ -32,12 +32,16 @@ the server image is pinned by digest (`compose.yaml`).
 2. **CV evidence units** (once per profile revision). Saved work history, education,
    skills and summary are split into short citable lines and embedded with E5.
 3. **Pair evidence** (once per profile and job). For each duty and requirement, E5
-   picks the three closest CV lines. The reranker then reads each candidate together
+   picks the eight closest CV lines, always including at least three job, study or
+   saved-duty bullets: short skill lists otherwise win E5 retrieval, especially for a
+   German requirement against an English CV. The reranker then reads each candidate together
    with the job's occupation and industry and scores whether the CV line actually
    shows that duty or requirement in that field. "Schulungen" in a SaaS HubSpot line
    scores near zero against "Durchführung von Schulungen" for a corrosion-protection
    role, while a coatings training line scores high. The reranker also scores role
-   fit (job title versus desired and past roles) and field fit.
+   fit (job title versus desired and past roles) and field fit. Personal traits
+   ("strukturierte Arbeitsweise", "communication skills") are not scored, since no CV
+   line can prove them; the job page lists them for the cover letter instead.
 4. **Scoring** (`matching_v3`, no inference). Five components in [0, 1] (duties,
    mandatory requirements, preferred requirements, role, field) form an exact additive
    ledger; bounded penalties (work style, employment type, unverified formal
@@ -56,7 +60,7 @@ the worker replaces them, so edits do not empty Journey.
 ## Throughput and priorities
 
 On four laptop cores the LLM needs about 25–50 s per posting and the reranker about
-15–25 s per profile and posting. The worker therefore analyses jobs inside a
+40–60 s per profile and posting (eight candidate lines per item). The worker therefore analyses jobs inside a
 profile's search area (and remote jobs) first, newest first, and computes their
 evidence immediately; the rest of the inventory follows in the background. Each step
 is published per job or pair, so a restart or model outage loses at most the item in

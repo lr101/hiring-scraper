@@ -160,10 +160,17 @@ export default function ScoreBreakdown({ match }: { match: ProfileMatch }) {
         <small>Calibrated so 80+ means strong overlap and under 30 means little. Not a prediction of hiring success.</small>
       </p>}
     </>}
-    {(duties.length > 0 || must.length > 0 || nice.length > 0) && <div className="fit-checklists">
+    {(duties.length > 0 || must.length > 0 || nice.length > 0 || !!match.soft_requirements?.length) && <div className="fit-checklists">
       <Checklist title="Duties" items={duties} total={part('duties')?.total} supported={part('duties')?.supported} />
       <Checklist title="Must-haves" items={must} total={part('must')?.total} supported={part('must')?.supported} />
       <Checklist title="Nice-to-haves" items={nice} total={part('nice')?.total} supported={part('nice')?.supported} />
+      {!!match.soft_requirements?.length && <section className="fit-checklist fit-checklist-soft" aria-label="Personal qualities">
+        <h4>Personal qualities <span>not scored</span></h4>
+        <ul>{match.soft_requirements.map((row, index) => <li key={`${row.text}:${index}`} className="fit-item">
+          <p>{row.text}</p>
+        </li>)}</ul>
+        <p className="fit-checklist-note">A CV cannot prove these. Show them with an example in your cover letter.</p>
+      </section>}
     </div>}
   </figure>
 }

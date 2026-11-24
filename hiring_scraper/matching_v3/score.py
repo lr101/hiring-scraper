@@ -16,7 +16,7 @@ from typing import Any
 from hiring_scraper.matching import job_city_vote_results, plain_text
 from hiring_scraper.gates import evaluate_gates
 from hiring_scraper.matching_v3 import weights as W
-from hiring_scraper.matching_v3.evidence import GATED_KINDS
+from hiring_scraper.matching_v3.evidence import GATED_KINDS, is_soft_requirement
 
 _LIGHT_REMOTE_RE = re.compile(r'\b(?:100\s*%\s*remote|fully\s+remote|remote[- ]first|full[- ]remote|vollständig\s+remote)\b', re.I)
 _LIGHT_HYBRID_RE = re.compile(r'\b(?:hybrid|mobiles?\s+arbeiten|home[- ]?office\s+(?:möglich|anteil|tage))\b', re.I)
@@ -363,7 +363,8 @@ def match_job_v3(
     if not duties and not scored_req:
         unknowns.append('The posting lists no duties or requirements to compare with your CV.')
     unchecked = [row for index, row in enumerate(analysis.get('requirements') or [])
-                 if row.get('kind') not in GATED_KINDS and f'r{index}' not in evidence_refs]
+                 if row.get('kind') not in GATED_KINDS and not is_soft_requirement(row)
+                 and f'r{index}' not in evidence_refs]
     if unchecked:
         unknowns.append(f'{len(unchecked)} further requirement(s) of this long posting were not checked against '
                         f'your CV, for example: {unchecked[0].get("text", "")[:120]}')
@@ -434,6 +435,9 @@ def match_job_v3(
         },
         'semantic_match': None,
         'requirement_observations': requirement_observations,
+        # Personal traits are not scored: no CV line can prove them, the cover letter can show them.
+        'soft_requirements': [{'text': row['text'][:240], 'modality': row.get('need', 'must')}
+                              for row in analysis.get('requirements') or [] if is_soft_requirement(row)],
         'prerequisite_conditions': prerequisite_conditions,
         'profile_skill_context': [],
         'custom_skill_evidence': [],

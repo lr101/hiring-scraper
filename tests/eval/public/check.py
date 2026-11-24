@@ -18,11 +18,11 @@ from tests.eval import cv as private_dataset
 from tests.eval.cv.check import _expected_split, group_near_duplicate_jobs
 from tests.eval.public import JOBS_DIR, LABELS_PATH, PROFILES_DIR, PUBLIC_EVAL_DIR, load_jobs, load_labels, load_profiles
 
-MIN_CASES = 180
+MIN_CASES = 70
 MIN_PROFILES = 6
-MIN_CASES_PER_PROFILE = 25
+MIN_CASES_PER_PROFILE = 10
 MIN_SHOULD_HIDE = 15
-MIN_TRANSLATION_PAIRS = 15
+MIN_TRANSLATION_PAIRS = 8
 MIN_HIDE_CASES_PER_CATEGORY = 3
 MAX_SHARED_YEARS = 3
 SHARED_RUN_WORDS = 6

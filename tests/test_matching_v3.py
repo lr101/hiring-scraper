@@ -5,7 +5,8 @@ from types import SimpleNamespace
 from hiring_scraper.matching_v3 import match_job_v3
 from hiring_scraper.matching_v3 import weights as W
 from hiring_scraper.matching_v3.evidence import (
-    MAX_SCORED_ITEMS, compute_evidence, rerank_query, scored_items, units_source,
+    CANDIDATES_PER_ITEM, MAX_SCORED_ITEMS, compute_evidence, is_soft_requirement, rerank_query, scored_items,
+    units_source,
 )
 from hiring_scraper.matching_v3.score import components, support
 
@@ -131,7 +132,7 @@ class ScoringTests(unittest.TestCase):
 
 
 class EvidenceComputationTests(unittest.TestCase):
-    def test_reranker_sees_job_context_and_only_the_closest_cv_lines(self):
+    def test_reranker_sees_job_context_and_a_bounded_set_of_cv_lines(self):
         source = units_source(PROFILE)
         units = source['units']
         queries = []
@@ -153,10 +154,42 @@ class EvidenceComputationTests(unittest.TestCase):
         item_queries = queries[:4]
         for query, documents in item_queries:
             self.assertIn('surface engineering / corrosion protection', query)
-            self.assertLessEqual(len(documents), 3)
+            self.assertLessEqual(len(documents), CANDIDATES_PER_ITEM)
             self.assertTrue(set(documents) <= {unit['text'] for unit in units})
         self.assertIsNotNone(result['role'])
         self.assertIsNotNone(result['domain'])
+
+    def test_reranker_always_sees_work_bullets_when_skill_lines_win_retrieval(self):
+        units = [{'source': f'skill_evidence.s{i}', 'text': f'skill line {i}'} for i in range(10)]
+        units += [{'source': 'cv.experiences[0]', 'text': 'Coordinated a company-wide initiative with four departments.'}]
+        source = {'units': units, 'roles': []}
+        seen = []
+
+        def embed(texts, kind):
+            # Skill lines are closest to every query; the work bullet is furthest away.
+            return [[0.0 if 'Coordinated' in text else 1.0, 1.0] + [0.0] * 382 for text in texts]
+
+        def rerank(query, documents):
+            seen.append(list(documents))
+            return [0.9 if 'Coordinated' in text else 0.01 for text in documents]
+
+        from hiring_scraper.matching_v3.evidence import embed_units
+        analysis = {'requirements': [{'text': 'Erfahrung in der Koordination von Teams', 'need': 'must', 'kind': 'experience'}]}
+        result = compute_evidence(analysis, 'Product Owner', source, embed_units(source, embed), embed=embed, rerank=rerank)
+        self.assertEqual(len(seen[0]), CANDIDATES_PER_ITEM)
+        self.assertIn(units[-1]['text'], seen[0])
+        self.assertEqual(result['items'][0]['source'], 'cv.experiences[0]')
+
+    def test_personal_traits_are_not_scored_but_experience_claims_are(self):
+        analysis = {'requirements': [
+            {'text': 'Strukturierte und selbstständige Arbeitsweise', 'need': 'must', 'kind': 'skill'},
+            {'text': 'Ausgeprägte Kommunikations- und Abstimmungsfähigkeiten', 'need': 'must', 'kind': 'skill'},
+            {'text': 'Erfahrung in der fachlichen Steuerung oder Koordination von Teams', 'need': 'must', 'kind': 'experience'},
+            {'text': 'Independent contractor setup', 'need': 'must', 'kind': 'other'},
+        ]}
+        self.assertEqual([item['ref'] for item in scored_items(analysis)], ['r2', 'r3'])
+        self.assertTrue(is_soft_requirement({'text': 'Excellent communication skills', 'kind': 'skill'}))
+        self.assertFalse(is_soft_requirement({'text': '3+ years of experience in stakeholder communication', 'kind': 'skill'}))
 
     def test_rerank_queries_distinguish_duties_and_requirements(self):
         self.assertIn('Task the candidate will perform', rerank_query({'type': 'duty', 'text': 'x'}, 'ctx'))

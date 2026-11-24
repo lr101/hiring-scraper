@@ -2036,3 +2036,5 @@ html[data-theme="dark"] .analysis-progress {
   .analysis-progress-bar > span { transition: none; }
   .analysis-progress-head span.is-busy::before { animation: none; }
 }
+.fit-checklist-soft .fit-item { padding-left: 0; }
+.fit-checklist-soft .fit-item p { color: var(--sb-muted); }

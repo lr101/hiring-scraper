@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from collections.abc import Callable, Sequence
 from typing import Any
 
@@ -23,17 +24,44 @@ RERANK_MODEL_REPO = 'ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF'
 RERANK_MODEL_REVISION = 'a02f48bb4f057028298c21fa033da2b30d7742d5'
 RERANK_MODEL_FILE = 'qwen3-reranker-0.6b-q8_0.gguf'
 RERANK_MODEL_KEY = f'{RERANK_MODEL_REPO}@{RERANK_MODEL_REVISION[:12]}:{RERANK_MODEL_FILE}'
-EVIDENCE_REVISION = 'evidence-v2'
+EVIDENCE_REVISION = 'evidence-v3'
 VERSION = f'{EVIDENCE_REVISION}|{RERANK_MODEL_KEY}|{EMBEDDING_MODEL_KEY}'
 UNITS_VERSION = f'units-v1|{EMBEDDING_MODEL_KEY}'
 
-CANDIDATES_PER_ITEM = 3
+# E5 picks candidates cheaply; the reranker decides. Keyword-dense skill lines win E5
+# retrieval (especially German requirements against an English CV), so the reranker
+# sees more lines and always some actual job or study bullets.
+CANDIDATES_PER_ITEM = 8
+WORK_CANDIDATES = 3
 ROLE_CANDIDATES = 4
 DOMAIN_CANDIDATES = 6
 MAX_SCORED_ITEMS = 28
 # Language and work-permit clauses are handled by the eligibility gates.
 GATED_KINDS = frozenset({'language', 'authorization'})
 FORMAL_KINDS = frozenset({'education', 'certification'})
+# Personal traits ("strukturierte Arbeitsweise", "communication skills") are not CV facts:
+# no CV line states them, so scoring them would count against every candidate. Claims of
+# experience ("Erfahrung in der Koordination von Teams") stay scored.
+_SOFT_TRAIT = re.compile(
+    r'arbeitsweise|kommunikations|abstimmungsf|teamf[äa]hig|teamplayer|team player|belastbar|eigeninitiative'
+    r'|zuverl[äa]ssig|selbstst[äa]ndig|eigenverantwortlich|organisationstalent|organisationsf[äa]hig'
+    r'|einsatzbereit|flexibilit|lernbereit|neugier|durchsetzungs|hands-on|sorgfalt|sorgf[äa]ltig'
+    r'|analytisches denk|l[öo]sungsorientiert|kundenorientiert|serviceorientiert|motivation|engagement'
+    r'|empathie|kreativit|offenheit|freundlich|souver[äa]n|verhandlungsgeschick'
+    r'|communication skill|interpersonal|self-motivated|self-starter|proactive|reliab|attention to detail'
+    r'|structured (?:and|way|approach|working)|well-organi[sz]ed|organi[sz]ational skill|independent(?:ly)? (?:and|way|work)|work(?:ing)? independently'
+    r'|eager to learn|willingness to learn|can-do|problem-solving skill|team spirit|positive attitude',
+    re.IGNORECASE,
+)
+_EXPERIENCE_CLAIM = re.compile(r'erfahrung|experience|jahre|years|kenntnis|knowledge|abschluss|degree|studium', re.IGNORECASE)
+
+
+def is_soft_requirement(requirement: dict[str, Any]) -> bool:
+    """A personal trait rather than verifiable experience, knowledge or qualification."""
+    if requirement.get('kind') in GATED_KINDS | FORMAL_KINDS:
+        return False
+    text = str(requirement.get('text') or '')
+    return bool(_SOFT_TRAIT.search(text)) and not _EXPERIENCE_CLAIM.search(text)
 
 Embed = Callable[[list[str], str], list[list[float]]]
 Rerank = Callable[[str, list[str]], list[float]]
@@ -71,7 +99,7 @@ def scored_items(analysis: dict) -> list[dict[str, Any]]:
     for index, duty in enumerate(analysis.get('duties') or []):
         items.append({'ref': f'd{index}', 'type': 'duty', 'text': duty['text']})
     for index, requirement in enumerate(analysis.get('requirements') or []):
-        if requirement.get('kind') in GATED_KINDS:
+        if requirement.get('kind') in GATED_KINDS or is_soft_requirement(requirement):
             continue
         items.append({'ref': f'r{index}', 'type': 'requirement', 'text': requirement['text'],
                       'need': requirement.get('need', 'must'), 'kind': requirement.get('kind', 'other')})
@@ -151,8 +179,14 @@ def compute_evidence(
         item_matrix = np.asarray(item_vectors, dtype='<f4')
         item_matrix /= np.maximum(np.linalg.norm(item_matrix, axis=1, keepdims=True), 1e-9)
         similarities = item_matrix @ matrix.T
+        work = np.array([unit['source'].startswith(('cv.', 'experience', 'duty_evidence')) for unit in units])
         for item, row in zip(items, similarities):
-            candidates = [int(index) for index in np.argsort(-row)[:CANDIDATES_PER_ITEM]]
+            ranked = [int(index) for index in np.argsort(-row)]
+            candidates = ranked[:CANDIDATES_PER_ITEM]
+            missing_work = WORK_CANDIDATES - sum(bool(work[index]) for index in candidates)
+            if missing_work > 0:
+                extra = [index for index in ranked[CANDIDATES_PER_ITEM:] if work[index]][:missing_work]
+                candidates = candidates[:CANDIDATES_PER_ITEM - len(extra)] + extra
             scores = rerank(rerank_query(item, context), [units[index]['text'] for index in candidates])
             best = int(np.argmax(scores)) if scores else 0
             unit = units[candidates[best]] if scores else None
