@@ -11,7 +11,8 @@ Headline and profile
   only for a distinct core duty with strong evidence, otherwise return null. Aim for roughly
   35–55 words in total. Start with a verified professional identity or degree, then
   synthesize what the applicant has done that best matches the posting. Select concrete
-  methods and responsibilities, without copying bullets or repeating the headline.
+  methods and responsibilities. Express the synthesis in new phrasing, keeping exact
+  names and necessary technical terms but no clause lifted from a bullet or the headline.
 - German: implicit first person, with no explicit "ich" and no third-person role subject
   ("Die Ingenieurin …" is wrong). Start with a noun-led CV opening such as "Ingenieurin
   für … mit Erfahrung in …". Follow with direct, subject-less verb-led clauses as natural.
@@ -35,17 +36,19 @@ Entries (one slot per base bullet)
   Use medium for adjacent evidence or bullets already phrased in the posting's vocabulary,
   and low for unrelated work. Return only `relevance` for medium and low; the application
   keeps those bullets verbatim. Entries without bullets have no response slot.
-- Rewrite from the one base bullet in that slot. Preserve its action strength, authorship,
-  actors, objects, recipients, tools, scope and measured results. Keep separate source facts
-  separate even within one bullet. Coordinating is neither overseeing nor merely helping.
+- Rewrite from the one base bullet in that slot. Return its complete text with the
+  smallest equivalent term substituted where it exposes the duty. Keep the original
+  verbs, clause order and wording everywhere else, adjusting only the grammar needed
+  for the substitution. Leave actors, objects, recipients, tools, scope and measured
+  results intact. Keep separate source facts separate even within one bullet.
   If the source says a person analyzed results and separately discussed improvements with
   colleagues, never say they discussed those results with the colleagues.
 - Surface the posting's vocabulary where it describes the exact same action or method:
   e.g. cost analysis for costing, product training for training on a product, and iterative
   work for documented Kanban iterations. Distinguish analyzing KPIs from making a
   data-driven decision, and requirements prioritization from deciding the roadmap.
-  Preserve early-stage scope and study context. Use a direct active verb at the original
-  strength. Prefer a local change in wording to recasting the whole bullet.
+  Preserve early-stage scope and study context. Leave a term unchanged if its posting
+  counterpart adds a different object, stage, relationship, or level of responsibility.
 - Keep rewrites as short as the source or shorter without dropping substantive evidence.
   This CV must fit two pages. The application retains project labels; write only the body
   in `text`, keeping each study project as one bullet.

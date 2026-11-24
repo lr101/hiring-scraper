@@ -6,7 +6,10 @@ Output contract
   organization, title, location and facts). Select the best two or three distinct slots
   for the posting's core duties. Each slot takes one paragraph or null. Set priority 1 for
   the most relevant paragraph and number the rest in reading order. Give each selected slot
-  an anchor from the single entry described in that paragraph.
+  an anchor from the single entry described in that paragraph and name the posting duty
+  it addresses in `duty`. Use the duty to choose the facts and takeaway before drafting.
+  Across selected slots, cover distinct core duties with verified evidence. Give the
+  strongest available core-duty example precedence over adjacent responsibilities.
 - Write each example as linked sentences. Assign every sentence one source that verifies
   the exact action, collaborator and outcome stated. Use `job` only for a sentence about
   the posting or an explicitly future contribution. Use `profile:language_levels` when a

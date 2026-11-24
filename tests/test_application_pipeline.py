@@ -105,7 +105,7 @@ def slot_letter_reply(schema, reply):
                    for option in field['anyOf'] if '$ref' in option
                    for anchor in [defs[option['$ref'].rsplit('/', 1)[-1]]['properties']['anchor']]):
                 examples[slot] = {
-                    'anchor': source, 'priority': 1,
+                    'anchor': source, 'priority': 1, 'duty': 'Plan hands-on exhibits',
                     'sentences': [{'text': paragraph['text'], 'source': source}],
                 }
                 break
@@ -809,7 +809,7 @@ class PipelineTests(unittest.TestCase):
                 'subject': {'text': 'Designer'}, 'contact_name': '',
                 'motivation': {'text': letter_reply()['paragraphs'][0]['text'], 'sources': ['job']},
                 'examples': {'work-1': {
-                    'anchor': 'cv:work-1:b1', 'priority': 1,
+                    'anchor': 'cv:work-1:b1', 'priority': 1, 'duty': 'Plan hands-on exhibits',
                     'sentences': [{'text': letter_reply()['paragraphs'][1]['text'], 'source': 'cv:work-1:b1'}],
                 }, 'work-3': None},
                 'fit': {'text': letter_reply()['paragraphs'][2]['text'], 'sources': ['job']},
@@ -835,6 +835,10 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(list(groups), ['work-1'])
         output = slot_letter_reply(response.model_json_schema(), letter_reply())
         response.model_validate(output)
+        without_duty = deepcopy(output)
+        del without_duty['examples']['work-1']['duty']
+        with self.assertRaises(ValidationError):
+            response.model_validate(without_duty)
         output['examples']['work-1']['sentences'][0]['source'] = 'cv:work-2:b1'
         with self.assertRaises(ValidationError):
             response.model_validate(output)
@@ -1428,6 +1432,7 @@ class PipelineTests(unittest.TestCase):
             'examples': {'work-1': {
                 'anchor': 'cv:work-1:b1',
                 'priority': 1,
+                'duty': 'Plan hands-on exhibits',
                 'sentences': [{'text': letter_reply()['paragraphs'][1]['text'], 'source': 'cv:work-1:b1'}],
             }},
             'fit': {

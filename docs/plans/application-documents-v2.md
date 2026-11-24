@@ -160,7 +160,8 @@ duty. Each selected employer or study example synthesizes one or two verified ac
 and an outcome or takeaway for a named duty. The best evidence can come from a study
 project, with the context made explicit. The letter generation schema gives each employer
 or institution one optional example slot plus source-cited `motivation` and optional `fit`
-blocks. A selected example anchors to one entry and cites an allowed source per sentence.
+blocks. A selected example names its posting duty, anchors to one entry and cites an
+allowed source per sentence.
 The closing uses an idiomatic interview invitation in the target language.
 Subjects are formatted deterministically from the posting title (`Bewerbung als <Titel>` in
 German, `Application for <title>` in English). The tailored CV is available during review,
@@ -189,5 +190,5 @@ Focused unit and node tests during development; frontend build; Chromium render 
 when no browser is installed. PostgreSQL migration and queue tests run in CI. Real profile
 data, outputs and judge transcripts stay in gitignored `data/private/`.
 
-Pipeline version `application-documents-v2.11` invalidates earlier draft checkpoints for
+Pipeline version `application-documents-v2.12` invalidates earlier draft checkpoints for
 the relevance-based CV contract and revised letter and review prompts.

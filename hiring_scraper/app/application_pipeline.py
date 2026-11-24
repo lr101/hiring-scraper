@@ -38,7 +38,7 @@ from hiring_scraper.documents.schema import (
 )
 from hiring_scraper.documents.text import unit_full_text
 
-PIPELINE_VERSION = 'application-documents-v2.11'
+PIPELINE_VERSION = 'application-documents-v2.12'
 SLEEP = time.sleep
 PROMPTS = Path(__file__).with_name('prompts')
 DocumentKind = Literal['cv', 'letter']
@@ -131,6 +131,7 @@ class _LetterResponse(_Response):
 
 class _LetterExample(_Response):
     priority: int
+    duty: str
 
 
 class _LetterSlots(_Response):
