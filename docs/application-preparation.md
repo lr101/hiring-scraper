@@ -39,9 +39,8 @@ by the companion can still be used through its legacy package tools.
 - `RADIUS_CODEX_BIN` can point a local API or worker to the pinned Codex binary
   from `runtime/codex`. `RADIUS_CODEX_STATE_DIR` selects its private persistent
   state directory. Compose mounts the state volume at `/var/lib/radius/codex`.
-  Compose binds to loopback by default. The API gives each client with access
-  to Radius the full workspace and use of the connected subscription. Use
-  an authenticated proxy or SSH tunnel for remote access.
+  Use a private Radius deployment with its existing access controls. An
+  authenticated connection can invoke the server's connected subscription.
 - The structured documents and verified PDFs are stored in PostgreSQL. Radius
   keeps up to 20 versions per job, profile and document kind. A pending download
   displays render progress and can be retried after a failure. Removing the
