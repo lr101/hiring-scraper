@@ -91,6 +91,14 @@ class RenderTests(unittest.TestCase):
             self.assertEqual(self._passed(result, code), 'passed', code)
         self.assertIn('content_height_px', result.telemetry)
 
+    def test_over_budget_pdf_is_rejected_instead_of_truncated(self):
+        from unittest.mock import patch
+
+        with patch.object(application_pdf, 'MAX_PDF_PAGES', 1):
+            with self.assertRaises(application_pdf.RenderFailed) as error:
+                application_pdf.render_document('cv', fictional_cv(bullets=20).model_dump(mode='json'))
+        self.assertEqual(error.exception.code, 'document_too_large')
+
     def test_letter_renders_one_page(self):
         result = application_pdf.render_document('letter', fictional_letter().model_dump(mode='json'))
         self.assertEqual(result.pages, 1)
@@ -379,6 +387,17 @@ class AvailabilityTests(unittest.TestCase):
                 application_pdf.render_document('letter', fictional_letter().model_dump(mode='json'))
 
 class ExportVerificationTests(unittest.TestCase):
+    def test_oversized_render_inputs_are_rejected_before_chromium(self):
+        from unittest.mock import patch
+
+        doc = fictional_letter().model_dump(mode='json')
+        with patch.object(application_pdf, 'available', return_value=True), \
+                patch.object(application_pdf, 'MAX_DOCUMENT_BYTES', 100), \
+                patch.object(application_pdf._RENDERER, 'render', side_effect=AssertionError('Chromium launched')):
+            with self.assertRaises(application_pdf.RenderFailed) as error:
+                application_pdf.render_document('letter', doc)
+        self.assertEqual(error.exception.code, 'document_too_large')
+
     def test_pdf_export_requires_integrity_checks_but_allows_pagination_warnings(self):
         checks = [
             {'code': 'text_extractable', 'status': 'passed'},

@@ -57,6 +57,15 @@ authenticated evaluation runtime under `data/private/codex/` by default.
 Set `RADIUS_CODEX_STATE_DIR` to another directory inside `data/private/` to
 reuse an isolated evaluation connection.
 
+## PDF export
+
+The preparation worker uses sandboxed Chromium with the Compose seccomp and
+AppArmor settings documented in the README. PDF export requires an extractable
+text layer, the applicant's name and contact lines, and readable glyphs.
+Pagination, reading order and overflow checks are advisory. The renderer prints
+one document at a time, with a 192 KiB structured input limit and a 12-page
+hard cap. The recommended limits remain two pages for a CV and one for a letter.
+
 ## Roll back the application image
 
 Stop all Radius application containers before switching versions. Keep the database

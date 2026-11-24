@@ -664,9 +664,11 @@ def document_pdf(profile_id: int, kind: Kind, job_id: int, version: int = Query(
     state = queue.enqueue_render(session, profile_id, job_id, kind, version, template, retry=retry)
     session.commit()
     if state['state'] == 'failed':
-        detail = ('The PDF did not pass its readability checks. Review the name, contact details and text before retrying.'
-                  if state['error_code'] == 'render_verification_failed'
-                  else 'This document could not be rendered. Try again, or edit the document.')
+        detail = {
+            'render_verification_failed': 'The PDF did not pass its readability checks. Review the name, contact details and text before retrying.',
+            'document_too_large': 'The document is too large to export as a PDF. Shorten it and try again.',
+            'render_unavailable': 'PDF rendering is unavailable on this server.',
+        }.get(state['error_code'], 'This document could not be rendered. Try again, or edit the document.')
         return _json({'state': 'failed', 'error_code': state['error_code'], 'detail': detail}, 422)
     return _json({'state': 'rendering'}, 202)
 

@@ -101,6 +101,8 @@ def classify(error: BaseException) -> tuple[str, bool, str]:
     if render is not None and isinstance(error, getattr(render, 'RenderUnavailable', ())):
         return 'render_unavailable', False, 'PDF rendering is not available on this server.'
     if render is not None and isinstance(error, getattr(render, 'RenderFailed', ())):
+        if error.code == 'document_too_large':
+            return error.code, False, 'The document is too large to export as a PDF.'
         return (str(getattr(error, 'code', None) or 'render_failed')[:64], True,
                 'The document could not be rendered. Radius will try again shortly.')
     if isinstance(error, ProfileIndexChanged) or is_transient_database_error(error):

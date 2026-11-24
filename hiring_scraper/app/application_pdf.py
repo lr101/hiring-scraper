@@ -7,8 +7,8 @@ the network. The built page references absolute ``/assets/...`` paths and ES mod
 which Chromium refuses over ``file://``; the dist folder is therefore served from a
 virtual origin through request routing instead of a file URL.
 
-One browser per process runs on a dedicated asyncio thread; at most two renders run at
-once and a crashed browser is relaunched on the next render. Document text is never
+One sandboxed browser per process runs on a dedicated asyncio thread. It prints one
+document at a time and relaunches after a crash. Document text is never
 logged.
 """
 from __future__ import annotations
@@ -44,7 +44,8 @@ LOG = logging.getLogger(__name__)
 ORIGIN = 'http://radius-print.invalid'
 PAGE_LIMITS = {'cv': 2, 'letter': 1}
 MAX_PHOTO_BYTES = 5 * 1024 * 1024
-CONCURRENCY = 2
+MAX_DOCUMENT_BYTES = 192 * 1024
+MAX_PDF_PAGES = 12
 _MM_TO_PX = 96 / 25.4
 _PAGE_MM = {'a4': (210.0, 297.0), 'letter': (215.9, 279.4)}
 _MIN_FIRST_PAGE_FILL = 0.80
@@ -129,7 +130,7 @@ class _Renderer:
 
             def run() -> None:
                 asyncio.set_event_loop(loop)
-                self._semaphore = asyncio.Semaphore(CONCURRENCY)
+                self._semaphore = asyncio.Semaphore(1)
                 self._launch_lock = asyncio.Lock()
                 ready.set()
                 loop.run_forever()
@@ -153,7 +154,7 @@ class _Renderer:
             try:
                 self._playwright = await async_playwright().start()
                 self._browser = await self._playwright.chromium.launch(
-                    headless=True,
+                    headless=True, chromium_sandbox=True,
                     args=['--disable-dev-shm-usage', '--no-first-run', '--disable-extensions'],
                 )
             except Exception as error:  # noqa: BLE001 - missing executable or sandbox
@@ -230,13 +231,18 @@ class _Renderer:
                 raise RenderFailed('view_error', 'The document view reported an error.')
             printable_px = (height_mm - 2 * _PAGE_MARGIN_MM) * _MM_TO_PX
             limit = PAGE_LIMITS[payload['kind']]
-            pdf_options = {'prefer_css_page_size': True, 'print_background': True}
+            root = page.locator('.doc-page-content')
+            height = await root.evaluate('(el) => el.scrollHeight')
+            if height > printable_px * MAX_PDF_PAGES:
+                raise RenderFailed('document_too_large', 'The document exceeds the PDF page budget.')
+            # Include one sentinel page so a clipped PDF can never pass verification.
+            pdf_options = {'prefer_css_page_size': True, 'print_background': True,
+                           'page_ranges': f'1-{MAX_PDF_PAGES + 1}'}
             pdf = await page.pdf(**pdf_options)
             compact = False
             if payload['kind'] == 'cv':
                 from pypdf import PdfReader
 
-                height = await page.locator('.doc-page-content').evaluate('(el) => el.scrollHeight')
                 if height <= printable_px * limit and len(PdfReader(io.BytesIO(pdf)).pages) > limit:
                     # Keeping entries together can add a page even when their total height fits.
                     await page.locator('.doc-page').evaluate("(el) => el.classList.add('doc-page--compact')")
@@ -490,6 +496,8 @@ def render_document(
         )
     except ValidationError:
         raise RenderFailed('invalid_document', 'The document does not match the schema.') from None
+    if len(model.model_dump_json().encode('utf-8')) > MAX_DOCUMENT_BYTES:
+        raise RenderFailed('document_too_large', 'The document exceeds the PDF input budget.')
     photo = None
     if photo_png and kind == 'cv' and getattr(model, 'photo', False):
         if len(photo_png) > MAX_PHOTO_BYTES:
@@ -504,6 +512,8 @@ def render_document(
     try:
         reader = PdfReader(io.BytesIO(pdf))
         pages = len(reader.pages)
+        if pages > MAX_PDF_PAGES:
+            raise RenderFailed('document_too_large', 'The document exceeds the PDF page budget.')
         page_texts = [page.extract_text() or '' for page in reader.pages]
         page_fill_ratios = _page_fill_ratios(reader)
         text = '\n'.join(page_texts)
@@ -518,6 +528,8 @@ def render_document(
         with io.BytesIO() as output:
             writer.write(output)
             pdf = output.getvalue()
+    except RenderFailed:
+        raise
     except Exception:  # noqa: BLE001 - corrupt output
         raise RenderFailed('pdf_unreadable', 'The rendered PDF could not be read.') from None
     limit = PAGE_LIMITS[kind]
