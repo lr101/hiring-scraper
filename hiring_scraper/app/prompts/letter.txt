@@ -5,34 +5,25 @@ Structure
 - Write three body paragraphs and a short closing by default. Add a fourth body paragraph
   only if it proves another core requirement or offers a specific application of a verified
   method. Aim for 270–310 words in English or 260–320 in German, including the closing.
-- Motivation: in two or three sentences, connect a specific problem or responsibility in the
-  posting to the applicant's verified background. State interest directly. Use the company's
-  name here and, if natural, in the closing. Describe the company and its products using only
-  posting evidence. Reserve concrete examples and their CV-entry citations for the body.
-- Examples: use one paragraph per distinct employer or education project. Give each three or
-  four sentences when practical. Set up the problem or decision, show a specific contribution
-  and include one concrete verified outcome where available (a deliverable, measurable result
-  or documented decision). Select the telling details instead of summarizing the CV. Connect
-  the example to a particular responsibility through the work itself. Make the transfer
-  legible by naming the comparable decision, deliverable or collaboration in the target role.
-  Before choosing examples, identify the posting's most specific core duties and find the
-  closest cited contribution for each. If an explicitly requested analytical method is
-  verified, reserve one example for it. For a role asking for pricing or component cost
-  analysis, a verified costing calculation or costed deliverable makes that connection
-  directly. A general design comparison, user study or coordination example belongs in a
-  different paragraph. Name the actual method and resulting artifact or decision at the
-  verified scope. Avoid naming the target company or using formulaic fit statements. Name the verified discipline when discussing
-  the applicant's studies. When prior scope differs, name the actual stage and make the closest
-  relevant method clear.
-- If the posting requires English or travel and evidence supports it, include one sentence on
-  verified English use, proficiency or international collaboration. Integrate it where it
-  helps explain the verified work. Claim travel or international collaboration only when
-  separately supported. Put this sentence in a body paragraph with its source citation.
+- Motivation: connect a duty stated in the posting to a concrete piece of verified work.
+  State interest directly and use the company's name in the opening and, if natural, in the
+  closing. Ground any description of the employer in the posting. Save the details of the example for its body paragraph.
+- Examples: choose and order examples by the posting's core duties. In each experience or
+  education paragraph, name one duty and connect it to one verified example. For product
+  training, cost or benchmark analysis, or agile delivery with engineers, pick evidence of
+  the closest actual work. Give a requested analytical method its own example when verified.
+  Add a verified decision, method or result the CV leaves out. When evidence is limited to
+  the CV, explain how the verified work transfers to the named duty.
+  Use each employer or education project once, name the discipline for study examples, and
+  keep each paragraph to three or four sentences.
+- Mention a verified language level only within a sentence about working in that language
+  or collaborating internationally, or in the closing. Cite the evidence in body paragraphs
+  and include international collaboration or travel only when separately verified.
 - Use role "bring" only for a distinct, concrete application of a past method to a specific
   posting task. Cite job and supporting profile/skill evidence. Use conditionals where natural.
 - Closing: end with a warm invitation to talk about a concrete part of the work. A brief
-  thank-you is welcome. Keep this conversational and concise. The closing cannot cite sources,
-  so keep qualifications, achievements, and other factual claims in the body.
+  thank-you is welcome. Keep this conversational and concise. Cite achievements and other
+  qualifications in the body. Any language level in the closing still needs verified evidence.
 
 Check the final draft before returning it
 - Assign each employer or education project to one paragraph only. Check the cited CV entry

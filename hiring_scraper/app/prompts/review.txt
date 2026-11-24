@@ -35,28 +35,29 @@ are already good.
 Check that:
 - CV headline uses evidence-backed role-family terms in at most 70 characters without
   overstating the domain.
-- CV profile is a single noun-phrase-led summary naming the strongest 1–2 matching pieces
-  of evidence once. Use active clauses with the applicant as actor, no pronouns referring
-  to the applicant, no agentless passives, and no noun three times. Flag a separate project
+- CV profile is a single noun-phrase-led summary. Lead with the strongest evidence for
+  the posting's core duties and name each of the 1–2 examples once. Use active clauses with
+  the applicant as actor, no pronouns referring to the applicant, no agentless passives, and
+  no noun three times. Flag a separate project
   list or repeated wording. Check both keyword coverage and the scope supporting it.
 - CV bullets avoid third-person pronouns referring to the applicant (never "die sie
   koordinierte", "she", "he"), avoid unsupported qualifiers ("technical"/"technisch",
   "strategic", "software", etc.), merge overlapping duties, vary opening verbs (no verb
-  starting more than 2 bullets), retain differentiating details, and in German use direct
-  active verbs (no "Leitete die Koordination" or needless reflexive "sich") and suspension
-  hyphens in coordinated compounds ("Markt- und Nutzerbedürfnisse").
-- Competencies are tailored (irrelevant base items hidden; additions are 1–4 words and
-  evidence-backed).
-- Cover letter stays within 4–5 paragraphs (~270–310 EN / ~260–320 DE words including closing),
-  keeps formal Sie-Form in German with lowercase opening after the comma (unless a noun or
-  Sie/Ihr), opens by connecting the company's product/mission to the applicant's background
-  rather than explaining the product back to them, names the degree/discipline when referring
-  to studies, preserves exact leadership scope (e.g. coordination vs ownership), uses each
-  employer or project at most once, connects every experience/education paragraph to the target
-  role, varies sentence openings (avoid >2 consecutive "I "/"Ich " sentences) and paragraph
-  endings, uses no four-word phrase across paragraphs, names the target company in
-  motivation/closing with at most one other mention by paragraph, keeps examples to four
-  sentences with a concrete verified outcome where possible, includes one supported sentence
-  on English/international collaboration if the posting requires English or travel, grounds any proposed approach in a verified past method, uses fresh prose, keeps at
-  most one conditional per paragraph, spells out English contractions, and ends with a natural
-  closing line.
+  starting more than 2 bullets), and keep verified quantified results with the actions they
+  measure. In German, use direct active verbs and suspension hyphens in coordinated compounds
+  ("Markt- und Nutzerbedürfnisse").
+- Competency additions are 1–4 words and use concrete wording supported by cited evidence.
+  Hide irrelevant base items.
+- Cover letter opens by connecting work stated in the posting to concrete verified experience.
+  Check claims about the employer against the posting. Each experience paragraph connects one
+  verified example to a named duty and adds a supported decision, method or result beyond the
+  CV, or explains the transfer when the CV is the only evidence.
+- Integrate a verified language level into a sentence about working in that language or
+  collaborating internationally, or place it in the closing.
+- Keep the letter to 4–5 paragraphs (~270–310 EN / ~260–320 DE words including closing). Name
+  the study discipline and keep leadership scope exact. Use each employer or project once.
+  Keep examples to four sentences and include a verified outcome where available. Vary sentence
+  openings and paragraph endings, and check for repeated phrases. Ground proposed approaches
+  in verified methods and use at most one conditional per paragraph. End conversationally.
+  Spell out English contractions. In German, use formal Sie-Form and lowercase after the
+  comma-ended salutation unless the opening is a noun, proper name or formal Sie/Ihr.

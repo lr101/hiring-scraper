@@ -438,6 +438,55 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(result.cv['sections'][0]['units'][0]['text'], cv_reply()['profile'][0]['text'])
         self.assertEqual(result.letter['paragraphs'][-1]['text'], letter_reply()['closing']['text'])
 
+    def test_cv_project_intro_matches_the_projects_kept_by_the_cv_stage(self):
+        self.inp.mode = 'fast'
+        self.inp.base_cv['sections'].append({
+            'id': 's-education', 'kind': 'education', 'title': 'Education', 'entries': [{
+                'id': 'study-1', 'kind': 'study',
+                'locked': {'company': 'Alder Institute', 'title': 'Design', 'start': '2018', 'end': '2020'},
+                'intro': [{'id': 'u-study-intro', 'text': 'Selected projects: Wayfinding & Lighting'}],
+                'units': [
+                    {'id': 'u-study-p1', 'lead_in': 'Wayfinding:', 'text': 'Mapped gallery signage with visitors.'},
+                    {'id': 'u-study-p2', 'lead_in': 'Lighting:', 'text': 'Tested display lamps with curators.'},
+                ],
+            }],
+        })
+        reply = cv_reply()
+        projects = [{'lead_in': 'Wayfinding:', 'text': 'Mapped gallery signage with visitors.',
+                     'sources': ['cv:study-1:b1']}]
+        reply['entries'].append({'entry_id': 'study-1', 'bullets': projects})
+        entry = self.run_with(cv=reply).cv['sections'][-1]['entries'][0]
+        self.assertEqual(entry['intro'][0]['text'], 'Selected projects:')
+        self.assertEqual([unit['lead_in'] for unit in entry['units']], ['Wayfinding:'])
+
+        self.checkpoints.clear()
+        projects.append({'lead_in': 'Lighting:', 'text': 'Tested display lamps with curators.',
+                         'sources': ['cv:study-1:b2']})
+        entry = self.run_with(cv=reply).cv['sections'][-1]['entries'][0]
+        self.assertEqual(entry['intro'][0]['text'], 'Selected projects: Wayfinding & Lighting')
+
+    def test_cv_keeps_skills_explicitly_named_in_visible_bullets(self):
+        self.inp.mode = 'fast'
+        bullets = self.inp.base_cv['sections'][1]['entries'][0]['units']
+        bullets[0]['text'] += ' Used Python and C++.'
+        bullets.append({'id': 'u-hidden', 'text': 'Sketched a sign in Figma.', 'hidden': True})
+        skills = self.inp.base_cv['sections'][2]['units']
+        skills.extend([
+            {'id': 'u-python', 'text': 'Python (Basics)'},
+            {'id': 'u-cpp', 'text': 'C++'},
+            {'id': 'u-c', 'text': 'C'},
+            {'id': 'u-figma', 'text': 'Figma'},
+        ])
+        reply = cv_reply()
+        reply['entries'][0]['bullets'][0]['text'] = 'Designed a workshop with librarians using Python and C++.'
+        reply['skills'][0]['hidden_ids'] = ['u-python', 'u-cpp', 'u-c', 'u-figma']
+        kept = self.run_with(cv=reply).cv['sections'][2]['units']
+        by_id = {unit['id']: unit['hidden'] for unit in kept}
+        self.assertFalse(by_id['u-python'])
+        self.assertFalse(by_id['u-cpp'])
+        self.assertTrue(by_id['u-c'])
+        self.assertTrue(by_id['u-figma'])
+
     def test_study_degree_moves_to_the_header_without_losing_the_intro_details(self):
         self.inp.base_cv['sections'].append({
             'id': 's-education', 'kind': 'education', 'title': 'Education', 'entries': [

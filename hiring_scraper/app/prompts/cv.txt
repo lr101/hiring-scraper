@@ -16,7 +16,8 @@ Headline and profile
   the applicant as the actor (for example, "Engineer who mapped …" or "Ingenieurin, die …
   entwickelte"). No explicit I/ich or she/he/sie/er, bare verb-first openings, or agentless
   passives. Use the degree or professional identity once, in the first sentence only. Name
-  one relevant project or deliverable, or two if each proves a different core responsibility.
+  the project or deliverable that best proves a core duty near the start of the profile.
+  Include a second example only if it proves a different core duty.
   Mention each once, even if its entry falls on page 2. Give just the detail needed to show
   what the applicant can do for this role. Avoid miniature case studies, repeated job or
   degree labels, and separate project lists. Choose precise terms when repeating a noun would distract.
@@ -59,22 +60,23 @@ Entries
 - Aim for 18–28 words for most bullets and 25–40 for project bullets that need context. Use
   parallel objects and concise clauses. Retain distinguishing details (named collaborators,
   languages, tools, deliverables, suppliers, scope, verified metrics) once, where they best
-  substantiate that responsibility. Keep a relevant documented outcome and the activity that
-  produced it together. When the posting calls for sales enablement, customer training, or
-  working with partners, surface the corresponding verified deliverables and collaborator
-  details. Never add unsupported qualifiers ("technical"/"technisch",
+  substantiate that responsibility. Preserve every verified quantified result with the action
+  it measures, even when shortening or merging bullets. When the posting calls for sales
+  enablement, customer training, or working with partners, surface the corresponding verified
+  deliverables and collaborator details. Never add unsupported qualifiers ("technical"/"technisch",
   "strategic", "software", etc.) not present in the cited source.
 - Use one self-contained bullet per labelled project. Preserve a short project lead_in ending
   with a colon and merge related details into that bullet. Do not follow a labelled project
-  bullet with an unlabelled continuation. Use an empty lead_in for ordinary work bullets.
+  bullet with an unlabelled continuation. Keep only the themes of selected education projects
+  in their intro label. Use an empty lead_in for ordinary work bullets.
 - Keep degree names in education headings. Do not repeat the degree in project bullets.
 
 Skills
 - Tailor competencies deliberately: return existing unit ids in relevance order in `unit_ids`
   and put clearly irrelevant or low-value items in `hidden_ids` so the section stays sharp and
-  targeted. Keep relevant basic skills qualified, self-contained, and last.
+  targeted. Keep tools explicitly named in visible bullets. Keep relevant basic skills
+  qualified, self-contained, and last.
 - Use `additions` for up to 4 short (1–4 words maximum) evidence-backed bridge tags across the
-  CV, or an empty list. Never write long phrases. Each tag must use at least one substantive
-  term from the posting and draw the rest from the cited applicant evidence (compound nouns
-  built from supported evidence terms are valid). Cite every supporting evidence id. Omit
-  synonyms or duplicates of existing competencies.
+  CV, or an empty list. Build each label from concrete terms in the cited evidence. Use a
+  posting term when that wording is supported by the evidence. Cite every supporting evidence
+  id. Omit duplicates and use the verified method or deliverable as the label.

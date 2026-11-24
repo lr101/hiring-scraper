@@ -26,6 +26,7 @@ from hiring_scraper.documents.schema import (
     MAX_UNIT_TEXT,
     CvDocument,
     DocumentLanguage,
+    Entry,
     Finding,
     FindingCode,
     FindingSeverity,
@@ -408,6 +409,58 @@ def _cv_entries(base: CvDocument, evidence: dict) -> list[dict]:
     return entries
 
 
+_PROJECT_INTRO = re.compile(
+    r'((?:(?:selected|academic|course|relevant|key|ausgewählte|relevante|wichtige)\s+)?'
+    r'(?:projects|project (?:themes|topics)|projekte|studienprojekte|projektthemen)\s*:)(.+)', re.I,
+)
+
+
+def _mentions(text: str, name: str) -> bool:
+    # Treat C, C++ and C# as distinct names and avoid substring matches.
+    return bool(re.search(rf'(?<![\w+#]){re.escape(name)}(?![\w+#])', text, re.I))
+
+
+def _sync_project_intro(entry: Entry, evidence: dict[str, str]) -> None:
+    """Keep a theme list only when the retained project bullets still support it."""
+    kept = [unit for unit in entry.units if not unit.hidden]
+    kept_text = [unit_full_text(unit) for unit in kept]
+    for unit in kept:
+        kept_text.extend(evidence.get(source, '') for source in unit.sources
+                         if source.startswith(f'cv:{entry.id}:b'))
+    text = '\n'.join(kept_text)
+    for unit in entry.intro:
+        match = _PROJECT_INTRO.fullmatch(unit_full_text(unit))
+        if unit.hidden or match is None:
+            continue
+        label, themes = match.groups()
+        names = re.split(r'\s*(?:[&,;]|\band\b|\bund\b)\s*|\s+/\s+', themes.strip())
+        if any(name and not _mentions(text, name) for name in names):
+            unit.lead_in = ''
+            unit.text = label
+            unit.hidden = not kept
+
+
+def _show_named_skills(doc: CvDocument) -> None:
+    visible_bullets = [
+        unit_full_text(unit) for section in doc.sections for entry in section.entries
+        for unit in entry.units if not unit.hidden
+    ]
+    visible_bullets.extend(
+        unit_full_text(unit) for section in doc.sections
+        if section.layout == 'bullets' and section.kind not in ('skills', 'profile')
+        for unit in section.units if not unit.hidden
+    )
+    text = '\n'.join(visible_bullets)
+    for section in doc.sections:
+        if section.kind == 'skills':
+            for unit in section.units:
+                if not unit.hidden:
+                    continue
+                name = re.sub(r'\s+\((?:Basics|Grundlagen)\)$', '', unit_full_text(unit), flags=re.I)
+                if name and _mentions(text, name):
+                    unit.hidden = False
+
+
 def _cv_draft(
     output: dict, base: CvDocument, entries: list[dict], evidence: dict[str, str], posting: str,
 ) -> tuple[CvDocument, list[Finding]]:
@@ -537,6 +590,8 @@ def _cv_draft(
                       for i, bullet in enumerate(edits[entry.id], 1)),
                     *(unit for unit in entry.units if unit.hidden),
                 ]
+            if entry.kind == 'study':
+                _sync_project_intro(entry, evidence)
         if section.id in skills:
             proposed = skills[section.id]
             by_id = {unit.id: unit for unit in section.units}
@@ -569,6 +624,7 @@ def _cv_draft(
                 existing.add(unit.text.casefold())
             section.units = additions + section.units
             editorial.normalize_skills(section)
+    _show_named_skills(doc)
     doc = CvDocument.model_validate(doc.model_dump())
     issues.extend(issue for issue in _cv_prose_issues(doc) if issue.code in _BLOCKING_PROSE_CODES)
     if issues:
