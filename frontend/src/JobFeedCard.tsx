@@ -100,7 +100,7 @@ function JobFeedCard({
       </div>
     </header>
     <div className="application-job-facts">
-      <span><small>Work location</small>{job.location_text || 'Location not listed'}</span>
+      <span><small>Work location</small>{job.location_text || 'Unknown (not stated)'}</span>
       <span><small>Last updated</small>{formatDate(lastUpdated)}</span>
     </div>
     <JobOverviewTags job={job} />

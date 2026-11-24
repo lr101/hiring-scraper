@@ -234,8 +234,9 @@ checks until one is found.
 Use **View companies and jobs** on the Germany card to browse active, unexpired
 postings whose work location is in Germany, plus remote roles open to Germany.
 The work location decides, not the employer: a German company's role in Romania
-is not listed, and a posting without a usable work location is not listed under
-Germany or a state. The company list still uses employer membership (`country=DE`,
+is not listed. A posting that states no work location at all is kept when its
+employer is in Germany (or the state) and flagged as location unknown; Journey
+adds such postings for profiles in the employer's country the same way. The company list still uses employer membership (`country=DE`,
 including legacy companies with an observed German state); the `country_code`
 parameter still describes remote eligibility in radius searches.
 Job search uses text relevance rather than profile-match filtering. The selected

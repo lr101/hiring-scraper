@@ -145,10 +145,8 @@ class StateSearchTests(unittest.TestCase):
             self.assertEqual({row['name'] for row in companies['items']}, {'North', 'South', 'No website'})
             jobs = pg.list_jobs(self.engine, company_id=None, query=None, offset=0, limit=100,
                 session=session, state='Baden-Württemberg', country_code='DE')
-            # These Baden-Württemberg employers post a Berlin role and a role without a
-            # location: neither is a job in Baden-Württemberg (the employer's state is not used).
-            self.assertEqual(jobs['total'], 0)
-            self.assertEqual(jobs['counts']['filtered']['outside_area'], 0)
+            self.assertEqual(jobs['total'], 2)
+            self.assertEqual(jobs['counts']['filtered']['outside_area'], 2)
             remote = pg.list_jobs(self.engine, company_id=None, query=None, offset=0, limit=100,
                 session=session, state='Baden-Württemberg', location_scope='remote', country_code='DE')
             self.assertEqual(remote['total'], 0)
@@ -182,8 +180,7 @@ class StateSearchTests(unittest.TestCase):
             page = pg.list_jobs(self.engine, company_id=None, query=None, offset=0, limit=100, session=session,
                 state='Baden-Württemberg', profile_id=profile['id'], min_match_score=0, include_unknown=True)
             self.assertEqual({row['external_id'] for row in page['items']}, {'bw-one', 'bw-two'})
-            # The location-less expired job only entered through the employer's state before.
-            self.assertEqual(page['counts']['filtered']['expired'], 0)
+            self.assertEqual(page['counts']['filtered']['expired'], 1)
             for item in page['items']:
                 detail = api.get_job(item['id'], session, profile_id=profile['id'], state='Baden-Württemberg')
                 self.assertEqual(detail['geography'], item['geography'])

@@ -63,7 +63,7 @@ no historical releases have been reconstructed.
 
 ### Changed
 
-- Germany and state job searches use the work location only. The employer's or job feed's country or state is no longer a fallback, so a German company's role in Romania is not listed under Germany, and postings without a usable work location are left out of Germany and state searches.
+- Germany and state job searches use the work location only. The employer's or job feed's country or state is no longer a fallback, so a German company's role in Romania is not listed under Germany, A posting that states no work location at all stays in Germany and state searches and in Journey when its employer is in that country or state, flagged "Work location not stated in the posting" (hidden when a profile excludes uncertain matches).
 - Journey shows a job only after the local models have analysed it; until then it appears as "Analysing job…". Jobs in your search area are analysed first. After a job or CV edit, the previous match stays visible until it is refreshed. Score contributions are shown with one decimal.
 - Matcher v2 is the default (`RADIUS_MATCHER=v2`; set `v1` to return to the previous matcher for this release), with calibrated local job-fit scores from 0–100. Job details show the score contributions and supporting quotes. Language and work authorization contribute a combined deduction of at most five points on visible jobs. Only explicit, cited incompatibilities hide jobs during matching. The versioned background rebuild refreshes Journey rankings. Known limitation: on small held-out evaluation slices some score-range and on-site hide-recall targets are still below goal.
 
