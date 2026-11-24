@@ -1996,3 +1996,42 @@ html[data-theme="dark"] .score-breakdown {
   --sb-earned: #7fb48f; --sb-track: #33403f; --sb-loss: #e0957e; --sb-loss-soft: #4a3530; --sb-partial: #b9c27f;
 }
 html[data-theme="dark"] .fit-icon-none circle { stroke: #6f7d77; }
+
+/* Local matching progress on Journey: postings read and matches scored. */
+.analysis-progress {
+  --ap-surface: #fbfcfa; --ap-line: #e3e8e0; --ap-ink: #26352d; --ap-muted: #5d6b63;
+  --ap-done: #3c7051; --ap-queued: #dfe6dc; --ap-retrying: #c9a64b; --ap-failed: #a9573f;
+  margin: 15px 0 0; padding: 14px 16px 12px; border: 1px solid var(--ap-line); border-radius: 12px;
+  background: var(--ap-surface); color: var(--ap-ink);
+}
+html[data-theme="dark"] .analysis-progress {
+  --ap-surface: #1f282d; --ap-line: #36424a; --ap-ink: #e2eae4; --ap-muted: #a9b6b0;
+  --ap-done: #7fb48f; --ap-queued: #33403f; --ap-retrying: #d8bb6a; --ap-failed: #e0957e;
+}
+.analysis-progress-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.analysis-progress-head h2 { margin: 0; font-size: 14px; color: var(--ap-ink); }
+.analysis-progress-head span { font-size: 12px; color: var(--ap-muted); }
+.analysis-progress-head span.is-busy::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: var(--ap-done); animation: ap-pulse 1.6s ease-in-out infinite; }
+@keyframes ap-pulse { 50% { opacity: .3; } }
+.analysis-progress-row + .analysis-progress-row { margin-top: 12px; }
+.analysis-progress-label { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; margin-bottom: 5px; }
+.analysis-progress-label span { color: var(--ap-muted); font-variant-numeric: tabular-nums; }
+.analysis-progress-label b { color: var(--ap-ink); }
+.analysis-progress-bar { display: flex; height: 10px; overflow: hidden; border-radius: 999px; background: var(--ap-queued); }
+.analysis-progress-bar > span { height: 100%; transition: width .4s ease; }
+.analysis-progress-bar .is-done { background: var(--ap-done); }
+.analysis-progress-bar .is-queued { background: var(--ap-queued); }
+.analysis-progress-bar .is-retrying { background: var(--ap-retrying); }
+.analysis-progress-bar .is-failed { background: var(--ap-failed); }
+.analysis-progress-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 5px 0 0; font-size: 11px; color: var(--ap-muted); font-variant-numeric: tabular-nums; }
+.analysis-progress-meta span:first-child { font-weight: 700; color: var(--ap-ink); }
+.analysis-progress-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 10px 0 0; padding: 0; list-style: none; font-size: 11px; color: var(--ap-muted); }
+.analysis-progress-legend li::before { content: ''; display: inline-block; width: 9px; height: 9px; margin-right: 5px; border-radius: 2px; vertical-align: -1px; }
+.analysis-progress-legend .is-done::before { background: var(--ap-done); }
+.analysis-progress-legend .is-queued::before { background: var(--ap-queued); outline: 1px solid var(--ap-line); }
+.analysis-progress-legend .is-retrying::before { background: var(--ap-retrying); }
+.analysis-progress-legend .is-failed::before { background: var(--ap-failed); }
+@media (prefers-reduced-motion: reduce) {
+  .analysis-progress-bar > span { transition: none; }
+  .analysis-progress-head span.is-busy::before { animation: none; }
+}
