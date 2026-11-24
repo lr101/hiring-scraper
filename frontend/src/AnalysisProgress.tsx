@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-export type ProgressCounts = { done: number; queued: number; retrying: number; failed?: number; last_hour: number }
+export type ProgressCounts = { done: number; queued: number; retrying: number; failed?: number; skipped?: number; last_hour: number }
 export type AnalysisProgressData = { postings: ProgressCounts; matches: ProgressCounts; checked_at: string }
 
 const count = new Intl.NumberFormat('en')
@@ -29,6 +29,7 @@ export function remainingLabel(row: ProgressCounts): string | null {
 
 function ProgressRow({ label, row, unit }: { label: string; row: ProgressCounts; unit: string }) {
   const failed = row.failed ?? 0
+  const skipped = row.skipped ?? 0
   const total = row.done + row.queued + row.retrying + failed
   const share = (value: number) => (total ? `${(value / total) * 100}%` : '0%')
   const percent = total ? Math.floor((row.done / total) * 100) : 100
@@ -54,6 +55,9 @@ function ProgressRow({ label, row, unit }: { label: string; row: ProgressCounts;
       {row.last_hour > 0 && <span>{count.format(row.last_hour)} in the last hour</span>}
       {remaining && <span>{remaining}</span>}
     </p>
+    {skipped > 0 && <p className="analysis-progress-skipped">
+      {count.format(skipped)} skipped (older or low similarity)
+    </p>}
   </div>
 }
 
@@ -72,7 +76,7 @@ export function AnalysisProgressView({ data }: { data: AnalysisProgressData }) {
   </section>
 }
 
-/** Polls while the local models still have work, then stops. `onProgress` lets Journey reload once more roles are scored. */
+/** Polls while the local models still have work, then stops. */
 export default function AnalysisProgress({ base, profileIds, onProgress }: {
   base: string; profileIds: number[]; onProgress?: (data: AnalysisProgressData) => void
 }) {
@@ -96,6 +100,6 @@ export default function AnalysisProgress({ base, profileIds, onProgress }: {
   }, [base, key])
   if (!data) return null
   const total = (row: ProgressCounts) => row.done + row.queued + row.retrying + (row.failed ?? 0)
-  if (!total(data.postings) && !total(data.matches)) return null
+  if (!total(data.postings) && !(data.postings.skipped ?? 0) && !total(data.matches)) return null
   return <AnalysisProgressView data={data} />
 }

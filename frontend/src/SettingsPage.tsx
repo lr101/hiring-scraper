@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import AnalysisProgress from './AnalysisProgress'
 import SiteHeader from './SiteHeader'
 import { getThemePreference, setThemePreference } from './theme'
 import type { ThemePreference } from './theme'
@@ -79,6 +80,18 @@ function ApplicationModelSettings({ onSaved }: { onSaved: () => void }) {
 export default function SettingsPage() {
   const [theme, setTheme] = useState<ThemePreference>(getThemePreference)
   const [modelRevision, setModelRevision] = useState(0)
+  const [profileIds, setProfileIds] = useState<number[]>([])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch(`${API}/api/v1/profiles`, { cache: 'no-store', signal: controller.signal })
+      .then(response => { if (!response.ok) throw new Error(); return response.json() })
+      .then((data: { items?: Array<{ id?: number }> }) => {
+        const ids = (data.items ?? []).map(item => item.id).filter((id): id is number => typeof id === 'number' && id >= 1)
+        setProfileIds(ids)
+      }).catch(() => { /* Progress is optional when profiles cannot be loaded. */ })
+    return () => controller.abort()
+  }, [])
 
   function chooseTheme(value: ThemePreference) {
     setThemePreference(value)
@@ -102,6 +115,7 @@ export default function SettingsPage() {
           <span className="settings-link-copy"><strong>Manage job profiles</strong><small>Edit the details used to find your next role.</small></span>
           <span className="settings-link-arrow" aria-hidden="true">→</span>
         </a>
+        {profileIds.length > 0 && <AnalysisProgress base={API} profileIds={profileIds} />}
       </section>
 
       <section className="detail-panel settings-card" aria-labelledby="chatgpt-heading">

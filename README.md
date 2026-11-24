@@ -126,11 +126,34 @@ requirements with the CV line that supports each. Only explicit incompatibilitie
 profile hide a job.
 
 Jobs the models have not analysed yet show **Analysing job…** and stay out of
-Journey until they are done; jobs in your search area are analysed first. After a
-job or CV edit, the previous result stays visible (marked as updating) until the
-new analysis replaces it. Results are stored per profile/job in
-`profile_job_matches`; the profile match worker rescores from stored analyses and
-evidence and never runs inference itself.
+Journey until they are done; jobs in a profile's local search area are analysed
+first. To keep the local LLM's throughput focused on likely matches when
+covering all of Germany, automatic analysis applies a two-stage gate:
+
+- **Age cutoff** (`RADIUS_ANALYSIS_MAX_AGE_DAYS`, default `14`): only postings
+  published within the window (falling back to `first_seen_at` when `date_posted`
+  is not an ISO date) enter or remain eligible in the automatic queue.
+- **Embedding pre-rank** (`RADIUS_ANALYSIS_MIN_SIMILARITY`, default `0.80`):
+  queued postings are scored in bounded SQL batches by cosine similarity between
+  the posting's `intfloat/multilingual-e5-small` embedding and each profile's
+  embedding. `0.80` matches the lower relevance band of `multilingual-e5-small`
+  (whose cosine similarities sit roughly in `0.75–0.93`, with unrelated postings
+  typically below `0.80`). Postings below the threshold are skipped, while
+  eligible postings run in descending similarity order (still preferring in-area
+  roles when a profile has a local radius). Postings waiting for their first
+  embedding wait without blocking the queue.
+- **User-intent override**: postings you save, move to any non-automatic Journey
+  stage, or open on the job page are queued with priority and analysed regardless
+  of age or similarity.
+
+**Settings** shows **Local matching progress** for gated postings, profile
+matches, last-hour throughput, ETA, and a muted count of postings skipped due to
+age or low similarity. After a job or CV edit, the previous result stays visible
+(marked as updating) until the new analysis replaces it, and gate changes
+(profile edits, new profiles, or threshold updates) re-score eligible postings
+automatically. Results are stored per profile/job in `profile_job_matches`; the
+profile match worker rescores from stored analyses and evidence and never runs
+inference itself.
 
 Explicit CV language sections can supply a missing language level without
 replacing a saved level; absence of a language claim remains unknown.

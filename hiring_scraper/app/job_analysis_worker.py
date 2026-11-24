@@ -18,18 +18,26 @@ import time
 from datetime import timedelta
 from urllib.request import Request, urlopen
 
-from sqlalchemy import and_, delete, exists, func, or_, select, text, true
+from sqlalchemy import and_, delete, exists, func, not_, or_, select, text, true, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import lazyload, selectinload
 
 from hiring_scraper.app import source_changes
+from hiring_scraper.app.analysis_gate import (
+    current_profile_set_hash,
+    fresh_job_clause,
+    min_similarity,
+    profile_embedding_hash,
+    profile_embedding_text,
+    user_intent_job_exists,
+)
 from hiring_scraper.app.board_scope import geographic_scope
 from hiring_scraper.app.database import SessionLocal, engine, log_worker_failure
 from hiring_scraper.app.local_llm import ModelRequestRejected, analyse_lines, rerank
 from hiring_scraper.app.match_documents import USABLE_ANALYSIS_STATUSES
 from hiring_scraper.app.models import (
-    Job, JobAnalysis, JobAnalysisQueue, JobLocation, MatchEvidence, MatchEvidenceQueue, ProfileEvidenceUnits,
-    UserProfile, utcnow,
+    Job, JobAnalysis, JobAnalysisQueue, JobApplication, JobLocation, MatchEvidence, MatchEvidenceQueue,
+    ProfileEvidenceUnits, SemanticSearchDocument, UserProfile, utcnow,
 )
 from hiring_scraper.job_analysis import (
     VERSION as ANALYSIS_VERSION, analysis_payload, job_line_entries, job_lines, result_hash, source_hash,
@@ -47,9 +55,11 @@ from hiring_scraper.semantic_matching import MODEL_KEY as EMBEDDING_MODEL_KEY
 LOG = logging.getLogger(__name__)
 POLL_SECONDS = max(1.0, float(os.getenv('JOB_ANALYSIS_POLL_SECONDS', '5')))
 EVIDENCE_PAIRS_PER_CYCLE = max(1, int(os.getenv('JOB_ANALYSIS_EVIDENCE_PAIRS', '6')))
+PRERANK_BATCH_SIZE = max(50, int(os.getenv('JOB_ANALYSIS_PRERANK_BATCH', '500')))
 CANDIDATE_WINDOW = 400
 MAX_RETRY_HOURS = 24
 _DEFAULT_AREA = (49.0068705, 8.4034195, 15.0)
+_COUNTRY_LABELS = {'de', 'germany', 'deutschland'}
 
 
 # --- model access ----------------------------------------------------------------
@@ -82,7 +92,7 @@ def _profiles(session) -> list[UserProfile]:
 
 
 def _profile_inputs(profile) -> dict:
-    """Matching preferences and CV evidence units, cached per profile revision.
+    """Matching preferences, CV evidence units, and query text, cached per profile revision.
 
     Every profile or CV edit bumps ``source_version`` (source_changes.profile_changed),
     so idle polls do not re-parse CVs every few seconds.
@@ -94,7 +104,15 @@ def _profile_inputs(profile) -> dict:
         return cached[1]
     preferences = profile.matching_preferences or {}
     source = units_source(preferences)
-    value = {'preferences': preferences, 'source': source, 'digest': units_hash(source)}
+    embed_text = profile_embedding_text(preferences)
+    embed_hash = profile_embedding_hash(embed_text) if embed_text else None
+    value = {
+        'preferences': preferences,
+        'source': source,
+        'digest': units_hash(source),
+        'embed_text': embed_text,
+        'embed_hash': embed_hash,
+    }
     _PROFILE_CACHE[profile.id] = (stamp, value)
     return value
 
@@ -102,16 +120,29 @@ def _profile_inputs(profile) -> dict:
 # --- scope and priority -------------------------------------------------------------
 
 def _areas(profiles) -> list[tuple[float, float, float, str | None, str]]:
+    """Real (non-country-wide) profile search areas used for in-area preference."""
     areas = []
     for profile in profiles:
-        area = _profile_inputs(profile)['preferences'].get('search_area') or {}
+        area = _profile_inputs(profile)['preferences'].get('search_area')
+        if not isinstance(area, dict) or not area:
+            continue
+        if area.get('search_scope') in ('country', 'state') or area.get('type') in ('country', 'state'):
+            continue
+        label = (area.get('label') or '').strip().casefold()
+        city = area.get('city')
+        if not city and label in _COUNTRY_LABELS:
+            continue
+        if area.get('latitude') is None or area.get('longitude') is None:
+            continue
         try:
-            latitude = float(area.get('latitude', _DEFAULT_AREA[0]))
-            longitude = float(area.get('longitude', _DEFAULT_AREA[1]))
+            latitude = float(area['latitude'])
+            longitude = float(area['longitude'])
             radius = float(area.get('radius_km', _DEFAULT_AREA[2]))
         except (TypeError, ValueError):
-            latitude, longitude, radius = _DEFAULT_AREA
-        areas.append((latitude, longitude, radius, area.get('city'), area.get('country_code') or 'DE'))
+            continue
+        if (latitude == 0.0 and longitude == 0.0) or not (0.0 < radius <= 250.0):
+            continue
+        areas.append((latitude, longitude, radius, city, area.get('country_code') or 'DE'))
     return areas
 
 
@@ -134,26 +165,81 @@ def _in_scope(job, areas) -> bool:
 
 
 def next_jobs_to_analyse(session, profiles, limit: int = 1) -> list[Job]:
-    """Queued jobs, in-area first (newest first), skipping ones waiting for a retry."""
+    """Next queued jobs for the LLM: priority/user-intent first, then gated fresh jobs
+    ordered by descending embedding similarity (preferring real local areas when set)."""
     now = utcnow()
-    areas = _areas(profiles)
-    base = (select(Job).join(JobAnalysisQueue, JobAnalysisQueue.job_id == Job.id)
-            .where(or_(JobAnalysisQueue.retry_at.is_(None), JobAnalysisQueue.retry_at <= now))
-            .options(selectinload(Job.locations)).order_by(Job.id.desc()))
-    found: list[Job] = []
-    if areas:
-        for job in session.scalars(base.where(_nearby_condition(areas)).limit(CANDIDATE_WINDOW)):
-            if _in_scope(job, areas):
-                found.append(job)
-                if len(found) >= limit:
-                    return found
+    ready = or_(JobAnalysisQueue.retry_at.is_(None), JobAnalysisQueue.retry_at <= now)
+    order_priority = (JobAnalysisQueue.similarity.desc().nulls_last(), Job.id.desc())
+
+    # 1. Explicit priority rows (saved, moved stage, or opened on job page) bypass age and similarity.
+    found: list[Job] = list(session.scalars(
+        select(Job).join(JobAnalysisQueue, JobAnalysisQueue.job_id == Job.id)
+        .where(JobAnalysisQueue.priority.is_(True), ready)
+        .options(selectinload(Job.locations))
+        .order_by(*order_priority)
+        .limit(limit)
+    ).all())
+    if len(found) >= limit:
+        return found[:limit]
+
+    # Catch user-intent applications that were queued before their priority flag was promoted.
     seen = {job.id for job in found}
-    for job in session.scalars(base.limit(limit + len(seen))):
+    intent_ids = select(JobApplication.job_id).where(
+        not_(and_(JobApplication.auto_created.is_(True), JobApplication.status == 'new'))
+    )
+    for job in session.scalars(
+        select(Job).join(JobAnalysisQueue, JobAnalysisQueue.job_id == Job.id)
+        .where(JobAnalysisQueue.priority.is_(False), Job.id.in_(intent_ids), ready)
+        .options(selectinload(Job.locations))
+        .order_by(*order_priority)
+        .limit(limit + len(seen))
+    ):
         if job.id not in seen:
             found.append(job)
+            seen.add(job.id)
+            if len(found) >= limit:
+                return found[:limit]
+
+    # 2. Fresh postings scored against current profile embeddings above the similarity threshold.
+    profile_hash = current_profile_set_hash(session)
+    threshold = min_similarity()
+    if profile_hash is None:
+        if threshold >= 0.0:
+            return found
+        scored_base = (
+            select(Job).join(JobAnalysisQueue, JobAnalysisQueue.job_id == Job.id)
+            .where(ready, fresh_job_clause())
+            .options(selectinload(Job.locations))
+            .order_by(Job.id.desc())
+        )
+    else:
+        scored_base = (
+            select(Job).join(JobAnalysisQueue, JobAnalysisQueue.job_id == Job.id)
+            .where(
+                JobAnalysisQueue.profile_set_hash == profile_hash,
+                JobAnalysisQueue.similarity.is_not(None),
+                JobAnalysisQueue.similarity >= threshold,
+                ready,
+                fresh_job_clause(),
+            )
+            .options(selectinload(Job.locations))
+            .order_by(JobAnalysisQueue.similarity.desc(), Job.id.desc())
+        )
+    areas = _areas(profiles)
+    if areas:
+        for job in session.scalars(scored_base.where(_nearby_condition(areas)).limit(CANDIDATE_WINDOW)):
+            if job.id not in seen and _in_scope(job, areas):
+                found.append(job)
+                seen.add(job.id)
+                if len(found) >= limit:
+                    return found[:limit]
+    for job in session.scalars(scored_base.limit(limit + len(seen))):
+        if job.id not in seen:
+            found.append(job)
+            seen.add(job.id)
             if len(found) >= limit:
                 break
-    return found
+    return found[:limit]
 
 
 def _requeue_evidence(statement):
@@ -178,18 +264,63 @@ def queue_evidence(session, *, job_ids=None, profile_id: int | None = None) -> N
         pg_insert(MatchEvidenceQueue).from_select(['profile_id', 'job_id', 'queued_at'], pairs)))
 
 
+def prune_expired_queue_rows(*, batch_size: int = 5000) -> int:
+    """Remove inactive, already-analysed, or age-expired non-priority rows from the queue."""
+    with SessionLocal() as session:
+        current = exists(select(1).where(
+            JobAnalysis.job_id == Job.id,
+            JobAnalysis.version == ANALYSIS_VERSION,
+            JobAnalysis.status == 'ok',
+        ))
+        stale_row = or_(
+            Job.is_active.is_(False),
+            current,
+            and_(
+                JobAnalysisQueue.priority.is_(False),
+                ~user_intent_job_exists(Job.id),
+                ~fresh_job_clause(),
+            ),
+        )
+        victims = (
+            select(JobAnalysisQueue.job_id)
+            .join(Job, Job.id == JobAnalysisQueue.job_id)
+            .where(stale_row)
+            .limit(batch_size)
+        )
+        result = session.execute(delete(JobAnalysisQueue).where(JobAnalysisQueue.job_id.in_(victims)))
+        session.commit()
+        return int(result.rowcount or 0)
+
+
 def reconcile_queues() -> None:
-    """Once per start: queue work left behind by model, prompt or parser version changes
-    and pairs whose evidence is missing or belongs to another analysis output.
+    """Once per start: prune gated-out queue rows, queue fresh or user-intent active postings
+    missing a current analysis, and queue missing pair evidence for analysed postings.
 
     A one-time pass at startup, not a poll: normal operation only touches queues.
     """
     with SessionLocal() as session:
+        # Promote queued postings with user intent so they bypass age/similarity gates.
+        session.execute(
+            update(JobAnalysisQueue)
+            .where(JobAnalysisQueue.priority.is_(False), user_intent_job_exists(JobAnalysisQueue.job_id))
+            .values(priority=True)
+        )
+        session.commit()
+
+    while prune_expired_queue_rows() > 0:
+        pass
+
+    with SessionLocal() as session:
         current = exists(select(1).where(JobAnalysis.job_id == Job.id, JobAnalysis.version == ANALYSIS_VERSION,
                                          JobAnalysis.status == 'ok'))
+        intent = user_intent_job_exists(Job.id)
+        eligible_source = or_(intent, fresh_job_clause())
         session.execute(pg_insert(JobAnalysisQueue).from_select(
-            ['job_id', 'queued_at'], select(Job.id, func.clock_timestamp()).where(Job.is_active.is_(True), ~current))
-            .on_conflict_do_nothing())
+            ['job_id', 'queued_at', 'priority'],
+            select(Job.id, func.clock_timestamp(), intent).where(
+                Job.is_active.is_(True), ~current, eligible_source,
+            ),
+        ).on_conflict_do_nothing())
         matching = exists(select(1).where(
             MatchEvidence.profile_id == UserProfile.id, MatchEvidence.job_id == JobAnalysis.job_id,
             MatchEvidence.version == EVIDENCE_VERSION, MatchEvidence.analysis_hash == JobAnalysis.result_hash))
@@ -201,37 +332,123 @@ def reconcile_queues() -> None:
         session.commit()
 
 
-# --- stage 1: profile evidence units ----------------------------------------------
+# --- stage 1: profile evidence units & profile query vectors ----------------------
 
 def refresh_profile_units_once(*, embed_fn=embed) -> bool:
-    """Embed one profile's changed CV lines, then queue its evidence for every analysed job."""
+    """Embed one profile's changed CV lines and profile query vector, then queue its evidence."""
     with SessionLocal() as session:
         profiles = _profiles(session)
-        stored = {row.profile_id: (row.version, row.source_hash) for row in session.execute(
+        stored_units = {row.profile_id: (row.version, row.source_hash) for row in session.execute(
             select(ProfileEvidenceUnits.profile_id, ProfileEvidenceUnits.version, ProfileEvidenceUnits.source_hash))}
+        stored_docs = {row.entity_id: row.content_hash for row in session.execute(
+            select(SemanticSearchDocument.entity_id, SemanticSearchDocument.content_hash).where(
+                SemanticSearchDocument.entity_type == 'profile',
+                SemanticSearchDocument.model_revision == EMBEDDING_MODEL_KEY,
+            ))}
         work = None
         for profile in profiles:
             inputs = _profile_inputs(profile)
             source, digest = inputs['source'], inputs['digest']
-            if stored.get(profile.id) != (UNITS_VERSION, digest):
-                work = (profile.id, source, digest)
+            embed_text, embed_hash = inputs['embed_text'], inputs['embed_hash']
+            needs_units = stored_units.get(profile.id) != (UNITS_VERSION, digest)
+            needs_doc = stored_docs.get(profile.id) != embed_hash
+            if needs_units or needs_doc:
+                work = (profile.id, source, digest, embed_text, embed_hash, needs_units, needs_doc)
                 break
     if work is None:
         return False
-    profile_id, source, digest = work
-    vectors = embed_units(source, embed_fn)
+    profile_id, source, digest, embed_text, embed_hash, needs_units, needs_doc = work
+    vectors = embed_units(source, embed_fn) if needs_units else None
+    profile_vector = embed_fn([embed_text], 'query')[0] if (needs_doc and embed_text) else None
     with SessionLocal() as session:
         profile = session.get(UserProfile, profile_id)
-        if profile is None or _profile_inputs(profile)['digest'] != digest:
+        if profile is None:
+            return True
+        current_inputs = _profile_inputs(profile)
+        if current_inputs['digest'] != digest or current_inputs['embed_hash'] != embed_hash:
             return True  # Edited meanwhile; the next cycle embeds the new version.
-        row = session.get(ProfileEvidenceUnits, profile_id) or ProfileEvidenceUnits(profile_id=profile_id)
-        row.version, row.source_hash, row.payload, row.vectors = UNITS_VERSION, digest, source, vectors
-        row.updated_at = utcnow()
-        session.merge(row)
-        queue_evidence(session, profile_id=profile_id)
+        if needs_units and vectors is not None:
+            row = session.get(ProfileEvidenceUnits, profile_id) or ProfileEvidenceUnits(profile_id=profile_id)
+            row.version, row.source_hash, row.payload, row.vectors = UNITS_VERSION, digest, source, vectors
+            row.updated_at = utcnow()
+            session.merge(row)
+            queue_evidence(session, profile_id=profile_id)
+        if needs_doc:
+            if profile_vector is not None and embed_hash is not None:
+                now = utcnow()
+                session.execute(pg_insert(SemanticSearchDocument).values(
+                    entity_type='profile',
+                    entity_id=profile_id,
+                    content_hash=embed_hash,
+                    model_revision=EMBEDDING_MODEL_KEY,
+                    embedding=profile_vector,
+                    indexed_at=now,
+                ).on_conflict_do_update(
+                    index_elements=['entity_type', 'entity_id'],
+                    set_={
+                        'content_hash': embed_hash,
+                        'model_revision': EMBEDDING_MODEL_KEY,
+                        'embedding': profile_vector,
+                        'indexed_at': now,
+                    },
+                ))
+            else:
+                session.execute(delete(SemanticSearchDocument).where(
+                    SemanticSearchDocument.entity_type == 'profile',
+                    SemanticSearchDocument.entity_id == profile_id,
+                ))
         session.commit()
-    LOG.info('Embedded %d CV evidence units for profile %d', len(source['units']), profile_id)
+    if needs_units:
+        LOG.info('Embedded %d CV evidence units for profile %d', len(source['units']), profile_id)
+    if needs_doc:
+        LOG.info('Updated pre-rank embedding for profile %d', profile_id)
     return True
+
+
+def refresh_prerank_scores_once(*, batch_size: int = PRERANK_BATCH_SIZE) -> int:
+    """Compute max profile cosine similarity for a bounded batch of queued postings.
+
+    Postings without a job embedding yet stay unscored until ``semantic_search_worker``
+    indexes them; they neither block scored rows nor get dropped.
+    """
+    with SessionLocal() as session:
+        profile_hash = current_profile_set_hash(session)
+        if profile_hash is None:
+            return 0
+        result = session.execute(
+            text("""
+                WITH to_score AS (
+                    SELECT q.job_id,
+                           (
+                               SELECT MAX(COALESCE(
+                                   NULLIF(1.0 - (jd.embedding <=> pd.embedding), 'NaN'::double precision),
+                                   0.0
+                               ))
+                                 FROM semantic_search_documents AS pd
+                                WHERE pd.entity_type = 'profile'
+                                  AND pd.model_revision = :model
+                           ) AS max_sim
+                      FROM job_analysis_queue AS q
+                      JOIN semantic_search_documents AS jd
+                        ON jd.entity_type = 'job'
+                       AND jd.entity_id = q.job_id
+                       AND jd.model_revision = :model
+                     WHERE q.profile_set_hash IS NULL
+                        OR q.profile_set_hash < :profile_hash
+                        OR q.profile_set_hash > :profile_hash
+                     LIMIT :batch_size
+                )
+                UPDATE job_analysis_queue AS q
+                   SET similarity = to_score.max_sim,
+                       profile_set_hash = :profile_hash
+                  FROM to_score
+                 WHERE q.job_id = to_score.job_id
+                   AND to_score.max_sim IS NOT NULL
+            """),
+            {'model': EMBEDDING_MODEL_KEY, 'profile_hash': profile_hash, 'batch_size': batch_size},
+        )
+        session.commit()
+        return int(result.rowcount or 0)
 
 
 # --- stage 2: job analysis ---------------------------------------------------------
@@ -355,8 +572,9 @@ def _queued_pairs(session, limit: int, job_ids: list[int] | None = None) -> list
         if job_ids is not None:
             query = query.where(Job.id.in_(job_ids))
         areas = _areas([profile])
-        rows = [(job, queued_at) for job, queued_at in session.execute(
+        rows = ([(job, queued_at) for job, queued_at in session.execute(
             query.where(_nearby_condition(areas)).limit(CANDIDATE_WINDOW)) if _in_scope(job, areas)]
+            if areas else [])
         if len(rows) < limit:
             seen = {job.id for job, _ in rows}
             rows += [(job, queued_at) for job, queued_at in session.execute(query.limit(limit + len(seen)))
@@ -456,11 +674,13 @@ class _Stage:
 
 
 _STAGES = {name: _Stage(name) for name in ('profile units', 'evidence', 'job analysis')}
+PRUNE_INTERVAL_SECONDS = 3600.0
 
 
 def run_cycle() -> bool:
     """One bounded pass; returns True when any work was done."""
     worked = _STAGES['profile units'].run(refresh_profile_units_once)
+    worked = bool(refresh_prerank_scores_once()) or worked
     worked = _STAGES['evidence'].run(refresh_evidence_once) or worked
     analysed: list[int] = []
 
@@ -504,9 +724,13 @@ def main() -> None:
         except Exception as error:
             log_worker_failure(LOG, 'Could not reconcile job analysis queues; retrying', error)
             time.sleep(POLL_SECONDS)
+    next_prune = time.monotonic() + PRUNE_INTERVAL_SECONDS
     while True:
         try:
             worked = run_cycle()
+            if time.monotonic() >= next_prune:
+                prune_expired_queue_rows()
+                next_prune = time.monotonic() + PRUNE_INTERVAL_SECONDS
         except Exception as error:
             log_worker_failure(LOG, 'Job analysis cycle failed; retrying', error)
             worked = False

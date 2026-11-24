@@ -65,7 +65,7 @@ try {
   const { AnalysisProgressView, remainingLabel } = await server.ssrLoadModule('/src/AnalysisProgress.tsx')
   const progress = renderToStaticMarkup(React.createElement(AnalysisProgressView, { data: {
     checked_at: '2026-11-24T12:00:00Z',
-    postings: { done: 300, queued: 90, retrying: 6, failed: 4, last_hour: 30 },
+    postings: { done: 300, queued: 90, retrying: 6, failed: 4, skipped: 12500, last_hour: 30 },
     matches: { done: 120, queued: 0, retrying: 0, last_hour: 12 },
   } }))
   assert.match(progress, /Local matching.*Working through the queue/)
@@ -74,14 +74,17 @@ try {
   assert.match(progress, /class="is-done" style="width:75%"/)
   assert.match(progress, /90 queued · 6 retrying later · 4 failed/)
   assert.match(progress, /about 3 h left/)
+  assert.match(progress, /class="analysis-progress-skipped">12,500 skipped \(older or low similarity\)<\/p>/)
+  assert.doesNotMatch(progress, /is-skipped/)
   assert.match(progress, /Matches scored.*<b>120<\/b> of 120 profile matches/)
   assert.equal(remainingLabel({ done: 0, queued: 5, retrying: 0, last_hour: 0 }), 'starting…')
   assert.equal(remainingLabel({ done: 5, queued: 10, retrying: 0, last_hour: 60 }), 'about 10 min left')
-  assert.equal(remainingLabel({ done: 5, queued: 0, retrying: 0, last_hour: 60 }), null)
+  assert.equal(remainingLabel({ done: 5, queued: 0, retrying: 0, skipped: 9999, last_hour: 60 }), null)
   const idle = renderToStaticMarkup(React.createElement(AnalysisProgressView, { data: {
-    checked_at: '', postings: { done: 3, queued: 0, retrying: 0, failed: 0, last_hour: 0 },
+    checked_at: '', postings: { done: 3, queued: 0, retrying: 0, failed: 0, skipped: 0, last_hour: 0 },
     matches: { done: 3, queued: 0, retrying: 0, last_hour: 0 } } }))
   assert.match(idle, /Up to date/)
+  assert.doesNotMatch(idle, /analysis-progress-skipped/)
 
   const { default: JobEvidence, JobPostingAnalysis } = await server.ssrLoadModule('/src/JobEvidence.tsx')
   const postingEvidence = (state, analysis = null) =>

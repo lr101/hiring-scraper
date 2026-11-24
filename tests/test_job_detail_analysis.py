@@ -64,9 +64,12 @@ class JobDetailAnalysisTests(unittest.TestCase):
         self.session.add(models.JobAnalysisQueue(job_id=self.job.id))
         self.assert_posting_analysis('outdated', refreshing=True)
 
-    def test_earlier_analyzer_version_is_outdated_even_before_requeue(self):
+    def test_earlier_analyzer_version_is_outdated_and_priority_requeued_on_open(self):
         self.save_analysis('ok', version='older-model')
-        self.assert_posting_analysis('outdated')
+        self.assert_posting_analysis('outdated', refreshing=True)
+        queued = self.session.get(models.JobAnalysisQueue, self.job.id)
+        self.assertIsNotNone(queued)
+        self.assertTrue(queued.priority)
 
     def test_closed_posting_retains_analysis_without_refreshing(self):
         self.job.is_active = False
@@ -87,11 +90,12 @@ class JobDetailAnalysisTests(unittest.TestCase):
         self.assertEqual(detail.get('analysis_state'), 'unavailable')
         self.assertIsNone(detail['analysis'])
 
-    def test_failure_from_earlier_analyzer_is_pending_when_queued(self):
+    def test_failure_from_earlier_analyzer_is_priority_queued_on_open(self):
         self.save_analysis('failed', version='older-model')
-        self.assertEqual(self.detail().get('analysis_state'), 'unavailable')
-        self.session.add(models.JobAnalysisQueue(job_id=self.job.id))
         self.assertEqual(self.detail().get('analysis_state'), 'pending')
+        queued = self.session.get(models.JobAnalysisQueue, self.job.id)
+        self.assertIsNotNone(queued)
+        self.assertTrue(queued.priority)
 
     def test_failed_analysis_is_reported_while_waiting_for_retry(self):
         self.save_analysis('failed')
@@ -101,10 +105,20 @@ class JobDetailAnalysisTests(unittest.TestCase):
         self.assertIsNone(detail['analysis'])
         self.assertNotIn('Internal worker error', str(detail))
 
-    def test_posting_without_analysis_or_queue_is_unavailable(self):
+    def test_active_posting_without_analysis_is_priority_queued_on_open(self):
+        detail = self.detail()
+        self.assertEqual(detail.get('analysis_state'), 'pending')
+        self.assertIsNone(detail['analysis'])
+        queued = self.session.get(models.JobAnalysisQueue, self.job.id)
+        self.assertIsNotNone(queued)
+        self.assertTrue(queued.priority)
+
+    def test_closed_posting_without_analysis_stays_unavailable_and_unqueued(self):
+        self.job.is_active = False
         detail = self.detail()
         self.assertEqual(detail.get('analysis_state'), 'unavailable')
         self.assertIsNone(detail['analysis'])
+        self.assertIsNone(self.session.get(models.JobAnalysisQueue, self.job.id))
 
     def test_job_detail_can_omit_analysis_for_application_lookup(self):
         self.save_analysis('ok')

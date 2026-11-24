@@ -1997,7 +1997,7 @@ html[data-theme="dark"] .score-breakdown {
 }
 html[data-theme="dark"] .fit-icon-none circle { stroke: #6f7d77; }
 
-/* Local matching progress on Journey: postings read and matches scored. */
+/* Local matching progress in Settings: postings read and matches scored. */
 .analysis-progress {
   --ap-surface: #fbfcfa; --ap-line: #e3e8e0; --ap-ink: #26352d; --ap-muted: #5d6b63;
   --ap-done: #3c7051; --ap-queued: #dfe6dc; --ap-retrying: #c9a64b; --ap-failed: #a9573f;
@@ -2025,6 +2025,7 @@ html[data-theme="dark"] .analysis-progress {
 .analysis-progress-bar .is-failed { background: var(--ap-failed); }
 .analysis-progress-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 5px 0 0; font-size: 11px; color: var(--ap-muted); font-variant-numeric: tabular-nums; }
 .analysis-progress-meta span:first-child { font-weight: 700; color: var(--ap-ink); }
+.analysis-progress-skipped { margin: 4px 0 0; font-size: 11px; color: var(--ap-muted); font-variant-numeric: tabular-nums; }
 .analysis-progress-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 10px 0 0; padding: 0; list-style: none; font-size: 11px; color: var(--ap-muted); }
 .analysis-progress-legend li::before { content: ''; display: inline-block; width: 9px; height: 9px; margin-right: 5px; border-radius: 2px; vertical-align: -1px; }
 .analysis-progress-legend .is-done::before { background: var(--ap-done); }

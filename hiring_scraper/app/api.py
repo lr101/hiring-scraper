@@ -1443,20 +1443,30 @@ def get_job(job_id: int, session: Session = Depends(get_session),
                  .where(Job.id == job_id))
     analysis_fields = ('occupation', 'industry', 'duties', 'requirements')
     if include_analysis:
-        queued = select(JobAnalysisQueue.job_id).where(JobAnalysisQueue.job_id == Job.id).exists()
-        statement = statement.outerjoin(JobAnalysis, JobAnalysis.job_id == Job.id).add_columns(
-            JobAnalysis.status, JobAnalysis.version, queued,
-            *(JobAnalysis.payload[field] for field in analysis_fields),
-        )
+        statement = (statement
+                     .outerjoin(JobAnalysis, JobAnalysis.job_id == Job.id)
+                     .outerjoin(JobAnalysisQueue, JobAnalysisQueue.job_id == Job.id)
+                     .add_columns(
+                         JobAnalysis.status, JobAnalysis.version,
+                         JobAnalysisQueue.job_id.is_not(None), JobAnalysisQueue.priority,
+                         *(JobAnalysis.payload[field] for field in analysis_fields),
+                     ))
     row = session.execute(statement).one_or_none()
     if row is None:
         raise HTTPException(status_code=404, detail="Job not found")
     job = row[0]
     data = search_snapshots.job_json(job, include_description=True)
+    promoted_priority = False
     if include_analysis:
-        analysis_status, version, is_queued, *values = row[1:]
+        analysis_status, version, is_queued, is_priority, *values = row[1:]
         is_current_version = version == ANALYSIS_VERSION
-        refreshing = job.is_active and is_queued
+        needs_analysis = job.is_active and not (analysis_status == 'ok' and is_current_version)
+        if needs_analysis and (not is_queued or not is_priority):
+            from hiring_scraper.app.analysis_gate import enqueue_priority_analysis
+            enqueue_priority_analysis(session, job.id)
+            promoted_priority = True
+            is_queued = True
+        refreshing = job.is_active and bool(is_queued)
         data['analysis_refreshing'] = refreshing
         data['analysis'] = None
         if analysis_status in USABLE_ANALYSIS_STATUSES and all(value is not None for value in values):
@@ -1488,6 +1498,8 @@ def get_job(job_id: int, session: Session = Depends(get_session),
             data['profile_match'] = search_snapshots.profile_match(job, profile, scope)
         application = canonical_application_states_for_jobs(session, profile.id, [job]).get(job.id)
         data['application'] = application_json(application) if application else None
+    if promoted_priority:
+        session.commit()
     return data
 
 

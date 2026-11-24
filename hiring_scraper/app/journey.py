@@ -164,6 +164,10 @@ def set_job_application(profile_id: int, job_id: int, request: ApplicationReques
                 event_type=momentum_event_type,
                 occurred_at=now,
             ))
+    from hiring_scraper.app.analysis_gate import enqueue_priority_if_needed
+    target_active = (job.is_active if target_job_id == job.id
+                     else bool(session.scalar(select(Job.is_active).where(Job.id == target_job_id))))
+    enqueue_priority_if_needed(session, target_job_id, is_active=target_active)
     session.commit()
     application = session.scalar(select(JobApplication).where(
         JobApplication.profile_id == profile_id, JobApplication.job_id == target_job_id)
@@ -200,13 +204,15 @@ def list_job_applications(profile_id: int,
 
 
 def _analysis_backlog(session, profile_ids) -> int:
-    """Active postings still waiting for the local models (analysis, or pair evidence for
-    the selected profiles). Closed postings and ones waiting for a retry are not counted."""
-    from sqlalchemy import or_, union
-    from hiring_scraper.app.models import Job, MatchEvidenceQueue, utcnow
+    """Active postings still waiting for the local models (gated analysis work, or pair
+    evidence for the selected profiles). Closed, gated-out and retrying postings are excluded."""
+    from sqlalchemy import union
+    from hiring_scraper.app.analysis_gate import queue_row_eligible_clause
+    from hiring_scraper.app.models import MatchEvidenceQueue
     now = utcnow()
     analysis = (select(JobAnalysisQueue.job_id).join(Job, Job.id == JobAnalysisQueue.job_id)
                 .where(Job.is_active.is_(True),
+                       queue_row_eligible_clause(),
                        or_(JobAnalysisQueue.retry_at.is_(None), JobAnalysisQueue.retry_at <= now)))
     evidence = (select(MatchEvidenceQueue.job_id).join(Job, Job.id == MatchEvidenceQueue.job_id)
                 .where(Job.is_active.is_(True), MatchEvidenceQueue.profile_id.in_(list(profile_ids)),
@@ -216,28 +222,54 @@ def _analysis_backlog(session, profile_ids) -> int:
 
 
 def analysis_progress(session, profile_ids) -> dict[str, Any]:
-    """Local model progress over active postings: postings read by the LLM and
-    profile matches scored by the reranker, with last-hour throughput for an ETA."""
+    """Local model progress over active postings: gated postings read by the LLM,
+    postings skipped by age or similarity, and profile matches scored by the reranker."""
     from sqlalchemy import exists
+    from hiring_scraper.app.analysis_gate import (
+        fresh_job_clause, max_age_days, min_similarity, queue_row_eligible_clause,
+    )
     from hiring_scraper.app.match_documents import USABLE_ANALYSIS_STATUSES
-    from hiring_scraper.app.models import Job, JobAnalysis, MatchEvidence, MatchEvidenceQueue, utcnow
+    from hiring_scraper.app.models import JobAnalysis, MatchEvidence, MatchEvidenceQueue
     now = utcnow()
     hour_ago = now - timedelta(hours=1)
     active = Job.is_active.is_(True)
+    max_days = max_age_days()
+    min_sim = min_similarity()
+    gated_in = queue_row_eligible_clause(max_days=max_days, min_sim=min_sim)
 
-    in_queue = exists().where(JobAnalysisQueue.job_id == JobAnalysis.job_id)
+    total_active = int(session.scalar(select(func.count()).select_from(Job).where(active)) or 0)
+    in_gated_queue = exists().where(JobAnalysisQueue.job_id == JobAnalysis.job_id, gated_in)
     analysed = session.execute(
-        select(func.count().filter(JobAnalysis.status.in_(USABLE_ANALYSIS_STATUSES), ~in_queue),
-               func.count().filter(JobAnalysis.status == 'failed', ~in_queue),
+        select(func.count().filter(JobAnalysis.status.in_(USABLE_ANALYSIS_STATUSES), ~in_gated_queue),
+               func.count().filter(JobAnalysis.status == 'failed', ~in_gated_queue),
                func.count().filter(JobAnalysis.analysed_at >= hour_ago,
                                    JobAnalysis.status.in_(USABLE_ANALYSIS_STATUSES)))
         .select_from(JobAnalysis).join(Job, Job.id == JobAnalysis.job_id).where(active)).one()
+    has_analysis = exists().where(JobAnalysis.job_id == JobAnalysisQueue.job_id)
+    awaiting_prerank = and_(
+        ~gated_in,
+        ~has_analysis,
+        fresh_job_clause(max_days=max_days),
+        JobAnalysisQueue.similarity.is_(None),
+    )
     waiting = session.execute(
-        select(func.count().filter(or_(JobAnalysisQueue.retry_at.is_(None), JobAnalysisQueue.retry_at <= now)),
-               func.count().filter(JobAnalysisQueue.retry_at > now))
+        select(
+            func.count().filter(gated_in, or_(JobAnalysisQueue.retry_at.is_(None), JobAnalysisQueue.retry_at <= now)),
+            func.count().filter(gated_in, JobAnalysisQueue.retry_at > now),
+            func.count().filter(awaiting_prerank),
+        )
         .select_from(JobAnalysisQueue).join(Job, Job.id == JobAnalysisQueue.job_id).where(active)).one()
-    postings = {'done': int(analysed[0]), 'queued': int(waiting[0]), 'retrying': int(waiting[1]),
-                'failed': int(analysed[1]), 'last_hour': int(analysed[2])}
+    done_count, failed_count, last_hour_count = int(analysed[0]), int(analysed[1]), int(analysed[2])
+    queued_count, retrying_count, awaiting_count = int(waiting[0]), int(waiting[1]), int(waiting[2])
+    skipped_count = max(0, total_active - done_count - failed_count - queued_count - retrying_count - awaiting_count)
+    postings = {
+        'done': done_count,
+        'queued': queued_count,
+        'retrying': retrying_count,
+        'failed': failed_count,
+        'skipped': skipped_count,
+        'last_hour': last_hour_count,
+    }
 
     ids = list(profile_ids)
     pair_queued = exists().where(MatchEvidenceQueue.profile_id == MatchEvidence.profile_id,

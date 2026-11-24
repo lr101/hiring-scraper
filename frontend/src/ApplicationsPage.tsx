@@ -2,8 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import SiteHeader from './SiteHeader'
 import JobFeedCard from './JobFeedCard'
 import JourneyConnections from './JourneyConnections'
-import AnalysisProgress from './AnalysisProgress'
-import type { AnalysisProgressData } from './AnalysisProgress'
 import { applicationStatuses, fetchApplicationResults, saveApplication, trackJobInteraction } from './applications'
 import type { Application, ApplicationStatus, ApplicationSwipeAction } from './applications'
 import { getApplicationMomentum } from './applicationMomentum'
@@ -169,18 +167,6 @@ export default function ApplicationsPage() {
   const savingKeysRef = useRef(new Set<string>())
   const [pendingStatuses, setPendingStatuses] = useState<Record<string, ApplicationStatus>>({})
   const activeProfileKey = activeProfileIds.join(',')
-  // Newly scored matches join the list: reload at most once a minute while the models work.
-  const scoredRef = useRef<{ done: number; at: number } | null>(null)
-  const reloadOnNewMatches = useCallback((progress: AnalysisProgressData) => {
-    const previous = scoredRef.current
-    const now = Date.now()
-    if (previous && progress.matches.done > previous.done && now - previous.at >= 60_000) {
-      scoredRef.current = { done: progress.matches.done, at: now }
-      setReloadKey(key => key + 1)
-    } else if (!previous) {
-      scoredRef.current = { done: progress.matches.done, at: now }
-    }
-  }, [])
   const focusProfileId = activeProfileIds[0] ?? profiles[0]?.id
   const allProfilesActive = profiles.length > 0 && activeProfileIds.length === profiles.length
   const hasSavingJob = savingKeys.size > 0
@@ -790,7 +776,6 @@ export default function ApplicationsPage() {
       {refreshingMatches && <p className="journey-notice" role="status">
         Finding matching roles… Your saved roles are available while matches update.
       </p>}
-      {profilesReady && activeProfileIds.length > 0 && <AnalysisProgress base={API} profileIds={activeProfileIds} onProgress={reloadOnNewMatches} />}
       {!refreshingMatches && analysisBacklog > 0 && <p className="journey-notice" role="status">
         Roles in your area are read first and appear here once checked against your CV.
       </p>}
