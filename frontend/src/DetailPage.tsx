@@ -34,7 +34,7 @@ type Job = {
   salary: string | null; description: string | null; is_active: boolean
   closed_at?: string | null
   enrichment: Enrichment; profile_match?: ProfileMatch
-  analysis_state?: AnalysisState; analysis?: PostingAnalysis | null
+  analysis_state?: AnalysisState; analysis?: PostingAnalysis | null; analysis_refreshing?: boolean
   application?: Application | null
   raw_metadata: Record<string, unknown>
 }
@@ -399,7 +399,7 @@ function JobPage({ job, profileId, onApplicationSaved }: {
         <Meta label="Salary" value={job.salary} />
         <Meta label="Location detail" value={[...new Set(job.locations.map(item => item.precision).filter(Boolean))].map(value => precisionLabels[value || ''] || value).join(' · ')} />
       </div>
-      <JobPostingAnalysis state={job.analysis_state} analysis={job.analysis} />
+      <JobPostingAnalysis state={job.analysis_state} analysis={job.analysis} refreshing={job.analysis_refreshing} />
       {job.description && <section className="job-description"><h2>Role description</h2><p>{job.description}</p></section>}
     </section>
     {job.enrichment && <JobEvidence enrichment={job.enrichment} match={job.profile_match} />}

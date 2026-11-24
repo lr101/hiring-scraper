@@ -49,7 +49,7 @@ export type Enrichment = {
   }[]
 }
 
-export type AnalysisState = 'ready' | 'pending' | 'failed' | 'unavailable'
+export type AnalysisState = 'ready' | 'outdated' | 'pending' | 'failed' | 'unavailable'
 type PostingQuote = { line: number; text: string }
 type PostingRequirement = PostingQuote & { need: 'must' | 'nice'; kind: string }
 export type PostingAnalysis = {
@@ -74,12 +74,17 @@ const requirementGroups = [
   { need: 'nice', label: 'Nice-to-haves' },
 ] as const
 
-export function JobPostingAnalysis({ state, analysis }: { state?: AnalysisState; analysis?: PostingAnalysis | null }) {
+export function JobPostingAnalysis({ state, analysis, refreshing }: {
+  state?: AnalysisState; analysis?: PostingAnalysis | null; refreshing?: boolean
+}) {
   return <section className="job-posting-analysis" aria-labelledby="job-posting-analysis-heading">
     <h2 id="job-posting-analysis-heading">What this job asks for</h2>
     {state === 'pending' ? <span className="application-match-refresh-tag" role="status">Reading this posting…</span>
       : state === 'failed' ? <p className="muted">Could not read this posting.</p>
       : analysis ? <>
+        {state === 'outdated' && <p className="muted" role="status">
+          {refreshing ? 'Earlier analysis — updating…' : 'Earlier analysis'}
+        </p>}
         {(analysis.occupation || analysis.industry) && <div className="job-overview-tags">
           {analysis.occupation && <span className="job-overview-tag">Field · {analysis.occupation}</span>}
           {analysis.industry && <span className="job-overview-tag">Industry · {analysis.industry}</span>}

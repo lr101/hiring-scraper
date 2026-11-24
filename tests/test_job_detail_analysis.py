@@ -21,7 +21,7 @@ class JobDetailAnalysisTests(unittest.TestCase):
         self.session.add(self.job)
         self.session.flush()
 
-    def save_analysis(self, status):
+    def save_analysis(self, status, version=VERSION):
         lines = ['Job title: Archivist', 'Catalogue new acquisitions.', 'Archival training required.', 'Latin is a plus.']
         payload = {} if status == 'failed' else analysis_payload(
             lines, 'OCC archival science\nIND museums\nDUTIES\nD 1 | Catalogue new acquisitions.\n'
@@ -29,8 +29,8 @@ class JobDetailAnalysisTests(unittest.TestCase):
             ['title', 'neutral', 'neutral', 'neutral'],
         )
         self.session.add(models.JobAnalysis(
-            job_id=self.job.id, version=VERSION, status=status, source_hash=source_hash(lines),
-            result_hash=result_hash(VERSION, payload) if payload else '', payload=payload,
+            job_id=self.job.id, version=version, status=status, source_hash=source_hash(lines),
+            result_hash=result_hash(version, payload) if payload else '', payload=payload,
             error='Internal worker error' if status == 'failed' else None,
         ))
 
@@ -38,9 +38,10 @@ class JobDetailAnalysisTests(unittest.TestCase):
         self.session.flush()
         return api.get_job(self.job.id, self.session)
 
-    def assert_ready_analysis(self):
+    def assert_posting_analysis(self, state='ready', refreshing=False):
         detail = self.detail()
-        self.assertEqual(detail.get('analysis_state'), 'ready')
+        self.assertEqual(detail.get('analysis_state'), state)
+        self.assertEqual(detail.get('analysis_refreshing'), refreshing)
         self.assertNotIn('profile_match', detail)
         self.assertEqual(detail['analysis'], {
             'occupation': 'archival science',
@@ -54,18 +55,41 @@ class JobDetailAnalysisTests(unittest.TestCase):
 
     def test_ready_analysis_exposes_posting_evidence_only(self):
         self.save_analysis('ok')
-        self.assert_ready_analysis()
+        self.assert_posting_analysis()
 
-    def test_stale_analysis_stays_ready_during_refresh(self):
+    def test_stale_analysis_is_outdated_during_refresh(self):
         self.save_analysis('stale')
         self.session.add(models.JobAnalysisQueue(job_id=self.job.id))
-        self.assert_ready_analysis()
+        self.assert_posting_analysis('outdated', refreshing=True)
+
+    def test_earlier_analyzer_version_is_outdated_even_before_requeue(self):
+        self.save_analysis('ok', version='older-model')
+        self.assert_posting_analysis('outdated')
+
+    def test_closed_posting_retains_analysis_without_refreshing(self):
+        self.job.is_active = False
+        self.save_analysis('stale')
+        self.session.add(models.JobAnalysisQueue(job_id=self.job.id))
+        self.assert_posting_analysis('outdated')
 
     def test_queued_posting_without_analysis_is_pending(self):
         self.session.add(models.JobAnalysisQueue(job_id=self.job.id))
         detail = self.detail()
         self.assertEqual(detail.get('analysis_state'), 'pending')
         self.assertIsNone(detail['analysis'])
+
+    def test_closed_queued_posting_without_analysis_is_unavailable(self):
+        self.job.is_active = False
+        self.session.add(models.JobAnalysisQueue(job_id=self.job.id))
+        detail = self.detail()
+        self.assertEqual(detail.get('analysis_state'), 'unavailable')
+        self.assertIsNone(detail['analysis'])
+
+    def test_failure_from_earlier_analyzer_is_pending_when_queued(self):
+        self.save_analysis('failed', version='older-model')
+        self.assertEqual(self.detail().get('analysis_state'), 'unavailable')
+        self.session.add(models.JobAnalysisQueue(job_id=self.job.id))
+        self.assertEqual(self.detail().get('analysis_state'), 'pending')
 
     def test_failed_analysis_is_reported_while_waiting_for_retry(self):
         self.save_analysis('failed')
@@ -79,6 +103,18 @@ class JobDetailAnalysisTests(unittest.TestCase):
         detail = self.detail()
         self.assertEqual(detail.get('analysis_state'), 'unavailable')
         self.assertIsNone(detail['analysis'])
+
+    def test_job_detail_can_omit_analysis_for_application_lookup(self):
+        self.save_analysis('ok')
+        profile = models.UserProfile(name='Archivist')
+        self.session.add(profile)
+        self.session.flush()
+        self.session.add(models.JobApplication(profile_id=profile.id, job_id=self.job.id, status='open'))
+        self.session.flush()
+        detail = api.get_job(self.job.id, self.session, profile_id=profile.id, include_analysis=False)
+        self.assertEqual(detail['application']['status'], 'open')
+        self.assertNotIn('analysis', detail)
+        self.assertNotIn('analysis_state', detail)
 
     def test_stored_enrichment_omits_only_the_legacy_vocabulary_warning(self):
         warning = 'No skills recognized in the current vocabulary'
