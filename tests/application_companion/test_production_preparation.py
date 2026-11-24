@@ -387,6 +387,11 @@ class ProductionPreparationTests(ProductionHarness):
         overwrite = self.page.get_by_role('button', name='Overwrite with my edits')
         expect(overwrite).to_be_enabled()
         overwrite.click()
-        expect(self.page.get_by_text('Version 3 · English', exact=True)).to_be_visible()
-        body = self.context.request.get(f'{api}?job_id=1574').json()['letter']['body']
+        # The version label is gone from the lean toolbar; the conflict notice clears and the
+        # editor reports the save once version 3 is stored.
+        expect(self.page.get_by_text('Your local edits are still here.', exact=False)).to_have_count(0)
+        expect(self.page.get_by_text('Saved', exact=True)).to_be_visible()
+        saved = self.context.request.get(f'{api}?job_id=1574').json()['letter']
+        self.assertEqual(saved['version'], 3)
+        body = saved['body']
         self.assertEqual(body['paragraphs'][0]['text'], 'My reviewed paragraph.')
