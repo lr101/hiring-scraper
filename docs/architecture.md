@@ -143,9 +143,11 @@ Several processes write to the same PostgreSQL database. Keep these rules when a
   holds the owning profiles `FOR SHARE` (through `before_publish`) while closing them.
 - **Declare every source change.** After editing jobs, feeds, companies, profiles or
   model outputs, call the matching `source_changes.*_changed()` function before
-  commit. It drops caches whose inputs changed, refreshes precomputed Germany/state job
-  location scopes (`job_location_scope.py`), and queues rematching. Undeclared tracked
-  writes fail tests (strict mode) and log an error in production.
+  commit. It drops caches whose inputs changed and queues rematching. Undeclared tracked
+  writes fail tests (strict mode) and log an error in production. Precomputed Germany/state
+  location scope columns (`job_location_scope.py`) are invalidated directly by PostgreSQL
+  triggers whenever `jobs.location_text` or `job_locations` change, and recomputed in SQL
+  in bounded batches by `search_snapshot_worker`.
 - **Derived data is rebuilt from queues.** A declared job change is queued in `match_dirty_jobs` and, when its text
   changed or it was never analysed, in `job_analysis_queue`; companies and jobs needing search vectors are queued
   in `semantic_search_refreshes` by database triggers. Published analyses and changed CV evidence units queue pairs in

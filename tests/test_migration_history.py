@@ -9,8 +9,10 @@ from uuid import uuid4
 
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.engine import make_url
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import sessionmaker
 
 from tests import pg
 
@@ -239,8 +241,8 @@ class HistoricalUpgradeTests(unittest.TestCase):
                 self.assertEqual(connection.scalar(text(
                     "SELECT record->>'kind' FROM application_document_preparation_tasks")), 'prepare')
 
-    def test_0046_job_location_scope_up_down_up_and_backfill(self):
-        from hiring_scraper.app.job_location_scope import LOCATION_SCOPE_VERSION
+    def test_0046_job_location_scope_up_down_up_and_worker_backfill(self):
+        from hiring_scraper.app.job_location_scope import LOCATION_SCOPE_VERSION, backfill_job_location_scopes_once
 
         expected_columns = {'germany_candidate', 'location_states', 'location_scope_version'}
         expected_indexes = {
@@ -272,7 +274,6 @@ class HistoricalUpgradeTests(unittest.TestCase):
                     ('bayern-coords', 'Werk', ('South Site', None, 48.1351, 11.5820)),
                     ('paris', 'Paris, France', ('Paris', 'FR', 48.8566, 2.3522)),
                 ]
-                job_ids: dict[str, int] = {}
                 for ext, location_text, loc in seed_jobs:
                     job_id = connection.execute(text(
                         "INSERT INTO jobs (feed_id, external_id, title, url, location_text, is_remote, "
@@ -286,7 +287,6 @@ class HistoricalUpgradeTests(unittest.TestCase):
                         'url': f'https://example.com/jobs/{ext}',
                         'loc': location_text,
                     }).scalar_one()
-                    job_ids[ext] = job_id
                     if loc is not None:
                         label, country_code, lat, lon = loc
                         connection.execute(text(
@@ -311,11 +311,24 @@ class HistoricalUpgradeTests(unittest.TestCase):
                         "WHERE table_schema = 'public' AND table_name = 'jobs'"
                     )).all())
                     self.assertTrue(expected_columns.issubset(cols))
-                    indexes = set(connection.scalars(text(
-                        "SELECT indexname FROM pg_indexes "
-                        "WHERE schemaname = 'public' AND tablename = 'jobs'"
+                    indexes = dict(connection.execute(text(
+                        "SELECT indexrelid::regclass::text, indisvalid FROM pg_index "
+                        "WHERE indrelid = 'jobs'::regclass"
                     )).all())
-                    self.assertTrue(expected_indexes.issubset(indexes))
+                    self.assertTrue(all(indexes.get(name) for name in expected_indexes))
+                    connection.execute(text('SET LOCAL ROLE hiring_app'))
+                    self.assertEqual(connection.execute(text(
+                        "SELECT DISTINCT germany_candidate, location_states, location_scope_version FROM jobs"
+                    )).all(), [(None, None, None)])
+                    connection.execute(text('UPDATE jobs SET location_text = location_text'))
+
+                with engine.connect() as connection:
+                    with connection.begin():
+                        connection.execute(text('SET LOCAL ROLE hiring_app'))
+                        self.assertEqual(backfill_job_location_scopes_once(
+                            session_factory=sessionmaker(bind=connection),
+                        ), 4)
+                with engine.begin() as connection:
                     connection.execute(text('SET LOCAL ROLE hiring_app'))
                     rows = {
                         row[0]: (row[1], sorted(row[2] or []), row[3])
@@ -330,6 +343,40 @@ class HistoricalUpgradeTests(unittest.TestCase):
                     self.assertIn('Bayern', rows['bayern-coords'][1])
                     self.assertEqual(rows['bayern-coords'][2], LOCATION_SCOPE_VERSION)
                     self.assertEqual(rows['paris'], (False, [], LOCATION_SCOPE_VERSION))
+
+            # Interrupt after the nullable columns and triggers commit. Check
+            # the migration connection no longer holds a lock blocking job writes.
+            class Interrupted(Exception):
+                pass
+
+            def interrupt_index_build(_connection, _cursor, statement, *_args):
+                if not statement.startswith('CREATE INDEX CONCURRENTLY'):
+                    return
+                with engine.begin() as writer:
+                    writer.execute(text("SET LOCAL lock_timeout = '1s'"))
+                    writer.execute(text("UPDATE jobs SET title = title"))
+                raise Interrupted
+
+            event.listen(engine.__class__, 'before_cursor_execute', interrupt_index_build)
+            try:
+                with self.assertRaises(Interrupted):
+                    command.upgrade(self.config, 'head')
+            finally:
+                event.remove(engine.__class__, 'before_cursor_execute', interrupt_index_build)
+
+            # A failed concurrent build leaves its name registered as INVALID.
+            # All four jobs share is_active, so a unique index cannot be built.
+            with engine.connect().execution_options(isolation_level='AUTOCOMMIT') as connection:
+                with self.assertRaises(IntegrityError):
+                    connection.execute(text(
+                        "CREATE UNIQUE INDEX CONCURRENTLY ix_jobs_germany_candidate ON jobs (is_active)"
+                    ))
+                self.assertFalse(connection.scalar(text(
+                    "SELECT indisvalid FROM pg_index WHERE indexrelid = 'ix_jobs_germany_candidate'::regclass"
+                )))
+                connection.execute(text(
+                    "CREATE INDEX CONCURRENTLY ix_jobs_location_scope_version ON jobs (location_scope_version, id)"
+                ))
 
             command.upgrade(self.config, 'head')
             assert_upgraded()

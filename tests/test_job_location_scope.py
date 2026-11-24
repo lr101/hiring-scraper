@@ -1,10 +1,11 @@
-"""Equivalence, fallback, backfill, and single-pass snapshot tests for precomputed job location scopes."""
+"""Equivalence, fallback, backfill, concurrency, and trigger invalidation tests for job location scopes."""
 from __future__ import annotations
 
+import threading
 import unittest
 from unittest.mock import patch
 
-from sqlalchemy import and_, event, func, insert, or_, select, text, update
+from sqlalchemy import and_, delete, event, func, insert, or_, select, text, update
 from sqlalchemy.orm import aliased, sessionmaker
 
 from hiring_scraper.app import job_location_scope, models, search_snapshots, source_changes
@@ -133,8 +134,14 @@ class JobLocationScopeTests(unittest.TestCase):
     def tearDown(self):
         self.engine.dispose()
 
+    def _drain_backfill(self, batch_size: int = 500) -> int:
+        total = 0
+        while updated := backfill_job_location_scopes_once(batch_size=batch_size, session_factory=self.factory):
+            total += updated
+        return total
+
     def _seed_equivalence_fixture(self) -> dict[str, int]:
-        """Seed a varied corpus covering German/state text, umlauts, DE forms, coords, remote, and traps."""
+        """Seed a varied corpus covering PG C.UTF-8 ILIKE edge cases, DE forms, coords, remote, and traps."""
         with self.factory.begin() as session:
             foreign_co = Company(
                 source='test', source_id='foreign', name='Global Corp',
@@ -175,10 +182,21 @@ class JobLocationScopeTests(unittest.TestCase):
             bw_west, bw_south, bw_east, bw_north = german_state_bounds()['Baden-Württemberg']
             de_west, de_south, de_east, de_north = germany_bounds()
             cases = [
-                # German cities, umlauts, uppercase, transliterations, eszett edge cases
+                # German cities, umlauts, uppercase, transliterations, eszett / capital eszett / Turkish dotted I
                 ('city_munich_umlaut', foreign_feed, None, 'München', [], {}),
                 ('city_munich_upper', foreign_feed, None, 'MÜNCHEN, Office', [], {}),
                 ('city_muenchen_ascii', foreign_feed, None, 'Muenchen / Hybrid', [], {'work_arrangement': 'hybrid'}),
+                ('city_muenchen_upper_text', foreign_feed, None, 'MUENCHEN', [], {}),
+                ('city_munich_umlaut_label', foreign_feed, None, 'Central Europe', [('München Campus', None, None, None)], {}),
+                ('city_muenchen_upper_label', foreign_feed, None, 'Central Europe', [('MUENCHEN Hub', None, None, None)], {}),
+                ('city_berlin_turkish_i_text', foreign_feed, None, 'BERL\u0130N', [], {}),
+                ('city_berlin_turkish_i_label', foreign_feed, None, 'EMEA', [('BERL\u0130N Campus', None, None, None)], {}),
+                ('city_strasse_eszett_text', foreign_feed, None, 'STRAßE, BERL\u0130N', [], {}),
+                ('city_strasse_cap_eszett_text', foreign_feed, None, 'STRA\u1e9eE, Paris', [], {}),
+                ('city_strasse_eszett_label', foreign_feed, None, 'EMEA', [('STRAßE, BERL\u0130N', None, None, None)], {}),
+                ('city_strasse_cap_eszett_label', foreign_feed, None, 'EMEA', [('STRA\u1e9eE, Paris', None, None, None)], {}),
+                ('city_giessen_cap_eszett_text', foreign_feed, None, 'GIE\u1e9eEN', [], {}),
+                ('city_giessen_cap_eszett_label', foreign_feed, None, 'EMEA', [('GIE\u1e9eEN Office', None, None, None)], {}),
                 ('city_koeln_upper', foreign_feed, None, 'KÖLN', [], {}),
                 ('city_nuernberg_ascii', foreign_feed, None, 'Nuernberg Hub', [], {}),
                 ('city_duesseldorf', foreign_feed, None, 'Düsseldorf', [], {}),
@@ -190,6 +208,13 @@ class JobLocationScopeTests(unittest.TestCase):
                 ('city_saarbruecken', foreign_feed, None, 'Saarbrücken', [], {}),
                 ('city_dresden_label', foreign_feed, None, 'Central Europe', [('Dresden Campus', None, None, None)], {}),
                 ('city_multiline_munich', foreign_feed, None, 'HQ\nMünchen', [], {}),
+                # Literal SQL LIKE special characters (_, %, \) in location_text and JobLocation.label
+                ('special_chars_berlin_text', foreign_feed, None, r'100%_Berlin\Office', [], {}),
+                ('special_chars_berlin_label', foreign_feed, None, 'EMEA', [(r'100%_Berlin\Office', None, None, None)], {}),
+                ('special_chars_paris_text', foreign_feed, None, r'Paris_100%\HQ', [], {}),
+                ('special_chars_paris_label', foreign_feed, None, 'EMEA', [(r'Paris_100%\HQ', None, None, None)], {}),
+                ('special_chars_de_backslash_text', foreign_feed, None, r'Branch\, DE', [], {}),
+                ('special_chars_de_backslash_label', foreign_feed, None, 'EMEA', [(r'Branch\, DE', None, None, None)], {}),
                 # State names and English / ASCII aliases
                 ('state_bavaria_en', foreign_feed, None, 'Bavaria', [], {}),
                 ('state_nrw_hyphen', foreign_feed, None, 'Nordrhein-Westfalen', [], {}),
@@ -283,12 +308,14 @@ class JobLocationScopeTests(unittest.TestCase):
                 job_ids[key] = job.id
 
             source_changes.jobs_changed(session, list(job_ids.values()))
-            return {
-                'jobs': job_ids,
-                'foreign_co': foreign_co.id,
-                'bavaria_co': bavaria_co.id,
-                'berlin_employer': berlin_employer.id,
-            }
+
+        self._drain_backfill()
+        return {
+            'jobs': job_ids,
+            'foreign_co': foreign_co.id,
+            'bavaria_co': bavaria_co.id,
+            'berlin_employer': berlin_employer.id,
+        }
 
     def test_precomputed_columns_match_legacy_sql_predicates_exactly(self):
         fixture = self._seed_equivalence_fixture()
@@ -315,10 +342,15 @@ class JobLocationScopeTests(unittest.TestCase):
                 {id_to_key[i] for i in compact_de},
                 {id_to_key[i] for i in legacy_de},
             )
-            # Sanity-check tricky edge cases specifically.
+            # Sanity-check tricky Unicode (Turkish dotted I, eszett, wildcards/backslash) and DE forms.
             matched_keys = {id_to_key[i] for i in precomputed_de}
             for must_match in (
                 'city_munich_umlaut', 'city_munich_upper', 'city_muenchen_ascii',
+                'city_muenchen_upper_text', 'city_munich_umlaut_label', 'city_muenchen_upper_label',
+                'city_berlin_turkish_i_text', 'city_berlin_turkish_i_label',
+                'city_strasse_eszett_text', 'city_strasse_eszett_label',
+                'special_chars_berlin_text', 'special_chars_berlin_label',
+                'special_chars_de_backslash_text', 'special_chars_de_backslash_label',
                 'city_koeln_upper', 'city_giessen_ss', 'city_dessau_ss',
                 'city_multiline_munich', 'de_exact', 'de_lower', 'de_comma_suffix',
                 'de_parens', 'de_prefix_dash', 'de_prefix_space_dash', 'de_slash_suffix',
@@ -330,10 +362,25 @@ class JobLocationScopeTests(unittest.TestCase):
                 'trap_denver', 'trap_delaware', 'trap_code', 'trap_adecco',
                 'trap_de_trailing_newline', 'trap_bordeaux', 'trap_paris',
                 'trap_milan', 'trap_vienna', 'trap_empty', 'trap_none',
+                'special_chars_paris_text', 'special_chars_paris_label',
+                'city_strasse_cap_eszett_text', 'city_strasse_cap_eszett_label',
                 'de_d_dash', 'de_d_space_dash', 'de_comma_period',
                 'cc_fr_only', 'coords_outside_london', 'coords_partial_lat_only',
             ):
                 self.assertNotIn(must_not_match, matched_keys, must_not_match)
+
+            # Specifically verify BERLİN matches Berlin state in both location_text and JobLocation.label.
+            berlin_keys = {
+                id_to_key[i]
+                for i in session.scalars(select(Job.id).where(
+                    Job.location_scope_version == LOCATION_SCOPE_VERSION,
+                    Job.location_states.contains(['Berlin']),
+                )).all()
+            }
+            self.assertIn('city_berlin_turkish_i_text', berlin_keys)
+            self.assertIn('city_berlin_turkish_i_label', berlin_keys)
+            self.assertIn('special_chars_berlin_text', berlin_keys)
+            self.assertIn('special_chars_berlin_label', berlin_keys)
 
             # 2. All 16 German states exact equivalence
             for state in GERMAN_STATES:
@@ -394,7 +441,7 @@ class JobLocationScopeTests(unittest.TestCase):
                 company_id=None, normalized_query=None, work_style='all', posting_status='open',
             )).all()
 
-        # Deliberately corrupt precomputed values on NULL and stale rows to ensure
+        # Deliberately corrupt precomputed values on NULL and older v1 rows to ensure
         # the query falls back to SQL predicates and ignores stale values.
         null_ids = all_ids[:10]
         stale_ids = all_ids[10:18]
@@ -410,7 +457,7 @@ class JobLocationScopeTests(unittest.TestCase):
                 update(Job).where(Job.id.in_(stale_ids)).values(
                     germany_candidate=False,
                     location_states=['Saarland'],
-                    location_scope_version='loc-scope-v0-stale',
+                    location_scope_version='loc-scope-v1-stale',
                 )
             )
             session.execute(text('DELETE FROM semantic_search_refreshes'))
@@ -483,15 +530,13 @@ class JobLocationScopeTests(unittest.TestCase):
                     )).all(),
                     baseline,
                 )
-            total = 0
-            while updated := backfill_job_location_scopes_once(batch_size=25, session_factory=self.factory):
-                total += updated
+            total = self._drain_backfill(batch_size=25)
             self.assertGreater(total, 0)
             with self.factory() as session:
                 versions = set(session.scalars(select(Job.location_scope_version)).all())
                 self.assertEqual(versions, {bumped})
 
-    def test_write_paths_keep_precomputed_scope_current(self):
+    def test_write_paths_and_mixed_orm_core_writes_invalidate_via_triggers(self):
         with self.factory.begin() as session:
             company = Company(source='test', source_id='wp', name='WritePath Corp', country_code='FR')
             session.add(company)
@@ -499,7 +544,7 @@ class JobLocationScopeTests(unittest.TestCase):
             feed = JobFeed(company_id=company.id, provider='rss', feed_url='https://wp.example/feed', status='parsed')
             session.add(feed)
             session.flush()
-            # Core insert path (as used by companion.py)
+            # Core insert starts with location_scope_version = NULL; worker computes in SQL.
             job_id = session.execute(
                 insert(Job).values(
                     feed_id=feed.id,
@@ -514,15 +559,54 @@ class JobLocationScopeTests(unittest.TestCase):
                     missing_complete_scans=0,
                 ).returning(Job.id)
             ).scalar_one()
-            source_changes.jobs_changed(session, [job_id])
-
+        with self.factory() as session:
+            self.assertIsNone(session.scalar(select(Job.location_scope_version).where(Job.id == job_id)))
+        self.assertEqual(backfill_job_location_scopes_once(session_factory=self.factory), 1)
         with self.factory() as session:
             row = session.execute(select(
                 Job.germany_candidate, Job.location_states, Job.location_scope_version
             ).where(Job.id == job_id)).one()
             self.assertEqual(row, (False, [], LOCATION_SCOPE_VERSION))
 
-        # Update location_text + JobLocation -> becomes German (Bayern + Berlin)
+        # Non-location ORM update must keep the stamped scope version intact.
+        with self.factory.begin() as session:
+            job = session.get(Job, job_id)
+            job.title = 'Senior Engineer'
+            source_changes.jobs_changed(session, [job.id])
+        with self.factory() as session:
+            self.assertEqual(
+                session.scalar(select(Job.location_scope_version).where(Job.id == job_id)),
+                LOCATION_SCOPE_VERSION,
+            )
+
+        # Mixed ORM title update + Core UPDATE of location_text -> trigger invalidates
+        # location_scope_version even without ORM history on location_text.
+        with self.factory.begin() as session:
+            job = session.get(Job, job_id)
+            job.title = 'Lead Engineer'
+            session.flush()
+            session.execute(update(Job).where(Job.id == job_id).values(location_text='BERL\u0130N'))
+            source_changes.jobs_changed(session, [job_id])
+
+        with self.factory() as session:
+            self.assertIsNone(session.scalar(select(Job.location_scope_version).where(Job.id == job_id)))
+            # Immediate visibility via indexed NULL fallback before worker runs.
+            berlin_ids = {
+                row[0] for row in session.execute(search_snapshots._scoped_job_rows_statement(
+                    employer_country=None, state='Berlin', location_scope='area_remote',
+                    company_id=None, normalized_query=None, work_style='all', posting_status='open',
+                )).all()
+            }
+            self.assertIn(job_id, berlin_ids)
+
+        self.assertEqual(backfill_job_location_scopes_once(session_factory=self.factory), 1)
+        with self.factory() as session:
+            row = session.execute(select(
+                Job.germany_candidate, Job.location_states, Job.location_scope_version
+            ).where(Job.id == job_id)).one()
+            self.assertEqual(row, (True, ['Berlin'], LOCATION_SCOPE_VERSION))
+
+        # ORM location_text + replace_job_locations -> Bayern + Berlin after backfill.
         with self.factory.begin() as session:
             job = session.get(Job, job_id)
             job.location_text = 'München'
@@ -532,15 +616,17 @@ class JobLocationScopeTests(unittest.TestCase):
             source_changes.jobs_changed(session, [job.id])
 
         with self.factory() as session:
+            self.assertIsNone(session.scalar(select(Job.location_scope_version).where(Job.id == job_id)))
+        self.assertEqual(backfill_job_location_scopes_once(session_factory=self.factory), 1)
+        with self.factory() as session:
             germany, states, version = session.execute(select(
                 Job.germany_candidate, Job.location_states, Job.location_scope_version
             ).where(Job.id == job_id)).one()
             self.assertTrue(germany)
-            self.assertIn('Bayern', states)
-            self.assertIn('Berlin', states)
+            self.assertEqual(states, ['Bayern', 'Berlin', 'Brandenburg'])
             self.assertEqual(version, LOCATION_SCOPE_VERSION)
 
-        # Move job back outside Germany -> cleared immediately
+        # Move job outside Germany -> cleared immediately via trigger + backfill.
         with self.factory.begin() as session:
             job = session.get(Job, job_id)
             job.location_text = 'Lyon, France'
@@ -548,12 +634,275 @@ class JobLocationScopeTests(unittest.TestCase):
                 {'label': 'Lyon', 'country_code': 'FR', 'latitude': 45.764, 'longitude': 4.8357},
             ])
             source_changes.jobs_changed(session, [job.id])
-
+        self.assertEqual(backfill_job_location_scopes_once(session_factory=self.factory), 1)
         with self.factory() as session:
-            row = session.execute(select(
-                Job.germany_candidate, Job.location_states, Job.location_scope_version
-            ).where(Job.id == job_id)).one()
-            self.assertEqual(row, (False, [], LOCATION_SCOPE_VERSION))
+            self.assertEqual(
+                session.execute(select(
+                    Job.germany_candidate, Job.location_states, Job.location_scope_version
+                ).where(Job.id == job_id)).one(),
+                (False, [], LOCATION_SCOPE_VERSION),
+            )
+
+        # Mixed ORM title update + Core INSERT / UPDATE / DELETE on job_locations.
+        with self.factory.begin() as session:
+            job = session.get(Job, job_id)
+            job.title = 'Staff Engineer'
+            session.flush()
+            loc_id = session.execute(
+                insert(JobLocation).values(job_id=job_id, label='München Hub').returning(JobLocation.id)
+            ).scalar_one()
+            source_changes.jobs_changed(session, [job_id])
+        with self.factory() as session:
+            self.assertIsNone(session.scalar(select(Job.location_scope_version).where(Job.id == job_id)))
+        self.assertEqual(backfill_job_location_scopes_once(session_factory=self.factory), 1)
+        with self.factory() as session:
+            self.assertEqual(
+                session.execute(select(
+                    Job.germany_candidate, Job.location_states, Job.location_scope_version
+                ).where(Job.id == job_id)).one(),
+                (True, ['Bayern'], LOCATION_SCOPE_VERSION),
+            )
+
+        # Updating only a non-scope JobLocation column (precision) keeps the version intact.
+        with self.factory.begin() as session:
+            session.execute(update(JobLocation).where(JobLocation.id == loc_id).values(precision='city'))
+        with self.factory() as session:
+            self.assertEqual(
+                session.scalar(select(Job.location_scope_version).where(Job.id == job_id)),
+                LOCATION_SCOPE_VERSION,
+            )
+
+        # Core UPDATE of JobLocation.label invalidates and recomputes to Hamburg.
+        with self.factory.begin() as session:
+            session.execute(update(JobLocation).where(JobLocation.id == loc_id).values(label='Hamburg Port'))
+            source_changes.jobs_changed(session, [job_id])
+        with self.factory() as session:
+            self.assertIsNone(session.scalar(select(Job.location_scope_version).where(Job.id == job_id)))
+        self.assertEqual(backfill_job_location_scopes_once(session_factory=self.factory), 1)
+        with self.factory() as session:
+            self.assertEqual(
+                session.execute(select(
+                    Job.germany_candidate, Job.location_states, Job.location_scope_version
+                ).where(Job.id == job_id)).one(),
+                (True, ['Hamburg'], LOCATION_SCOPE_VERSION),
+            )
+
+        # Core DELETE of JobLocation invalidates and recomputes back to non-German.
+        with self.factory.begin() as session:
+            session.execute(delete(JobLocation).where(JobLocation.id == loc_id))
+            source_changes.jobs_changed(session, [job_id])
+        with self.factory() as session:
+            self.assertIsNone(session.scalar(select(Job.location_scope_version).where(Job.id == job_id)))
+        self.assertEqual(backfill_job_location_scopes_once(session_factory=self.factory), 1)
+        with self.factory() as session:
+            self.assertEqual(
+                session.execute(select(
+                    Job.germany_candidate, Job.location_states, Job.location_scope_version
+                ).where(Job.id == job_id)).one(),
+                (False, [], LOCATION_SCOPE_VERSION),
+            )
+
+    def test_concurrent_writer_during_backfill_never_leaves_stale_current_scope(self):
+        with self.factory.begin() as session:
+            company = Company(source='test', source_id='race', name='Race Corp', country_code='FR')
+            session.add(company)
+            session.flush()
+            feed = JobFeed(company_id=company.id, provider='rss', feed_url='https://race.example/feed', status='parsed')
+            session.add(feed)
+            session.flush()
+            jobs = []
+            for key in ('writer-first', 'unlocked-peer', 'backfill-first-text', 'backfill-first-loc'):
+                job = Job(
+                    feed_id=feed.id, external_id=key, title=f'Role {key}',
+                    url=f'https://race.example/{key}', location_text='Paris',
+                )
+                session.add(job)
+                session.flush()
+                if key == 'backfill-first-loc':
+                    session.add(JobLocation(job_id=job.id, label='Paris', country_code='FR'))
+                    session.flush()
+                jobs.append((key, job.id))
+        job_ids = dict(jobs)
+
+        # Case 1: concurrent writer already holds a row lock on writer-first while backfill runs.
+        # Backfill must SKIP LOCKED writer-first, update unlocked-peer, and never overwrite writer-first.
+        writer_locked = threading.Event()
+        release_writer = threading.Event()
+        writer_errors: list[Exception] = []
+
+        def hold_and_update_first():
+            try:
+                with self.factory.begin() as session:
+                    session.execute(
+                        update(Job).where(Job.id == job_ids['writer-first']).values(location_text='Berlin')
+                    )
+                    writer_locked.set()
+                    if not release_writer.wait(6):
+                        raise AssertionError('writer did not receive release signal')
+            except Exception as error:
+                writer_errors.append(error)
+
+        thread = threading.Thread(target=hold_and_update_first, name='writer-first')
+        thread.start()
+        try:
+            self.assertTrue(writer_locked.wait(3))
+            # Limit batch_size=2 so candidate_ids are [writer-first, unlocked-peer].
+            updated = backfill_job_location_scopes_once(batch_size=2, session_factory=self.factory)
+            self.assertEqual(updated, 1)
+            release_writer.set()
+            thread.join(6)
+        finally:
+            release_writer.set()
+            thread.join(6)
+        self.assertEqual(writer_errors, [])
+        with self.factory() as session:
+            # unlocked-peer is current (Paris); writer-first is NULL (Berlin), NOT Paris+current.
+            self.assertEqual(
+                session.execute(select(
+                    Job.germany_candidate, Job.location_states, Job.location_scope_version
+                ).where(Job.id == job_ids['unlocked-peer'])).one(),
+                (False, [], LOCATION_SCOPE_VERSION),
+            )
+            self.assertIsNone(session.scalar(
+                select(Job.location_scope_version).where(Job.id == job_ids['writer-first'])
+            ))
+        # Drain writer-first so remaining NULL rows are backfill-first-text and backfill-first-loc.
+        self.assertEqual(backfill_job_location_scopes_once(batch_size=1, session_factory=self.factory), 1)
+        with self.factory() as session:
+            self.assertEqual(
+                session.execute(select(
+                    Job.germany_candidate, Job.location_states, Job.location_scope_version
+                ).where(Job.id == job_ids['writer-first'])).one(),
+                (True, ['Berlin'], LOCATION_SCOPE_VERSION),
+            )
+
+        # Cases 2 & 3: backfill holds FOR NO KEY UPDATE on the job row and pauses before its SQL UPDATE
+        # while a concurrent writer updates (a) jobs.location_text OR (b) only job_locations.label.
+        # In both cases the writer must serialize on the job row lock and leave location_scope_version NULL
+        # (never Paris + current version).
+        for target_key, writer_action in (
+            (
+                'backfill-first-text',
+                lambda s, jid: s.execute(update(Job).where(Job.id == jid).values(location_text='Berlin')),
+            ),
+            (
+                'backfill-first-loc',
+                lambda s, jid: s.execute(
+                    update(JobLocation).where(JobLocation.job_id == jid).values(label='Berlin', country_code='DE')
+                ),
+            ),
+        ):
+            target_id = job_ids[target_key]
+            backfill_locked = threading.Event()
+            release_backfill = threading.Event()
+            writer_started = threading.Event()
+            writer_finished = threading.Event()
+            errors: list[Exception] = []
+
+            def pause_after_lock(_conn, _cursor, statement, *_args):
+                normalized = ' '.join(statement.upper().split())
+                if (
+                    threading.current_thread().name == f'backfill-{target_key}'
+                    and 'FOR NO KEY UPDATE SKIP LOCKED' in normalized
+                ):
+                    backfill_locked.set()
+                    if not release_backfill.wait(6):
+                        raise AssertionError('backfill did not receive release signal')
+
+            def run_backfill():
+                try:
+                    backfill_job_location_scopes_once(batch_size=1, session_factory=self.factory)
+                except Exception as error:
+                    errors.append(error)
+
+            def run_writer():
+                try:
+                    with self.factory.begin() as session:
+                        writer_started.set()
+                        writer_action(session, target_id)
+                except Exception as error:
+                    errors.append(error)
+                finally:
+                    writer_finished.set()
+
+            event.listen(self.engine, 'after_cursor_execute', pause_after_lock)
+            bf_thread = threading.Thread(target=run_backfill, name=f'backfill-{target_key}')
+            wr_thread = threading.Thread(target=run_writer, name=f'writer-{target_key}')
+            try:
+                bf_thread.start()
+                self.assertTrue(backfill_locked.wait(3), f'{target_key}: backfill did not acquire lock')
+                wr_thread.start()
+                self.assertTrue(writer_started.wait(3), f'{target_key}: writer did not start')
+                # Writer must block behind backfill's FOR NO KEY UPDATE lock rather than committing early.
+                self.assertFalse(writer_finished.wait(0.25), f'{target_key}: writer bypassed backfill lock')
+                release_backfill.set()
+                bf_thread.join(6)
+                wr_thread.join(6)
+            finally:
+                release_backfill.set()
+                bf_thread.join(6)
+                if wr_thread.ident is not None:
+                    wr_thread.join(6)
+                event.remove(self.engine, 'after_cursor_execute', pause_after_lock)
+
+            self.assertEqual(errors, [], f'{target_key} concurrent errors: {errors}')
+            with self.factory() as session:
+                # Must be invalidated (NULL), NEVER Paris stamped with LOCATION_SCOPE_VERSION.
+                self.assertIsNone(
+                    session.scalar(select(Job.location_scope_version).where(Job.id == target_id)),
+                    f'{target_key}: stale-current scope left after concurrent write',
+                )
+                berlin_ids = {
+                    row[0] for row in session.execute(search_snapshots._scoped_job_rows_statement(
+                        employer_country=None, state='Berlin', location_scope='area_remote',
+                        company_id=None, normalized_query=None, work_style='all', posting_status='open',
+                    )).all()
+                }
+                self.assertIn(target_id, berlin_ids, f'{target_key}: fallback did not find updated Berlin job')
+
+            self.assertEqual(backfill_job_location_scopes_once(batch_size=1, session_factory=self.factory), 1)
+            with self.factory() as session:
+                self.assertEqual(
+                    session.execute(select(
+                        Job.germany_candidate, Job.location_states, Job.location_scope_version
+                    ).where(Job.id == target_id)).one(),
+                    (True, ['Berlin'], LOCATION_SCOPE_VERSION),
+                )
+
+    def test_location_replace_and_backfill_do_not_wait_for_feed_key_share(self):
+        with self.factory.begin() as session:
+            feed = JobFeed(
+                company=Company(source='test', source_id='feed-lock', name='Employer'),
+                provider='rss', feed_url='https://example.test/feed', status='parsed',
+            )
+            job = Job(feed=feed, external_id='role', title='Engineer', url='https://example.test/job')
+            job.locations = [JobLocation(label='Paris')]
+            session.add(job)
+            session.flush()
+            feed_id, job_id = feed.id, job.id
+
+        self.assertEqual(backfill_job_location_scopes_once(session_factory=self.factory), 1)
+        with self.factory.begin() as editor:
+            # Managed-feed edits take this lock before trying to lock the jobs.
+            editor.scalar(select(JobFeed.id).where(JobFeed.id == feed_id).with_for_update())
+            with self.factory.begin() as writer:
+                writer.execute(text("SET LOCAL lock_timeout = '1s'"))
+                job = writer.get(Job, job_id)
+                job.title = 'Senior Engineer'
+                replace_job_locations(job, [{'label': 'Berlin'}])
+                source_changes.jobs_changed(writer, [job_id])
+
+            # PostgreSQL can recheck the feed FK on a second Job UPDATE in
+            # the same transaction. The replacement can clear the scope in
+            # its original write, and backfill uses its own transaction.
+            with self.engine.begin() as connection:
+                connection.execute(text("SET LOCAL lock_timeout = '1s'"))
+                self.assertEqual(backfill_job_location_scopes_once(
+                    session_factory=sessionmaker(bind=connection),
+                ), 1)
+                self.assertEqual(connection.execute(select(
+                    Job.germany_candidate, Job.location_states, Job.location_scope_version
+                ).where(Job.id == job_id)).one(), (True, ['Berlin'], LOCATION_SCOPE_VERSION))
 
     def test_materialize_search_snapshot_runs_single_scope_query(self):
         self._seed_equivalence_fixture()

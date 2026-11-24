@@ -14,6 +14,7 @@ from hiring_scraper.app.search_snapshots import (
 
 POLL_SECONDS = max(0.25, float(os.getenv("SEARCH_SNAPSHOT_POLL_SECONDS", "1")))
 PREWARM_SECONDS = max(30, float(os.getenv("SEARCH_SNAPSHOT_PREWARM_SECONDS", "60")))
+BACKFILL_BATCH_SIZE = 500
 
 
 def main() -> None:
@@ -35,9 +36,11 @@ def main() -> None:
             last_prewarm = now
         backfilled = 0
         try:
-            backfilled = backfill_job_location_scopes_once()
+            backfilled = backfill_job_location_scopes_once(batch_size=BACKFILL_BATCH_SIZE)
         except Exception:
             logging.getLogger(__name__).exception("Could not backfill job location scopes")
+        if backfilled >= BACKFILL_BATCH_SIZE:
+            continue
         refreshed = process_search_snapshot_refresh_once()
         if not backfilled and not refreshed:
             time.sleep(POLL_SECONDS)

@@ -227,6 +227,7 @@ def run_workers(bound: Engine, *, matching: bool = True, search: bool = True, ma
                     except job_search.ProfileIndexChanged:
                         worked = True
             if search:
+                worked = bool(search_snapshots.backfill_job_location_scopes_once()) or worked
                 worked = bool(search_snapshots.process_search_snapshot_refresh_once()) or worked
             if not worked:
                 return

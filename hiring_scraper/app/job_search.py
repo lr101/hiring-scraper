@@ -90,21 +90,10 @@ def replace_job_locations(job: Job, rows: list[dict]) -> None:
                 ("label", "latitude", "longitude", "precision", "country_code")}))
     locations_changed = updated != list(job.locations)
     job.locations[:] = updated
-    from sqlalchemy import inspect as sa_inspect
-    from hiring_scraper.app import job_location_scope
-
-    state = sa_inspect(job)
-    text_changed = (not state.transient and not state.pending) and state.attrs.location_text.history.has_changes()
-    uninitialized = (
-        state.transient
-        or state.pending
-        or (
-            "location_scope_version" not in state.unloaded
-            and job.location_scope_version != job_location_scope.LOCATION_SCOPE_VERSION
-        )
-    )
-    if locations_changed or text_changed or uninitialized:
-        job_location_scope.apply_job_location_scope(job)
+    if locations_changed:
+        # Clear in the same Job flush so the job_locations trigger sees
+        # location_scope_version IS NULL and avoids issuing a second UPDATE on jobs.
+        job.location_scope_version = None
 
 
 def scoring_preferences(matching_preferences: dict) -> dict:
