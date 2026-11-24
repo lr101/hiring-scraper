@@ -17,7 +17,7 @@ document), with a category:
   do not mention, or a strong piece of evidence left unused.
 - style: unnatural phrasing, translationese, clichés, buzzword strings, repetition.
 - format: too long for the page limit, unbalanced paragraphs, an ordinary bullet far outside
-  18–28 words or a labelled project bullet far outside 25–40 words (keep each labelled project
+  16–24 words or a labelled project bullet far outside 22–32 words (keep each labelled project
   in one bullet).
 Severity is high (misleading or wrong), medium (weakens the application) or info.
 
@@ -42,12 +42,12 @@ Check that:
   list or repeated wording. Check both keyword coverage and the scope supporting it.
 - CV bullets avoid third-person pronouns referring to the applicant (never "die sie
   koordinierte", "she", "he"), avoid unsupported qualifiers ("technical"/"technisch",
-  "strategic", "software", etc.), merge overlapping duties, vary opening verbs (no verb
+  "strategic", "software", etc.), give overlapping duties distinct wording, vary opening verbs (no verb
   starting more than 2 bullets), and keep verified quantified results with the actions they
   measure. In German, use direct active verbs and suspension hyphens in coordinated compounds
   ("Markt- und Nutzerbedürfnisse").
 - Competency additions are 1–4 words and use concrete wording supported by cited evidence.
-  Hide irrelevant base items.
+  Keep the existing units and their citations intact.
 - Cover letter opens by connecting work stated in the posting to concrete verified experience.
   Check claims about the employer against the posting. Each experience paragraph connects one
   verified example to a named duty and adds a supported decision, method or result beyond the

@@ -678,37 +678,16 @@ def omitted_details(unit: Unit, evidence: dict[str, str], entry_id: str) -> set[
     return dropped if len(dropped) >= 2 else set()
 
 
-def merge_split_project_bullets(entry: Entry) -> bool:
-    """Merge visible unlabelled continuation bullets into the preceding labelled project bullet."""
-    merged = False
-    result: list[Unit] = []
-    last_labelled_idx: int | None = None
-    for unit in entry.units:
-        if unit.hidden:
-            result.append(unit)
-            continue
-        if unit.lead_in.strip():
-            last_labelled_idx = len(result)
-            result.append(unit)
-            continue
-        if last_labelled_idx is not None:
-            previous = result[last_labelled_idx]
-            left = previous.text.rstrip()
-            right = unit.text.lstrip()
-            if left and right:
-                sep = ' ' if left[-1] in '.!?;:' else '. '
-                combined = f'{left}{sep}{right}'
-            else:
-                combined = right or left
-            if len(combined) <= MAX_UNIT_TEXT:
-                previous.text = combined
-                previous.sources = list(dict.fromkeys([*previous.sources, *unit.sources]))
-                merged = True
-                continue
-        result.append(unit)
-    if merged:
-        entry.units = result
-    return merged
+def study_project_intro(entry: Entry) -> Unit | None:
+    """Find a standalone project-list caption stored as a bullet by older imports."""
+    visible = [u for u in entry.units if not u.hidden]
+    if entry.kind != 'study' or len(visible) < 2:
+        return None
+    first = visible[0]
+    if (first.origin == 'source' and not first.lead_in.strip()
+            and first.text.rstrip().endswith(':') and len(first.text.strip()) <= 100):
+        return first
+    return None
 
 
 def normalize_study_entry(entry: Entry) -> None:
@@ -730,15 +709,8 @@ def normalize_study_entry(entry: Entry) -> None:
                 promoted = True
         if not promoted and locked.title.strip():
             entry.locked = locked = locked.model_copy(update={'company': locked.title})
-    visible_units = [u for u in entry.units if not u.hidden]
-    if (
-        len(visible_units) >= 2
-        and visible_units[0].origin == 'source'
-        and not visible_units[0].lead_in.strip()
-        and visible_units[0].text.rstrip().endswith(':')
-        and len(visible_units[0].text.strip()) <= 100
-    ):
-        lead_unit = visible_units[0]
+    lead_unit = study_project_intro(entry)
+    if lead_unit is not None:
         entry.units = [u for u in entry.units if u.id != lead_unit.id]
         entry.intro.append(lead_unit)
     if not locked.title.strip():

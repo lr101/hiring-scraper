@@ -402,7 +402,7 @@ class PipelineTests(unittest.TestCase):
         self.assertIn('headline', prompts[1].lower())
         self.assertIn('Phase I', result.cv['sections'][0]['units'][0]['text'])
 
-    def test_split_project_merge_combines_unlabelled_continuation_into_preceding_bullet(self):
+    def test_base_cv_keeps_distinct_bullets_after_labelled_projects(self):
         self.inp.base_cv['sections'][1]['entries'][0]['units'] = [
             {'id': 'u-p1', 'lead_in': 'Lantern Project:', 'text': 'Built tactile models for visitors',
              'sources': ['cv:work-1:b1']},
@@ -413,11 +413,7 @@ class PipelineTests(unittest.TestCase):
         ]
         normalized = pipeline._new_cv(CvDocument.model_validate(self.inp.base_cv))
         units = normalized.sections[1].entries[0].units
-        self.assertEqual(len(units), 2)
-        self.assertEqual(units[0].lead_in, 'Lantern Project:')
-        self.assertEqual(units[0].text, 'Built tactile models for visitors. Tested prototypes with school groups.')
-        self.assertEqual(units[0].sources, ['cv:work-1:b1', 'cv:work-1:b2'])
-        self.assertEqual(units[1].lead_in, 'Archive Map:')
+        self.assertEqual([unit.id for unit in units], ['u-p1', 'u-p2', 'u-p3'])
 
     def test_rewritten_bullet_flags_omitted_distinctive_details(self):
         self.inp.base_cv['sections'][1]['entries'][0]['units'][0]['text'] = (
@@ -438,7 +434,8 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(result.cv['sections'][0]['units'][0]['text'], cv_reply()['profile'][0]['text'])
         self.assertEqual(result.letter['paragraphs'][-1]['text'], letter_reply()['closing']['text'])
 
-    def test_cv_project_intro_matches_the_projects_kept_by_the_cv_stage(self):
+    @patch.object(pipeline, 'SLEEP', lambda _: None)
+    def test_cv_retries_missing_project_then_restores_it_with_its_source(self):
         self.inp.mode = 'fast'
         self.inp.base_cv['sections'].append({
             'id': 's-education', 'kind': 'education', 'title': 'Education', 'entries': [{
@@ -455,15 +452,45 @@ class PipelineTests(unittest.TestCase):
         projects = [{'lead_in': 'Wayfinding:', 'text': 'Mapped gallery signage with visitors.',
                      'sources': ['cv:study-1:b1']}]
         reply['entries'].append({'entry_id': 'study-1', 'bullets': projects})
-        entry = self.run_with(cv=reply).cv['sections'][-1]['entries'][0]
-        self.assertEqual(entry['intro'][0]['text'], 'Selected projects:')
-        self.assertEqual([unit['lead_in'] for unit in entry['units']], ['Wayfinding:'])
-
-        self.checkpoints.clear()
-        projects.append({'lead_in': 'Lighting:', 'text': 'Tested display lamps with curators.',
-                         'sources': ['cv:study-1:b2']})
-        entry = self.run_with(cv=reply).cv['sections'][-1]['entries'][0]
+        # An unrelated second bullet cannot stand in for the omitted project.
+        projects.append({'lead_in': '', 'text': 'Mapped signage for the gallery.',
+                         'sources': ['cv:study-1:b1']})
+        replies = iter([reply, reply, reply, letter_reply()])
+        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
+        self.assertEqual(result.telemetry['attempts']['cv'], 3)
+        self.assertEqual(result.stages['cv']['state'], 'fallback')
+        self.assertIn('cv_missing_base_bullet', result.telemetry['attempt_failures']['cv'][0]['reasons'])
+        entry = result.cv['sections'][-1]['entries'][0]
         self.assertEqual(entry['intro'][0]['text'], 'Selected projects: Wayfinding & Lighting')
+        restored = next(unit for unit in entry['units'] if unit['id'] == 'u-study-p2')
+        self.assertEqual(restored['origin'], 'source')
+        self.assertEqual(restored['sources'], ['cv:study-1:b2'])
+        self.assertEqual(restored['lead_in'], 'Lighting:')
+
+    def test_generated_cv_enables_available_portrait(self):
+        self.inp.base_cv['photo'] = False
+        self.assertTrue(self.run_with().cv['photo'])
+
+    def test_cv_rejects_merging_distinct_base_bullets_even_with_both_citations(self):
+        units = self.inp.base_cv['sections'][1]['entries'][0]['units']
+        units.append({'id': 'u-visit', 'text': 'Surveyed visiting teachers about exhibition access.'})
+        reply = cv_reply()
+        bullet = reply['entries'][0]['bullets'][0]
+        bullet['text'] = 'Designed a workshop with librarians and surveyed visiting teachers about exhibition access.'
+        bullet['sources'].append('cv:work-1:b2')
+        base = CvDocument.model_validate(self.inp.base_cv)
+        with self.assertRaises(pipeline._InvalidResponse) as error:
+            pipeline._cv_draft(reply, base, pipeline._cv_entries(base), pipeline.build_evidence(base), '')
+        self.assertIn('cv_missing_base_bullet', error.exception.codes)
+
+    def test_cv_can_merge_exact_duplicate_bullets_with_both_citations(self):
+        units = self.inp.base_cv['sections'][1]['entries'][0]['units']
+        units.append({**units[0], 'id': 'u-duplicate'})
+        reply = cv_reply()
+        reply['entries'][0]['bullets'][0]['sources'].append('cv:work-1:b2')
+        result = self.run_with(cv=reply)
+        bullet, = result.cv['sections'][1]['entries'][0]['units']
+        self.assertEqual(bullet['sources'], ['cv:work-1:b1', 'cv:work-1:b2'])
 
     def test_cv_keeps_skills_explicitly_named_in_visible_bullets(self):
         self.inp.mode = 'fast'
@@ -508,7 +535,12 @@ class PipelineTests(unittest.TestCase):
                 },
             ],
         })
-        result = self.run_with()
+        cv = cv_reply()
+        cv['entries'].append({'entry_id': 'study-1', 'bullets': [
+            {'lead_in': 'Wayfinding:', 'text': 'Mapped gallery signage with visitors.',
+             'sources': ['cv:study-1:b2']},
+        ]})
+        result = self.run_with(cv=cv)
         entry1, entry2 = result.cv['sections'][-1]['entries']
         self.assertEqual(entry1['label'], '')
         self.assertEqual(entry1['locked']['company'], 'Alder Institute')
@@ -604,6 +636,9 @@ class PipelineTests(unittest.TestCase):
         self.assertIn('cv_profile_count', ctx.exception.codes)
 
     def test_cv_checks_repeated_profile_terms_and_phrases_within_an_entry(self):
+        self.inp.base_cv['sections'][1]['entries'][0]['units'].append(
+            {'id': 'u-guide', 'text': 'Prepared a guide for visiting librarians.'},
+        )
         base = CvDocument.model_validate(self.inp.base_cv)
         reply = cv_reply()
         reply['profile'][0]['text'] = (
@@ -611,11 +646,12 @@ class PipelineTests(unittest.TestCase):
             'Each workshop starts with a concrete goal.'
         )
         reply['entries'][0]['bullets'] = [
-            {'text': text, 'lead_in': '', 'sources': ['cv:work-1:b1']}
-            for text in ('Designed activities for library visitors after hours.',
-                         'Prepared a guide for library visitors after hours.')
+            {'text': 'Designed activities for library visitors after hours.',
+             'lead_in': '', 'sources': ['cv:work-1:b1']},
+            {'text': 'Prepared a guide for library visitors after hours.',
+             'lead_in': '', 'sources': ['cv:work-1:b2']},
         ]
-        doc, _ = pipeline._cv_draft(reply, base, [{'entry_id': 'work-1', 'base_count': 1}], {}, '')
+        doc, _ = pipeline._cv_draft(reply, base, pipeline._cv_entries(base), {}, '')
         codes = {issue.code for issue in pipeline._cv_prose_issues(doc)}
         self.assertTrue({'cv_profile_repetition', 'cv_repeated_bullet_phrase'} <= codes)
 
@@ -649,8 +685,12 @@ class PipelineTests(unittest.TestCase):
         with patch.object(pipeline, 'SLEEP', lambda _: None):
             replies = iter([cv, cv, cv, letter_reply(), {'findings': [], 'patches': []}])
             result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
-        self.assertEqual(result.cv['sections'][1], self.inp.base_cv['sections'][1])
-        self.assertEqual([f['code'] for f in result.findings], ['review_format'])
+        source, = result.cv['sections'][1]['entries'][0]['units']
+        self.assertEqual(source['id'], 'u-base-bullet')
+        self.assertEqual(source['text'], 'Designed a workshop with librarians.')
+        self.assertEqual(source['origin'], 'source')
+        self.assertEqual(source['sources'], ['cv:work-1:b1'])
+        self.assertEqual([f['code'] for f in result.findings], ['review_format', 'review_coverage'])
 
     def test_auto_apply_requires_untouched_ai_unit_and_no_new_high_finding(self):
         patches = [
@@ -671,6 +711,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(len(result.findings), 5)
         self.assertNotIn('unsupported_number', [f['code'] for f in result.findings])
 
+    @patch.object(pipeline, 'SLEEP', lambda _: None)
     def test_render_findings_and_final_render_of_patched_unit(self):
         rendered = []
 
@@ -679,12 +720,47 @@ class PipelineTests(unittest.TestCase):
             return RenderResult(b'', 3, '', [{'code': 'glyphs', 'status': 'failed', 'detail': '1 glyph'}],
                                 True, {'beyond_limit_units': ['u-headline'] if kind == 'cv' else []})
 
-        result = self.run_with(render=render, review={'findings': [], 'patches': [{
+        review = {'findings': [], 'patches': [{
             'document': 'cv', 'unit_id': 'u-headline', 'kind': 'shorten', 'text': 'Workshop designer',
-        }]})
-        self.assertEqual(rendered, ['cv', 'letter', 'cv'])
+        }]}
+        replies = iter([cv_reply(), cv_reply(), cv_reply(), letter_reply(), review])
+        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks, render)
+        self.assertEqual(rendered, ['cv', 'cv', 'cv', 'letter', 'cv'])
         self.assertEqual({f['code'] for f in result.findings}, {'extra_page', 'review_format', 'overflow'})
         self.assertEqual(result.telemetry['render']['cv']['pages'], 3)
+
+    def test_review_cannot_push_a_fitting_cv_over_two_pages(self):
+        def render(kind, doc):
+            pages = 1
+            if kind == 'cv':
+                pages = 3 if doc['headline']['text'] == 'Public exhibit and workshop designer' else 2
+            return RenderResult(b'', pages, '', [], pages > 2)
+
+        result = self.run_with(render=render, review={'findings': [], 'patches': [{
+            'document': 'cv', 'unit_id': 'u-headline', 'kind': 'rephrase',
+            'text': 'Public exhibit and workshop designer',
+        }]})
+        self.assertEqual(result.telemetry['applied_patches'], [])
+        self.assertEqual(result.telemetry['render']['cv']['pages'], 2)
+
+    @patch.object(pipeline, 'SLEEP', lambda _: None)
+    def test_cv_retries_overflow_without_dropping_bullets(self):
+        self.inp.mode = 'fast'
+        shorter = cv_reply()
+        shorter['entries'][0]['bullets'][0]['text'] = 'Designed a workshop with librarians.'
+        replies = iter([cv_reply(), shorter, letter_reply()])
+
+        def render(kind, doc):
+            pages = 1
+            if kind == 'cv':
+                bullet = doc['sections'][1]['entries'][0]['units'][0]
+                pages = 3 if 'public' in bullet['text'] else 2
+            return RenderResult(b'', pages, '', [], pages > 2)
+
+        result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks, render)
+        self.assertEqual(result.telemetry['attempts']['cv'], 2)
+        self.assertEqual(result.telemetry['render']['cv']['pages'], 2)
+        self.assertEqual(result.cv['sections'][1]['entries'][0]['units'][0]['sources'], ['cv:work-1:b1'])
 
     def test_personalization_is_separated_from_facts(self):
         self.inp.mode = 'fast'
@@ -928,8 +1004,9 @@ class PipelineTests(unittest.TestCase):
         bad_cv = cv_reply()
         bad_cv['entries'][0]['bullets'] = [
             {'lead_in': '', 'text': f'Coordinated museum exhibit guide {i} with librarians.', 'sources': [f'cv:work-1:b{i}']}
-            for i in range(1, 4)
+            for i in range(1, 5)
         ]
+        bad_cv['entries'][0]['bullets'][3]['text'] = 'Designed museum exhibit guide 4 with librarians.'
         base = CvDocument.model_validate(self.inp.base_cv)
         evidence = pipeline.build_evidence(base, self.inp.profile)
         entries = [{'entry_id': 'work-1', 'base_count': 4}]
@@ -937,14 +1014,16 @@ class PipelineTests(unittest.TestCase):
         findings = [issue for issue in pipeline._cv_prose_issues(drafted) if issue.code == 'cv_repeated_opening_verb']
         self.assertEqual([issue.unit_id for issue in findings], ['u-ai-work-1-b3'])
 
-        # Condensing a 4-bullet base entry down to 2 distinct-verb bullets is accepted.
+        # Distinct-verb bullets retain all four base sources.
         good_cv = cv_reply()
         good_cv['entries'][0]['bullets'] = [
             {'lead_in': '', 'text': 'Coordinated museum exhibit guide 1 with librarians.', 'sources': ['cv:work-1:b1']},
             {'lead_in': '', 'text': 'Structured museum exhibit guide 2 with librarians.', 'sources': ['cv:work-1:b2']},
+            {'lead_in': '', 'text': 'Mapped museum exhibit guide 3 with librarians.', 'sources': ['cv:work-1:b3']},
+            {'lead_in': '', 'text': 'Designed museum exhibit guide 4 with librarians.', 'sources': ['cv:work-1:b4']},
         ]
         doc, _ = pipeline._cv_draft(good_cv, base, entries, evidence, self.inp.job['description'])
-        self.assertEqual(len(doc.sections[1].entries[0].units), 2)
+        self.assertEqual(len(doc.sections[1].entries[0].units), 4)
 
     def test_german_compound_hyphen_and_awkward_verb_checks(self):
         from hiring_scraper.documents import editorial

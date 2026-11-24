@@ -19,7 +19,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from hiring_scraper.app.application_pdf import RenderResult
 from hiring_scraper.documents import editorial
-from hiring_scraper.documents.evidence import build_evidence
+from hiring_scraper.documents.evidence import build_evidence, entry_bullets
 from hiring_scraper.documents.grounding import check_document
 from hiring_scraper.documents.schema import (
     MAX_SECTION_UNITS,
@@ -39,7 +39,7 @@ from hiring_scraper.documents.schema import (
 )
 from hiring_scraper.documents.text import unit_full_text
 
-PIPELINE_VERSION = 'application-documents-v2.5'
+PIPELINE_VERSION = 'application-documents-v2.6'
 SLEEP = time.sleep
 PROMPTS = Path(__file__).with_name('prompts')
 DocumentKind = Literal['cv', 'letter']
@@ -397,22 +397,16 @@ def _issues_to_findings(kind: DocumentKind, issues: tuple[_ProseIssue, ...] | li
     ]
 
 
-def _cv_entries(base: CvDocument, evidence: dict) -> list[dict]:
+def _cv_entries(base: CvDocument) -> list[dict]:
     entries = []
     for section in base.sections:
         for entry in section.entries:
-            prefix = f'cv:{entry.id}:b'
-            bank = [key for key in evidence if key.startswith(prefix)]
+            intro = editorial.study_project_intro(entry)
+            bank = [source for source, unit in entry_bullets(entry) if unit is not intro]
             if bank:
                 entries.append({'entry_id': entry.id, 'kind': entry.kind, **entry.locked.model_dump(),
                                 'base_count': len(bank), 'bullet_bank': bank})
     return entries
-
-
-_PROJECT_INTRO = re.compile(
-    r'((?:(?:selected|academic|course|relevant|key|ausgewählte|relevante|wichtige)\s+)?'
-    r'(?:projects|project (?:themes|topics)|projekte|studienprojekte|projektthemen)\s*:)(.+)', re.I,
-)
 
 
 def _mentions(text: str, name: str) -> bool:
@@ -420,24 +414,61 @@ def _mentions(text: str, name: str) -> bool:
     return bool(re.search(rf'(?<![\w+#]){re.escape(name)}(?![\w+#])', text, re.I))
 
 
-def _sync_project_intro(entry: Entry, evidence: dict[str, str]) -> None:
-    """Keep a theme list only when the retained project bullets still support it."""
-    kept = [unit for unit in entry.units if not unit.hidden]
-    kept_text = [unit_full_text(unit) for unit in kept]
-    for unit in kept:
-        kept_text.extend(evidence.get(source, '') for source in unit.sources
-                         if source.startswith(f'cv:{entry.id}:b'))
-    text = '\n'.join(kept_text)
-    for unit in entry.intro:
-        match = _PROJECT_INTRO.fullmatch(unit_full_text(unit))
-        if unit.hidden or match is None:
+def _bullet_coverage(base: Entry, entry: Entry) -> tuple[dict[str, Unit], list[Unit]]:
+    """Assign each output bullet to its primary cited base bullet and exact duplicates."""
+    caption = editorial.study_project_intro(base)
+    promoted = caption is not None and any(unit.id == caption.id and not unit.hidden for unit in entry.intro)
+    base_bullets = {source: unit for source, unit in entry_bullets(base) if not (promoted and unit is caption)}
+    missing = base_bullets.copy()
+    kept = []
+    for unit in entry.units:
+        if unit.hidden or not unit_full_text(unit):
+            kept.append(unit)
             continue
-        label, themes = match.groups()
-        names = re.split(r'\s*(?:[&,;]|\band\b|\bund\b)\s*|\s+/\s+', themes.strip())
-        if any(name and not _mentions(text, name) for name in names):
-            unit.lead_in = ''
-            unit.text = label
-            unit.hidden = not kept
+        primary = next((source for source in unit.sources if source in base_bullets), None)
+        if primary is None:
+            continue
+        original = base_bullets[primary]
+        base_text = unit_full_text(original)
+        if original.lead_in.strip() and not unit.lead_in.strip():
+            continue
+        covered = [source for source in unit.sources if source in missing
+                   and unit_full_text(missing[source]).casefold() == base_text.casefold()]
+        if covered:
+            kept.append(unit)
+            for source in covered:
+                missing.pop(source, None)
+    return missing, kept
+
+
+def _check_cv_coverage(doc: CvDocument, base: CvDocument, *, restore: bool = False) -> list[_ProseIssue]:
+    originals = {entry.id: entry for section in base.sections for entry in section.entries}
+    issues = []
+    for section in doc.sections:
+        for entry in section.entries:
+            missing, kept = _bullet_coverage(originals[entry.id], entry)
+            if restore and (missing or len(kept) != len(entry.units)):
+                entry.units = kept + [
+                    unit.model_copy(update={'origin': 'source', 'sources': [source]})
+                    for source, unit in missing.items()
+                ]
+            if missing:
+                issues.append(_ProseIssue(
+                    'cv_missing_base_bullet',
+                    f'Entry {entry.id}: give each of these sources a distinct visible bullet with its citation first, '
+                    f'keeping any project lead-in: {", ".join(missing)}.',
+                    'review_coverage',
+                    'Restored base bullets whose rewrites lacked a distinct citation or project lead-in.',
+                    unit_id=next(iter(missing.values())).id,
+                ))
+            elif not restore and len(kept) != len(entry.units):
+                issues.append(_ProseIssue(
+                    'cv_unmatched_bullet',
+                    f'Entry {entry.id}: use one bullet per base source and cite the corresponding source first.',
+                    'review_coverage',
+                    'Removed extra rewrites that did not cover a distinct base bullet.',
+                ))
+    return issues
 
 
 def _show_named_skills(doc: CvDocument) -> None:
@@ -465,7 +496,7 @@ def _cv_draft(
     output: dict, base: CvDocument, entries: list[dict], evidence: dict[str, str], posting: str,
 ) -> tuple[CvDocument, list[Finding]]:
     reply = _CvResponse.model_validate(output)
-    counts = {entry['entry_id']: entry['base_count'] for entry in entries}
+    entry_ids = {entry['entry_id'] for entry in entries}
     findings: list[Finding] = []
     issues: list[_ProseIssue] = []
 
@@ -499,7 +530,7 @@ def _cv_draft(
     edits = {}
     for proposed in reply.entries:
         entry_id = proposed.entry_id
-        if entry_id not in counts:
+        if entry_id not in entry_ids:
             unknown('The CV response referred to an entry outside the supplied bullet banks.')
             continue
         if entry_id in edits:
@@ -507,16 +538,6 @@ def _cv_draft(
                 f'Entry {entry_id} appeared more than once; return each listed entry exactly once.',
                 code='cv_duplicate_entry',
             )
-        count = counts[entry_id]
-        lo = max(1, count - 2) if count >= 4 else max(1, count - 1)
-        hi = min(MAX_SECTION_UNITS, count + 1)
-        if not lo <= len(proposed.bullets) <= hi:
-            issues.append(_ProseIssue(
-                'cv_bullet_count',
-                f'Entry {entry_id} returned {len(proposed.bullets)} bullets; return {lo} to {hi} bullets.',
-                'review_format',
-                f'Entry {entry_id} bullet count is outside the target range.',
-            ))
         if any(not bullet.sources for bullet in proposed.bullets):
             issues.append(_ProseIssue(
                 'cv_missing_sources',
@@ -590,8 +611,6 @@ def _cv_draft(
                       for i, bullet in enumerate(edits[entry.id], 1)),
                     *(unit for unit in entry.units if unit.hidden),
                 ]
-            if entry.kind == 'study':
-                _sync_project_intro(entry, evidence)
         if section.id in skills:
             proposed = skills[section.id]
             by_id = {unit.id: unit for unit in section.units}
@@ -625,6 +644,7 @@ def _cv_draft(
             section.units = additions + section.units
             editorial.normalize_skills(section)
     _show_named_skills(doc)
+    issues.extend(_check_cv_coverage(doc, base))
     doc = CvDocument.model_validate(doc.model_dump())
     issues.extend(issue for issue in _cv_prose_issues(doc) if issue.code in _BLOCKING_PROSE_CODES)
     if issues:
@@ -639,13 +659,16 @@ def _cv_draft(
 def _new_cv(base: CvDocument) -> CvDocument:
     doc = base.model_copy(deep=True)
     doc.page = 'a4'
+    doc.photo = True
     for section in doc.sections:
         if section.kind == 'skills':
             editorial.normalize_skills(section)
         for entry in section.entries:
+            caption = editorial.study_project_intro(entry)
+            if caption is not None:
+                caption.sources = [source for source, unit in entry_bullets(entry) if unit is caption]
             editorial.normalize_internship(entry, doc.language)
             editorial.normalize_study_entry(entry)
-            editorial.merge_split_project_bullets(entry)
     return doc
 
 
@@ -1317,24 +1340,49 @@ def prepare_documents(
         cv_state = 'fallback' if checkpoint.fallback else 'completed'
         resume(stats, checkpoint)
     else:
-        entries = _cv_entries(base, evidence)
+        entries = _cv_entries(base)
         skills = [{'section_id': s.id, 'title': s.title, 'units': [u.model_dump() for u in s.units]}
                   for s in base.sections if s.kind == 'skills']
         prompt = _prompt('cv', inp, evidence, entries=entries, skills=skills)
-        cv_outcome = _generate(generate, prompt, _CvResponse,
-                               lambda output: accept_grounded(
-                                   lambda reply: _cv_draft(reply, base, entries, evidence, posting), output),
+        last_render = None
+
+        def accept_cv(output: dict):
+            nonlocal last_render
+            doc, findings = accept_grounded(
+                lambda reply: _cv_draft(reply, base, entries, evidence, posting), output,
+            )
+            telemetry, render_findings = _render('cv', doc, render)
+            last_render = (doc, telemetry, render_findings)
+            if any(finding.code == 'extra_page' for finding in render_findings):
+                issue = _ProseIssue(
+                    'cv_page_limit',
+                    'The rendered CV exceeded two pages. Shorten sentences and eliminate redundant wording '
+                    'throughout the profile and bullets. Retain every bullet, project and quantified result.',
+                    'extra_page',
+                    'The CV draft exceeded two pages.',
+                )
+                raise _InvalidResponse(issue.retry_message, code=issue.code,
+                                       candidate=(doc, findings), issues=(issue,))
+            return doc, findings
+
+        cv_outcome = _generate(generate, prompt, _CvResponse, accept_cv,
                                stats, hooks.cancelled, return_best=True)
         if isinstance(cv_outcome, _Fallback):
             cv, base_draft_findings = cv_outcome.candidate
+            _check_cv_coverage(cv, base, restore=True)
+            _show_named_skills(cv)
             draft_findings = base_draft_findings + _issues_to_findings(
-                'cv', [issue for issue in cv_outcome.issues if issue.code not in _BLOCKING_PROSE_CODES],
+                'cv', [issue for issue in cv_outcome.issues
+                       if issue.code not in _BLOCKING_PROSE_CODES and issue.code != 'cv_page_limit'],
             )
             stats['error'] = 'invalid_response'
             cv_state = 'fallback'
         else:
             cv, draft_findings = cv_outcome
-        renders['cv'], render_findings = _render('cv', cv, render)
+        if last_render is not None and cv == last_render[0]:
+            _, renders['cv'], render_findings = last_render
+        else:
+            renders['cv'], render_findings = _render('cv', cv, render)
         cv_findings = (
             draft_findings
             + _issues_to_findings('cv', _cv_prose_issues(cv))
@@ -1407,7 +1455,13 @@ def prepare_documents(
             final_findings = {'cv': cv_findings, 'letter': letter_findings}
             for kind, doc in reviewed.items():
                 if doc != docs[kind]:
-                    renders[kind], render_findings = _render(kind, doc, render)
+                    telemetry, render_findings = _render(kind, doc, render)
+                    if (kind == 'cv' and renders['cv'].get('pages', 0) in (1, 2)
+                            and any(finding.code == 'extra_page' for finding in render_findings)):
+                        reviewed[kind] = docs[kind]
+                        applied = [patch for patch in applied if patch['document'] != kind]
+                        continue
+                    renders[kind] = telemetry
                     final_findings[kind] = ground(doc) + render_findings
                     if isinstance(doc, CvDocument):
                         final_findings[kind] = (

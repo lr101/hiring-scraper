@@ -26,7 +26,7 @@ Headline and profile
   bullet or intro from that entry. Keep any evidence gap visible in the scope of the wording.
 
 Entries
-- For each listed entry, select and reorder its bullets by relevance to the posting's CORE
+- For each listed entry, retain and reorder its bullets by relevance to the posting's CORE
   responsibilities, including education projects. Give the strongest entries concrete bridges
   to duties explicitly named in the posting by showing a verified comparable action and result.
   Use posting keywords where they accurately describe cited work: agile or iterative for verified
@@ -35,17 +35,13 @@ Entries
   keep its scope exact. Cite the original bullet for every rewrite and any career evidence
   that supplies further verified detail. Lead with the work closest to the hiring responsibilities rather than the biggest result in a less relevant area. Use only
   evidence from the same employer or project.
-- Allocate bullets by relevance: give the most relevant role at least as many bullets as less
-  relevant roles, and condense less relevant 4+ bullet roles to 2–3 focused bullets so page 1
-  holds more high-relevance content. Omit low-relevance filler. For entries with fewer than
-  4 base bullets, stay within one fewer to one more than the base count (at least one).
-  For education or older roles outside the target domain, use the low end of this range
-  unless each additional bullet proves a distinct core duty in the posting. Favor a
-  transferable method that fits the work over an impressive but unrelated deliverable.
-- Merge overlapping duties within an entry: give each bullet a distinct responsibility, action
-  and purpose. Before writing, assign each bullet a separate topic and put overlapping facts
-  (such as coordination, requirements, stakeholder feedback or documentation) in one place
-  rather than splitting them across two bullets. Vary phrasing where it helps readability.
+- Every base bullet stays, including older roles, internship bullets and every education
+  project. Return one output bullet per source in each entry's bullet bank. Put the matching
+  base bullet citation first. Combine bullets only when they describe the same action and
+  outcome with the same details, and cite both base bullets in that case.
+- Fit the whole CV within two pages. Save space with direct verbs, short clauses and precise
+  objects. When responsibilities overlap, give each bullet its own focus and keep the
+  distinct details from its source.
 - Start each bullet with a direct past-tense active verb and concrete object (no explicit
   first-person OR third-person pronouns referring to the applicant — never write "I", "ich",
   "she", "he", "die sie koordinierte", etc.). Vary opening verbs when the work calls for different actions.
@@ -57,7 +53,7 @@ Entries
     hyphens in coordinated compounds (e.g. "Markt- und Nutzerbedürfnisse").
   - In English, rotate direct active verbs (e.g. Defined, Translated, Mapped, Coordinated,
     Facilitated, Prototyped, Evaluated, Structured, Prepared, Synthesized, Managed, Delivered).
-- Aim for 18–28 words for most bullets and 25–40 for project bullets that need context. Use
+- Aim for 16–24 words for most bullets and 22–32 for project bullets that need context. Use
   parallel objects and concise clauses. Retain distinguishing details (named collaborators,
   languages, tools, deliverables, suppliers, scope, verified metrics) once, where they best
   substantiate that responsibility. Preserve every verified quantified result with the action
@@ -67,14 +63,12 @@ Entries
   "strategic", "software", etc.) not present in the cited source.
 - Use one self-contained bullet per labelled project. Preserve a short project lead_in ending
   with a colon and merge related details into that bullet. Do not follow a labelled project
-  bullet with an unlabelled continuation. Keep only the themes of selected education projects
-  in their intro label. Use an empty lead_in for ordinary work bullets.
+  bullet with an unlabelled continuation from the same source. Use an empty lead_in for ordinary work bullets.
 - Keep degree names in education headings. Do not repeat the degree in project bullets.
 
 Skills
 - Tailor competencies deliberately: return existing unit ids in relevance order in `unit_ids`
-  and put clearly irrelevant or low-value items in `hidden_ids` so the section stays sharp and
-  targeted. Keep tools explicitly named in visible bullets. Keep relevant basic skills
+  and use `hidden_ids` sparingly, only for clearly irrelevant items. Keep tools explicitly named in visible bullets. Keep relevant basic skills
   qualified, self-contained, and last.
 - Use `additions` for up to 4 short (1–4 words maximum) evidence-backed bridge tags across the
   CV, or an empty list. Build each label from concrete terms in the cited evidence. Use a
