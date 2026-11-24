@@ -103,6 +103,9 @@ def queue_stale_rematch(session: Session, job_ids: Iterable[int]) -> None:
 
 def _mark_stale_analyses(session: Session, jobs: list[Job]) -> None:
     """Flag analyses whose posting text changed. They stay in use until re-analysed."""
+    from sqlalchemy import or_
+
+    from hiring_scraper.app.analysis_gate import fresh_job_clause, user_intent_job_exists
     from hiring_scraper.job_analysis import job_lines, source_hash
     stored = {row.job_id: (row.source_hash, row.status) for row in session.execute(select(
         JobAnalysis.job_id, JobAnalysis.source_hash, JobAnalysis.status).where(
@@ -111,14 +114,33 @@ def _mark_stale_analyses(session: Session, jobs: list[Job]) -> None:
         job_lines({'title': job.title, 'description': job.description, 'raw_metadata': job.raw_metadata}))]
     if stale:
         session.execute(update(JobAnalysis).where(JobAnalysis.job_id.in_(stale)).values(status='stale'))
-    # New, edited or never successfully analysed postings wait for the job analysis worker.
+    # New, edited or never successfully analysed postings enter the queue only when
+    # fresh, user-intent, or already marked priority.
     needed = [job.id for job in jobs if job.is_active and (job.id not in stored or job.id in stale
                                                            or stored[job.id][1] != 'ok')]
     if needed:
-        statement = pg_insert(JobAnalysisQueue).values([{'job_id': job_id, 'queued_at': utcnow()} for job_id in needed])
+        intent = user_intent_job_exists(Job.id)
+        already_priority = exists(select(1).where(
+            JobAnalysisQueue.job_id == Job.id,
+            JobAnalysisQueue.priority.is_(True),
+        ))
+        eligible = select(Job.id, literal(utcnow()), intent).where(
+            Job.id.in_(needed),
+            or_(intent, already_priority, fresh_job_clause()),
+        )
+        statement = pg_insert(JobAnalysisQueue).from_select(['job_id', 'queued_at', 'priority'], eligible)
         # A newer queued_at tells an in-flight analysis of the old text not to dequeue.
+        # Reset pre-rank similarity so edited text is re-scored, while preserving priority.
         session.execute(statement.on_conflict_do_update(
-            index_elements=['job_id'], set_={'retry_at': None, 'queued_at': statement.excluded.queued_at}))
+            index_elements=['job_id'],
+            set_={
+                'retry_at': None,
+                'queued_at': statement.excluded.queued_at,
+                'priority': or_(JobAnalysisQueue.priority, statement.excluded.priority),
+                'similarity': None,
+                'profile_set_hash': None,
+            },
+        ))
     # Reopened postings keep their analysis, but their pair evidence may have been
     # dropped while closed: queue pairs without evidence for the current output.
     analysed = [job.id for job in jobs if job.is_active and job.id in stored and job.id not in stale

@@ -20,7 +20,10 @@ from hiring_scraper.app import (
     application_preparation_queue, discovery_worker, job_analysis_worker, job_location_scope, job_search,
     search_snapshots, semantic_search_worker, worker,
 )
-from hiring_scraper.app.models import ProfileEvidenceUnits, SemanticSearchIndexState, UserProfile
+from hiring_scraper.app.analysis_gate import profile_embedding_hash, profile_embedding_text
+from hiring_scraper.app.models import (
+    ProfileEvidenceUnits, SemanticSearchDocument, SemanticSearchIndexState, UserProfile,
+)
 from hiring_scraper.matching_v3.evidence import UNITS_VERSION, units_hash, units_source
 from hiring_scraper.semantic_matching import MODEL_KEY
 from tests import pg
@@ -48,6 +51,7 @@ def _idle_cycles():
             lambda *_args: None),
         'job analysis': lambda: (
             job_analysis_worker.refresh_profile_units_once(embed_fn=_no_inference),
+            job_analysis_worker.refresh_prerank_scores_once(),
             job_analysis_worker.refresh_evidence_once(embed_fn=_no_inference, rerank_fn=_no_inference),
             job_analysis_worker.analyse_next_job(analyse=_no_inference)),
         'application render claim': lambda: application_preparation_queue.process_render_once(
@@ -129,6 +133,12 @@ class IdleWorkerCostTests(unittest.TestCase):
             source = units_source(profile.matching_preferences)
             session.add(ProfileEvidenceUnits(profile_id=profile.id, version=UNITS_VERSION,
                                              source_hash=units_hash(source), payload=source, vectors=b''))
+            profile_text = profile_embedding_text(profile.matching_preferences)
+            session.add(SemanticSearchDocument(
+                entity_type='profile', entity_id=profile.id,
+                content_hash=profile_embedding_hash(profile_text),
+                model_revision=MODEL_KEY, embedding=[0.01] * 384,
+            ))
             profile_id = profile.id
             for kind in ('company', 'job'):
                 session.add(SemanticSearchIndexState(entity_type=kind, model_revision=MODEL_KEY,

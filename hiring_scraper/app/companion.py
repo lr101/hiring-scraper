@@ -305,6 +305,8 @@ def save_companion_job(request: SaveJobRequest,
     application = session.scalar(select(JobApplication).where(
         JobApplication.profile_id == profile.id, JobApplication.job_id == job.id))
     already_added = application_id is None
+    from hiring_scraper.app.analysis_gate import enqueue_priority_if_needed
+    enqueue_priority_if_needed(session, job.id, is_active=job.is_active)
     session.commit()
     company = job.employer_company or job.feed.company
     return {

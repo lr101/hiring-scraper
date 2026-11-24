@@ -560,10 +560,20 @@ class MatchEvidence(Base):
 class JobAnalysisQueue(Base):
     """Jobs waiting for (re)analysis by the local LLM; drained by the job analysis worker."""
     __tablename__ = 'job_analysis_queue'
+    __table_args__ = (
+        Index('ix_job_analysis_queue_priority', 'similarity', 'job_id',
+              postgresql_where=text('priority IS TRUE')),
+        Index('ix_job_analysis_queue_scored', 'profile_set_hash', 'similarity', 'job_id',
+              postgresql_where=text('similarity IS NOT NULL')),
+        Index('ix_job_analysis_queue_prerank', 'profile_set_hash', 'job_id'),
+    )
 
     job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True)
     queued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, index=True)
     retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    priority: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
+    similarity: Mapped[float | None] = mapped_column(Float, nullable=True)
+    profile_set_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
 
 class MatchEvidenceQueue(Base):

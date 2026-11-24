@@ -7,8 +7,10 @@ from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import job_analysis_worker as worker
 from hiring_scraper.app import job_search, models, source_changes
+from hiring_scraper.app.analysis_gate import profile_embedding_hash, profile_embedding_text
 from hiring_scraper.app.match_compute import compute_match
 from hiring_scraper.app.match_documents import load_match_documents
+from hiring_scraper.semantic_matching import MODEL_KEY
 from tests import pg
 
 PREFERENCES = {
@@ -55,11 +57,29 @@ class JobAnalysisWorkerTests(unittest.TestCase):
             # The far job is newer, but the in-area job must be analysed first.
             self.profile_id, self.near_id, self.far_id = profile.id, near.id, far.id
             source_changes.jobs_changed(session, [near.id, far.id])
+            profile_text = profile_embedding_text(profile.matching_preferences)
+            vec = fake_embed([profile_text], 'query')[0]
+            session.add_all([
+                models.SemanticSearchDocument(
+                    entity_type='profile', entity_id=profile.id,
+                    content_hash=profile_embedding_hash(profile_text),
+                    model_revision=MODEL_KEY, embedding=vec,
+                ),
+                models.SemanticSearchDocument(
+                    entity_type='job', entity_id=near.id, content_hash='near-h',
+                    model_revision=MODEL_KEY, embedding=vec,
+                ),
+                models.SemanticSearchDocument(
+                    entity_type='job', entity_id=far.id, content_hash='far-h',
+                    model_revision=MODEL_KEY, embedding=vec,
+                ),
+            ])
         self.patches = [patch.object(worker, 'SessionLocal', self.factory),
                         patch.object(job_search, 'SessionLocal', self.factory)]
         for item in self.patches:
             item.start()
             self.addCleanup(item.stop)
+        worker.refresh_prerank_scores_once()
 
     def match(self, job_id):
         with self.factory() as session:
@@ -126,6 +146,13 @@ class JobAnalysisWorkerTests(unittest.TestCase):
         with self.factory.begin() as session:
             session.get(models.Job, self.near_id).description = 'Build Python services.\nKubernetes required.'
             source_changes.jobs_changed(session, [self.near_id])
+            profile = session.get(models.UserProfile, self.profile_id)
+            vec = fake_embed([profile_embedding_text(profile.matching_preferences)], 'query')[0]
+            session.merge(models.SemanticSearchDocument(
+                entity_type='job', entity_id=self.near_id, content_hash='near-h2',
+                model_revision=MODEL_KEY, embedding=vec,
+            ))
+        worker.refresh_prerank_scores_once()
         with self.factory() as session:
             self.assertEqual(session.get(models.JobAnalysis, self.near_id).status, 'stale')
         self.assertFalse(self.match(self.near_id)['pending'])
@@ -200,6 +227,7 @@ class JobAnalysisWorkerTests(unittest.TestCase):
             session.get(models.JobAnalysis, self.near_id).version = 'older-model'
             session.execute(models.JobAnalysisQueue.__table__.delete())
         worker.reconcile_queues()
+        worker.refresh_prerank_scores_once()
 
         def broken(lines):
             raise ValueError('malformed answer')
@@ -220,6 +248,7 @@ class JobAnalysisWorkerTests(unittest.TestCase):
         with self.factory.begin() as session:
             session.get(models.JobAnalysis, self.near_id).version = 'older-model'
         worker.reconcile_queues()
+        worker.refresh_prerank_scores_once()
         # Same posting text, different output: the old pair evidence must not be attached.
         worker.analyse_next_job(analyse=lambda lines: LLM_OUTPUT.replace(
             'D 1 | Build Python services.\n', ''))
@@ -232,6 +261,13 @@ class JobAnalysisWorkerTests(unittest.TestCase):
             session.get(models.Job, self.near_id).description = '\n'.join(
                 ['Build Python services.', 'Experience with PostgreSQL.'] + [f'Detail number {i}.' for i in range(40)])
             source_changes.jobs_changed(session, [self.near_id])
+            profile = session.get(models.UserProfile, self.profile_id)
+            vec = fake_embed([profile_embedding_text(profile.matching_preferences)], 'query')[0]
+            session.merge(models.SemanticSearchDocument(
+                entity_type='job', entity_id=self.near_id, content_hash='near-h3',
+                model_revision=MODEL_KEY, embedding=vec,
+            ))
+        worker.refresh_prerank_scores_once()
         sizes = []
 
         def small_context(lines):

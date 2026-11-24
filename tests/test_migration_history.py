@@ -222,8 +222,9 @@ class HistoricalUpgradeTests(unittest.TestCase):
             with TemporaryDirectory() as folder, patch.dict(os.environ, {'DATABASE_URL': self.target}):
                 for file in (migrations / 'versions').glob('*.py'):
                     # The previous image shipped none of 0044 (application documents v2),
-                    # 0045 (local job analysis), or 0046 (precomputed job location scopes).
-                    if not file.name.startswith(('0044_', '0045_', '0046_')):
+                    # 0045 (local job analysis), 0046 (precomputed job location scopes),
+                    # or 0047 (analysis pre-ranking gate).
+                    if not file.name.startswith(('0044_', '0045_', '0046_', '0047_')):
                         (Path(folder) / file.name).symlink_to(file)
                 old_config.set_main_option('version_locations', folder)
                 command.upgrade(old_config, 'head')
@@ -289,7 +290,7 @@ class HistoricalUpgradeTests(unittest.TestCase):
                     with engine.begin() as writer, engine.connect() as observer:
                         writer.execute(text("UPDATE job_locations SET label = 'Lyon'"))
                         pid = writer.scalar(text('SELECT pg_backend_pid()'))
-                        migration = pool.submit(command.upgrade, self.config, 'head')
+                        migration = pool.submit(command.upgrade, self.config, '0046_job_location_scope')
                         pg.wait_for_blocker(observer, pid)
                         with engine.begin() as job_writer:
                             job_writer.execute(text("SET LOCAL lock_timeout = '1s'"))
@@ -428,7 +429,7 @@ class HistoricalUpgradeTests(unittest.TestCase):
             event.listen(engine.__class__, 'before_cursor_execute', interrupt_index_build)
             try:
                 with self.assertRaises(Interrupted):
-                    command.upgrade(self.config, 'head')
+                    command.upgrade(self.config, '0046_job_location_scope')
             finally:
                 event.remove(engine.__class__, 'before_cursor_execute', interrupt_index_build)
 
@@ -446,7 +447,7 @@ class HistoricalUpgradeTests(unittest.TestCase):
                     "CREATE INDEX CONCURRENTLY ix_jobs_location_scope_version ON jobs (location_scope_version, id)"
                 ))
 
-            command.upgrade(self.config, 'head')
+            command.upgrade(self.config, '0046_job_location_scope')
             assert_upgraded()
 
             command.downgrade(self.config, '0045_local_job_analysis')
@@ -463,6 +464,54 @@ class HistoricalUpgradeTests(unittest.TestCase):
                 indexes = set(connection.scalars(text(
                     "SELECT indexname FROM pg_indexes "
                     "WHERE schemaname = 'public' AND tablename = 'jobs'"
+                )).all())
+                self.assertTrue(expected_indexes.isdisjoint(indexes))
+
+            command.upgrade(self.config, '0046_job_location_scope')
+            assert_upgraded()
+
+    def test_0047_analysis_prerank_up_down_up(self):
+        expected_columns = {'priority', 'similarity', 'profile_set_hash'}
+        expected_indexes = {
+            'ix_job_analysis_queue_priority',
+            'ix_job_analysis_queue_scored',
+            'ix_job_analysis_queue_prerank',
+        }
+        with patch.dict(os.environ, {'DATABASE_URL': self.target}):
+            command.upgrade(self.config, '0046_job_location_scope')
+            engine = create_engine(self.target)
+            self.addCleanup(engine.dispose)
+
+            def assert_upgraded():
+                with engine.begin() as connection:
+                    self.assertEqual(
+                        connection.scalar(text('SELECT version_num FROM alembic_version')),
+                        '0047_analysis_prerank',
+                    )
+                    cols = set(connection.scalars(text(
+                        "SELECT column_name FROM information_schema.columns "
+                        "WHERE table_schema = 'public' AND table_name = 'job_analysis_queue'"
+                    )).all())
+                    self.assertTrue(expected_columns.issubset(cols))
+                    indexes = dict(connection.execute(text(
+                        "SELECT indexrelid::regclass::text, indisvalid FROM pg_index "
+                        "WHERE indrelid = 'job_analysis_queue'::regclass"
+                    )).all())
+                    self.assertTrue(all(indexes.get(name) for name in expected_indexes))
+
+            command.upgrade(self.config, 'head')
+            assert_upgraded()
+
+            command.downgrade(self.config, '0046_job_location_scope')
+            with engine.connect() as connection:
+                cols = set(connection.scalars(text(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_schema = 'public' AND table_name = 'job_analysis_queue'"
+                )).all())
+                self.assertTrue(expected_columns.isdisjoint(cols))
+                indexes = set(connection.scalars(text(
+                    "SELECT indexname FROM pg_indexes "
+                    "WHERE schemaname = 'public' AND tablename = 'job_analysis_queue'"
                 )).all())
                 self.assertTrue(expected_indexes.isdisjoint(indexes))
 
