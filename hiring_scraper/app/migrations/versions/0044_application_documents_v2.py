@@ -7,8 +7,8 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-revision = '0043_application_documents_v2'
-down_revision = '0042_profile_match_explanation'
+revision = '0044_application_documents_v2'
+down_revision = '0043_drop_ai_assessment'
 branch_labels = None
 depends_on = None
 

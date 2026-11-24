@@ -20,13 +20,8 @@ development, run the same modules with `python -m hiring_scraper.app.<module>`.
 | Discovery worker | `app.discovery_worker` | Runs search-area campaigns: finds employers from OpenStreetMap, resolves missing homepages, and discovers career pages and ATS feeds. |
 | Search snapshot worker | `app.search_snapshot_worker` | Rebuilds materialized job-search snapshots so browsing does not wait for ranking. |
 | Semantic search worker | `app.semantic_search_worker` | Hosts the pinned local multilingual E5 embedding model and indexes companies and jobs. |
-<<<<<<< HEAD
 | Profile match worker | `app.profile_match_worker` | Rebuilds stale profile matches using local rules and local semantic evidence. |
-| Application preparation worker | `app.application_preparation_worker` | Drafts, reviews and revises application documents from the PostgreSQL queue. |
-=======
-| Profile match worker | `app.profile_match_worker` | Rebuilds stale profile matches using local rules, local semantic evidence and queued subscription-backed AI assessments. |
 | Application preparation worker | `app.application_preparation_worker` | Runs inference and PDF rendering on separate threads with independent PostgreSQL queues. |
->>>>>>> 63504f0e (feat(applications): inline v2 editor on the preparation page; remove ChatGPT handoff)
 
 PostgreSQL (with PostGIS and pgvector) is the only database. Development and tests use
 the same migrated schema and the same workers as production; requests never match,

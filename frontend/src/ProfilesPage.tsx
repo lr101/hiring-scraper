@@ -519,11 +519,7 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
           {removePhoto && form.photo && <p>{text('Photo will be removed when you save.', 'Das Foto wird beim Speichern entfernt.')} <button type="button" disabled={busy} onClick={() => setRemovePhoto(false)}>{text('Undo', 'Rückgängig')}</button></p>}
         </fieldset>
         <fieldset className="profile-section" id="profile-personalization"><legend>{text('About me for applications', 'Über mich für Bewerbungen')}</legend>
-<<<<<<< HEAD
-          <p className="muted">{text('Add confirmed examples and preferences once. They’re used by Prepare inside Radius and included in application briefs for ChatGPT. You can draft these in your usual ChatGPT conversation, then check the facts before saving here.', 'Speichere bestätigte Beispiele und Wünsche einmal. Sie werden bei Prepare inside Radius und in Bewerbungsprompts für ChatGPT verwendet. Du kannst sie im gewohnten ChatGPT-Gespräch entwerfen und die Fakten vor dem Speichern prüfen.')}</p>
-=======
           <p className="muted">{text('Save verified examples and preferences for application preparation.', 'Speichere geprüfte Beispiele und Wünsche für die Bewerbungsvorbereitung.')}</p>
->>>>>>> 63504f0e (feat(applications): inline v2 editor on the preparation page; remove ChatGPT handoff)
           {([
             ['career_evidence', text('Career evidence bank', 'Berufliche Beispiele und Belege'), 12000, text('For each role or project: the problem, your own actions, tools or methods used, and the verified outcome. Add scope, dates, links and measured results only when known. Distinguish academic projects from paid work; concrete examples help more than job titles or skill lists.', 'Je Position oder Projekt: Problem, dein eigener Beitrag, verwendete Werkzeuge oder Methoden und belegtes Ergebnis. Umfang, Daten, Links und Messwerte nur nennen, wenn bekannt. Trenne Studienprojekte von bezahlter Arbeit; konkrete Beispiele helfen mehr als Titel oder Kompetenzlisten.')],
             ['writing_samples', text('Writing samples', 'Eigene Textbeispiele'), 12000, text('Saved samples from earlier preparations. Add new samples under Voice notes and style examples.', 'Gespeicherte Beispiele aus früheren Vorbereitungen. Neue Beispiele kannst du unter Stilhinweise und Schreibbeispiele hinzufügen.')],
