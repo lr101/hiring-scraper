@@ -1,96 +1,31 @@
-Task: review the draft CV and cover letter as a careful recruiter and editor would, and propose
-small fixes. The applicant decides what to keep; be specific and brief.
+Task: review the draft CV and cover letter as a senior recruiter and editor, reporting genuine
+problems and proposing small, safe fixes. The applicant decides what to keep; be concise and
+specific.
 
-You receive every unit with its id, origin and cited sources, the deterministic FINDINGS
-already detected, and RENDER telemetry when available (pages, overflow, units past the limit).
-Use the PDF checks for reading order and the extracted split_units for page breaks. Bounds
-estimated from unpaginated HTML do not establish a PDF page break. Do not duplicate existing
-findings. If a wording patch alone resolves an issue, return the patch without a separate finding.
+Inputs
+- You receive every unit (`id`, `origin`, `sources`), deterministic FINDINGS already detected, and
+  RENDER telemetry (pages, overflow, PDF checks).
+- Do not duplicate existing findings. If a wording patch alone resolves an issue, return the patch
+  without a separate finding. Return empty lists when the drafts are already strong.
 
-Findings: report real problems only, each anchored to a unit id (or null for the whole
-document), with a category:
-- grounding: a claim beyond the cited evidence. Audit each past-tense clause and each
-  claim of usual practice in AI-written units, even when every noun or tool is supported.
-  Check verb strength, action, object, actors, recipients, scope, frequency, decision
-  rights, causality and outcome independently. Watch specifically for:
-  - verb-strength inflation ("coordinated" → "oversaw"/"verantwortete", "participated in a
-    program on X" → "studied X", "supported customers" → "advised customers");
-  - fact recombination (linking two separately stated source clauses into a new causal,
-    temporal, or recipient relation);
-  - unsupported experience claims in the letter opening paragraph without cited sources;
-  - speculative bridges inventing what the employer's internal data or systems look like.
-  Verify the actual relationship with each named group, including who supplied feedback.
-  An implied decision, habit or responsibility can be misleading even if no new tool or
-  number appears. Report it on the affected unit and suggest narrower wording for review.
-  In particular, distinguish preparing options, prioritizing inputs, recommending an
-  option, and making the final product decision. Test whether each KPI is tied to the
-  exact outcome claimed. Keep independently verified actions independent.
-- coverage: an important requirement of the job that the evidence supports but the documents
-  do not mention, or a strong piece of evidence left unused.
-- style: unnatural phrasing, translationese, clichés, buzzword strings, repetition, or
-  impersonal CV profile subjects.
-- format: excessive pages, unbalanced paragraphs, or a rewrite longer than its source
-  without a clear purpose. Keep each labelled project in one bullet.
-Severity is high (misleading or wrong), medium (weakens the application) or info.
-Flag plausible wording drift as an advisory grounding finding with medium severity.
-For each unit finding, put the exact quoted words from the unit in `claim` where possible,
-a short explanation or suggested fix in `suggestion`, and a complete replacement for that
-unit in `replacement` when the same citations support it. Use empty strings for missing
-claims or replacements. Put slight verb-strength changes here for the applicant to assess.
+Findings (anchor to `unit_id`, or `null` for document-level)
+- `grounding`: claims unsupported by the cited evidence — invented facts, wrong employer or study
+  attribution, unsupported numbers/tools/credentials, inflated scope or invented causal links, or
+  speculation about the employer beyond JOB. Use `high` severity for invented or false facts; use
+  `medium` for slight wording-strength drift so the applicant can assess it.
+- `coverage`: a core posting duty supported by evidence that both documents miss.
+- `style`: translationese, clichés, awkward phrasing, heavy repetition, CV/letter verbatim copying,
+  or voice errors (first/third person in CV profile, informal du-form in German letter,
+  contractions in English letter).
+- `format`: overflow past page limits (CV > 2 pages, letter > 1 page), headline > 70 characters,
+  or unbalanced paragraph lengths.
+- Include the exact affected wording in `claim`, a brief `suggestion`, and a complete `replacement`
+  backed by the same citations when available (empty strings otherwise).
 
-Patches: for AI-written units ONLY (`origin == "ai"` — never propose patches for kept
-`origin == "source"` base bullets), propose replacement text with a kind:
-- rephrase: same facts, better wording. Fix genuine style issues where a small edit can
-  preserve every claim and its original citation. Use one sentence for each profile unit.
-  Keep the existing distinction between separate source facts, even within a sentence.
-- shorten: same facts, fewer words (use when RENDER shows overflow).
-- content: adds, removes or changes facts, including narrowing an unsupported past claim.
-  These are shown to the applicant, not applied.
-A patch keeps the unit's cited facts, cites nothing new, never introduces impersonal
-subjects in the CV profile, and does not introduce repeated phrases across paragraphs
-(such as "I look forward to" in both a body paragraph and the closing). Before returning
-each patch, audit every claim in the replacement against the same citations, including any
-new implication created by the edit. Return empty lists when the drafts are already good.
-
-Check that:
-- CV headline is at most 70 characters and names 3 verified functional pillars (or 2–3 when
-  narrow) covering the posting's core duties and ordered by fit, including cross-functional
-  or interface coordination when asked and supported. Leave secondary duties out of the
-  headline. Use the posting's role-family wording for verified functional work and avoid
-  presenting an unheld job title. Never elevate a one-off student task into a standalone
-  pillar. Avoid unnecessary diminishing qualifiers.
-- CV profile has 2–3 distinct, short units of one sentence each. The first starts
-  with a verified professional identity whenever work experience exists. Connect the second
-  sentence to the strongest work evidence and the optional third to a relevant analytical or
-  technical strength. Avoid repeating the bullets. In German use implicit first person
-  and allow subject-less verb-led clauses after the noun-led opening. In English use
-  fluent noun-led or subject-less CV prose. Keep the applicant implied and avoid a
-  third-person role subject. Ground each sentence in its own citations and never carry
-  a job title into another entry. Identify study projects as such; a company named in
-  a topic or project label is not a client or employer without explicit evidence.
-- Rewritten CV bullets (`origin == "ai"`) preserve verb strength, actors, recipients,
-  objects, exact authorship/ownership, and separation of independent source clauses. They
-  avoid third-person pronouns referring to the applicant (never "die sie koordinierte",
-  "she", "he"), avoid unsupported qualifiers ("technical"/"technisch", "strategic",
-  "software", etc.), avoid clunky compounds, repeated stems and abrupt endings, and
-  keep verified quantified results with the actions they measure. In German, use direct
-  active verbs and suspension hyphens in coordinated compounds ("Markt- und
-  Nutzerbedürfnisse"). Preserve each rewrite's local terminology change and original
-  clause order. Report any remaining bullet wording issue as a finding with a suggestion
-  for the applicant. Leave kept `origin == "source"` bullets untouched.
-- Skills are reordered only. Preserve their text, citations and visibility.
-- Cover letter opens by connecting a core duty to a specific, cited capability in
-  the applicant's background. Keep posting facts exact.
-- Each example covers one or two of the strongest verified actions and an outcome or
-  concrete takeaway for a named posting duty. Prefer verified quantities. Include a study
-  project with explicit study context where it supplies the best evidence. Check coverage
-  of core duties, including research, partnerships, requirements prioritization and
-  Figma prototyping where the posting asks for them and verified evidence exists.
-- Keep the letter to 4–5 paragraphs including a brief close. Use each paragraph-opening
-  word at most twice and avoid repeating the same main verb in adjacent sentences, even
-  across paragraph boundaries. Keep the scope of the source verbs when varying prose.
-  Use at most one forward-looking conditional and avoid repeated bridge formulas.
-- Close with a specific, natural interview invitation and no new claims. Use idiomatic
-  German (omit "Vielen Dank für Ihre Zeit.") or natural English, as appropriate. Spell out
-  English contractions. In German use formal Sie-Form and lowercase after the
-  comma-ended salutation unless the opening is a noun, proper name or formal Sie/Ihr.
+Patches (`origin == "ai"` units ONLY — never patch kept `origin == "source"` bullets or skills)
+- `rephrase`: same facts and citations, clearer or more idiomatic wording. Keep each CV profile
+  unit to one sentence.
+- `shorten`: same facts, fewer words (use when RENDER shows overflow).
+- `content`: changes or narrows facts (shown to the applicant for review, not auto-applied).
+- Verify every patch preserves its unit's cited facts and introduces no new claims, repetitions,
+  or voice issues.

@@ -1,65 +1,39 @@
-Task: tailor the CV to the posting. Preserve verified employers, titles, dates and section
-order. Identify the core work the employer is hiring for and map it to the strongest evidence.
+Task: tailor the CV to the posting's core duties while preserving verified employers, titles,
+dates, and section order. Keep the CV concise so it fits within two A4 pages.
 
-Headline and profile
-- Write a one-line headline of 45–65 characters (maximum 70). Use two or three truthful
-  functional pillars ordered by fit. Use the posting's role-family wording for a verified
-  functional area, without presenting the target job title as a past title. Include coordination when the posting asks for it and
-  substantial verified work supports it. Use job titles, role families and domains only at
-  verified scope. Never promote a one-off study project into a headline specialty. Cite
-  each pillar's supporting evidence.
-- Fill `profile.first` and `profile.second` with one sentence each. Use `profile.third`
-  only for a distinct core duty with strong evidence, otherwise return null. Aim for roughly
-  35–55 words in total. Plan the paragraph as a connected argument about the posting's
-  core work: lead with a verified professional identity, follow with the strongest matching
-  work evidence, and add a distinct technical or analytical strength if useful. When the
-  applicant has work experience, lead with the profession, without graduate framing or
-  opening on a study project. Keep each sentence independently cited and connect them
-  through the progression of ideas. Summarize what the experience demonstrates instead
-  of repeating any bullet's action-and-result wording.
-- German: implicit first person, with no explicit "ich" and no third-person role subject
-  ("Die Ingenieurin …" is wrong). Start with a noun-led CV opening such as "Ingenieurin
-  für … mit Erfahrung in …". Follow with direct, subject-less verb-led clauses as natural.
-- English: use a noun-led opening and fluent CV sentences with an implied applicant where
-  natural. Avoid sentence fragments, bare infinitives and explicit applicant pronouns.
-- Every sentence has its own `sources`, supporting the text of that sentence alone.
-  Each sentence may draw on one entry and general identity or skill evidence. Never
-  borrow context from another sentence or another title. Use a study fact only as study
-  experience, explicitly naming it as a study
-  project where relevant. A company in a project label is a topic, not an employer, client,
-  or project recipient unless the cited fact explicitly says so. Never attach a job title to
-  work in a different entry. If two sources describe unrelated actions, state them
-  independently or use separate sentences. Never invent a relationship between them.
-- Leave language levels to their dedicated section and motivation to the letter.
+Headline
+- Write one line of 45–65 characters (hard max 70) naming 2–3 verified functional pillars ordered
+  by fit for the posting's core duties.
+- Use the posting's role-family phrasing where it accurately describes verified work, without
+  presenting an unheld job title or promoting a single study project into a headline specialty.
+- Cite each pillar's supporting evidence ids.
 
-Entries (one slot per base bullet)
-- In ENTRIES each bullet has a source id and its original text. Within each entry, order all
-  bullet ids by relevance to the posting's core duties. Put the clearest evidence first.
-- Assign `relevance` to every bullet. Plan on 2–4 high slots across the CV where there is
-  that much direct evidence. A high slot directly evidences a core posting duty and benefits
-  from a wording change. Rewrite each high slot, returning `text` and its exact `source`.
-  Use medium for adjacent evidence or bullets already phrased in the posting's vocabulary,
-  and low for unrelated work. Return only `relevance` for medium and low; the application
-  keeps those bullets verbatim. Entries without bullets have no response slot.
-- Rewrite from the one base bullet in that slot. Return its complete text with the
-  smallest equivalent term substituted where it exposes the duty. Keep the original
-  verb strength and clause order, adjusting grammar as needed. Vary opening verbs across
-  rewrites with equivalents at the same strength, or keep a bullet verbatim when a change
-  adds little. Keep every action the posting asks for, even if it is a secondary clause
-  (for example, retain verified market research alongside prototyping). Leave actors, objects, recipients, tools, scope and measured
-  results intact. Keep separate source facts separate even within one bullet.
-  If the source says a person analyzed results and separately discussed improvements with
-  colleagues, never say they discussed those results with the colleagues.
-- Surface the posting's vocabulary where it describes the exact same action or method:
-  e.g. cost analysis for costing, product training for training on a product, and iterative
-  work for documented Kanban iterations. Distinguish analyzing KPIs from making a
-  data-driven decision, and requirements prioritization from deciding the roadmap.
-  Preserve early-stage scope and study context. Leave a term unchanged if its posting
-  counterpart adds a different object, stage, relationship, or level of responsibility.
-- Keep rewrites as short as the source or shorter without dropping substantive evidence.
-  This CV must fit two pages. The application retains project labels; write only the body
-  in `text`, keeping each study project as one bullet.
+Profile
+- Fill `profile.first` and `profile.second` (one sentence each) and `profile.third` (one sentence
+  for a distinct core strength, or null), totaling roughly 35–55 words.
+- Write 2–3 connected sentences positioning the candidate for this role: lead with a verified
+  professional identity, connect to the strongest relevant work evidence, and optionally add a
+  distinct technical or analytical strength. Synthesize rather than repeating bullet wording.
+- Use subject-less CV style: no explicit first person ("I"/"ich") and no third-person pronouns or
+  role subjects ("she"/"he"/"Die Ingenieurin"). Start with a noun-led opening (e.g. "Ingenieurin
+  für … mit Erfahrung in …" or a noun-led English opening) followed by fluent subject-less CV
+  prose.
+- Cite each sentence's own `sources` from one entry plus general/skill evidence. Identify study
+  projects explicitly as study context; a company in a project label is a topic unless evidence
+  states an employer or client relationship. Leave language levels to their section and motivation
+  to the letter.
+
+Entries (keep/rewrite slots)
+- In ENTRIES, each base bullet has a `bullet_id`, `source`, and original text. Within each entry,
+  return all `bullet_id`s in `order` with the clearest evidence for the posting's core duties
+  first.
+- Assign `relevance` to every bullet. Mark only the 2–4 strongest core-duty bullets across the CV
+  as `high` and rewrite them (`text` + exact `source`) to frame verified work for the posting.
+  Mark adjacent or already well-phrased bullets `medium` and unrelated ones `low` (return only
+  `relevance`; the application keeps them verbatim).
+- Rewrite from that single base bullet at its exact scope, preserving actors, tools, results, and
+  substantive details. Keep rewrites at most as long as the source, vary opening verbs, and omit
+  any existing `lead_in` prefix from `text` (the application preserves it).
 
 Skills
-- Return existing ids in `unit_ids` in relevance order for each skills section. Keep all
-  skills, including qualified basics. The application retains their content and visibility.
+- Return each skills section's existing `unit_ids` ordered by relevance; keep every item.

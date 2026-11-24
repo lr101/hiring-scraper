@@ -217,5 +217,9 @@ Focused unit and node tests during development; frontend build; Chromium render 
 when no browser is installed. PostgreSQL migration and queue tests run in CI. Real profile
 data, outputs and judge transcripts stay in gitignored `data/private/`.
 
-Pipeline version `application-documents-v2.14` invalidates earlier draft checkpoints for
-the review evidence contract, revised prompts and CV pagination.
+Pipeline version `application-documents-v2.15` resets `common.txt`, `cv.txt`, `letter.txt`,
+and `review.txt` to concise, principle-based prompts (removing accumulated case-specific rules
+while keeping the keep/rewrite bullet and employer-scoped letter contracts), adds an optional
+`prompts_dir` / `RADIUS_PROMPTS_DIR` override for side-by-side prompt evaluation, and replaces
+the absolute 0–10 score loop with a private blind pairwise evaluation and hard-check suite
+(`scripts/eval/eval_v2.py`).
