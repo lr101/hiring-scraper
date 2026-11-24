@@ -232,6 +232,7 @@ WORKER_MODULES = (
     "search_snapshot_worker",
     "profile_match_worker",
     "semantic_search_worker",
+    "job_analysis_worker",
     "application_preparation_worker",
 )
 WORKER_POOL = {"HIRING_DB_POOL_SIZE": "5", "HIRING_DB_MAX_OVERFLOW": "5"}

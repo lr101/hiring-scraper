@@ -28,13 +28,13 @@ from hiring_scraper.app.match_compute import (
 from hiring_scraper.app.models import (
     ProfileIndexChanged, hold_profiles,
     Company, Job, JobApplication, JobFeed, JobLocation, JobSearchState, MatchDirtyJob,
-    MatchSemanticDocument, ProfileMatchProgress, ProfileJobMatch, UserProfile, utcnow,
+    JobAnalysis, MatchEvidence, ProfileMatchProgress, ProfileJobMatch, UserProfile, utcnow,
     reserve_job_source_rows,
 )
-from hiring_scraper.app.profile_semantics import load_semantic_documents
-from hiring_scraper.matching import match_job
-from hiring_scraper.semantic_matching import VERSION as SEMANTIC_VERSION
+from hiring_scraper.app.match_documents import load_match_documents
+from hiring_scraper.matching_v3 import match_job_v3
 
+match_job = match_job_v3
 _DEFAULT_MATCH_JOB = match_job
 PRESENTATION_MATCHING_DEFAULT_KEYS = frozenset({"min_match_score", "include_unknown"})
 
@@ -110,7 +110,6 @@ def scoring_preferences(matching_preferences: dict) -> dict:
 def _profile_index_version(profile: UserProfile) -> str:
     payload = json.dumps({
         "matcher": active_matcher_version(),
-        "semantic": SEMANTIC_VERSION,
         "preferences": scoring_preferences(profile.matching_preferences),
     }, sort_keys=True, ensure_ascii=False, separators=(",", ":"), default=str)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:40]
@@ -231,8 +230,12 @@ def _batch_source_snapshot(session: Session, ids, profile_ids) -> str:
         select(Company.id, Company.name, Company.domain, Company.state, Company.country_code,
                Company.category, Company.source)
             .where(Company.id.in_(employers) | Company.id.in_(feed_companies)).order_by(Company.id),
-        select(MatchSemanticDocument.__table__).where(MatchSemanticDocument.job_id.in_(ids) |
-            MatchSemanticDocument.profile_id.in_(profile_ids)).order_by(MatchSemanticDocument.id),
+        select(JobAnalysis.job_id, JobAnalysis.version, JobAnalysis.status, JobAnalysis.source_hash)
+            .where(JobAnalysis.job_id.in_(ids)).order_by(JobAnalysis.job_id),
+        select(MatchEvidence.profile_id, MatchEvidence.job_id, MatchEvidence.version,
+               MatchEvidence.analysis_hash, MatchEvidence.units_hash)
+            .where(MatchEvidence.job_id.in_(ids), MatchEvidence.profile_id.in_(profile_ids))
+            .order_by(MatchEvidence.profile_id, MatchEvidence.job_id),
     ]
     return json.dumps([[list(row) for row in session.execute(query)] for query in statements], default=str,
                       sort_keys=True, separators=(',', ':'))
@@ -276,7 +279,8 @@ def application_match_allowed(job: Job, profile: UserProfile, result: dict) -> b
         min_score = 0
     include_unknown = defaults.get("include_unknown", True) is not False
     uncertain = bool(result.get("uncertain") or scope.get("unknowns"))
-    return bool(scope["eligible"] and result.get("eligible") and
+    # Jobs the local models have not analysed yet stay hidden until they are.
+    return bool(not result.get("pending") and scope["eligible"] and result.get("eligible") and
                 result.get("score", 0) >= min_score and
                 (include_unknown or not uncertain))
 
@@ -301,6 +305,7 @@ def evaluate_stored_new_application(
         return "defer"
     stored_result = {
         "eligible": bool(explanation.get("eligible", True)),
+        "pending": bool(explanation.get("pending", False)),
         "score": match_row.match_score,
         "uncertain": bool(match_row.match_uncertain),
     }
@@ -412,7 +417,7 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
                     selectinload(Job.locations),
                 )
             ).unique().all()
-            semantic_documents = load_semantic_documents(session, jobs, stale_profiles)
+            match_documents = load_match_documents(session, jobs, stale_profiles)
             score_version = current_score_version()
             matcher = None if match_job is _DEFAULT_MATCH_JOB else match_job
             for job in jobs:
@@ -420,7 +425,7 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
                 enrichment = current_enrichment(job)
                 for profile in stale_profiles:
                     result = compute_match(
-                        job, profile, semantic_documents,
+                        job, profile, match_documents,
                         source=source, enrichment=enrichment, matcher=matcher,
                     )
                     if not result.get("eligible"):
@@ -428,7 +433,7 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
                     pending_matches.append(
                         match_row_payload(
                             profile.id, job.id, result, score_version,
-                            job=job, documents=semantic_documents, source=source,
+                            job=job, documents=match_documents, source=source,
                         )
                     )
                     if application_match_allowed(job, profile, result):
@@ -554,7 +559,7 @@ def _refresh_application_matches_for_jobs(
                     selectinload(Job.locations),
                 ).execution_options(populate_existing=True)
             ).unique().all()
-            semantic_documents = load_semantic_documents(session, jobs, profiles)
+            match_documents = load_match_documents(session, jobs, profiles)
             score_version = current_score_version()
             matcher = None if match_job is _DEFAULT_MATCH_JOB else match_job
             matching_jobs = [
@@ -571,7 +576,7 @@ def _refresh_application_matches_for_jobs(
                 for job, source, enrichment in matching_jobs:
                     for profile in profile_batch:
                         result = compute_match(
-                            job, profile, semantic_documents,
+                            job, profile, match_documents,
                             source=source, enrichment=enrichment, matcher=matcher,
                         )
                         if not result.get("eligible"):
@@ -579,7 +584,7 @@ def _refresh_application_matches_for_jobs(
                         matches.append(
                             match_row_payload(
                                 profile.id, job.id, result, score_version,
-                                job=job, documents=semantic_documents, source=source,
+                                job=job, documents=match_documents, source=source,
                             )
                         )
                         if application_match_allowed(job, profile, result):

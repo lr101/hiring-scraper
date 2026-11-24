@@ -243,7 +243,7 @@ def canonical_state(state: str | None) -> str | None:
 def profile_match(job, profile, scope, semantic_documents=None):
     from sqlalchemy.orm import object_session
     from hiring_scraper.app.job_search import profile_match_index_stale
-    from hiring_scraper.app.profile_semantics import load_semantic_documents
+    from hiring_scraper.app.match_documents import load_match_documents
 
     session = None
     for obj in (job, profile):
@@ -265,7 +265,7 @@ def profile_match(job, profile, scope, semantic_documents=None):
             )
             if stored is not None:
                 return stored
-        semantic_documents = load_semantic_documents(session, [job], [profile])
+        semantic_documents = load_match_documents(session, [job], [profile])
         return compute_match(job, profile, semantic_documents, scope=scope)
 
     stored = None
@@ -414,7 +414,7 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
         selected = []
         from sqlalchemy.orm import object_session
         from hiring_scraper.app.job_search import _profile_index_version, profile_match_index_stale
-        from hiring_scraper.app.profile_semantics import load_semantic_documents
+        from hiring_scraper.app.match_documents import load_match_documents
         profile_session = None
         try:
             profile_session = object_session(profile)
@@ -461,13 +461,13 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
                     else:
                         fallback_jobs.append(job)
             if fallback_jobs:
-                semantic_documents = load_semantic_documents(profile_session, fallback_jobs, [profile])
+                semantic_documents = load_match_documents(profile_session, fallback_jobs, [profile])
                 for job in fallback_jobs:
                     matches[job.id] = compute_match(job, profile, semantic_documents, scope=scopes[job.id])
         elif indexed_matches is not None:
             profile_is_stale = profile_match_index_stale(profile)
             dirty_ids = set(dirty_job_ids or ())
-            semantic_documents = load_semantic_documents(None, matching, [profile]) if indexed_matches else None
+            semantic_documents = load_match_documents(None, matching, [profile]) if indexed_matches else None
             expected_version = current_score_version()
             fallback_jobs = []
             for job in matching:
@@ -497,11 +497,11 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
                         fallback_jobs.append(job)
             if fallback_jobs:
                 if semantic_documents is None:
-                    semantic_documents = load_semantic_documents(None, fallback_jobs, [profile])
+                    semantic_documents = load_match_documents(None, fallback_jobs, [profile])
                 for job in fallback_jobs:
                     matches[job.id] = compute_match(job, profile, semantic_documents, scope=scopes[job.id])
         else:
-            semantic_documents = load_semantic_documents(profile_session, matching, [profile])
+            semantic_documents = load_match_documents(profile_session, matching, [profile])
             for job in matching:
                 matches[job.id] = compute_match(job, profile, semantic_documents, scope=scopes[job.id])
         for job in matching:
