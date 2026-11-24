@@ -294,5 +294,67 @@ class RouterValidationTests(unittest.TestCase):
         self.assertEqual(status, 422)
 
 
+class MigrationAndEvalGuardTests(unittest.TestCase):
+    def test_migration_0044_chains_after_0043_and_matches_orm_tables(self):
+        import importlib
+        from alembic.config import Config
+        from alembic.script import ScriptDirectory
+        from hiring_scraper.app import models
+
+        cfg = Config()
+        cfg.set_main_option('script_location', 'hiring_scraper/app/migrations')
+        script = ScriptDirectory.from_config(cfg)
+        self.assertEqual(script.get_heads(), ['0044_application_documents_v2'])
+
+        migration = importlib.import_module(
+            'hiring_scraper.app.migrations.versions.0044_application_documents_v2'
+        )
+        self.assertEqual(migration.revision, '0044_application_documents_v2')
+        self.assertEqual(migration.down_revision, '0043_drop_ai_assessment')
+
+        created_tables = {}
+        dropped_tables = []
+        executed = []
+        fake_bind = types.SimpleNamespace(dialect=types.SimpleNamespace(name='postgresql'))
+
+        def record_create(name, *cols, **_kwargs):
+            created_tables[name] = {col.name for col in cols if hasattr(col, 'name') and hasattr(col, 'type')}
+
+        with patch.object(migration.op, 'create_table', side_effect=record_create), \
+                patch.object(migration.op, 'create_index'), \
+                patch.object(migration.op, 'get_bind', return_value=fake_bind), \
+                patch.object(migration.op, 'execute', side_effect=executed.append), \
+                patch.object(migration.op, 'drop_index'), \
+                patch.object(migration.op, 'drop_table', side_effect=dropped_tables.append):
+            migration.upgrade()
+            migration.downgrade()
+
+        expected = ('application_documents', 'application_document_renders', 'application_render_tasks')
+        self.assertEqual(tuple(created_tables), expected)
+        self.assertEqual(tuple(dropped_tables), tuple(reversed(expected)))
+        for table_name in expected:
+            orm_columns = set(models.Base.metadata.tables[table_name].c.keys())
+            self.assertEqual(created_tables[table_name], orm_columns, table_name)
+        self.assertTrue(any('GRANT SELECT, INSERT, UPDATE, DELETE ON' in sql and 'hiring_app' in sql
+                            for sql in executed))
+
+    def test_eval_script_restricts_paths_to_data_private(self):
+        import importlib.util
+        from pathlib import Path
+
+        root = Path(__file__).resolve().parents[1]
+        spec = importlib.util.spec_from_file_location(
+            'eval_application_documents', root / 'scripts' / 'eval' / 'application_documents.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        allowed = module.private_path(root / 'data' / 'private' / 'case-1' / 'out')
+        self.assertEqual(allowed, (root / 'data' / 'private' / 'case-1' / 'out').resolve())
+        for outside in (root / 'data' / 'private', root / 'data' / 'public', root / 'tmp',
+                        root / 'data' / 'private' / '..' / 'escape'):
+            with self.subTest(outside=str(outside)), self.assertRaises(ValueError):
+                module.private_path(outside)
+
+
 if __name__ == '__main__':
     unittest.main()
