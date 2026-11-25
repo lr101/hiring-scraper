@@ -111,9 +111,13 @@ export function JobPostingAnalysis({ state, analysis, refreshing }: {
   </section>
 }
 
-export default function JobEvidence({ enrichment, match }: { enrichment: Enrichment; match?: ProfileMatch }) {
-  return <section className="detail-panel evidence-panel">
-    <p className="eyebrow">How this job fits</p>
+export default function JobEvidence({ enrichment, match, embedded = false }: {
+  enrichment: Enrichment; match?: ProfileMatch
+  /** Inside the job page's score details: no own heading, checklists shown elsewhere. */
+  embedded?: boolean
+}) {
+  return <section className={embedded ? 'match-details' : 'detail-panel evidence-panel'}>
+    {!embedded && <p className="eyebrow">How this job fits</p>}
     {match?.pending ? <>
       <h2>{match.eligible ? 'Analysing this job' : 'Requirement or preference conflict'}</h2>
       <p className="muted">{match.eligible
@@ -127,10 +131,10 @@ export default function JobEvidence({ enrichment, match }: { enrichment: Enrichm
           {row.profile_quote && <p>Saved evidence <q>{row.profile_quote}</q></p>}
         </div>)}
     </> : match ? <>
-      {match.job_context && (match.job_context.occupation || match.job_context.industry) && <p className="eyebrow">
+      {!embedded && match.job_context && (match.job_context.occupation || match.job_context.industry) && <p className="eyebrow">
         {[match.job_context.occupation, match.job_context.industry].filter(Boolean).join(' · ')}</p>}
-      <h2>{!match.eligible ? 'Requirement or preference conflict' : match.mandatory_review ? 'Verify mandatory eligibility' : match.fit_tier === 'recommended' ? 'Recommended match' : match.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'}</h2>
-      <ScoreBreakdown match={match} />
+      {!embedded && <h2>{!match.eligible ? 'Requirement or preference conflict' : match.mandatory_review ? 'Verify mandatory eligibility' : match.fit_tier === 'recommended' ? 'Recommended match' : match.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'}</h2>}
+      <ScoreBreakdown match={match} checklists={!embedded} />
       {match.language_review && <p className="evidence-note">Verify language proficiency against the stated requirement.</p>}
       {match.mandatory_review && <p className="evidence-note">A mandatory eligibility requirement is unverified. The match score does not clear that requirement.</p>}
       {match.gates && <>
