@@ -12,7 +12,9 @@ from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import api, companion, journey, models, semantic_search_worker, source_changes
 from hiring_scraper.app import job_analysis_worker as worker
-from hiring_scraper.app.analysis_gate import profile_embedding_hash, profile_embedding_text
+from hiring_scraper.app.analysis_gate import (
+    enqueue_priority_analysis, profile_embedding_hash, profile_embedding_text,
+)
 from hiring_scraper.app.models import utcnow
 from hiring_scraper.semantic_matching import MODEL_KEY
 from tests import pg
@@ -83,6 +85,8 @@ class AnalysisPrerankTests(unittest.TestCase):
         enqueue: bool = True,
         location: tuple[str, float, float] | None = None,
         is_active: bool = True,
+        location_text: str | None = None,
+        is_remote: bool = False,
     ) -> int:
         with self.factory.begin() as session:
             job = models.Job(
@@ -94,6 +98,8 @@ class AnalysisPrerankTests(unittest.TestCase):
                 date_posted=date_posted,
                 first_seen_at=first_seen_at or utcnow(),
                 is_active=is_active,
+                location_text=location_text,
+                is_remote=is_remote,
             )
             if location is not None:
                 label, lat, lon = location
@@ -141,6 +147,43 @@ class AnalysisPrerankTests(unittest.TestCase):
             analysed.append(job_id)
         # Highest similarity among eligible fresh rows first (fresh 0.92, junk 0.91, fallback_fresh 0.90).
         self.assertEqual(analysed, [fresh_id, junk_id, fallback_fresh_id])
+
+    def test_foreign_workplaces_skip_background_analysis(self):
+        foreign_id = self._add_job('foreign', vector=_unit_vec(0.99), location_text='Kraków, Poland')
+        german_id = self._add_job('german', vector=_unit_vec(0.95), location_text='Bad Vilbel')
+        mixed_id = self._add_job('mixed', vector=_unit_vec(0.94), location_text='Berlin / Kraków, Poland')
+        remote_id = self._add_job('remote', vector=_unit_vec(0.93), location_text='India', is_remote=True)
+        unknown_id = self._add_job('unknown', vector=_unit_vec(0.92))
+        self.assertEqual(worker.refresh_prerank_scores_once(), 5)
+
+        with self.factory() as session:
+            progress = journey.analysis_progress(session, [self.profile_id])['postings']
+            self.assertEqual(progress['queued'], 4)
+            self.assertEqual(progress['skipped'], 1)
+
+        analyse = lambda _lines: LLM_OUTPUT
+        self.assertEqual(worker.analyse_next_jobs(5, analyse=analyse),
+                         [german_id, mixed_id, remote_id, unknown_id])
+        with self.factory.begin() as session:
+            enqueue_priority_analysis(session, foreign_id)
+        self.assertEqual(worker.analyse_next_job(analyse=analyse), foreign_id)
+
+    def test_structured_workplace_gate_uses_current_locations(self):
+        job_id = self._add_job('structured', vector=_unit_vec(0.99), location_text='Kraków')
+        with self.factory.begin() as session:
+            job = session.get(models.Job, job_id)
+            job.locations.append(models.JobLocation(label='Kraków', country_code='pl'))
+            source_changes.jobs_changed(session, [job_id])
+        self.assertEqual(worker.refresh_prerank_scores_once(), 1)
+        analyse = lambda _lines: self.fail('The worker called the LLM for a foreign-only posting')
+        self.assertIsNone(worker.analyse_next_job(analyse=analyse))
+
+        with self.factory.begin() as session:
+            job = session.get(models.Job, job_id)
+            job.locations.append(models.JobLocation(label='Lindenberg'))
+            source_changes.jobs_changed(session, [job_id])
+        worker.refresh_prerank_scores_once()
+        self.assertEqual(worker.analyse_next_job(analyse=lambda _lines: LLM_OUTPUT), job_id)
 
     def test_similarity_prerank_order_threshold_and_unembedded_waiting(self):
         high_id = self._add_job('high', vector=_unit_vec(0.95))

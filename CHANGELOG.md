@@ -12,6 +12,8 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Automatic job analysis skips postings with clearly foreign-only workplaces, saving LLM capacity for jobs that could be based in Germany. Priority analysis still runs when you open or save a posting.
+
 - Postings with nothing to compare (title only, or a description the parser could not read, so the analysis finds no duties or requirements) are no longer scored from their title alone, which ranked them above real matches. They are marked **Not enough text to score**: no score, never a Journey New card, still listed on the board and on their job page. The matcher version is now `v3-evidence-3`, so every profile is rescored once from the stored analyses (no model calls) and existing automatic New cards for such postings are removed; cards you moved or saved stay.
 
 ### Added
