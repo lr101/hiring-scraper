@@ -7,6 +7,28 @@ export function findingReplacement(finding: Finding): string {
     ? finding.suggestion : '')
 }
 
+const FINDING_TOPICS: Record<Finding['code'], string> = {
+  unsupported_number: 'Number not in your sources',
+  unsupported_term: 'Term not in your sources',
+  misattributed: 'Wrong employer or project',
+  sensitive_fact: 'Personal detail',
+  placeholder: 'Placeholder left in',
+  language_mix: 'Mixed languages',
+  repetition: 'Repetition',
+  overflow: 'Too long',
+  extra_page: 'Too many pages',
+  review_grounding: 'Check the facts',
+  review_coverage: 'Posting fit',
+  review_style: 'Wording',
+  review_format: 'Layout',
+}
+
+/** Plain-language heading for a finding: how urgent it is and what it is about. */
+export function findingTitle(finding: Finding): { urgency: string; topic: string } {
+  const urgency = finding.severity === 'high' ? 'Needs attention' : finding.severity === 'medium' ? 'Check' : 'Tip'
+  return { urgency, topic: FINDING_TOPICS[finding.code] ?? 'Review note' }
+}
+
 function sourceLabel(id: string): string {
   if (id === 'job') return 'Job posting'
   if (id.startsWith('cv:')) return 'Base CV'
@@ -61,7 +83,7 @@ export function DocumentReview({
         {findings.map(finding => {
           const replacement = findingReplacement(finding)
           return <li key={finding.id} className="doc-review-finding" data-severity={finding.severity}>
-            <strong>{finding.severity === 'high' ? 'Needs attention' : 'Check this change'}</strong>
+            <strong>{finding.severity === 'high' ? 'Needs attention' : 'Check this change'} · {findingTitle(finding).topic}</strong>
             {finding.claim && <p><q>{finding.claim}</q></p>}
             <p>{finding.message}</p>
             {finding.suggestion && !replacement.startsWith(finding.suggestion) && <p>{finding.suggestion}</p>}

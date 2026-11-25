@@ -110,7 +110,8 @@ def run(args: argparse.Namespace) -> None:
             else import_docx(base_path.read_bytes(), language=language))
     photo = private_path(args.photo).read_bytes() if args.photo else None
     prompts_dir = args.prompts_dir.resolve() if args.prompts_dir else None
-    inp = PreparationInput(base.model_dump(), profile, job, base.language, args.mode, prompts_dir=prompts_dir)
+    inp = PreparationInput(base.model_dump(), profile, job, base.language, args.mode, prompts_dir=prompts_dir,
+                           targets=case.get('targets'))
 
     out.mkdir(mode=0o700, parents=True, exist_ok=True)
     checkpoints = {}

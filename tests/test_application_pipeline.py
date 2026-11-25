@@ -931,7 +931,12 @@ class PipelineTests(unittest.TestCase):
         bullets['u-base-bullet'] = {'relevance': 'high', 'text': 'Designed a hands-on workshop with librarians.',
                                     'source': 'cv:work-1:b1'}
         response.model_validate(draft)
-        for key, value in [('relevance', 'medium'), ('source', 'cv:work-1:i1')]:
+        # Any relevant bullet may be rewritten; its main source stays its own base bullet, and
+        # support may only add profile evidence, never another bullet or the job.
+        medium = deepcopy(draft)
+        medium['entries']['work-1']['bullets']['u-base-bullet']['relevance'] = 'medium'
+        response.model_validate(medium)
+        for key, value in [('relevance', 'low'), ('source', 'cv:work-1:i1'), ('support', ['job'])]:
             candidate = deepcopy(draft)
             candidate['entries']['work-1']['bullets']['u-base-bullet'][key] = value
             with self.assertRaises(ValidationError):
@@ -1145,7 +1150,7 @@ class PipelineTests(unittest.TestCase):
         result2 = self.run_with(cv=cv2, letter=bad_letter)
         self.assertEqual(result2.telemetry['attempts']['letter'], 1)
         self.assertEqual(result2.telemetry['attempt_failures'], {})
-        self.assertTrue(any(f['document'] == 'letter' and 'closely repeats' in f['message']
+        self.assertTrue(any(f['document'] == 'letter' and 'word for word from the CV' in f['message']
                             for f in result2.findings))
 
     @patch.object(pipeline, 'SLEEP', lambda _: None)
@@ -1599,3 +1604,73 @@ class CvFormatTests(unittest.TestCase):
         base_profile = [unit for unit in base.sections[0].units if not unit.hidden]
         self.assertEqual(len(profile), len(base_profile))
         self.assertEqual(len(pipeline.editorial.sentences(profile[0].text)), 3)
+
+
+class TailoringContractTests(unittest.TestCase):
+    """Rewrites draw on profile evidence and posting terms; gaps become review notes."""
+
+    def setUp(self):
+        self.base = CvDocument.model_validate(inputs().base_cv)
+        profile = {'skills': ['Exhibit planning'],
+                   'skill_evidence': {'Exhibit planning': {'context': 'professional',
+                                                           'note': 'Planned exhibits at Sedge Workshop.'}}}
+        self.evidence = pipeline.build_evidence(self.base, profile)
+        _, self.response, self.slot_map = pipeline._cv_contract(self.base, self.evidence)
+
+    def reply(self, **bullet):
+        reply = cv_reply()
+        reply['entries']['work-1']['bullets']['u-base-bullet'].update(bullet)
+        return reply
+
+    def test_rewrite_cites_its_base_bullet_first_then_support(self):
+        reply = self.reply(text='Planned hands-on exhibits and designed a workshop with librarians.',
+                           support=['skill:exhibit-planning'], keywords=['hands-on exhibits'])
+        doc, _ = pipeline._cv_from_slots(reply, self.response, self.slot_map, self.base)
+        unit = doc.sections[1].entries[0].units[0]
+        self.assertEqual(unit.sources, ['cv:work-1:b1', 'skill:exhibit-planning'])
+        self.assertEqual(unit.origin, 'ai')
+        coverage = pipeline.keyword_coverage({**reply, 'entries': {'work-1': {'bullets': {
+            'u-base-bullet': {'keywords': ['hands-on exhibits', 'museum pedagogy']}}}}}, doc)
+        self.assertEqual(coverage, {'used': ['hands-on exhibits'], 'claimed_missing': ['museum pedagogy']})
+
+    def test_unchanged_rewrite_stays_a_kept_source_bullet(self):
+        reply = self.reply(text='Designed a workshop with librarians.', support=['skill:exhibit-planning'])
+        doc, _ = pipeline._cv_from_slots(reply, self.response, self.slot_map, self.base)
+        unit = doc.sections[1].entries[0].units[0]
+        self.assertEqual((unit.origin, unit.sources), ('source', ['cv:work-1:b1']))
+
+    def test_relevant_bullet_can_be_kept_verbatim(self):
+        reply = cv_reply()
+        reply['entries']['work-1']['bullets']['u-base-bullet'] = {'relevance': 'high'}
+        doc, _ = pipeline._cv_from_slots(reply, self.response, self.slot_map, self.base)
+        unit = doc.sections[1].entries[0].units[0]
+        self.assertEqual((unit.origin, unit.text), ('source', 'Designed a workshop with librarians.'))
+
+    def test_gaps_become_notes_unless_the_cv_already_shows_them(self):
+        reply = cv_reply()
+        reply['gaps'] = [{'term': 'Museum pedagogy', 'need': 'must'}, {'term': 'librarians', 'need': 'nice'},
+                         {'term': 'museum pedagogy', 'need': 'must'}]
+        _, findings = pipeline._cv_from_slots(reply, self.response, self.slot_map, self.base)
+        self.assertEqual([(f.code, f.unit_id, f.severity) for f in findings], [('review_coverage', None, 'info')])
+        self.assertIn('“Museum pedagogy” as a must-have', findings[0].message)
+
+    def test_schema_asks_for_every_property(self):
+        schema = pipeline._all_required(self.response.model_json_schema())
+        rewrite = next(value for name, value in schema['$defs'].items() if name.startswith('CvRewrite'))
+        self.assertEqual(set(rewrite['required']), set(rewrite['properties']))
+        self.assertIn('support', rewrite['required'])
+        self.assertIn('gaps', schema['required'])
+
+    def test_targets_come_from_the_matcher_or_fall_back_to_the_posting(self):
+        self.assertEqual(pipeline.posting_targets(inputs())['source'].split(':')[0], 'none')
+        inp = replace(inputs(), targets={'duties': [{'line': 1, 'text': ' Plan  exhibits '}],
+                                         'requirements': [{'text': 'Museum pedagogy', 'need': 'nice', 'kind': 'skill'}]})
+        self.assertEqual(pipeline.posting_targets(inp), {
+            'source': 'matcher', 'duties': ['Plan exhibits'],
+            'requirements': [{'text': 'Museum pedagogy', 'need': 'nice', 'kind': 'skill'}]})
+
+
+class QuoteTests(unittest.TestCase):
+    def test_quotes_the_original_wording_of_a_matched_phrase(self):
+        text = 'Koordinierte rund 1.200 Lieferungen pro Monat mit Disponenten.'
+        self.assertEqual(pipeline._quoted(text, ('1', '200', 'lieferungen', 'pro')), '1.200 Lieferungen pro')

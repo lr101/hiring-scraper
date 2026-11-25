@@ -6,8 +6,9 @@ import {
   useRef,
   useState,
 } from 'react'
-import type { ClipboardEvent, CSSProperties, KeyboardEvent } from 'react'
-import { DocumentReview, findingReplacement } from './DocumentReview.tsx'
+import { createPortal } from 'react-dom'
+import type { ClipboardEvent, CSSProperties, KeyboardEvent, ReactNode } from 'react'
+import { DocumentReview, findingReplacement, findingTitle } from './DocumentReview.tsx'
 import { CvView } from './CvView.tsx'
 import { LetterView } from './LetterView.tsx'
 import type { UnitDisplayKind, UnitRenderContext } from './viewShared.tsx'
@@ -157,6 +158,63 @@ function setCaretPosition(container: HTMLElement, position: 'start' | 'end' | nu
 
   selection.removeAllRanges()
   selection.addRange(range)
+}
+
+const NARROW_QUERY = '(max-width: 640px)'
+
+function useNarrowScreen(): boolean {
+  const [narrow, setNarrow] = useState(() =>
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(NARROW_QUERY).matches)
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return
+    const query = window.matchMedia(NARROW_QUERY)
+    const update = () => setNarrow(query.matches)
+    update()
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
+  return narrow
+}
+
+interface UnitPopoverProps {
+  narrow: boolean
+  label: string
+  title: string
+  className?: string
+  onClose: () => void
+  children: ReactNode
+}
+
+/**
+ * Findings and AI prompts for one unit. On wide screens they open next to the unit; on a
+ * phone the sheet is scaled down to fit, so they open as a readable bottom sheet instead.
+ */
+function UnitPopover({ narrow, label, title, className = '', onClose, children }: UnitPopoverProps) {
+  if (!narrow) {
+    return <div className={`doc-editor-finding-popover ${className}`} role="dialog" aria-label={label}>{children}</div>
+  }
+  return createPortal(
+    <div className={`doc-editor-popover-sheet ${className}`} role="dialog" aria-label={label}>
+      <div className="doc-editor-popover-sheet-head">
+        <strong>{title}</strong>
+        <button type="button" onClick={onClose}>Close</button>
+      </div>
+      {children}
+    </div>,
+    document.body,
+  )
+}
+
+function FindingHead({ finding }: { finding: Finding }) {
+  const { urgency, topic } = findingTitle(finding)
+  return (
+    <div className="doc-editor-finding-head">
+      <span className={`doc-editor-doc-finding-severity doc-editor-doc-finding-severity--${finding.severity}`}>
+        {urgency}
+      </span>
+      <span className="doc-editor-finding-code">{topic}</span>
+    </div>
+  )
 }
 
 function unitKindLabel(kind: UnitDisplayKind): string {
@@ -352,10 +410,13 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
   const [history, setHistory] = useState<HistoryState<T>>(() => createHistory(value))
   const [showHidden, setShowHidden] = useState(false)
   const markAi = true
+  const narrow = useNarrowScreen()
   const [prompt, setPrompt] = useState<{ unitId: string; text: string } | null>(null)
   const [reviewId, setReviewId] = useState<string | null>(null)
   const reviewButton = useRef<HTMLButtonElement>(null)
   const [openFindingUnitId, setOpenFindingUnitId] = useState<string | null>(null)
+  // The unit being edited shows its tools; touch screens have no reliable hover for this.
+  const [activeUnitId, setActiveUnitId] = useState<string | null>(null)
   const [metrics, setMetrics] = useState<PageMetrics>(() => ({
     pageCount: 1,
     guideOffsetsPx: [],
@@ -488,12 +549,22 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
     setCaretPosition(target, pending.position)
   }, [value])
 
+  useEffect(() => {
+    if (!activeUnitId) return
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as HTMLElement | null
+      if (!target?.closest('.doc-editor-unit, .doc-editor-popover-sheet')) setActiveUnitId(null)
+    }
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => document.removeEventListener('pointerdown', handlePointerDown)
+  }, [activeUnitId])
+
   // Close open finding popover on Escape or outside click.
   useEffect(() => {
     if (!openFindingUnitId) return
-    const handlePointerDown = (event: MouseEvent) => {
+    const handlePointerDown = (event: PointerEvent) => {
       const target = event.target as HTMLElement | null
-      if (!target?.closest('.doc-editor-finding-anchor')) {
+      if (!target?.closest('.doc-editor-finding-anchor, .doc-editor-popover-sheet')) {
         setOpenFindingUnitId(null)
       }
     }
@@ -502,10 +573,10 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
         setOpenFindingUnitId(null)
       }
     }
-    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('pointerdown', handlePointerDown)
     document.addEventListener('keydown', handleKey)
     return () => {
-      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('pointerdown', handlePointerDown)
       document.removeEventListener('keydown', handleKey)
     }
   }, [openFindingUnitId])
@@ -711,12 +782,19 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
         severity ? `doc-editor-unit--finding-${severity}` : '',
         showChange ? isReviewed(unit) ? 'doc-editor-unit--ai-reviewed' : 'doc-editor-unit--ai' : '',
         reviewId === unit.id ? 'doc-editor-unit--in-review' : '',
+        activeUnitId === unit.id ? 'doc-editor-unit--active' : '',
       ]
         .filter(Boolean)
         .join(' ')
 
       return (
-        <span className={wrapperClasses} title={changeLabel}>
+        <span
+          className={wrapperClasses}
+          title={changeLabel}
+          onFocus={(event) => {
+            if ((event.target as HTMLElement).closest('.doc-editor-unit') === event.currentTarget) setActiveUnitId(unit.id)
+          }}
+        >
           {unit.lead_in ? (
             <>
               <strong className="doc-unit-lead-in">{unit.lead_in}</strong>{' '}
@@ -750,21 +828,16 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
                     {unitFindings.length}
                   </button>
                   {isPopoverOpen ? (
-                    <div
-                      className="doc-editor-finding-popover"
-                      role="dialog"
-                      aria-label="Unit review findings"
+                    <UnitPopover
+                      narrow={narrow}
+                      label="Unit review findings"
+                      title={`Review notes on this ${unitKindLabel(kind)}`}
+                      onClose={() => setOpenFindingUnitId(null)}
                     >
                       {unitFindings.map((finding) => (
                         <div key={finding.id} className="doc-editor-finding-item">
-                          <div className="doc-editor-finding-head">
-                            <span
-                              className={`doc-editor-doc-finding-severity doc-editor-doc-finding-severity--${finding.severity}`}
-                            >
-                              {finding.severity}
-                            </span>
-                            <span className="doc-editor-finding-code">{finding.code}</span>
-                          </div>
+                          <FindingHead finding={finding} />
+                          {finding.claim ? <p className="doc-editor-finding-claim"><q>{finding.claim}</q></p> : null}
                           <p className="doc-editor-finding-msg">{finding.message}</p>
                           {finding.suggestion ? (
                             <p className="doc-editor-finding-suggestion">
@@ -773,13 +846,13 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
                           ) : null}
                           <div className="doc-editor-finding-actions">
                             {!readOnly && findingReplacement(finding) && (
-                              <button type="button" onClick={() => {
+                              <button type="button" className="doc-editor-primary-action" onClick={() => {
                                 setOpenFindingUnitId(null)
                                 commitDocument(updateUnitText(valueRef.current, unit.id, findingReplacement(finding)))
                               }}>Apply suggestion</button>
                             )}
                             {!readOnly && finding.suggestion && !findingReplacement(finding) && onApplyFinding && (
-                              <button type="button" onClick={() => { setOpenFindingUnitId(null); onApplyFinding(finding) }}>Edit with guidance</button>
+                              <button type="button" className="doc-editor-primary-action" onClick={() => { setOpenFindingUnitId(null); onApplyFinding(finding) }}>Edit with guidance</button>
                             )}
                             {!readOnly && onDismissFinding && (
                               <button type="button" onClick={() => onDismissFinding(finding)}>Dismiss</button>
@@ -787,7 +860,7 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
                           </div>
                         </div>
                       ))}
-                    </div>
+                    </UnitPopover>
                   ) : null}
                 </span>
               ) : null}
@@ -802,10 +875,14 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
                   }}
                 >Improve with AI</button>
                 {prompt?.unitId === unit.id ? (
+                  <UnitPopover
+                    narrow={narrow}
+                    label="Improve with AI"
+                    title={`Improve this ${unitKindLabel(kind)}`}
+                    className="doc-editor-ai-popover"
+                    onClose={() => setPrompt(null)}
+                  >
                   <form
-                    className="doc-editor-finding-popover doc-editor-ai-popover"
-                    role="dialog"
-                    aria-label="Improve with AI"
                     onSubmit={(event) => {
                       event.preventDefault()
                       const instruction = prompt.text.trim()
@@ -825,23 +902,30 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
                       />
                     </label>
                     <div className="doc-editor-finding-actions">
-                      <button type="submit" disabled={improveDisabled || !prompt.text.trim()}>Request suggestion</button>
+                      <button type="submit" className="doc-editor-primary-action" disabled={improveDisabled || !prompt.text.trim()}>Request suggestion</button>
                       <button type="button" onClick={() => setPrompt(null)}>Cancel</button>
                     </div>
                   </form>
+                  </UnitPopover>
                 ) : null}
                 {suggestion?.unitId === unit.id ? (
-                  <div className="doc-editor-finding-popover doc-editor-ai-popover" role="dialog" aria-label="AI revision suggestion">
+                  <UnitPopover
+                    narrow={narrow}
+                    label="AI revision suggestion"
+                    title="AI suggestion"
+                    className="doc-editor-ai-popover"
+                    onClose={suggestion.onDismiss}
+                  >
                     <p className="doc-editor-finding-msg"><strong>Suggested</strong> {suggestion.text}</p>
                     {suggestion.notes.map((note) => <p key={note} className="doc-editor-finding-suggestion">{note}</p>)}
                     {!suggestion.canAccept ? (
                       <p className="doc-editor-finding-suggestion">This text changed after the request. Ask again to revise the current text.</p>
                     ) : null}
                     <div className="doc-editor-finding-actions">
-                      <button type="button" disabled={!suggestion.canAccept} onClick={suggestion.onAccept}>Accept suggestion</button>
+                      <button type="button" className="doc-editor-primary-action" disabled={!suggestion.canAccept} onClick={suggestion.onAccept}>Accept suggestion</button>
                       <button type="button" onClick={suggestion.onDismiss}>Dismiss</button>
                     </div>
-                  </div>
+                  </UnitPopover>
                 ) : null}
               </span>}
               {!readOnly ? (
@@ -874,6 +958,8 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
       handleSplit,
       handleTextChange,
       handleToggleHidden,
+      activeUnitId,
+      narrow,
       openFindingUnitId,
       readOnly,
     ],
@@ -1037,7 +1123,7 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
               <span
                 className={`doc-editor-doc-finding-severity doc-editor-doc-finding-severity--${finding.severity}`}
               >
-                {finding.severity}
+                {findingTitle(finding).urgency}
               </span>
               <span>{finding.message}</span>
               {finding.suggestion ? <em> — {finding.suggestion}</em> : null}

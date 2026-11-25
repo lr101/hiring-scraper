@@ -115,10 +115,18 @@ class VersionMathTests(unittest.TestCase):
         job = Job(title='Role', is_active=True, url='https://example.test/job',
                   feed=JobFeed(company=board),
                   raw_metadata={'hiring_organization': {'name': ' Fictional Hiring Org '}})
-        session = types.SimpleNamespace(get=lambda model, _id: {UserProfile: profile, Job: job, ProfileCV: None}[model])
+        from hiring_scraper.app.models import JobAnalysis
+
+        analysis = JobAnalysis(job_id=2, status='ok', payload={
+            'duties': [{'line': 1, 'text': 'plan releases'}],
+            'requirements': [{'line': 2, 'text': 'SQL', 'need': 'must', 'kind': 'skill'}],
+        })
+        session = types.SimpleNamespace(get=lambda model, _id: {
+            UserProfile: profile, Job: job, ProfileCV: None, JobAnalysis: analysis}[model])
         with patch.object(documents, 'base_cv_document', return_value=({'language': 'en'}, 'stored', [])):
             fields, _ = documents.snapshot_inputs(session, 1, 2, 'en')
             self.assertEqual(fields['job']['company_name'], 'Fictional Hiring Org')
+            self.assertEqual(fields['targets']['requirements'][0]['text'], 'SQL')
             job.employer_company = Company(name='Resolved Fictional Employer')
             fields, _ = documents.snapshot_inputs(session, 1, 2, 'en')
             self.assertEqual(fields['job']['company_name'], 'Resolved Fictional Employer')
