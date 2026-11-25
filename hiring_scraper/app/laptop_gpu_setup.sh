@@ -90,6 +90,7 @@ pick_sizes() {
   vram=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits | head -n1)
   # The 4B model needs about 2.7 GB plus ~0.3 GB per parallel slot (8k tokens each);
   # llama.cpp's --fit keeps any layer that does not fit on the CPU instead of failing.
+  # Its default 1 GiB safety margin pushes layers off a 4 GB card, so the LLM uses 256 MiB.
   if (( vram < 6000 )); then PARALLEL=${PARALLEL:-2}; RERANK_DEVICE=${RERANK_DEVICE:-cpu}
   elif (( vram < 10000 )); then PARALLEL=${PARALLEL:-3}; RERANK_DEVICE=${RERANK_DEVICE:-gpu}
   else PARALLEL=${PARALLEL:-4}; RERANK_DEVICE=${RERANK_DEVICE:-gpu}; fi
@@ -110,7 +111,7 @@ StartLimitIntervalSec=0
 
 [Service]
 Environment=LD_LIBRARY_PATH=$BIN_DIR
-ExecStart=$BIN_DIR/llama-server --host $BIND_ADDRESS --port $LLM_PORT --model $HOME_DIR/models/$LLM_FILE --alias $LLM_ALIAS --parallel $PARALLEL --no-kv-unified --ctx-size $(( 8192 * PARALLEL )) --threads $cores --chat-template-kwargs "{\"enable_thinking\":false}" --no-webui
+ExecStart=$BIN_DIR/llama-server --host $BIND_ADDRESS --port $LLM_PORT --model $HOME_DIR/models/$LLM_FILE --alias $LLM_ALIAS --parallel $PARALLEL --fit-target 256 --no-kv-unified --ctx-size $(( 8192 * PARALLEL )) --threads $cores --chat-template-kwargs "{\"enable_thinking\":false}" --no-webui
 Restart=always
 RestartSec=15
 
