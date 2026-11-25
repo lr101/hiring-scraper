@@ -476,6 +476,32 @@ def _analyse_fitting(lines: list[str], scopes: list[str], analyse) -> dict:
         return analysis_payload(lines, output, scopes)
 
 
+def _luna_analysis(lines: list[str], scopes: list[str]) -> dict | None:
+    """Luna first while the subscription has headroom; None means use the local LLM."""
+    from hiring_scraper.app import remote_matching
+    if not remote_matching.luna_allowed():
+        return None
+    try:
+        payload = analysis_payload(lines, remote_matching.analyse_lines(lines), scopes)
+    except Exception as error:  # Any Luna failure falls back to the local model for this job.
+        LOG.info('Luna analysis unavailable, using the local model: %s', str(error)[:200])
+        return None
+    payload['provider'] = 'luna'
+    return payload
+
+
+def _evidence_with_backup(payload_in, title, source, vectors, embed_fn, rerank_fn) -> dict:
+    """Luna first while allowed (not when a test injects the reranker), local reranker as backup."""
+    if rerank_fn is rerank:
+        from hiring_scraper.app import remote_matching
+        if remote_matching.luna_allowed():
+            try:
+                return remote_matching.compute_evidence(payload_in, title, source)
+            except Exception as error:
+                LOG.info('Luna evidence unavailable, using the local reranker: %s', str(error)[:200])
+    return compute_evidence(payload_in, title, source, vectors, embed=embed_fn, rerank=rerank_fn)
+
+
 def analyse_next_job(*, analyse=analyse_lines) -> int | None:
     """Analyse the next queued job. Returns its id, or None when the queue is idle."""
     with SessionLocal() as session:
@@ -497,7 +523,9 @@ def analyse_next_job(*, analyse=analyse_lines) -> int | None:
     digest = source_hash(lines)
     started = time.monotonic()
     try:
-        payload = _analyse_fitting(lines, scopes, analyse)
+        payload = _luna_analysis(lines, scopes) if analyse is analyse_lines else None
+        if payload is None:
+            payload = _analyse_fitting(lines, scopes, analyse)
         error = None
     except OSError:
         raise  # Model container down: the caller pauses this stage, the job stays queued.
@@ -621,7 +649,7 @@ def refresh_evidence_once(*, limit: int = EVIDENCE_PAIRS_PER_CYCLE, job_ids: lis
             payload_in, title = dict(analysis.payload), job.title or ''
             source, vectors = dict(unit_row.payload), bytes(unit_row.vectors)
         try:
-            evidence = compute_evidence(payload_in, title, source, vectors, embed=embed_fn, rerank=rerank_fn)
+            evidence = _evidence_with_backup(payload_in, title, source, vectors, embed_fn, rerank_fn)
         except OSError:
             raise
         except Exception as error:  # A poison pair must not block the queue; retry it later.

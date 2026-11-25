@@ -63,9 +63,9 @@ function ProgressRow({ label, row, unit }: { label: string; row: ProgressCounts;
 
 export function AnalysisProgressView({ data }: { data: AnalysisProgressData }) {
   const busy = waiting(data.postings) + waiting(data.matches) > 0
-  return <section className="analysis-progress" aria-label="Local matching progress">
+  return <section className="analysis-progress" aria-label="Matching progress">
     <div className="analysis-progress-head">
-      <h2>Local matching</h2>
+      <h2>Matching</h2>
       <span className={busy ? 'is-busy' : ''}>{busy ? 'Working through the queue' : 'Up to date'}</span>
     </div>
     <ProgressRow label="Postings read" row={data.postings} unit="open postings" />

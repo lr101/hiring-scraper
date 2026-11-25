@@ -198,10 +198,15 @@ def choose_knots(rows: list[dict], weights: dict[str, float]) -> tuple[tuple[tup
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--dataset', default='public')
+    parser.add_argument('--provider', choices=('local', 'luna'), default=None,
+                        help='Recorded model outputs to fit on (default: RADIUS_EVAL_PROVIDER or local)')
     parser.add_argument('--samples', type=int, default=4000)
     parser.add_argument('--keep-weights', action='store_true',
                         help='Fit only the calibration for the current component weights')
     args = parser.parse_args(argv)
+    if args.provider:
+        import os
+        os.environ['RADIUS_EVAL_PROVIDER'] = args.provider
     rows = case_rows(args.dataset, 'dev')
     if not rows:
         print('No recorded model outputs; run python -m tests.eval.v3_fixtures first.')

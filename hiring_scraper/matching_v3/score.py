@@ -272,9 +272,13 @@ def match_job_v3(
     analysis: dict | None = None,
     evidence: dict | None = None,
     weights: Mapping[str, float] = W.COMPONENT_WEIGHTS,
-    knots: Sequence[tuple[float, float]] = W.CALIBRATION_KNOTS,
+    knots: Sequence[tuple[float, float]] | None = None,
     tail_slope: float = W.CALIBRATION_TAIL_SLOPE,
 ) -> dict[str, Any]:
+    if knots is None:
+        # Each evidence provider has its own calibration so scores stay comparable.
+        luna = isinstance(evidence, dict) and evidence.get('provider') == 'luna'
+        knots = W.LUNA_CALIBRATION_KNOTS if luna else W.CALIBRATION_KNOTS
     enriched = enrichment if isinstance(enrichment, dict) else lightweight_enrichment(job)
     gate_result = evaluate_gates(job, profile, enriched)
     if not isinstance(analysis, dict) or not isinstance(evidence, dict):
