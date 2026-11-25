@@ -179,9 +179,31 @@
   background: #eaede8;
 }
 
+.doc-editor-sheet-frame {
+  flex: none;
+}
+
+/* The sheet keeps its paper width so lines wrap as in the PDF; narrow screens
+   shrink the whole page instead of reflowing it. */
 .doc-editor-sheet {
+  flex: none;
   box-shadow: 0 4px 18px rgb(24 34 28 / 12%), 0 1px 3px rgb(24 34 28 / 8%);
   border-radius: 2px;
+  transform: scale(var(--doc-editor-scale, 1));
+  transform-origin: top left;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (max-width: 640px) {
+  .doc-editor-stage {
+    padding: 10px 6px 14px;
+  }
+
+  /* Popovers open from the unit's start; keep them inside a phone screen. */
+  .doc-editor-stage .doc-editor-finding-popover {
+    width: 60vw;
+  }
 }
 
 /* ---------- Page Guides Overlay ---------- */
@@ -301,12 +323,20 @@
   text-underline-offset: 2px;
 }
 
+/* Tools float above the unit so they never change line wrapping, and stay
+   readable when the sheet is scaled down to fit a phone. */
 .doc-editor-unit-tools {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  z-index: 6;
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  margin-left: 4px;
-  vertical-align: middle;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: scale(calc(1 / var(--doc-editor-scale, 1)));
+  transform-origin: left bottom;
   font-family: 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
   font-size: 10px;
   font-style: normal;
@@ -326,6 +356,7 @@
   font-weight: 650;
   line-height: 1.1;
   cursor: pointer;
+  pointer-events: none;
   transition: opacity 100ms ease, background 100ms ease;
 }
 
@@ -334,6 +365,7 @@
 .doc-editor-unit--hidden .doc-editor-unit-action,
 .doc-editor-unit-action:focus-visible {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .doc-editor-unit-action:hover {
@@ -385,10 +417,15 @@
   color: #1f5487;
 }
 
+.doc-editor-finding-badge,
+.doc-editor-finding-popover {
+  pointer-events: auto;
+}
+
 .doc-editor-finding-popover {
   position: absolute;
   top: calc(100% + 5px);
-  right: 0;
+  left: 0;
   z-index: 20;
   width: 280px;
   max-width: 75vw;
@@ -460,6 +497,12 @@
 
   .doc-editor-sheet {
     box-shadow: none;
+    transform: none;
+  }
+
+  .doc-editor-sheet-frame {
+    width: auto !important;
+    height: auto !important;
   }
 
   .doc-editor-unit--finding-high .doc-editor-editable,

@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import type { ClipboardEvent, KeyboardEvent } from 'react'
+import type { ClipboardEvent, CSSProperties, KeyboardEvent } from 'react'
 import { DocumentReview, findingReplacement } from './DocumentReview.tsx'
 import { CvView } from './CvView.tsx'
 import { LetterView } from './LetterView.tsx'
@@ -83,6 +83,8 @@ interface PageMetrics {
 const PAGE_VERTICAL_MARGIN_MM = 16
 const EDIT_COALESCE_MS = 450
 const DEFAULT_PX_PER_MM = 96 / 25.4
+
+type SheetFit = { scale: number; width: number; height: number }
 
 const SEVERITY_RANK: Record<FindingSeverity, number> = {
   high: 3,
@@ -363,6 +365,8 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
 
   const pageRef = useRef<HTMLDivElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
+  const stageRef = useRef<HTMLDivElement | null>(null)
+  const [fit, setFit] = useState<SheetFit>({ scale: 1, width: 0, height: 0 })
   const rootRef = useRef<HTMLDivElement | null>(null)
   const valueRef = useRef<T>(value)
   const historyRef = useRef<HistoryState<T>>(history)
@@ -586,7 +590,8 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
 
     const pageWidthMm = value.page === 'letter' ? 215.9 : 210
     const pageHeightMm = value.page === 'letter' ? 279.4 : 297
-    const measuredWidth = pageEl.getBoundingClientRect().width
+    // Layout width ignores the fit-to-screen transform, matching scrollHeight below.
+    const measuredWidth = pageEl.offsetWidth
     const pxPerMm = measuredWidth > 0 ? measuredWidth / pageWidthMm : DEFAULT_PX_PER_MM
     const printableHeightPx = (pageHeightMm - PAGE_VERTICAL_MARGIN_MM * 2) * pxPerMm
     const contentHeightPx = contentEl.scrollHeight
@@ -628,6 +633,35 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
     observer.observe(pageEl)
     return () => observer.disconnect()
   }, [measurePages, value, showHidden])
+
+  // Keep the sheet at its true paper width so text wraps exactly as in the PDF,
+  // and scale it down as a whole when the screen is narrower than the page.
+  const fitSheet = useCallback(() => {
+    const stageEl = stageRef.current
+    const pageEl = pageRef.current
+    if (!stageEl || !pageEl) return
+    const style = window.getComputedStyle(stageEl)
+    const available = stageEl.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+    const width = pageEl.offsetWidth
+    const height = pageEl.offsetHeight
+    const scale = width > 0 && available > 0 ? Math.min(1, available / width) : 1
+    setFit((prev) =>
+      Math.abs(prev.scale - scale) < 0.001 && prev.width === width && prev.height === height
+        ? prev
+        : { scale, width, height },
+    )
+  }, [])
+
+  useLayoutEffect(() => {
+    fitSheet()
+    const stageEl = stageRef.current
+    const pageEl = pageRef.current
+    if (!stageEl || !pageEl || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => fitSheet())
+    observer.observe(stageEl)
+    observer.observe(pageEl)
+    return () => observer.disconnect()
+  }, [fitSheet, value.format])
 
   const docKind = value.format === CV_FORMAT ? 'cv' : 'letter'
 
@@ -1013,7 +1047,15 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
         </details>
       ) : null}
 
-      <div className="doc-editor-stage">
+      <div
+        ref={stageRef}
+        className="doc-editor-stage"
+        style={{ '--doc-editor-scale': fit.scale } as CSSProperties}
+      >
+        <div
+          className="doc-editor-sheet-frame"
+          style={fit.scale < 1 ? { width: fit.width * fit.scale, height: fit.height * fit.scale } : undefined}
+        >
         {value.format === CV_FORMAT ? (
           <CvView
             document={value}
@@ -1036,6 +1078,7 @@ export function DocumentEditor<T extends ApplicationDocument = ApplicationDocume
             overlay={pageGuidesOverlay}
           />
         )}
+        </div>
       </div>
     </div>
   )

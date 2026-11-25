@@ -10,6 +10,9 @@ export function syncInlineSeparators(root: ParentNode | null | undefined): void 
       sep.style?.removeProperty('width')
     }
     const listRect = typeof list.getBoundingClientRect === 'function' ? list.getBoundingClientRect() : null
+    // The editor may scale the sheet to fit small screens; convert rects back to layout px.
+    const scale = listRect && list.offsetWidth > 0 && listRect.width > 0 ? listRect.width / list.offsetWidth : 1
+    const tolerance = LINE_TOLERANCE_PX * scale
     for (const sep of separators) {
       const prev = sep.previousElementSibling as HTMLElement | null
       const next = sep.nextElementSibling as HTMLElement | null
@@ -18,13 +21,13 @@ export function syncInlineSeparators(root: ParentNode | null | undefined): void 
       const sepRect = sep.getBoundingClientRect()
       const nextRect = next.getBoundingClientRect()
       if (prevRect.height === 0 && nextRect.height === 0) continue
-      const wrapped = nextRect.top >= prevRect.bottom - LINE_TOLERANCE_PX
+      const wrapped = nextRect.top >= prevRect.bottom - tolerance
       if (wrapped) {
-        if (sepRect.top >= prevRect.bottom - LINE_TOLERANCE_PX) {
+        if (sepRect.top >= prevRect.bottom - tolerance) {
           sep.classList.add('doc-cv-inline-sep--collapsed')
           const nextAfter = next.getBoundingClientRect()
-          if (nextAfter.top < prevRect.bottom - LINE_TOLERANCE_PX && listRect && sep.style) {
-            const remaining = Math.max(0, Math.floor(listRect.right - prevRect.right))
+          if (nextAfter.top < prevRect.bottom - tolerance && listRect && sep.style) {
+            const remaining = Math.max(0, Math.floor((listRect.right - prevRect.right) / scale))
             if (remaining > 0) {
               sep.style.width = `${remaining}px`
             }

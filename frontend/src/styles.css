@@ -133,7 +133,7 @@ a { color: inherit; }
 .application-finish-heading > p:last-child { color: var(--finish-muted); font-size: 14px; margin-top: 12px; }
 .application-finish-card input[type=file] { max-width: 100%; font: inherit; }
 .application-finish-card { padding: 30px; border: 1px solid var(--finish-line); border-radius: 12px; background: var(--finish-paper); }
-.application-finish-card h2 { margin: 0 0 12px; font-size: 25px; line-height: 1.2; letter-spacing: -.6px; }
+.application-finish-card h2:where(:not(.doc-page *)) { margin: 0 0 12px; font-size: 25px; line-height: 1.2; letter-spacing: -.6px; }
 .application-finish-card > p:not([role]) { max-width: 650px; color: var(--finish-muted); font-size: 14px; line-height: 1.7; }
 .application-finish-card button { min-height: 44px; padding: 11px 16px; border: 1px solid var(--finish-line); border-radius: 7px; background: var(--finish-paper); color: var(--finish-ink); font-size: 13px; font-weight: 600; }
 .application-finish-card .primary-button, .detail-links .primary-button { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 12px 18px; border: 1px solid #354e41; border-radius: 7px; background: #354e41; color: white; font-size: 13px; font-weight: 600; text-decoration: none; }
@@ -1022,8 +1022,8 @@ html[data-theme="dark"] {
   --dark: #e1e7e9;
 }
 html[data-theme="dark"] body, html[data-theme="dark"] .app-shell { background: #171c20; color: #e1e6e9; }
-html[data-theme="dark"] h1, html[data-theme="dark"] h2, html[data-theme="dark"] h3,
-html[data-theme="dark"] h4, html[data-theme="dark"] .detail-panel > h2,
+/* Documents render on white paper, so their headings keep the print colours. */
+html[data-theme="dark"] :is(h1, h2, h3, h4):where(:not(.doc-page *)), html[data-theme="dark"] .detail-panel > h2,
 html[data-theme="dark"] .settings-section-heading h2 { color: #e2eae3; }
 html[data-theme="dark"] .eyebrow, html[data-theme="dark"] .intro-copy,
 html[data-theme="dark"] .muted, html[data-theme="dark"] .settings-section-heading > p { color: #aab4b9; }
@@ -1889,7 +1889,7 @@ html[data-theme="dark"] .journey-reward-progress-label { color: #aab4b9; }
 .application-workspace .application-finish-heading h1 { margin: 0 0 6px; font-size: 23px; }
 .application-workspace .application-finish-heading p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--finish-muted); }
 .application-workspace .application-finish-card { padding: 24px; }
-.application-workspace .application-finish-card h2 { font-size: 22px; }
+.application-workspace .application-finish-card h2:where(:not(.doc-page *)) { font-size: 22px; }
 @media (max-width: 600px) {
   .application-workspace .application-finish-card { padding: 20px 16px; }
 }
