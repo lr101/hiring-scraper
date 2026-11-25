@@ -126,6 +126,10 @@ services:
       SEMANTIC_EMBEDDING_URL: http://semantic-search-worker:8001/embed
       JOB_ANALYSIS_LLM_URL: http://llm:8080
       JOB_ANALYSIS_RERANK_URL: http://llm-reranker:8080
+      # Laptop GPU (Settings): parallel model calls plus an evidence thread need a few
+      # more short database sessions than the default pool.
+      DB_POOL_SIZE: ${JOB_ANALYSIS_DB_POOL_SIZE:-8}
+      JOB_ANALYSIS_MAX_PARALLEL: ${JOB_ANALYSIS_MAX_PARALLEL:-4}
     command: ["--worker", "job_analysis_worker"]
     restart: on-failure
 

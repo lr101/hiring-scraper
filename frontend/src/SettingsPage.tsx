@@ -140,10 +140,82 @@ function MatchingModel() {
     {state && <p className="settings-note" role="status">
       {state.mode === 'luna'
         ? state.ready ? 'Luna scores new postings. The llm and llm-reranker containers can stay stopped.' : state.reason
-        : 'The llm and llm-reranker containers score new postings; keep them running.'}
+        : 'The llm and llm-reranker containers score new postings, or your laptop GPU while it is online.'}
     </p>}
     {error && <p className="settings-error" role="alert">{error}</p>}
+    {state?.mode === 'local' && <LaptopGpu />}
   </div>
+}
+
+type LaptopServer = { online: boolean; slots: number } | null
+type LaptopGpuStatus = { enabled: boolean; address: string; llm: LaptopServer; reranker: LaptopServer }
+
+function laptopSummary(status: LaptopGpuStatus): string {
+  if (!status.address) return 'Enter the laptop\'s VPN address, download the setup script and run it on the laptop.'
+  const llm = status.llm?.online, reranker = status.reranker?.online
+  if (!llm && !reranker) {
+    return status.enabled ? 'Laptop offline. The homelab containers score postings until it is back.'
+      : 'Laptop offline. Run "bash radius-laptop-gpu.sh start" on it.'
+  }
+  const parts = [llm ? `job analysis ${status.llm?.slots} at once` : 'job analysis offline',
+    reranker ? `CV checks ${status.reranker?.slots} at once` : 'CV checks offline']
+  return `${status.enabled ? 'Laptop in use' : 'Laptop ready (switched off here)'}: ${parts.join(', ')}.`
+}
+
+/** Optional laptop GPU in the same VPN; the worker falls back to the homelab when it is offline. */
+function LaptopGpu() {
+  const [status, setStatus] = useState<LaptopGpuStatus | null>(null)
+  const [address, setAddress] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  useEffect(() => {
+    const controller = new AbortController()
+    let first = true
+    const load = () => fetch(`${API}/api/v1/matching-model/laptop-gpu`, { cache: 'no-store', signal: controller.signal })
+      .then(response => { if (!response.ok) throw new Error(); return response.json() })
+      .then((data: LaptopGpuStatus) => {
+        setStatus(data)
+        if (first) { setAddress(data.address); first = false }
+      })
+      .catch(() => { if (!controller.signal.aborted) setError('Could not check the laptop GPU.') })
+    void load()
+    const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void load() }, 15000)
+    return () => { controller.abort(); window.clearInterval(timer) }
+  }, [])
+  async function save(enabled: boolean, nextAddress: string) {
+    setSaving(true); setError('')
+    try {
+      const response = await fetch(`${API}/api/v1/matching-model/laptop-gpu`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled, address: nextAddress.trim() }),
+      })
+      const data = await response.json().catch(() => null)
+      if (!response.ok) throw new Error(typeof data?.detail === 'string' ? data.detail : 'Could not save the laptop GPU setting.')
+      setStatus(data); setAddress(data.address)
+    } catch (failure) { setError(failure instanceof Error ? failure.message : 'Could not save the laptop GPU setting.') }
+    finally { setSaving(false) }
+  }
+  const dirty = status !== null && address.trim() !== status.address
+  return <section className="settings-laptop" aria-labelledby="laptop-gpu-heading">
+    <h3 id="laptop-gpu-heading">Laptop GPU</h3>
+    <label className="settings-check">
+      <input type="checkbox" checked={!!status?.enabled} disabled={!status || saving || !status.address || dirty}
+        onChange={event => void save(event.target.checked, status?.address ?? '')} />
+      Use my laptop's GPU while it is online
+    </label>
+    <form className="settings-inline-form" onSubmit={event => { event.preventDefault(); void save(!!status?.enabled, address) }}>
+      <input aria-label="Laptop VPN address" value={address} disabled={!status || saving} maxLength={253}
+        placeholder="VPN IP, e.g. 100.64.0.7" spellCheck={false} autoCapitalize="off"
+        onChange={event => { setAddress(event.target.value); setError('') }} />
+      <button type="submit" disabled={!status || saving || !dirty}>{saving ? 'Saving…' : 'Save'}</button>
+    </form>
+    {status && <p className="settings-note" role="status">{laptopSummary(status)}</p>}
+    {error && <p className="settings-error" role="alert">{error}</p>}
+    <a className="settings-action" href={`${API}/api/v1/matching-model/laptop-setup.sh`} download="radius-laptop-gpu.sh">
+      Download setup script <Chevron /></a>
+    <p className="settings-note">On the Fedora laptop with the NVIDIA driver: <code>bash radius-laptop-gpu.sh install</code>, then <code>start</code> whenever
+      you want to lend the GPU and <code>stop</code> to free it. Save the address first so the script listens on it.</p>
+  </section>
 }
 
 function ApplicationModel({ onSaved }: { onSaved: () => void }) {
@@ -252,7 +324,7 @@ export default function SettingsPage() {
           <a className="settings-action" href="/profile">Manage profiles <Chevron /></a>
         </Row>
         <Row id="matching-model-heading" title="Matching model"
-          help="GPT-6 Luna reads postings and checks your CV through your ChatGPT subscription. The local models need about 6 GB of RAM. Switching applies to new work; nothing falls back automatically.">
+          help="GPT-6 Luna reads postings and checks your CV through your ChatGPT subscription. The local models need about 6 GB of RAM and can run on a laptop GPU in your VPN. Switching between Luna and local applies to new work; nothing falls back to the other.">
           <MatchingModel />
         </Row>
       </section>

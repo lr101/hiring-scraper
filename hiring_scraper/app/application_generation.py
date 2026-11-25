@@ -1,11 +1,13 @@
 """Manage the ChatGPT connection used for application preparation."""
-from fastapi import APIRouter
-from fastapi.responses import JSONResponse
+from pathlib import Path
+
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 from typing import Literal
 
-from hiring_scraper.app import codex_runtime, remote_matching
+from hiring_scraper.app import codex_runtime, laptop_gpu, remote_matching
 from hiring_scraper.app.codex_usage import evaluate
 
 router = APIRouter(prefix='/api/v1', tags=['application-preparation'])
@@ -46,6 +48,38 @@ class MatchingModeSetting(StrictModel):
 def set_matching_model(request: MatchingModeSetting):
     remote_matching.set_mode(request.mode)
     return JSONResponse(remote_matching.status(), headers={'Cache-Control': 'no-store'})
+
+
+class LaptopGpuSetting(StrictModel):
+    enabled: bool
+    address: str = Field(default='', max_length=253)
+
+
+@router.get('/matching-model/laptop-gpu')
+def laptop_gpu_status():
+    """Laptop GPU setting and a fresh check of both laptop model servers."""
+    return JSONResponse(laptop_gpu.status(), headers={'Cache-Control': 'no-store'})
+
+
+@router.put('/matching-model/laptop-gpu')
+def set_laptop_gpu(request: LaptopGpuSetting):
+    try:
+        laptop_gpu.save(request.enabled, request.address)
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+    return JSONResponse(laptop_gpu.status(), headers={'Cache-Control': 'no-store'})
+
+
+SETUP_SCRIPT = Path(__file__).with_name('laptop_gpu_setup.sh')
+
+
+@router.get('/matching-model/laptop-setup.sh')
+def laptop_setup_script():
+    """Setup script for the laptop, with the address from Settings filled in."""
+    address = laptop_gpu.settings()['address']
+    script = SETUP_SCRIPT.read_text().replace('__RADIUS_LAPTOP_ADDRESS__', address, 1)
+    return Response(script, media_type='text/x-shellscript', headers={
+        'Content-Disposition': 'attachment; filename="radius-laptop-gpu.sh"', 'Cache-Control': 'no-store'})
 
 
 @router.put('/application-preparation/model')

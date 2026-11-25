@@ -1,4 +1,7 @@
-"""Clients for the local llama.cpp model containers (job analysis LLM and reranker).
+"""Clients for the local llama.cpp model servers (job analysis LLM and reranker).
+
+Calls go to the homelab containers, or to the laptop GPU while it is enabled in
+Settings and online (see ``laptop_gpu``).
 
 Both servers are started with ``--alias <model key>``; every response is checked
 against the pinned key, so a swapped model can never write mislabeled analyses.
@@ -13,6 +16,7 @@ from http.client import HTTPException
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from hiring_scraper.app import laptop_gpu
 from hiring_scraper.job_analysis import GRAMMAR, LLM_MODEL_KEY, MAX_OUTPUT_TOKENS, prompt_messages
 from hiring_scraper.matching_v3.evidence import RERANK_MODEL_KEY
 
@@ -21,11 +25,21 @@ RERANK_TIMEOUT_SECONDS = float(os.getenv('JOB_ANALYSIS_RERANK_TIMEOUT_SECONDS', 
 
 
 def llm_url() -> str:
-    return os.getenv('JOB_ANALYSIS_LLM_URL', 'http://127.0.0.1:8091').rstrip('/')
+    return laptop_gpu.endpoint('llm')[0]
 
 
 def rerank_url() -> str:
-    return os.getenv('JOB_ANALYSIS_RERANK_URL', 'http://127.0.0.1:8092').rstrip('/')
+    return laptop_gpu.endpoint('reranker')[0]
+
+
+def llm_parallel() -> int:
+    """Postings to analyse at once: the laptop's slots, else one."""
+    return laptop_gpu.endpoint('llm')[1]
+
+
+def rerank_parallel() -> int:
+    """Profile/posting pairs to check at once: the laptop's slots, else one."""
+    return laptop_gpu.endpoint('reranker')[1]
 
 
 class ModelRequestRejected(ValueError):
@@ -36,7 +50,15 @@ class ModelRequestRejected(ValueError):
     """
 
 
-def _post(url: str, payload: dict, timeout: float) -> dict:
+def _post(base: str, path: str, payload: dict, timeout: float) -> dict:
+    try:
+        return _send(f'{base}{path}', payload, timeout)
+    except OSError:
+        laptop_gpu.mark_unreachable(base)  # The next call goes to the homelab server.
+        raise
+
+
+def _send(url: str, payload: dict, timeout: float) -> dict:
     request = Request(url, data=json.dumps(payload).encode('utf-8'),
                       headers={'Content-Type': 'application/json'}, method='POST')
     try:
@@ -53,7 +75,7 @@ def _post(url: str, payload: dict, timeout: float) -> dict:
 
 def analyse_lines(lines: list[str]) -> str:
     """Run the grammar-constrained job analysis and return the raw line format."""
-    payload = _post(f'{llm_url()}/v1/chat/completions', {
+    payload = _post(llm_url(), '/v1/chat/completions', {
         'model': LLM_MODEL_KEY,
         'messages': prompt_messages(lines),
         'temperature': 0,
@@ -80,7 +102,7 @@ def rerank(query: str, documents: list[str]) -> list[float]:
     """Relevance probabilities in [0, 1] for each document, in input order."""
     if not documents:
         return []
-    payload = _post(f'{rerank_url()}/v1/rerank', {
+    payload = _post(rerank_url(), '/v1/rerank', {
         'model': RERANK_MODEL_KEY, 'query': query, 'documents': documents, 'top_n': len(documents),
     }, RERANK_TIMEOUT_SECONDS)
     if payload.get('model') not in (None, RERANK_MODEL_KEY):

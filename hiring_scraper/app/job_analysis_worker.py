@@ -8,6 +8,11 @@ outage loses at most the item in flight. Jobs inside a profile's search area
 (and remote jobs) are analysed first, newest first; the rest follow. Model
 calls run outside database transactions, and each result is published only if
 its inputs are unchanged.
+
+While the laptop GPU serves the local models (Settings, see ``laptop_gpu``), the worker
+sends as many postings and pairs at once as the laptop has slots, and checks evidence
+in a second thread while postings are analysed, so the GPU never waits for the
+reranker. The homelab containers keep one call at a time.
 """
 from __future__ import annotations
 
@@ -16,7 +21,9 @@ import logging
 from http.client import HTTPException
 import math
 import os
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 from urllib.request import Request, urlopen
 
@@ -24,7 +31,7 @@ from sqlalchemy import and_, delete, exists, func, not_, or_, select, text, true
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import lazyload, selectinload
 
-from hiring_scraper.app import source_changes
+from hiring_scraper.app import laptop_gpu, source_changes
 from hiring_scraper.app.analysis_gate import (
     current_profile_set_hash,
     fresh_job_clause,
@@ -35,7 +42,9 @@ from hiring_scraper.app.analysis_gate import (
 )
 from hiring_scraper.app.board_scope import geographic_scope
 from hiring_scraper.app.database import SessionLocal, engine, log_worker_failure
-from hiring_scraper.app.local_llm import ModelRequestRejected, analyse_lines, rerank
+from hiring_scraper.app.local_llm import (
+    ModelRequestRejected, analyse_lines, llm_parallel, rerank, rerank_parallel,
+)
 from hiring_scraper.app.match_documents import USABLE_ANALYSIS_STATUSES
 from hiring_scraper.app.models import (
     Job, JobAnalysis, JobAnalysisQueue, JobApplication, JobLocation, MatchEvidence, MatchEvidenceQueue,
@@ -503,15 +512,48 @@ def _evidence(payload_in, title, source, vectors, embed_fn, rerank_fn) -> dict:
     return compute_evidence(payload_in, title, source, vectors, embed=embed_fn, rerank=rerank_fn)
 
 
+def _run_parallel(step, items: list, workers: int) -> list:
+    """Run ``step`` per item on up to ``workers`` threads. A model outage (``OSError``)
+    leaves that item queued; it is raised only when no item got through, so the stage
+    backs off exactly as with one call at a time."""
+    if workers <= 1 or len(items) <= 1:
+        return [step(item) for item in items]
+    results, outage = [], None
+    with ThreadPoolExecutor(min(workers, len(items))) as pool:
+        for future in [pool.submit(step, item) for item in items]:
+            try:
+                results.append(future.result())
+            except OSError as error:
+                outage = outage or error
+    if outage is not None and not results:
+        raise outage
+    return results
+
+
 def analyse_next_job(*, analyse=analyse_lines) -> int | None:
     """Analyse the next queued job. Returns its id, or None when the queue is idle."""
+    done = analyse_next_jobs(1, analyse=analyse)
+    return done[0] if done else None
+
+
+def analysis_parallel(*, analyse=analyse_lines) -> int:
+    """Postings to analyse at once: the laptop GPU's slots, else one (Luna, homelab, tests)."""
+    return 1 if _luna_selected(analyse is not analyse_lines) or analyse is not analyse_lines else llm_parallel()
+
+
+def analyse_next_jobs(limit: int, *, analyse=analyse_lines) -> list[int]:
+    """Analyse up to ``limit`` queued jobs at once; returns the ids handled."""
     with SessionLocal() as session:
-        profiles = _profiles(session)
-        jobs = next_jobs_to_analyse(session, profiles)
-        if not jobs:
-            return None
-        job = jobs[0]
-        job_id = job.id
+        job_ids = [job.id for job in next_jobs_to_analyse(session, _profiles(session), limit)]
+    return _run_parallel(lambda job_id: analyse_job(job_id, analyse=analyse), job_ids, limit)
+
+
+def analyse_job(job_id: int, *, analyse=analyse_lines) -> int:
+    """Analyse one queued job and publish the result if its inputs are unchanged."""
+    with SessionLocal() as session:
+        job = session.get(Job, job_id)
+        if job is None:
+            return job_id
         if not job.is_active:
             session.execute(delete(JobAnalysisQueue).where(JobAnalysisQueue.job_id == job_id))
             session.commit()
@@ -620,63 +662,70 @@ def _locked_request(session, profile_id: int, job_id: int, queued_at):
     return queued if queued is not None and queued.queued_at == queued_at else None
 
 
+def evidence_parallel(*, rerank_fn=rerank) -> int:
+    """Pairs to check at once: the laptop's reranker slots, else one (Luna, homelab, tests)."""
+    return 1 if _luna_selected(rerank_fn is not rerank) or rerank_fn is not rerank else rerank_parallel()
+
+
 def refresh_evidence_once(*, limit: int = EVIDENCE_PAIRS_PER_CYCLE, job_ids: list[int] | None = None,
                           embed_fn=embed, rerank_fn=rerank) -> int:
     """Compute queued pair evidence. Returns the number of pairs handled."""
+    workers = evidence_parallel(rerank_fn=rerank_fn)
     with SessionLocal() as session:
-        pairs = _queued_pairs(session, limit, job_ids)
-    done = 0
-    for profile_id, job_id, queued_at in pairs:
-        with SessionLocal() as session:
-            analysis = session.get(JobAnalysis, job_id)
-            unit_row = session.get(ProfileEvidenceUnits, profile_id)
-            job = session.get(Job, job_id)
-            existing = session.get(MatchEvidence, (profile_id, job_id))
-            usable = (analysis is not None and analysis.status in USABLE_ANALYSIS_STATUSES and unit_row is not None
-                      and job is not None and job.is_active)
-            current = (existing is not None and usable and existing.version == EVIDENCE_VERSION
-                       and (existing.analysis_hash, existing.units_hash) == (analysis.result_hash, unit_row.source_hash))
-            if not usable or current:
-                # Closed postings are re-queued on reopen (source_changes), so dropping is safe.
-                queued = _locked_request(session, profile_id, job_id, queued_at)
-                if queued is not None:
-                    session.delete(queued)
-                session.commit()
-                done += 1
-                continue
-            inputs = (analysis.result_hash, unit_row.source_hash)
-            payload_in, title = dict(analysis.payload), job.title or ''
-            source, vectors = dict(unit_row.payload), bytes(unit_row.vectors)
-        try:
-            evidence = _evidence(payload_in, title, source, vectors, embed_fn, rerank_fn)
-        except OSError:
-            raise
-        except Exception as error:  # A poison pair must not block the queue; retry it later.
-            log_worker_failure(LOG, f'Evidence for profile {profile_id} and job {job_id} failed; retrying later', error)
-            with SessionLocal() as session:
-                queued = _locked_request(session, profile_id, job_id, queued_at)
-                if queued is not None:
-                    queued.attempts += 1
-                    queued.retry_at = utcnow() + timedelta(hours=min(MAX_RETRY_HOURS, 2 ** min(queued.attempts, 5)))
-                session.commit()
-            continue
-        with SessionLocal() as session:
-            # A CV or posting change bumps the request revision; publishing then waits for it.
+        pairs = _queued_pairs(session, max(limit, 2 * workers), job_ids)
+    return len(_run_parallel(lambda pair: _evidence_pair(*pair, embed_fn=embed_fn, rerank_fn=rerank_fn),
+                             pairs, workers))
+
+
+def _evidence_pair(profile_id: int, job_id: int, queued_at, *, embed_fn, rerank_fn) -> None:
+    """Compute and publish one pair's evidence (dropped when it is current or unusable)."""
+    with SessionLocal() as session:
+        analysis = session.get(JobAnalysis, job_id)
+        unit_row = session.get(ProfileEvidenceUnits, profile_id)
+        job = session.get(Job, job_id)
+        existing = session.get(MatchEvidence, (profile_id, job_id))
+        usable = (analysis is not None and analysis.status in USABLE_ANALYSIS_STATUSES and unit_row is not None
+                  and job is not None and job.is_active)
+        current = (existing is not None and usable and existing.version == EVIDENCE_VERSION
+                   and (existing.analysis_hash, existing.units_hash) == (analysis.result_hash, unit_row.source_hash))
+        if not usable or current:
+            # Closed postings are re-queued on reopen (source_changes), so dropping is safe.
             queued = _locked_request(session, profile_id, job_id, queued_at)
-            analysis = session.get(JobAnalysis, job_id)
-            unit_row = session.get(ProfileEvidenceUnits, profile_id)
-            if (queued is None or analysis is None or unit_row is None
-                    or (analysis.result_hash, unit_row.source_hash) != inputs):
-                continue
-            row = session.get(MatchEvidence, (profile_id, job_id)) or MatchEvidence(profile_id=profile_id, job_id=job_id)
-            row.version, row.analysis_hash, row.units_hash = EVIDENCE_VERSION, inputs[0], inputs[1]
-            row.payload, row.computed_at = evidence, utcnow()
-            session.merge(row)
-            session.delete(queued)
-            source_changes.analysis_changed(session, [job_id])
+            if queued is not None:
+                session.delete(queued)
             session.commit()
-        done += 1
-    return done
+            return
+        inputs = (analysis.result_hash, unit_row.source_hash)
+        payload_in, title = dict(analysis.payload), job.title or ''
+        source, vectors = dict(unit_row.payload), bytes(unit_row.vectors)
+    try:
+        evidence = _evidence(payload_in, title, source, vectors, embed_fn, rerank_fn)
+    except OSError:
+        raise
+    except Exception as error:  # A poison pair must not block the queue; retry it later.
+        log_worker_failure(LOG, f'Evidence for profile {profile_id} and job {job_id} failed; retrying later', error)
+        with SessionLocal() as session:
+            queued = _locked_request(session, profile_id, job_id, queued_at)
+            if queued is not None:
+                queued.attempts += 1
+                queued.retry_at = utcnow() + timedelta(hours=min(MAX_RETRY_HOURS, 2 ** min(queued.attempts, 5)))
+            session.commit()
+        return
+    with SessionLocal() as session:
+        # A CV or posting change bumps the request revision; publishing then waits for it.
+        queued = _locked_request(session, profile_id, job_id, queued_at)
+        analysis = session.get(JobAnalysis, job_id)
+        unit_row = session.get(ProfileEvidenceUnits, profile_id)
+        if (queued is None or analysis is None or unit_row is None
+                or (analysis.result_hash, unit_row.source_hash) != inputs):
+            return
+        row = session.get(MatchEvidence, (profile_id, job_id)) or MatchEvidence(profile_id=profile_id, job_id=job_id)
+        row.version, row.analysis_hash, row.units_hash = EVIDENCE_VERSION, inputs[0], inputs[1]
+        row.payload, row.computed_at = evidence, utcnow()
+        session.merge(row)
+        session.delete(queued)
+        source_changes.analysis_changed(session, [job_id])
+        session.commit()
 
 
 class _Stage:
@@ -704,24 +753,65 @@ _STAGES = {name: _Stage(name) for name in ('profile units', 'evidence', 'job ana
 PRUNE_INTERVAL_SECONDS = 3600.0
 
 
-def run_cycle() -> bool:
-    """One bounded pass; returns True when any work was done."""
-    worked = _STAGES['profile units'].run(refresh_profile_units_once)
-    worked = bool(refresh_prerank_scores_once()) or worked
-    worked = _STAGES['evidence'].run(refresh_evidence_once) or worked
+_EVIDENCE_LOCK = threading.Lock()
+
+
+def _exclusive(step) -> bool:
+    """CV units, preranking and evidence run in one thread at a time: the main loop, or
+    the evidence thread while the laptop serves (they hand over when it comes or goes)."""
+    if not _EVIDENCE_LOCK.acquire(blocking=False):
+        return False
+    try:
+        return bool(step())
+    finally:
+        _EVIDENCE_LOCK.release()
+
+
+def laptop_serving() -> bool:
+    """True while the local models are selected and at least one runs on the laptop GPU."""
+    from hiring_scraper.app import remote_matching
+    return not remote_matching.use_luna() and laptop_gpu.serving()
+
+
+def run_evidence_cycle() -> bool:
+    def cycle() -> bool:
+        worked = _STAGES['profile units'].run(refresh_profile_units_once)
+        worked = bool(refresh_prerank_scores_once()) or worked
+        return _STAGES['evidence'].run(refresh_evidence_once) or worked
+    return _exclusive(cycle)
+
+
+def run_cycle(*, with_evidence: bool = True) -> bool:
+    """One bounded pass; returns True when any work was done. Without evidence, only
+    postings are analysed (the evidence thread handles the rest)."""
+    worked = run_evidence_cycle() if with_evidence else False
     analysed: list[int] = []
+    limit = analysis_parallel()
 
     def analyse_step() -> bool:
-        job_id = analyse_next_job()
-        if job_id is not None:
-            analysed.append(job_id)
-        return job_id is not None
+        done = analyse_next_jobs(limit)
+        analysed.extend(done)
+        return bool(done)
 
     if _STAGES['job analysis'].run(analyse_step):
         worked = True
-        # New postings become visible fastest when their evidence follows directly.
-        _STAGES['evidence'].run(lambda: refresh_evidence_once(limit=50, job_ids=analysed))
+        if with_evidence:
+            # New postings become visible fastest when their evidence follows directly.
+            _exclusive(lambda: _STAGES['evidence'].run(lambda: refresh_evidence_once(limit=50, job_ids=analysed)))
     return worked
+
+
+def _laptop_evidence_loop() -> None:
+    """While the laptop serves, check evidence alongside job analysis so the GPU keeps
+    analysing postings instead of waiting for the reranker."""
+    while True:
+        try:
+            worked = laptop_serving() and run_evidence_cycle()
+        except Exception as error:
+            log_worker_failure(LOG, 'Evidence cycle failed; retrying', error)
+            worked = False
+        if not worked:
+            time.sleep(POLL_SECONDS)
 
 
 def _hold_single_worker_lock():
@@ -752,9 +842,10 @@ def main() -> None:
             log_worker_failure(LOG, 'Could not reconcile job analysis queues; retrying', error)
             time.sleep(POLL_SECONDS)
     next_prune = time.monotonic() + PRUNE_INTERVAL_SECONDS
+    threading.Thread(target=_laptop_evidence_loop, name='laptop-evidence', daemon=True).start()
     while True:
         try:
-            worked = run_cycle()
+            worked = run_cycle(with_evidence=not laptop_serving())
             if time.monotonic() >= next_prune:
                 prune_expired_queue_rows()
                 next_prune = time.monotonic() + PRUNE_INTERVAL_SECONDS
