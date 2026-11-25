@@ -162,6 +162,87 @@ class HtmlJobExtractionTests(unittest.TestCase):
         self.assertTrue(all(job.get('description') is None for job in result['jobs']))
         self.assertTrue(all(job['employment_type'] is None for job in result['jobs']))
 
+    def test_card_location_outside_the_title_link_is_kept(self):
+        def card(slug, req, title, place):
+            return ('<li class="results-list__item"><h3><a class="results-list__item-title--link" '
+                    f'href="/{slug}/job/{req}">{title}</a></h3><div class="results-list__item-street">'
+                    '<span class="results-list__item-street--icon"><svg><title>Job Location</title></svg></span>'
+                    f'<span class="results-list__item-street--label">{place}</span></div>'
+                    f'<span class="results-list__req--label">{req}</span>'
+                    f'<a aria-label="Apply Now, {title}" href="/{slug}/job/{req}">Apply Now</a></li>')
+        body = '<ul>' + ''.join((
+            card('product-manager-ai', 'R56037', 'Product Manager, AI Solutions', 'Brasov'),
+            card('sales-operations-analyst', 'R58619', 'Sales Operations Analyst', 'Westminster, CO'),
+            card('avp-corporate-revenue', 'R58500', 'AVP Corporate Revenue', 'Princeton, NJ + 42 More Locations'),
+            card('bdm-enterprise', 'R58423', 'Business Development Manager', 'UK - Remote'),
+        )) + '</ul>'
+        jobs = extract_html_jobs(body, 'https://careers.example/jobs')['jobs']
+        self.assertEqual([job['title'] for job in jobs], [
+            'Product Manager, AI Solutions', 'Sales Operations Analyst', 'AVP Corporate Revenue',
+            'Business Development Manager',
+        ])
+        self.assertEqual([job['locations'] for job in jobs], [
+            [{'label': 'Brasov'}], [{'label': 'Westminster, CO'}], [{'label': 'Princeton, NJ'}],
+            [{'label': 'UK - Remote', 'country_code': 'GB'}],
+        ])
+        self.assertTrue(jobs[3]['is_remote'])
+
+    def test_detail_page_reads_explicit_location_line_or_term_pair(self):
+        body = ('<main><h1>Product Manager, AI Solutions</h1><p>Lead our AI roadmap with customers.</p>'
+                '<p><b>Location: </b>Brasov, Romania (4 days on site)</p><p>Travel Requirement: 0-10%</p>'
+                '<a href="/apply">Apply now</a></main>')
+        job = extract_html_jobs(body, 'https://careers.example/job/R1')['jobs'][0]
+        self.assertEqual(job['locations'], [{'label': 'Brasov, Romania', 'country_code': 'RO'}])
+        self.assertEqual(job['work_arrangement'], 'onsite')
+        body = ('<main><h1>Werkstudent Data Engineering</h1><dl><dt>Standort</dt><dd>Leipzig-Plagwitz</dd>'
+                '<dt>Start</dt><dd>sofort</dd></dl><p>Du unterstützt unser Datenteam beim Aufbau von Pipelines.</p>'
+                '<a href="/apply">Jetzt bewerben</a></main>')
+        job = extract_html_jobs(body, 'https://careers.example/jobs/werkstudent')['jobs'][0]
+        self.assertEqual(job['locations'], [{'label': 'Leipzig-Plagwitz'}])
+        body = ('<main><h1>Data Analyst</h1><p>Location: we offer flexible working across sites.</p>'
+                '<p>Build dashboards for our operations team every day.</p><a href="/apply">Apply</a></main>')
+        self.assertEqual(extract_html_jobs(body, 'https://careers.example/jobs/analyst')['jobs'][0]['locations'], [])
+
+    def test_schema_and_html_detail_rows_for_one_posting_merge_without_losing_location(self):
+        posting = {'@context': 'http://schema.org', '@type': 'JobPosting', 'title': 'KYC Business Analyst- Remote',
+                   'url': 'https://careers.example/vacancies/3389/kyc-business-analyst-remote.html',
+                   'jobLocation': {'@type': 'Place', 'address': {'addressLocality': 'London', 'addressCountry': 'United Kingdom'}}}
+        body = ('<script type="application/ld+json">' + json.dumps([posting]) + '</script>'
+                '<main><h1>KYC Business Analyst- Remote</h1><p>Support onboarding reviews for our banking clients.</p>'
+                '<a href="/apply">Apply now</a></main>'
+                '<a href="/vacancies/vacancy-search-handler.ashx?BusinessAreaID=5">Internal Vacancies</a>')
+        jobs = extract_html_jobs(body, posting['url'])['jobs']
+        self.assertEqual(len(jobs), 1)
+        self.assertEqual(jobs[0]['locations'], [{'label': 'London', 'country_code': 'GB'}])
+        self.assertIn('onboarding reviews', jobs[0]['description'])
+
+    def test_schema_posting_with_own_id_absorbs_the_same_pages_html_reading(self):
+        url = 'https://careers.example/technical-analyst/job/R0151640'
+        posting = {'@context': 'https://schema.org', '@type': 'JobPosting', 'title': 'Technical Analyst', 'url': url,
+                   'identifier': {'@type': 'PropertyValue', 'value': 'R0151640'},
+                   'description': '<h3>What you will be doing</h3><ul><li>Resolve storage issues.</li></ul>',
+                   'jobLocation': [{'@type': 'Place', 'address': {'addressRegion': 'CA', 'addressCountry': 'US'}},
+                                   {'@type': 'Place', 'address': {'addressCountry': 'MX'}}]}
+        body = ('<script type="application/ld+json">' + json.dumps(posting) + '</script>'
+                '<main><h1>Technical Analyst</h1><p>Share Job Post</p><p>Resolve storage issues for customers worldwide.</p>'
+                '<a href="/apply">Apply Now</a><h3>Other jobs</h3>'
+                '<a href="/technical-analyst/job/R0138960">Technical Analyst</a> <span class="location">Mexico City</span></main>')
+        jobs = extract_html_jobs(body, url)['jobs']
+        self.assertEqual([job['id'] for job in jobs if job['url'] == url], ['R0151640'])
+        job = next(job for job in jobs if job['url'] == url)
+        self.assertEqual(job['locations'], [{'label': 'California, United States', 'country_code': 'US'},
+                                            {'label': 'Mexico', 'country_code': 'MX'}])
+        self.assertEqual(job['description'], '## What you will be doing\n- Resolve storage issues.')
+        self.assertEqual(job['raw_metadata']['extraction_method'], 'schema_org_jobposting')
+
+    def test_screen_reader_location_label_is_not_part_of_the_value(self):
+        body = ('<div class="job"><h3><a href="/vacancies/3394/business-analyst-leeds.html">Business Analyst- Leeds</a></h3>'
+                '<p>Gather requirements for e-commerce platforms.</p>'
+                '<div class="label"><i class="icon icon-location-on"><span class="its-u-visually-hidden">All Locations</span></i></div>'
+                '<div data-id="div_content_VacV_AllLocations" class="content">Leeds</div></div>')
+        job = extract_html_jobs(body, 'https://careers.example/vacancies/')['jobs'][0]
+        self.assertEqual(job['locations'], [{'label': 'Leeds'}])
+
     def test_job_slug_city_is_kept_when_card_title_omits_location(self):
         body = b'<html><body><h1>Stellenangebote</h1><a href="/jobs/vertrieb-halle-15595">Mitarbeiter (m/w/d) Spezialvertrieb</a></body></html>'
         result = extract_html_jobs(body, 'https://acme.example/jobs/')

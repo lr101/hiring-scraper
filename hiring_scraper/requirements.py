@@ -178,7 +178,8 @@ def _recovered_heading(hit, text: str) -> str:
 
 _REQUIRED_HEADING = re.compile(
     r"^(?:it[’']s a match|erfahrung(?=\s*:|$)|required skills & experience|"
-    r'what you bring|our humble expectations|das solltest du mitbringen|hiermit bringst du dich ein|unser perfect match|qualification checklist|(?:ihr|dein|your)\s+(?:profil|profile|qualifications|requirements)|'
+    r"what you(?:[’']ll| will)? bring|"
+    r'our humble expectations|das solltest du mitbringen|hiermit bringst du dich ein|unser perfect match|qualification checklist|(?:ihr|dein|your)\s+(?:profil|profile|qualifications|requirements)|'
     r'zwingend\w*(?:\s+voraussetzungen)?|voraussetzung(?:en)?|mandatory qualifications|essential requirements|was zählt|(?:ihre|deine)\s+qualifikation(?:en)?|required qualifications|damit begeistern sie uns|must.have|requirements|qualifications|anforderungen|'
     r'(?:das|was)\s+(?:sie|du)\s+mitbring(?:en|st)|was wir erwarten|'
     r'das bringen sie mit|das bringst du mit|was bringen sie mit|was bringst du mit|überzeuge uns mit (?:deinen|ihren) qualifikationen|profil|qualifikation(?:en)?|fachliche anforderungen)\b', re.I)

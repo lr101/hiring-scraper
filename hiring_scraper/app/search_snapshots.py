@@ -30,6 +30,7 @@ from hiring_scraper.app.models import (
     JobSearchResult, JobSearchSnapshot, JobSearchState, JobVacancyGroup, MatchDirtyJob,
     ProfileJobMatch, SemanticSearchDocument, UserProfile, utcnow,
 )
+from hiring_scraper.description import description_blocks, description_preview
 from hiring_scraper.election_data import municipality_vote_result
 from hiring_scraper.app.discovery_jobs import german_company_filter
 from hiring_scraper.geography import normalize_german_state
@@ -331,8 +332,9 @@ def job_json(job: Job, *, include_description: bool = False) -> dict[str, Any]:
     data["enrichment"] = current_enrichment(job)
     if include_description:
         data["description"] = job.description
+        data["description_blocks"] = description_blocks(job.description)
     else:
-        data["description_preview"] = (job.description or "")[:280]
+        data["description_preview"] = description_preview(job.description)
     return data
 
 

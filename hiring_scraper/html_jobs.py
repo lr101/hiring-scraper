@@ -10,6 +10,8 @@ from datetime import date, datetime
 from html.parser import HTMLParser
 from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlsplit, urlunsplit
 
+from .description import description_text
+
 
 _VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 _HIDDEN = {"script", "style", "svg", "noscript", "template"}
@@ -30,7 +32,8 @@ _ROLE_WORDS = re.compile(
     r"analyst|analysis|automation|pathologist|scientist|researcher|software|product owner|"
     r"ausbildung|fachinformatiker|werkstudent|working student|intern|praktikum|"
     r"thesis|student|studium|study|bachelor|master|graduate|apprentice|produktmanagement|product management|agronom|ux\s*/?\s*ui|"
-    r"vertrieb|designer|qa\b|algorithm|data\b|cloud\b|it-",
+    r"vertrieb|designer|qa\b|algorithm|data\b|cloud\b|it-|director|\b(?:a|s)?vp\b|head of|specialist|"
+    r"coordinator|architect|representative|leiter(?:in)?\b|referent(?:in)?\b|sachbearbeiter",
     re.I,
 )
 _CITY_NAMES = (
@@ -154,16 +157,66 @@ def _walk_json(value):
             yield from _walk_json(child)
 
 
+_COUNTRY_NAMES = {
+    "germany": "DE", "deutschland": "DE", "united kingdom": "GB", "uk": "GB", "england": "GB",
+    "scotland": "GB", "great britain": "GB", "ireland": "IE", "netherlands": "NL", "the netherlands": "NL",
+    "niederlande": "NL", "portugal": "PT", "spain": "ES", "spanien": "ES", "france": "FR",
+    "frankreich": "FR", "austria": "AT", "österreich": "AT", "switzerland": "CH", "schweiz": "CH",
+    "united states": "US", "usa": "US", "us": "US", "united states of america": "US", "belgium": "BE",
+    "belgien": "BE", "luxembourg": "LU", "luxemburg": "LU", "denmark": "DK", "dänemark": "DK",
+    "sweden": "SE", "schweden": "SE", "norway": "NO", "norwegen": "NO", "finland": "FI",
+    "finnland": "FI", "poland": "PL", "polen": "PL", "czech republic": "CZ", "czechia": "CZ",
+    "tschechien": "CZ", "slovakia": "SK", "hungary": "HU", "ungarn": "HU", "romania": "RO",
+    "rumänien": "RO", "bulgaria": "BG", "croatia": "HR", "slovenia": "SI", "serbia": "RS",
+    "greece": "GR", "italy": "IT", "italien": "IT", "estonia": "EE", "latvia": "LV",
+    "lithuania": "LT", "turkey": "TR", "türkei": "TR", "canada": "CA", "mexico": "MX",
+    "méxico": "MX", "brazil": "BR", "india": "IN", "indien": "IN", "china": "CN", "japan": "JP",
+    "singapore": "SG", "australia": "AU", "new zealand": "NZ", "israel": "IL",
+    "united arab emirates": "AE", "south africa": "ZA",
+}
+
+
+_COUNTRY_LABELS = {
+    "DE": "Germany", "GB": "United Kingdom", "IE": "Ireland", "NL": "Netherlands", "PT": "Portugal",
+    "ES": "Spain", "FR": "France", "AT": "Austria", "CH": "Switzerland", "US": "United States",
+    "BE": "Belgium", "LU": "Luxembourg", "DK": "Denmark", "SE": "Sweden", "NO": "Norway",
+    "FI": "Finland", "PL": "Poland", "CZ": "Czechia", "SK": "Slovakia", "HU": "Hungary",
+    "RO": "Romania", "BG": "Bulgaria", "HR": "Croatia", "SI": "Slovenia", "RS": "Serbia",
+    "GR": "Greece", "IT": "Italy", "EE": "Estonia", "LV": "Latvia", "LT": "Lithuania",
+    "TR": "Turkey", "CA": "Canada", "MX": "Mexico", "BR": "Brazil", "IN": "India", "CN": "China",
+    "JP": "Japan", "SG": "Singapore", "AU": "Australia", "NZ": "New Zealand", "IL": "Israel",
+    "AE": "United Arab Emirates", "ZA": "South Africa",
+}
+_US_STATES = dict(zip(
+    "AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY "
+    "NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC".split(),
+    ("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware",
+     "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky",
+     "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi",
+     "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico",
+     "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania",
+     "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont",
+     "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming", "District of Columbia"),
+))
+
+
 def _country_code(value) -> str | None:
     if isinstance(value, dict):
         value = value.get("name") or value.get("addressCountry")
     if not isinstance(value, str):
         return None
     value = value.strip()
-    countries = {"germany": "DE", "deutschland": "DE", "united kingdom": "GB", "uk": "GB",
-                 "ireland": "IE", "netherlands": "NL", "portugal": "PT", "spain": "ES",
-                 "france": "FR", "austria": "AT", "switzerland": "CH", "united states": "US"}
-    return value.upper() if len(value) == 2 and value.isalpha() else countries.get(value.casefold())
+    return value.upper() if len(value) == 2 and value.isalpha() else _COUNTRY_NAMES.get(value.casefold())
+
+
+def _label_country(label: str) -> str | None:
+    """Country from a spelled-out trailing segment ("Brasov, Romania").
+
+    Two-letter suffixes are ignored: "Sunnyvale, CA" is a US state, not Canada.
+    """
+    tail = re.split(r"[,(/]|\s[-–—]\s", label)[-1].strip(" )")
+    head = re.split(r"[,(/]|\s[-–—]\s", label)[0].strip()
+    return _COUNTRY_NAMES.get(tail.casefold()) or _COUNTRY_NAMES.get(head.casefold())
 
 
 def _coordinate(value, limit: int) -> float | None:
@@ -186,9 +239,7 @@ def _schema_locations(value) -> list[dict]:
             continue
         country_value = address.get("addressCountry")
         country = _country_code(country_value)
-        label = next((item.strip() for item in (address.get("addressLocality"), address.get("addressRegion"),
-                                               country_value if isinstance(country_value, str) else country)
-                      if isinstance(item, str) and item.strip() and item.strip() != "-"), None)
+        label = _schema_place_label(address, country)
         if not label:
             continue
         location = {"label": label}
@@ -202,6 +253,26 @@ def _schema_locations(value) -> list[dict]:
         if location not in locations:
             locations.append(location)
     return locations
+
+
+def _schema_place_label(address: dict, country: str | None) -> str | None:
+    """City when known; otherwise "California, United States" rather than "CA"."""
+    def text(value) -> str | None:
+        if isinstance(value, dict):
+            value = value.get("name")
+        value = value.strip() if isinstance(value, str) else ""
+        return value if value and value != "-" else None
+
+    locality = text(address.get("addressLocality"))
+    if locality:
+        return locality
+    country_name = _COUNTRY_LABELS.get(country or "") or text(address.get("addressCountry"))
+    region = text(address.get("addressRegion"))
+    if region and country == "US":
+        region = _US_STATES.get(region.upper(), region)
+    if region and country_name and region.casefold() != country_name.casefold():
+        return f"{region}, {country_name}"
+    return region or country_name
 
 
 def _location_name(value) -> str | None:
@@ -255,7 +326,7 @@ def _arrangement(text: str) -> tuple[str | None, str | None]:
         return "hybrid", None
     if re.search(r"remote|fully distributed", lowered) and not re.search(r"remote (?:options?|available)", lowered):
         return "remote", "remote"
-    if re.search(r"vor[- ]ort|onsite|on-site|arbeitsort", lowered):
+    if re.search(r"vor[- ]ort|\bon[- ]?site\b|arbeitsort", lowered):
         return "onsite", None
     return None, None
 
@@ -279,7 +350,7 @@ def _employment(text: str) -> str | None:
 
 def _locations(text: str) -> list[dict]:
     found = []
-    for match in re.finditer(r"(?:location|arbeitsort|standort|ort)\s*[:\-]\s*([^|\n;]{2,100})", text, re.I):
+    for match in re.finditer(r"\b(?:location|arbeitsort|standort|einsatzort|ort)\s*[:\-]\s*([^|\n;]{2,100})", text, re.I):
         value = re.split(r"\b(?:type|art|employment|beschäftigung)\s*:", match.group(1), flags=re.I)[0]
         for city in _CITY_PATTERN.findall(value):
             if city.casefold() not in {item["label"].casefold() for item in found}:
@@ -332,7 +403,13 @@ def _job(title: str, url: str, method: str, text: str = "", *, description: str 
     info = _metadata(text, method, application_email=application_email)
     if location:
         info["location"] = location
-        info["locations"] = [{"label": place.strip()} for place in location.split(";") if place.strip()]
+        info["locations"] = []
+        for place in location.split(";"):
+            place = place.strip()
+            if not place:
+                continue
+            country = _label_country(place)
+            info["locations"].append({"label": place, **({"country_code": country} if country else {})})
     if employment_type:
         info["employment_type"] = employment_type
     if isinstance(date_posted, str) and date_posted.strip():
@@ -374,7 +451,7 @@ def _schema_posting(posting: dict, page_url: str) -> dict | None:
     job = _job(title, absolute_url, "schema_org_jobposting",
                location=_location_name(posting.get("jobLocation")),
                employment_type=_employment(str(posting.get("employmentType"))) if posting.get("employmentType") else None,
-               description=_plain(posting.get("description")), date_posted=posting.get("datePosted"),
+               description=description_text(posting.get("description")), date_posted=posting.get("datePosted"),
                extras={**{key: posting[key] for key in ("skills", "qualifications", "experienceRequirements", "educationRequirements", "applicantLocationRequirements", "validThrough") if key in posting},
                        **({"schema_identifier": str(identifier)} if identifier else {}),
                        **({"hiring_organization": organization} if organization else {})})
@@ -392,6 +469,7 @@ def _candidate_title(value: str) -> bool:
     return bool(clean and len(clean) <= 150 and clean.casefold() not in _GENERIC_HEADINGS
                 and not re.match(r"^(?:spezialfragen|faq|häufige fragen|frequently asked questions?)\b", clean, re.I)
                 and not re.match(r"^(?:stellenangebote|aktuelle stellenangebote|jobs|vacancies|open positions)\s+(?:für|for|in|at)\b", clean, re.I)
+                and not re.fullmatch(r"(?:internal|all|current|other|more|interne|alle|weitere)\s+(?:vacancies|jobs|positions|openings|stellen(?:angebote)?)", clean, re.I)
                 and _ROLE_WORDS.search(clean))
 
 
@@ -400,7 +478,8 @@ def _application_email(text: str) -> str | None:
     return match.group(0) if match else None
 
 
-def _context(node: _Element, title: str) -> str:
+def _card(node: _Element, title: str) -> _Element | None:
+    """The nearest ancestor that describes this vacancy and no other one."""
     title_key = title.casefold()
     for parent in _ancestors(node):
         text = parent.text()
@@ -412,21 +491,98 @@ def _context(node: _Element, title: str) -> str:
                                 _DETAIL_ROUTE.search(urlsplit(child.attrs["href"]).path))
                            and _candidate_title(child.text())]
         if not other_job_links:
-            return text
-    return title
+            return parent
+    return None
 
 
-def _node_location(node: _Element) -> str | None:
+def _context(node: _Element, title: str) -> str:
+    card = _card(node, title)
+    return card.text() if card is not None else title
+
+
+_LOCATION_MARKER = re.compile(
+    r"location|standort|arbeitsort|einsatzort|(?:^|[^a-z])(?:ort|city|stadt|street|address|place)(?:$|[^a-z])"
+)
+_LOCATION_LABEL = re.compile(
+    r"^(?:(?:job|work|primary|office)\s+)?(?:locations?|standorte?|arbeitsort|einsatzort|dienstort|ort)\b\s*[:\-–]?\s*",
+    re.I,
+)
+
+
+_SCREEN_READER_ONLY = re.compile(r"(?:^|\s)(?:sr-only|screen-reader-text|visually-hidden|[\w-]*-visually-hidden|visuallyhidden)(?:\s|$)")
+
+
+def _visible_text(node: _Element) -> str:
+    """Rendered text without screen-reader-only labels ("All Locations")."""
+    if node.hidden or _SCREEN_READER_ONLY.search(node.attrs.get("class", "")):
+        return ""
+    values = []
+    for child in node.children:
+        value = _visible_text(child) if isinstance(child, _Element) else child
+        if value.strip():
+            values.append(value)
+    return _clean_text(" ".join(values))
+
+
+def _node_location(node: _Element, *, exclude: str | None = None) -> str | None:
     for child in node.walk():
-        marker = " ".join((child.attrs.get("class", ""), child.attrs.get("id", ""),
-                           child.attrs.get("itemprop", ""), child.attrs.get("data-testid", ""))).casefold()
-        if not re.search(r"location|standort|arbeitsort|(?:^|[^a-z])ort(?:$|[^a-z])", marker):
+        if child.hidden:
             continue
-        value = re.sub(r"^(?:in|am standort|standort)\s+", "", child.text(), flags=re.I).strip(" ·|,–—-")
+        marker = " ".join((child.attrs.get("class", ""), child.attrs.get("id", ""),
+                           child.attrs.get("itemprop", ""), child.attrs.get("data-testid", ""),
+                           child.attrs.get("data-automation-id", ""), child.attrs.get("data-id", ""))).casefold()
+        if not _LOCATION_MARKER.search(marker):
+            continue
+        text = _visible_text(child)
+        if exclude and exclude.casefold() in text.casefold():
+            continue
+        value = _LOCATION_LABEL.sub("", text)
+        value = re.sub(r"^(?:in|am standort|standort)\s+", "", value, flags=re.I).strip(" ·|,–—-")
         value = re.sub(r"\s+(?:details|mehr erfahren|apply|jetzt bewerben)$", "", value, flags=re.I).strip()
-        if value and len(value) <= 100:
+        value = _MORE_LOCATIONS.sub("", value).strip(" ·|,–—-")
+        if value and len(value) <= 100 and not _LOCATION_LABEL.fullmatch(value + " "):
             return value
     return None
+
+
+_MORE_LOCATIONS = re.compile(
+    r"\s*(?:\+|and|und)\s*\d+\s*(?:more|other|further|weitere|andere)?\s*(?:locations?|standorte?|orte?)\s*$", re.I,
+)
+_PLACE_VALUE = re.compile(
+    r"[A-ZÄÖÜÉ][\w.'’ -]{0,40}(?:\s*[,/]\s*[A-ZÄÖÜÉ0-9][\w.'’ -]{0,40}){0,3}"
+)
+
+
+def _labeled_locations(nodes: list[_Element]) -> list[str]:
+    """Explicit "Location: Brasov, Romania" lines or Standort/value term pairs."""
+    found: list[str] = []
+    for node in nodes:
+        if node.hidden or node.tag not in {"p", "li", "dd", "dt", "div", "span", "td", "th"}:
+            continue
+        text = node.text()
+        if not text or len(text) > 140:
+            continue
+        match = _LOCATION_LABEL.match(text)
+        if not match:
+            continue
+        value = text[match.end():]
+        if not value and node.tag in {"dt", "th"}:
+            sibling = _next_sibling(node)
+            value = sibling.text() if sibling is not None else ""
+        value = re.split(r"\s*[(\[]|\s+[-–—|]\s+|;", value, maxsplit=1)[0].strip(" .,:")
+        if value and _PLACE_VALUE.fullmatch(value) and value not in found:
+            found.append(value)
+    # A wrapper block can run the label into the next line ("Brasov Travel");
+    # keep the tightest reading when one value extends another.
+    return [value for value in found if not any(other != value and value.startswith(other) for other in found)]
+
+
+def _next_sibling(node: _Element) -> _Element | None:
+    if node.parent is None:
+        return None
+    siblings = [child for child in node.parent.children if isinstance(child, _Element)]
+    index = siblings.index(node)
+    return siblings[index + 1] if index + 1 < len(siblings) else None
 
 
 def _location_from_title(title: str) -> tuple[str | None, str]:
@@ -598,13 +754,17 @@ def _detail_description(heading: _Element) -> str | None:
                   len(parent.text()) > len(heading.text()) + (16 if parent.tag in {"main", "article"} else 80)), None)
     if scope is None:
         return None
-    active, parts = False, []
+    active, parts, taken = False, [], set()
     for node in scope.walk():
         if node is heading:
             active = True
             continue
         if not active or node.hidden or node.tag not in {"p", "li", "h1", "h2", "h3", "h4", "h5", "h6"}:
             continue
+        # A paragraph inside a list item is already part of that item.
+        if any(id(parent) in taken for parent in _ancestors(node)):
+            continue
+        taken.add(id(node))
         text = node.text()
         if (node.tag in {"h2", "h3", "h4", "h5", "h6"} and
                 re.fullmatch(r"our team|unser team|meet (?:our )?team|staff members", text.strip(" :·–—-"), re.I)):
@@ -614,8 +774,14 @@ def _detail_description(heading: _Element) -> str | None:
         if node.tag == "h1":
             break
         if text:
-            parts.append(text)
-    return "\n\n".join(parts)[:12000] or None
+            parts.append(("## " if node.tag != "p" and node.tag != "li" else "- " if node.tag == "li" else "") + text)
+    # Keep bullets of one list together; separate every other block.
+    joined = ""
+    for index, part in enumerate(parts):
+        if index:
+            joined += "\n" if part.startswith("- ") and parts[index - 1].startswith("- ") else "\n\n"
+        joined += part
+    return joined[:12000] or None
 
 
 def _application_deadline(text: str) -> str | None:
@@ -663,17 +829,67 @@ def _heading_jobs(nodes: list[_Element], page_url: str) -> list[dict]:
     return jobs
 
 
+_STRUCTURED_METHODS = frozenset({"schema_org_jobposting", "schema_org_microdata"})
+_DETAIL_METHODS = frozenset({"html_job_detail", "softgarden_job_detail"})
+
+
+def _posting_alias(job: dict) -> tuple[str, ...] | None:
+    """Same page and title: a structured row and the page's own HTML reading."""
+    try:
+        parts = urlsplit(job.get("url") or "")
+    except ValueError:
+        return None
+    if not parts.hostname:
+        return None
+    title = re.sub(r"\W+", " ", (job.get("title") or "").casefold()).strip()
+    return parts.hostname.casefold(), parts.path.rstrip("/").casefold(), title
+
+
 def _merge(jobs: list[dict]) -> list[dict]:
     merged: dict[str, dict] = {}
+    keys_by_id: dict[str, tuple] = {}
+    # One alias per side, so two structured postings (or two detail readings)
+    # that happen to share a page and title are never collapsed together.
+    structured_keys: dict[tuple, tuple] = {}
+    detail_keys: dict[tuple, tuple] = {}
     for job in jobs:
         key = html_job_key(job)
+        method = (job.get("raw_metadata") or {}).get("extraction_method")
+        alias = _posting_alias(job)
+        # The feed worker upserts by id, so two rows with one id would let the
+        # later (often poorer) row overwrite the first. Treat them as one posting.
+        if key not in merged and str(job.get("id") or "") in keys_by_id:
+            key = keys_by_id[str(job["id"])]
+        elif key not in merged and alias and method in _DETAIL_METHODS and alias in structured_keys:
+            key = structured_keys[alias]
+        elif key not in merged and alias and method in _STRUCTURED_METHODS and alias in detail_keys:
+            key = detail_keys[alias]
         existing = merged.get(key)
         if existing is None:
             merged[key] = job
+            if job.get("id"):
+                keys_by_id.setdefault(str(job["id"]), key)
+            if alias and method in _STRUCTURED_METHODS:
+                structured_keys.setdefault(alias, key)
+            elif alias and method in _DETAIL_METHODS:
+                detail_keys.setdefault(alias, key)
             continue
         old_method = (existing.get("raw_metadata") or {}).get("extraction_method")
         new_method = (job.get("raw_metadata") or {}).get("extraction_method")
-        if new_method == "html_job_detail" and old_method != "html_job_detail":
+        if new_method in _STRUCTURED_METHODS and old_method in _DETAIL_METHODS:
+            # Structured data carries the source's own id and address fields.
+            # The employer's own description beats a scrape that includes page chrome.
+            for field in ("id", "locations", "location", "description"):
+                if job.get(field):
+                    existing[field] = job[field]
+            existing["raw_metadata"] = {**(existing.get("raw_metadata") or {}),
+                                        **(job.get("raw_metadata") or {})}
+        elif new_method in _DETAIL_METHODS and old_method in _STRUCTURED_METHODS:
+            existing["raw_metadata"] = {**(job.get("raw_metadata") or {}),
+                                        **(existing.get("raw_metadata") or {})}
+            job = {field: value for field, value in job.items()
+                   if field != "raw_metadata" and not (field == "description" and existing.get("description"))}
+        elif new_method == "html_job_detail" and old_method != "html_job_detail":
             existing["title"] = job["title"]
             existing["url"] = job["url"]
             existing["id"] = _stable_id(job["title"], job["url"])
@@ -689,6 +905,8 @@ def _merge(jobs: list[dict]) -> list[dict]:
         # Prefer a true job detail route over a synthetic heading fragment.
         if new_method == "html_job_detail" and old_method != "html_job_detail":
             existing["url"] = job["url"]
+        if old_method in _STRUCTURED_METHODS:
+            existing.setdefault("raw_metadata", {})["extraction_method"] = old_method
     return list(merged.values())
 
 
@@ -854,147 +1072,186 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
     jobs = []
     role_candidates = []
     json_payloads = []
-    phenom_jobs, phenom_partial = _phenom_public_jobs(nodes, page_url)
-    jobs.extend(phenom_jobs)
-    microdata_jobs, microdata_partial = _microdata_jobs(nodes, page_url)
-    jobs.extend(microdata_jobs)
+    failures: list[str] = []
+    phenom_partial = microdata_partial = False
+    microdata_jobs: list[dict] = []
+    try:
+        phenom_jobs, phenom_partial = _phenom_public_jobs(nodes, page_url)
+        jobs.extend(phenom_jobs)
+    except Exception as error:  # noqa: BLE001 - one broken strategy must not lose the others
+        failures.append("phenom: " + type(error).__name__)
+    try:
+        microdata_jobs, microdata_partial = _microdata_jobs(nodes, page_url)
+        jobs.extend(microdata_jobs)
+    except Exception as error:  # noqa: BLE001 - one broken strategy must not lose the others
+        failures.append("microdata: " + type(error).__name__)
 
-    for node in nodes:
-        if node.tag != "script":
-            continue
-        script_type = node.attrs.get("type", "").casefold()
-        script_id = node.attrs.get("id", "").casefold()
-        if script_type == "application/ld+json" or script_type == "application/json" or script_id in {"__next_data__", "__nuxt_data__"}:
-            try:
-                json_payloads.append(json.loads("".join(child for child in node.children if isinstance(child, str))))
-            except (ValueError, TypeError):
+    try:
+        for node in nodes:
+            if node.tag != "script":
                 continue
-
-    for payload in json_payloads:
-        for item in _walk_json(payload):
-            if "JobPosting" in _types(item):
-                posting = _schema_posting(item, page_url)
-                if posting:
-                    jobs.append(posting)
-            if "ItemList" in _types(item):
-                elements = item.get("itemListElement") or []
-                if isinstance(elements, dict):
-                    elements = [elements]
-                for element in elements:
-                    if not isinstance(element, dict):
-                        continue
-                    item_data = element.get("item") if isinstance(element.get("item"), dict) else element
-                    name = _plain(item_data.get("name"))
-                    url = item_data.get("url")
-                    if name and isinstance(url, str):
-                        absolute = _absolute_http(url, page_url)
-                        if absolute:
-                            role_candidates.append({"title": name, "url": absolute,
-                                                    "method": "schema_org_itemlist", "confidence": "unconfirmed_role"})
-            # Common framework payloads often expose an array named jobs/openings.
-            for key in ("jobs", "openings", "vacancies", "positions", "jobOffers"):
-                rows = item.get(key)
-                if not isinstance(rows, list):
+            script_type = node.attrs.get("type", "").casefold()
+            script_id = node.attrs.get("id", "").casefold()
+            if script_type == "application/ld+json" or script_type == "application/json" or script_id in {"__next_data__", "__nuxt_data__"}:
+                try:
+                    json_payloads.append(json.loads("".join(child for child in node.children if isinstance(child, str))))
+                except (ValueError, TypeError):
                     continue
-                for row in rows:
-                    if not isinstance(row, dict) or _inactive_framework_row(row):
+
+        for payload in json_payloads:
+            for item in _walk_json(payload):
+                if "JobPosting" in _types(item):
+                    posting = _schema_posting(item, page_url)
+                    if posting:
+                        jobs.append(posting)
+                if "ItemList" in _types(item):
+                    elements = item.get("itemListElement") or []
+                    if isinstance(elements, dict):
+                        elements = [elements]
+                    for element in elements:
+                        if not isinstance(element, dict):
+                            continue
+                        item_data = element.get("item") if isinstance(element.get("item"), dict) else element
+                        name = _plain(item_data.get("name"))
+                        url = item_data.get("url")
+                        if name and isinstance(url, str):
+                            absolute = _absolute_http(url, page_url)
+                            if absolute:
+                                role_candidates.append({"title": name, "url": absolute,
+                                                        "method": "schema_org_itemlist", "confidence": "unconfirmed_role"})
+                # Common framework payloads often expose an array named jobs/openings.
+                for key in ("jobs", "openings", "vacancies", "positions", "jobOffers"):
+                    rows = item.get(key)
+                    if not isinstance(rows, list):
                         continue
-                    role_title = _plain(row.get("title") or row.get("name") or row.get("jobTitle"))
-                    role_url = row.get("url") or row.get("absolute_url") or row.get("jobUrl") or row.get("applyUrl")
-                    if not _candidate_title(role_title or "") or not isinstance(role_url, str):
-                        continue
-                    absolute = _absolute_http(role_url, page_url)
-                    if absolute and _same_origin(absolute, page_url):
-                        role_candidates.append({"title": role_title, "url": absolute,
-                                                "method": "embedded_json", "confidence": "unconfirmed_role"})
+                    for row in rows:
+                        if not isinstance(row, dict) or _inactive_framework_row(row):
+                            continue
+                        role_title = _plain(row.get("title") or row.get("name") or row.get("jobTitle"))
+                        role_url = row.get("url") or row.get("absolute_url") or row.get("jobUrl") or row.get("applyUrl")
+                        if not _candidate_title(role_title or "") or not isinstance(role_url, str):
+                            continue
+                        absolute = _absolute_http(role_url, page_url)
+                        if absolute and _same_origin(absolute, page_url):
+                            role_candidates.append({"title": role_title, "url": absolute,
+                                                    "method": "embedded_json", "confidence": "unconfirmed_role"})
+    except Exception as error:  # noqa: BLE001 - one broken strategy must not lose the others
+        failures.append("embedded_json: " + type(error).__name__)
 
-    structured_jobs, structured_candidates = _structured_job_cards(nodes, page_url)
-    jobs.extend(structured_jobs)
-    role_candidates.extend(structured_candidates)
+    try:
+        structured_jobs, structured_candidates = _structured_job_cards(nodes, page_url)
+        jobs.extend(structured_jobs)
+        role_candidates.extend(structured_candidates)
+    except Exception as error:  # noqa: BLE001 - one broken strategy must not lose the others
+        failures.append("job_cards: " + type(error).__name__)
 
-    anchors = [node for node in nodes if node.tag == "a" and node.attrs.get("href")]
-    for anchor in anchors:
-        target = _absolute_http(anchor.attrs["href"], page_url)
-        if not target or urlsplit(target).hostname != urlsplit(page_url).hostname:
-            continue
-        path = urlsplit(target).path
-        softgarden_id = _softgarden_job_id(target)
-        # Numeric `/job/<id>/<slug>` routes are a Softgarden contract. Other
-        # sites use them for unrelated pages, so only accept those routes on a
-        # recognized Softgarden tenant.
-        softgarden_only_route = bool(re.match(r'^/job/[^/]+/[^/]+/?$', path, re.I))
-        if softgarden_only_route and not softgarden_id:
-            continue
-        if not _JOB_LINK.search(path) and not softgarden_id:
-            continue
-        title_text = _job_link_title(anchor)
-        valid_vendor_title = (softgarden_id and title_text and len(title_text) <= 150 and
-                              title_text.casefold() not in _GENERIC_HEADINGS and
-                              not _INITIATIVE_APPLICATION.search(title_text) and not _TALENT_POOL.search(title_text))
-        if not _candidate_title(title_text) and not valid_vendor_title:
-            continue
-        context = _context(anchor, title_text)
-        title_location, title_text = _location_from_title(title_text)
-        location = _node_location(anchor) or title_location or _location_from_url(target)
-        job = _job(title_text, target, "softgarden_job_link" if softgarden_id else "html_job_link", context,
-                   location=location, employment_type=_employment(title_text + " " + context),
-                   application_email=_application_email(context))
-        if softgarden_id:
-            job['id'] = softgarden_id
-        jobs.append(job)
+    try:
+        anchors = [node for node in nodes if node.tag == "a" and node.attrs.get("href")]
+        for anchor in anchors:
+            target = _absolute_http(anchor.attrs["href"], page_url)
+            if not target or urlsplit(target).hostname != urlsplit(page_url).hostname:
+                continue
+            path = urlsplit(target).path
+            softgarden_id = _softgarden_job_id(target)
+            # Numeric `/job/<id>/<slug>` routes are a Softgarden contract. Other
+            # sites use them for unrelated pages, so only accept those routes on a
+            # recognized Softgarden tenant.
+            softgarden_only_route = bool(re.match(r'^/job/[^/]+/[^/]+/?$', path, re.I))
+            if softgarden_only_route and not softgarden_id:
+                continue
+            if not _JOB_LINK.search(path) and not softgarden_id:
+                continue
+            title_text = _job_link_title(anchor)
+            valid_vendor_title = (softgarden_id and title_text and len(title_text) <= 150 and
+                                  title_text.casefold() not in _GENERIC_HEADINGS and
+                                  not _INITIATIVE_APPLICATION.search(title_text) and not _TALENT_POOL.search(title_text))
+            if not _candidate_title(title_text) and not valid_vendor_title:
+                continue
+            card = _card(anchor, title_text)
+            context = card.text() if card is not None else title_text
+            title_location, title_text = _location_from_title(title_text)
+            location = (_node_location(anchor) or title_location or
+                        (_node_location(card, exclude=title_text) if card is not None else None) or
+                        _location_from_url(target))
+            job = _job(title_text, target, "softgarden_job_link" if softgarden_id else "html_job_link", context,
+                       location=location, employment_type=_employment(title_text + " " + context),
+                       application_email=_application_email(context))
+            if softgarden_id:
+                job['id'] = softgarden_id
+            jobs.append(job)
+    except Exception as error:  # noqa: BLE001 - one broken strategy must not lose the others
+        failures.append("job_links: " + type(error).__name__)
 
-    path = urlsplit(page_url).path
-    softgarden_id = _softgarden_job_id(page_url)
-    if not any(job["url"] == page_url for job in microdata_jobs) and (_DETAIL_ROUTE.search(path) or softgarden_id) and not re.search(r"no (?:current |open )?positions|keine (?:offenen )?stellen", lower_text):
-        h1_nodes = [node for node in nodes if node.tag == "h1" and node.text()]
-        h1_node = h1_nodes[0] if len(h1_nodes) == 1 else None
-        if h1_node:
-            h1 = h1_node.text().strip(" ·|–—-:")
-            apply = any(re.search(r"^(?:apply|jetzt bewerben|bewerben|bewerbung)\b", node.text(), re.I) for node in anchors)
-            form_apply = any(node.tag in {'h2', 'h3'} and re.match(r'^(?:jetzt bewerben|apply now)', node.text(), re.I) for node in nodes) and any(
-                node.tag == 'form' and not node.hidden and re.search(r'lebenslauf|curriculum vitae|resume|\bcv\b', node.text(), re.I) and
-                any(not child.hidden and (child.tag == 'input' and child.attrs.get('type') == 'file' or 'ginput_container_fileupload' in child.attrs.get('class', '').split()) for child in node.walk())
-                for node in nodes)
-            apply = apply or form_apply
-            vacancy_marker = any(re.search(r"(?:^|[ _-])vacancy(?:$|[ _-])", parent.attrs.get("class", ""), re.I)
-                                 for parent in _ancestors(h1_node))
-            detail_context = _detail_description(h1_node) or ""
-            confirmed = (_candidate_title(h1) and (apply or vacancy_marker or len(detail_context) >= 30))
-            if confirmed and not _INITIATIVE_APPLICATION.search(h1) and not _TALENT_POOL.search(h1):
-                job = _job(h1, page_url, "softgarden_job_detail" if softgarden_id else "html_job_detail", detail_context, location=_leading_location(detail_context),
-                           description=detail_context or None, application_email=_application_email(detail_context))
-                if softgarden_id:
-                    job['id'] = softgarden_id
-                deadline = _application_deadline(visible_text)
-                if deadline:
-                    job["raw_metadata"]["validThrough"] = deadline
-                jobs.append(job)
+    try:
+        path = urlsplit(page_url).path
+        softgarden_id = _softgarden_job_id(page_url)
+        # Structured data for this very page is the employer's own record; the
+        # heading/paragraph reading below would only duplicate it, less precisely.
+        page_key = (urlsplit(page_url).hostname or "").casefold(), urlsplit(page_url).path.rstrip("/").casefold()
+        structured_page = any(
+            (job.get("raw_metadata") or {}).get("extraction_method") in _STRUCTURED_METHODS and
+            job.get("description") and
+            ((urlsplit(job.get("url") or "").hostname or "").casefold(),
+             urlsplit(job.get("url") or "").path.rstrip("/").casefold()) == page_key
+            for job in jobs)
+        if not structured_page and (_DETAIL_ROUTE.search(path) or softgarden_id) and not re.search(r"no (?:current |open )?positions|keine (?:offenen )?stellen", lower_text):
+            h1_nodes = [node for node in nodes if node.tag == "h1" and node.text()]
+            h1_node = h1_nodes[0] if len(h1_nodes) == 1 else None
+            if h1_node:
+                h1 = h1_node.text().strip(" ·|–—-:")
+                apply = any(re.search(r"^(?:apply|jetzt bewerben|bewerben|bewerbung)\b", node.text(), re.I) for node in anchors)
+                form_apply = any(node.tag in {'h2', 'h3'} and re.match(r'^(?:jetzt bewerben|apply now)', node.text(), re.I) for node in nodes) and any(
+                    node.tag == 'form' and not node.hidden and re.search(r'lebenslauf|curriculum vitae|resume|\bcv\b', node.text(), re.I) and
+                    any(not child.hidden and (child.tag == 'input' and child.attrs.get('type') == 'file' or 'ginput_container_fileupload' in child.attrs.get('class', '').split()) for child in node.walk())
+                    for node in nodes)
+                apply = apply or form_apply
+                vacancy_marker = any(re.search(r"(?:^|[ _-])vacancy(?:$|[ _-])", parent.attrs.get("class", ""), re.I)
+                                     for parent in _ancestors(h1_node))
+                detail_description = _detail_description(h1_node) or ""
+                detail_context = re.sub(r"^(?:## |- )", "", detail_description, flags=re.M)
+                confirmed = (_candidate_title(h1) and (apply or vacancy_marker or len(detail_context) >= 30))
+                if confirmed and not _INITIATIVE_APPLICATION.search(h1) and not _TALENT_POOL.search(h1):
+                    labeled = _labeled_locations(nodes)
+                    detail_location = _leading_location(detail_context) or (labeled[0] if len(labeled) == 1 else None)
+                    job = _job(h1, page_url, "softgarden_job_detail" if softgarden_id else "html_job_detail", detail_context, location=detail_location,
+                               description=detail_description or None, application_email=_application_email(detail_context))
+                    if softgarden_id:
+                        job['id'] = softgarden_id
+                    deadline = _application_deadline(visible_text)
+                    if deadline:
+                        job["raw_metadata"]["validThrough"] = deadline
+                    jobs.append(job)
+    except Exception as error:  # noqa: BLE001 - one broken strategy must not lose the others
+        failures.append("job_detail: " + type(error).__name__)
 
-    if not re.search(r"no (?:current |open )?positions|keine (?:offenen )?stellen|currently have no open positions", lower_text):
-        linked_role_titles = {
-            _role_title_key(job.get("title") or "")
-            for job in jobs
-            if (job.get("raw_metadata") or {}).get("extraction_method") in {
-                "html_job_link", "structured_job_card",
+    try:
+        if not re.search(r"no (?:current |open )?positions|keine (?:offenen )?stellen|currently have no open positions", lower_text):
+            linked_role_titles = {
+                _role_title_key(job.get("title") or "")
+                for job in jobs
+                if (job.get("raw_metadata") or {}).get("extraction_method") in {
+                    "html_job_link", "structured_job_card",
+                }
             }
-        }
-        jobs.extend(job for job in _heading_jobs(nodes, page_url)
-                    if _role_title_key(job.get("title") or "") not in linked_role_titles)
-        # A small number of employers place one student/thesis opportunity outside
-        # an explicit "open positions" section. Require the role itself in a heading.
-        for heading in nodes:
-            if heading.tag not in {"h2", "h3", "h4", "h5"}:
-                continue
-            role_title = heading.text()
-            if not _candidate_title(role_title):
-                continue
-            if _role_title_key(role_title) in linked_role_titles:
-                continue
-            if not re.search(r"working student|master thesis|werkstudent|praktikum", role_title, re.I):
-                continue
-            role_url = page_url + "#role-" + re.sub(r"[^a-z0-9]+", "-", role_title.casefold()).strip("-")[:70]
-            role_candidates.append({"title": role_title, "url": role_url,
-                                    "method": "html_role_heading", "confidence": "unconfirmed_role"})
+            jobs.extend(job for job in _heading_jobs(nodes, page_url)
+                        if _role_title_key(job.get("title") or "") not in linked_role_titles)
+            # A small number of employers place one student/thesis opportunity outside
+            # an explicit "open positions" section. Require the role itself in a heading.
+            for heading in nodes:
+                if heading.tag not in {"h2", "h3", "h4", "h5"}:
+                    continue
+                role_title = heading.text()
+                if not _candidate_title(role_title):
+                    continue
+                if _role_title_key(role_title) in linked_role_titles:
+                    continue
+                if not re.search(r"working student|master thesis|werkstudent|praktikum", role_title, re.I):
+                    continue
+                role_url = page_url + "#role-" + re.sub(r"[^a-z0-9]+", "-", role_title.casefold()).strip("-")[:70]
+                role_candidates.append({"title": role_title, "url": role_url,
+                                        "method": "html_role_heading", "confidence": "unconfirmed_role"})
+    except Exception as error:  # noqa: BLE001 - one broken strategy must not lose the others
+        failures.append("heading_jobs: " + type(error).__name__)
 
     page_locations = _locations(visible_text)
     jobs = _merge(jobs)
@@ -1009,5 +1266,6 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
                    (node.tag == "a" and re.search(r"^(?:next|weiter|nächste|ältere)", node.text(), re.I))
                    for node in nodes)
     softgarden_partial = bool(re.fullmatch(r'[a-z0-9-]+\.softgarden\.(io|de)', urlsplit(page_url).hostname or '', re.I))
-    return {"jobs": jobs, "role_candidates": role_candidates, "complete": not has_next and not phenom_partial and not softgarden_partial and not microdata_partial and not bool(_DETAIL_ROUTE.search(urlsplit(page_url).path)),
+    return {"jobs": jobs, "role_candidates": role_candidates, "strategy_errors": failures,
+            "complete": not failures and not has_next and not phenom_partial and not softgarden_partial and not microdata_partial and not bool(_DETAIL_ROUTE.search(urlsplit(page_url).path)),
             "page_title": title, "has_open_vacancy_signal": bool(re.search(r"open position|offene stellen|aktuelle jobs|current opportunities|job posting", lower_text))}

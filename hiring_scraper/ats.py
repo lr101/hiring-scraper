@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from urllib.parse import parse_qs, parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
 
+from .description import description_text
+
 
 def _smartrecruiters_feed_parts(feed_url, board_url):
     """Validate the public, tenant-scoped SmartRecruiters postings endpoint."""
@@ -288,8 +290,13 @@ def _personio_description(row):
     parts = []
     for node in row.findall("./jobDescriptions/jobDescription"):
         # Personio XML commonly carries HTML as escaped text inside each section.
-        section = " ".join("".join(node.itertext()).split())
-        cleaned = _plain_text(section)
+        name = " ".join((node.findtext("name") or "").split())
+        value = node.findtext("value")
+        if value is None:
+            value = "".join(node.itertext())
+        cleaned = description_text(value)
+        if cleaned and name and not cleaned.startswith("## "):
+            cleaned = "## " + name + "\n" + cleaned
         if cleaned:
             parts.append(cleaned)
     return "\n\n".join(parts) or None
@@ -427,9 +434,9 @@ def _parse_rss(body, feed_url):
             external_id = 'rss:' + hashlib.sha256(external_id.encode('utf-8')).hexdigest()
 
         description_source = _xml_child_text(entry, {'description', 'summary', 'content', 'encoded'})
-        description = _plain_text(description_source)
+        description = description_text(description_source)
         if description:
-            description = description[:1000]
+            description = description[:4000]
         location = _plain_text(_xml_child_text(entry, {'location', 'city', 'locality', 'joblocation', 'job_location'}))
         postal_code = None
         if not location and description:
@@ -485,6 +492,23 @@ def _recruitee_url(value):
             or not re.fullmatch(r'(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,63}', parts.hostname)):
         raise ValueError('Expected an unambiguous public HTTPS Recruitee URL')
     return parts
+
+
+def _lever_description(row):
+    """Lever keeps the intro, each requirement list and the closing text apart."""
+    parts = [description_text(row.get('description') or row.get('descriptionPlain'))]
+    for item in row.get('lists') or []:
+        if not isinstance(item, dict):
+            continue
+        heading = " ".join(str(item.get('text') or '').split())
+        content = item.get('content')
+        if isinstance(content, str) and content.strip() and not re.search(r'<li\b', content, re.I):
+            content = '<ul>' + content + '</ul>'
+        body = description_text(content)
+        if body:
+            parts.append(('## ' + heading + '\n' if heading else '') + body)
+    parts.append(description_text(row.get('additional') or row.get('additionalPlain')))
+    return '\n\n'.join(part for part in parts if part) or None
 
 
 def _recruitee_description(row):
@@ -933,10 +957,13 @@ def parse_feed(provider, body, board_url):
                     locations = [item['label'] for item in source_locations]
                     job = {'id':str(job_id or posting.get('url','')), 'title':posting.get('title'),
                            'url':posting.get('url'), 'location':'; '.join(locations)}
+                    if source_locations:
+                        # Keep country codes and coordinates, not just labels.
+                        job['locations'] = source_locations
                     _add_metadata(job, {
                         'date_posted': _iso_date(posting.get('datePosted')),
                         'employment_type': ', '.join(item for item in posting['employmentType'] if isinstance(item, str)) if isinstance(posting.get('employmentType'), list) else _plain_text(posting.get('employmentType')),
-                        'description': _plain_text(posting.get('description')),
+                        'description': description_text(posting.get('description')),
                         'work_arrangement': 'remote' if posting.get('jobLocationType') == 'TELECOMMUTE' else None,
                         'is_remote': True if posting.get('jobLocationType') == 'TELECOMMUTE' else None,
                         'salary': json.dumps(posting.get('baseSalary'), ensure_ascii=False) if posting.get('baseSalary') else None,
@@ -1019,7 +1046,7 @@ def parse_feed(provider, body, board_url):
                         'department': ', '.join(item.get('name','') for item in departments if isinstance(item, dict) and item.get('name')),
                         'work_arrangement': arrangement,
                         'is_remote': True if arrangement == 'remote' else None,
-                        'description': _plain_text(row.get('content')),
+                        'description': description_text(row.get('content')),
                         'salary': next((str(value) for key,value in meta_map.items() if 'salary' in key or 'compensation' in key), None),
                         'updated_at': row.get('updated_at'),
                         'requisition_id': str(row['requisition_id']) if row.get('requisition_id') is not None else None,
@@ -1039,7 +1066,7 @@ def parse_feed(provider, body, board_url):
                         'employment_type': categories.get('commitment'),
                         'work_arrangement': arrangement,
                         'is_remote': True if arrangement == 'remote' else None,
-                        'description': _plain_text(row.get('descriptionPlain') or row.get('description')),
+                        'description': _lever_description(row),
                         'date_posted': _iso_date(row.get('createdAt')),
                         'salary': json.dumps(salary_range, ensure_ascii=False) if salary_range else None,
                         'workplace_type': row.get('workplaceType'),
@@ -1063,7 +1090,7 @@ def parse_feed(provider, body, board_url):
                         'employment_type': row.get('employmentType'),
                         'work_arrangement': arrangement,
                         'is_remote': True if arrangement == 'remote' else None,
-                        'description': _plain_text(row.get('descriptionPlain') or row.get('description')),
+                        'description': description_text(row.get('descriptionHtml') or row.get('descriptionPlain') or row.get('description')),
                         'date_posted': _iso_date(row.get('publishedAt')),
                         'salary': row.get('compensationTierSummary'),
                         'locations': normalized_locations if normalized_locations else None,
