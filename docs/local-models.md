@@ -1,10 +1,11 @@
 # Models for job matching
 
-Radius ranks jobs with GPT-6 Luna through your ChatGPT subscription while it has room,
-and with two small local models otherwise (see [Luna first, local backup](#luna-first-local-backup)).
+Radius ranks jobs either with GPT-6 Luna through your ChatGPT subscription (default) or
+with two small local models; you switch by hand (see [Choosing the matching model](#choosing-the-matching-model)).
 The local models run on CPU in their own containers, served by
-[llama.cpp](https://github.com/ggml-org/llama.cpp); with **Local only** selected in
-Settings nothing leaves the machine and no subscription quota is used.
+[llama.cpp](https://github.com/ggml-org/llama.cpp), and start only with the
+`local-models` compose profile; with **Local models** selected in Settings nothing
+leaves the machine and no subscription quota is used.
 
 | Container | Model | Size | Job |
 |---|---|---|---|
@@ -59,17 +60,30 @@ flag, shows "Analysing job…" in search and never creates a Journey card. After
 or CV edit, the previous analysis and evidence stay in use (shown as refreshing) until
 the worker replaces them, so edits do not empty Journey.
 
-## Luna first, local backup
+## Choosing the matching model
 
-Settings → Matching → **Matching model** chooses **Luna first** (default) or **Local
-only**. With Luna first, `job-analysis-worker` sends the same posting prompt to
-`gpt-6-luna` through the shared ChatGPT login (`radius_codex` volume), and asks Luna to
-rate each duty and requirement against the CV lines instead of the reranker. Luna runs
-only while ChatGPT is connected and the five-hour window is below
-`RADIUS_MATCH_LUNA_MAX_5H` (60%) and the longest window, usually the week, below
-`RADIUS_MATCH_LUNA_MAX_WEEKLY` (70%); the rest stays free for application documents.
-Usage is re-read every five minutes. Any Luna error, timeout or limit falls back to the
-local models for that posting or pair, so matching never stops.
+Settings → Matching → **Matching model** chooses **GPT-6 Luna** (default) or **Local
+models**. There is no usage cap and no automatic fallback, so only the selected model
+needs to run.
+
+- **GPT-6 Luna:** `job-analysis-worker` sends the same posting prompt to `gpt-6-luna`
+  through the shared ChatGPT login (`radius_codex` volume), and asks Luna to rate each
+  duty and requirement against the CV lines instead of the reranker. The `llm` and
+  `llm-reranker` containers are not used and can stay stopped, which saves about 6 GB
+  of RAM. When Luna cannot be reached (ChatGPT not connected, rate limit, outage,
+  timeout) the stage pauses with backoff and the work stays queued; only a posting too
+  long for the model is marked failed and retried later.
+- **Local models:** start the containers with the profile, then switch in Settings:
+
+  ```sh
+  COMPOSE_PROFILES=local-models docker compose up -d llm llm-reranker
+  ```
+
+  To go back to Luna, switch in Settings and stop them with
+  `docker compose stop llm llm-reranker`.
+
+Switching applies to new and still-queued work; stored analyses and evidence keep
+their results.
 
 Results record their model (`provider: "luna"` in the analysis and evidence), and Luna
 evidence is scored with its own calibration (`LUNA_CALIBRATION_KNOTS`, fitted on the
@@ -89,7 +103,7 @@ On four laptop cores the LLM needs about 25–50 s per posting and the reranker 
 profile's search area (and remote jobs) first, newest first, and computes their
 evidence immediately; the rest of the inventory follows in the background. Each step
 is published per job or pair, so a restart or model outage loses at most the item in
-flight. When a model container is down, that stage backs off (up to five minutes)
+flight. When the selected model is unavailable, that stage backs off (up to five minutes)
 while the others continue; matching and Journey keep serving the stored results. A
 posting the LLM rejects as too long is retried with fewer lines, and an item that
 fails is retried later with backoff instead of being dropped.

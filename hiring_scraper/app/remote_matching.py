@@ -1,20 +1,20 @@
-"""GPT-6 Luna through the ChatGPT subscription as the primary matching model.
+"""GPT-6 Luna through the ChatGPT subscription as a matching model.
 
-The local LLM and reranker stay the backup: Luna is used only while matching is set to
-``luna_first``, ChatGPT is connected and the subscription has headroom (the five-hour
-window below ``RADIUS_MATCH_LUNA_MAX_5H`` percent and the longest window, usually the
-week, below ``RADIUS_MATCH_LUNA_MAX_WEEKLY`` percent). Application documents keep the
-remaining quota. Any failure falls back to the local models for that item.
+Settings → Matching model switches by hand between ``luna`` and ``local``; there is no
+automatic fallback, so the local ``llm`` and ``llm-reranker`` containers can stay off
+while Luna is selected. When Luna cannot be reached (not signed in, rate limit, outage)
+the work stays queued and the worker retries later; only an answer that cannot be
+parsed counts against the posting itself.
 """
 from __future__ import annotations
 
 import json
 import logging
 import os
-import threading
-import time
 from pathlib import Path
 from typing import Any
+
+from fastapi import HTTPException
 
 from hiring_scraper.app import codex_runtime
 from hiring_scraper.job_analysis import clean_text, prompt_messages
@@ -22,19 +22,14 @@ from hiring_scraper.matching_v3.evidence import _job_context, scored_items
 
 LOG = logging.getLogger(__name__)
 MODEL = 'gpt-6-luna'
-MODES = ('luna_first', 'local')
-DEFAULT_MODE = 'luna_first'
-USAGE_CACHE_SECONDS = 300
+MODES = ('luna', 'local')
+DEFAULT_MODE = 'luna'
+_LEGACY_MODES = {'luna_first': 'luna'}
 CALL_TIMEOUT_SECONDS = 240
-_usage_lock = threading.Lock()
-_usage_cache: dict[str, Any] = {'at': 0.0, 'value': None}
 
 
-def _limit(name: str, default: int) -> int:
-    try:
-        return max(0, min(100, int(os.getenv(name, str(default)))))
-    except ValueError:
-        return default
+class LunaUnavailable(OSError):
+    """Luna cannot be used right now; like a local model outage, the item stays queued."""
 
 
 def _settings_path() -> Path:
@@ -46,6 +41,7 @@ def mode() -> str:
         value = json.loads(_settings_path().read_text()).get('mode')
     except (OSError, ValueError, AttributeError):
         value = None
+    value = _LEGACY_MODES.get(value, value)
     return value if value in MODES else DEFAULT_MODE
 
 
@@ -60,45 +56,35 @@ def set_mode(value: str) -> str:
     return value
 
 
-def _usage() -> dict:
-    with _usage_lock:
-        if _usage_cache['value'] is not None and time.monotonic() - _usage_cache['at'] < USAGE_CACHE_SECONDS:
-            return _usage_cache['value']
+def use_luna() -> bool:
+    return mode() == 'luna'
+
+
+def _connected() -> bool:
     try:
-        value = codex_runtime.subscription_usage() if codex_runtime.status().get('enabled') else None
-    except Exception:  # Usage is advisory; unknown usage means local matching.
-        value = None
-    with _usage_lock:
-        _usage_cache.update(at=time.monotonic(), value=value or {})
-    return value or {}
-
-
-def headroom(usage: dict | None = None) -> tuple[bool, str]:
-    """Whether Luna may run now, and why not."""
-    usage = _usage() if usage is None else usage
-    if not usage or not usage.get('available') or usage.get('used_percent') is None:
-        return False, 'ChatGPT usage is unavailable'
-    if usage['used_percent'] >= _limit('RADIUS_MATCH_LUNA_MAX_5H', 60):
-        return False, 'five-hour ChatGPT window is busy'
-    weekly = usage.get('long_used_percent')
-    if weekly is not None and weekly >= _limit('RADIUS_MATCH_LUNA_MAX_WEEKLY', 70):
-        return False, 'weekly ChatGPT budget is reserved for applications'
-    return True, 'ready'
-
-
-def luna_allowed() -> bool:
-    return mode() == 'luna_first' and headroom()[0]
+        return bool(codex_runtime.status().get('enabled'))
+    except Exception:  # Status is advisory here; a failed call reports the real error.
+        return False
 
 
 def status() -> dict:
-    allowed, reason = headroom() if mode() == 'luna_first' else (False, 'local models selected')
-    return {'mode': mode(), 'active': 'luna' if allowed else 'local', 'reason': reason,
-            'max_5h_percent': _limit('RADIUS_MATCH_LUNA_MAX_5H', 60),
-            'max_weekly_percent': _limit('RADIUS_MATCH_LUNA_MAX_WEEKLY', 70)}
+    if not use_luna():
+        return {'mode': 'local', 'ready': True, 'reason': ''}
+    connected = _connected()
+    return {'mode': 'luna', 'ready': connected,
+            'reason': '' if connected else 'Connect ChatGPT below; matching waits until then.'}
 
 
 def _generate(prompt: str, schema: dict) -> dict:
-    return codex_runtime.generate(prompt, schema, timeout=CALL_TIMEOUT_SECONDS, model=MODEL)
+    """One Luna call. Service problems raise ``LunaUnavailable``; only a prompt that is too
+    long for the model is the posting's own failure."""
+    try:
+        return codex_runtime.generate(prompt, schema, timeout=CALL_TIMEOUT_SECONDS, model=MODEL)
+    except HTTPException as error:
+        detail = str(error.detail)
+        if 'context limit' in detail:
+            raise ValueError(detail) from None
+        raise LunaUnavailable(detail) from None
 
 
 ANALYSIS_SCHEMA = {'type': 'object', 'additionalProperties': False, 'required': ['analysis'],

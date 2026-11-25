@@ -107,8 +107,9 @@ are never treated as requirements. For every duty and requirement the reranker
 then reads the closest lines of your CV together with the job's field and decides
 whether they actually show it, so a shared word in an unrelated field (for example
 "Schulungen" in a SaaS support role versus training in corrosion protection) does
-not count. Everything runs on CPU in separate containers; there are no API calls or
-subscription quotas. See [docs/local-models.md](docs/local-models.md).
+not count. By default GPT-6 Luna does both steps through your ChatGPT subscription;
+Settings → Matching model switches to the local CPU models (compose profile
+`local-models`, about 6 GB RAM). See [docs/local-models.md](docs/local-models.md).
 
 The job page shows the posting's field, industry, duties, must-haves and
 nice-to-haves under **What this job asks for**. Quotes come from the posting,
@@ -234,7 +235,7 @@ This keeps the named database volume. Once PostgreSQL is healthy, the migration 
 
 When upgrading from the single-container layout, stop the old app before starting the new release so the old workers do not overlap the new ones. Existing preparation drafts remain on the Codex volume. New PostgreSQL preparation jobs are persisted and resume from checkpoints after an interrupted worker lease expires.
 
-The first app image pull downloads the pinned ONNX model (about 235 MB); the `llm` and `llm-reranker` containers download their pinned GGUF weights (about 3.4 GB) into the `llm_models` volume on first start, and the job analysis worker waits for them. The search worker then indexes existing companies and jobs in the background; newly changed records are queued as they are discovered or edited. The jobs page can serve a recent snapshot while the next refresh runs, and text queries use local semantic vectors once indexed.
+The first app image pull downloads the pinned ONNX model (about 235 MB); with `COMPOSE_PROFILES=local-models`, the `llm` and `llm-reranker` containers download their pinned GGUF weights (about 3.4 GB) into the `llm_models` volume on first start. The search worker then indexes existing companies and jobs in the background; newly changed records are queued as they are discovered or edited. The jobs page can serve a recent snapshot while the next refresh runs, and text queries use local semantic vectors once indexed.
 
 Open <http://localhost:8080> (or the `APP_PORT` you set in `.env`). `docker compose down` preserves the database volume; use `docker compose down --volumes` to erase it. For a pinned deployment, set `HIRING_APP_IMAGE` and `HIRING_DB_IMAGE` in `.env` to the tags from the same commit (`COMMIT_SHA` for the app and `db-COMMIT_SHA` for the database), or pin each image to its own digest. Then run `docker compose pull && docker compose up -d --no-build`.
 

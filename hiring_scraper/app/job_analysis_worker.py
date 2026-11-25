@@ -1,6 +1,8 @@
-"""Background local-model analysis: job duties/requirements, CV units and pair evidence.
+"""Background model analysis: job duties/requirements, CV units and pair evidence.
 
-Runs next to the ``llm`` and ``llm-reranker`` containers. Every stage is small
+Uses the matching model selected in Settings: GPT-6 Luna through the ChatGPT login, or
+the local ``llm`` and ``llm-reranker`` containers (which may be stopped while Luna is
+selected). Every stage is small
 and restartable: results are written per job or pair, so a crash or a model
 outage loses at most the item in flight. Jobs inside a profile's search area
 (and remote jobs) are analysed first, newest first; the rest follow. Model
@@ -476,29 +478,28 @@ def _analyse_fitting(lines: list[str], scopes: list[str], analyse) -> dict:
         return analysis_payload(lines, output, scopes)
 
 
-def _luna_analysis(lines: list[str], scopes: list[str]) -> dict | None:
-    """Luna first while the subscription has headroom; None means use the local LLM."""
+def _luna_selected(injected: bool) -> bool:
+    """Luna when selected in Settings; an injected model (tests, tools) always runs locally."""
     from hiring_scraper.app import remote_matching
-    if not remote_matching.luna_allowed():
-        return None
-    try:
-        payload = analysis_payload(lines, remote_matching.analyse_lines(lines), scopes)
-    except Exception as error:  # Any Luna failure falls back to the local model for this job.
-        LOG.info('Luna analysis unavailable, using the local model: %s', str(error)[:200])
-        return None
-    payload['provider'] = 'luna'
-    return payload
+    return not injected and remote_matching.use_luna()
 
 
-def _evidence_with_backup(payload_in, title, source, vectors, embed_fn, rerank_fn) -> dict:
-    """Luna first while allowed (not when a test injects the reranker), local reranker as backup."""
-    if rerank_fn is rerank:
+def _analyse(lines: list[str], scopes: list[str], analyse) -> dict:
+    """Analyse with the selected model. No fallback: the other model's containers may be off.
+    An unreachable model raises ``OSError`` so the job stays queued."""
+    if _luna_selected(analyse is not analyse_lines):
         from hiring_scraper.app import remote_matching
-        if remote_matching.luna_allowed():
-            try:
-                return remote_matching.compute_evidence(payload_in, title, source)
-            except Exception as error:
-                LOG.info('Luna evidence unavailable, using the local reranker: %s', str(error)[:200])
+        payload = analysis_payload(lines, remote_matching.analyse_lines(lines), scopes)
+        payload['provider'] = 'luna'
+        return payload
+    return _analyse_fitting(lines, scopes, analyse)
+
+
+def _evidence(payload_in, title, source, vectors, embed_fn, rerank_fn) -> dict:
+    """Pair evidence from the selected model (Luna, or the local reranker)."""
+    if _luna_selected(rerank_fn is not rerank):
+        from hiring_scraper.app import remote_matching
+        return remote_matching.compute_evidence(payload_in, title, source)
     return compute_evidence(payload_in, title, source, vectors, embed=embed_fn, rerank=rerank_fn)
 
 
@@ -523,9 +524,7 @@ def analyse_next_job(*, analyse=analyse_lines) -> int | None:
     digest = source_hash(lines)
     started = time.monotonic()
     try:
-        payload = _luna_analysis(lines, scopes) if analyse is analyse_lines else None
-        if payload is None:
-            payload = _analyse_fitting(lines, scopes, analyse)
+        payload = _analyse(lines, scopes, analyse)
         error = None
     except OSError:
         raise  # Model container down: the caller pauses this stage, the job stays queued.
@@ -649,7 +648,7 @@ def refresh_evidence_once(*, limit: int = EVIDENCE_PAIRS_PER_CYCLE, job_ids: lis
             payload_in, title = dict(analysis.payload), job.title or ''
             source, vectors = dict(unit_row.payload), bytes(unit_row.vectors)
         try:
-            evidence = _evidence_with_backup(payload_in, title, source, vectors, embed_fn, rerank_fn)
+            evidence = _evidence(payload_in, title, source, vectors, embed_fn, rerank_fn)
         except OSError:
             raise
         except Exception as error:  # A poison pair must not block the queue; retry it later.
@@ -682,7 +681,7 @@ def refresh_evidence_once(*, limit: int = EVIDENCE_PAIRS_PER_CYCLE, job_ids: lis
 
 class _Stage:
     """Independent backoff: an unavailable reranker must not stop job analysis, and the
-    other way round."""
+    other way round. Luna being unreachable (``LunaUnavailable``) pauses the same way."""
 
     def __init__(self, name: str) -> None:
         self.name, self.paused_until, self.backoff = name, 0.0, POLL_SECONDS
@@ -693,7 +692,7 @@ class _Stage:
         try:
             worked = bool(step())
         except OSError as error:
-            LOG.warning('%s: local model unavailable (%s); pausing %.0fs', self.name, error, self.backoff)
+            LOG.warning('%s: matching model unavailable (%s); pausing %.0fs', self.name, error, self.backoff)
             self.paused_until = time.monotonic() + self.backoff
             self.backoff = min(300.0, self.backoff * 2)
             return False
