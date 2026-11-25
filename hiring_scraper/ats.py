@@ -886,9 +886,11 @@ def parse_feed(provider, body, board_url):
             return _parse_recruitee(body, board_url)
         if provider in {'html_jobs', 'external_html', 'browser_html'}:
             from .html_jobs import extract_html_jobs
+            from .html_jobs import main_reading
             parsed = extract_html_jobs(body, board_url)
             complete = parsed['complete']
-            if not parsed['jobs']:
+            # Postings only the marked-title reader finds never make an unknown page complete.
+            if not main_reading(parsed['jobs']):
                 rendered_text = body.decode('utf-8', 'replace') if isinstance(body, bytes) else str(body)
                 explicit_empty = re.search(
                     r'no (?:current |open )?(?:job|position|vacanc)|keine (?:offenen? )?stellen|keine jobs',

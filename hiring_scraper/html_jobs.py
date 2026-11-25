@@ -7,26 +7,56 @@ import math
 import re
 import unicodedata
 from datetime import date, datetime
-from html.parser import HTMLParser
 from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlsplit, urlunsplit
 
 from .description import description_text
+from .places import parse_places, title_place
+from .html_tree import (  # noqa: F401 - re-exported for other modules
+    _Element,
+    _FORM_CONTROLS,
+    _TreeParser,
+    _ancestors,
+    _clean_text,
+    _lines,
+    _visible_text,
+)
+from .html_facts import (  # noqa: F401 - re-exported for other modules
+    _MORE_LOCATIONS,
+    _TRAINING_FORMATS,
+    _employment,
+    _employment_fact,
+    _hours_in_text,
+    _place_label,
+    _read_facts,
+    _summary_lines,
+    _title_employment,
+    _title_variants,
+)
+from .html_titles import (  # noqa: F401 - re-exported for other modules
+    _GENDER_MARKER,
+    _GENERIC_HEADINGS,
+    _INITIATIVE_APPLICATION,
+    _NEVER_A_ROLE,
+    _not_a_role,
+    _STRONG_MARKER,
+    _TALENT_POOL,
+    _TITLE_MARKER,
+    _audience_list,
+    _audience_only,
+    _marked_title,
+    _norm_title,
+    _same_role,
+    _title_core,
+    _title_squash,
+)
 
 
-_VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
-_HIDDEN = {"script", "style", "svg", "noscript", "template"}
 _JOB_LINK = re.compile(r"(?:^|/)(?:jobs?|stellenangebote?|stellenangebot|jobangebote?|jobangebot|vacanc(?:y|ies)|open-positions|position|offers?)/[^/?#]+(?:/[^/?#]+)?/?$", re.I)
 _DETAIL_ROUTE = re.compile(r"(?:^|/)(?:jobs?|stellenangebot|stellenangebote?|jobangebot|jobangebote?|vacanc(?:y|ies)|position|offers?)/[^/?#]+(?:/[^/?#]+)?/?$", re.I)
 _CAREER_ROUTE = re.compile(r"karriere|careers?|jobs?|stellenangebote?|jobangebot|vacanc|open[-_/ ]positions|ausbildung|studium|studierende|werkstudent|praktikum|trainee|berufseinstieg|berufseinsteiger", re.I)
 _ARTICLE_ROUTE = re.compile(r"(?:^|/)(?:news|blog|press|aktuelles|stories|posts?)(?:/|[-.]|$)", re.I)
 _OPEN_SECTION = re.compile(r"^(?:open positions?|open job postings?|open roles?|offene stellen|aktuelle jobs|stellenangebote|vacatures)$", re.I)
 _STOP_SECTION = re.compile(r"^(?:our next open position|our office\b|unser büro\b|our team\b|benefits\b|faq\b|continue reading\b|contact\b|kontakt\b|about us\b)", re.I)
-_GENERIC_HEADINGS = {
-    "careers", "career", "jobs", "job", "about", "about us", "offene stellen", "open positions",
-    "open job postings", "open roles", "aktuelle jobs", "stellenangebote",
-    "unser büro", "our office", "our team", "benefits", "kontakt", "contact",
-    "ausbildung", "duales studium", "students", "studierende",
-}
 _ROLE_WORDS = re.compile(
     r"engineer|developer|administrator|admin|assistant|techniker|technik|support|manager|lead|consultant|berater|"
     r"analyst|analysis|automation|pathologist|scientist|researcher|software|product owner|"
@@ -45,95 +75,19 @@ _CITY_NAMES = (
     "Walldorf", "Kaiserslautern",
 )
 _CITY_PATTERN = re.compile(r"\b(" + "|".join(re.escape(city) for city in sorted(_CITY_NAMES, key=len, reverse=True)) + r")\b", re.I)
-_DISPLAY_NONE = re.compile(r"(?:^|;)display:none(?:!important)?(?:;|$)")
-_VISIBILITY_HIDDEN = re.compile(r"(?:^|;)visibility:hidden(?:!important)?(?:;|$)")
-_DISPLAY_BLOCK = re.compile(r"(?:^|;)display:block(?:!important)?(?:;|$)")
 _INACTIVE_CARD_STATE = re.compile(r"closed|inactive|archiv|expired|filled|template|draft|disabled", re.I)
+_INACTIVE_STATE_WORDS = frozenset({"closed", "inactive", "archive", "archived", "expired", "filled", "template",
+                                   "draft", "disabled"})
+# Closed wording, as whole words: "position filled", but not "this position is unfilled".
+_CLOSED_TEXT_WORDS = re.compile(
+    r"\b(?:position|job|stelle)\b.{0,16}\b(?:closed|filled|besetzt|vergeben)\b|"
+    r"\b(?:closed|filled|besetzt|vergeben)\b.{0,16}\b(?:position|job|stelle)\b", re.I)
 _INACTIVE_CARD_CLASS = re.compile(
     r"(?:^|[-_])(?:closed|inactive|archiv(?:ed)?|expired|filled|template|draft|disabled)(?:$|[-_])",
     re.I,
 )
 _CLOSED_CARD_TEXT = re.compile(r"(?:position|job|stelle).{0,16}(?:closed|filled)|(?:closed|filled).{0,16}(?:position|job|stelle)", re.I)
-_INITIATIVE_APPLICATION = re.compile(
-    r"(?:\binitiativ(?:bewerbung|application)\b|^(?:initiative|unsolicited|general|speculative|open)\s+application(?:\s*\([^)]*\))?$)",
-    re.I,
-)
-_TALENT_POOL = re.compile(r"^(?:join (?:our )?)?talent (?:pool|community|network)(?:\s*\([^)]*\))?$", re.I)
 _TRUE_DATA_FLAG_VALUES = frozenset({"true", "1", "yes"})
-
-
-def _element_hidden(tag: str, attrs: dict[str, str]) -> bool:
-    style = re.sub(r"\s+", "", attrs.get("style", "")).casefold()
-    classes = set(attrs.get("class", "").casefold().split())
-    modal_hidden = ("modal" in classes and "show" not in classes and
-                    attrs.get("aria-hidden", "").casefold() != "false" and
-                    attrs.get("aria-modal", "").casefold() != "true" and
-                    not _DISPLAY_BLOCK.search(style))
-    return bool(
-        tag in _HIDDEN or "hidden" in attrs or attrs.get("aria-hidden", "").casefold() == "true" or
-        classes.intersection({"d-none", "hidden", "invisible"}) or modal_hidden or
-        _DISPLAY_NONE.search(style) or _VISIBILITY_HIDDEN.search(style)
-    )
-
-
-class _Element:
-    def __init__(self, tag: str, attrs: dict[str, str], parent: _Element | None = None):
-        self.tag, self.attrs, self.parent = tag, attrs, parent
-        self.hidden = bool((parent and parent.hidden) or _element_hidden(tag, attrs))
-        self.children: list[_Element | str] = []
-
-    def walk(self):
-        yield self
-        for child in self.children:
-            if isinstance(child, _Element):
-                yield from child.walk()
-
-    def text(self) -> str:
-        if self.hidden:
-            return ""
-        values = []
-        for child in self.children:
-            if isinstance(child, _Element):
-                value = child.text()
-            else:
-                value = child
-            if value.strip():
-                values.append(value)
-        return _clean_text(" ".join(values))
-
-
-class _TreeParser(HTMLParser):
-    def __init__(self):
-        super().__init__(convert_charrefs=True)
-        self.root = _Element("document", {})
-        self.stack = [self.root]
-
-    def handle_starttag(self, tag, attrs):
-        node = _Element(tag.casefold(), {key.casefold(): value or "" for key, value in attrs}, self.stack[-1])
-        self.stack[-1].children.append(node)
-        if tag.casefold() not in _VOID:
-            self.stack.append(node)
-
-    def handle_startendtag(self, tag, attrs):
-        self.handle_starttag(tag, attrs)
-        if tag.casefold() not in _VOID:
-            self.handle_endtag(tag)
-
-    def handle_endtag(self, tag):
-        tag = tag.casefold()
-        for index in range(len(self.stack) - 1, 0, -1):
-            if self.stack[index].tag == tag:
-                del self.stack[index:]
-                return
-
-    def handle_data(self, data):
-        self.stack[-1].children.append(data)
-
-
-def _clean_text(value: str) -> str:
-    value = value.replace("\u00a0", " ")
-    value = re.sub(r"[\u00ad\u200b-\u200f\u2060\ufeff]", "", value)
-    return " ".join(value.split())
 
 
 def _plain(value) -> str | None:
@@ -331,23 +285,6 @@ def _arrangement(text: str) -> tuple[str | None, str | None]:
     return None, None
 
 
-def _employment(text: str) -> str | None:
-    lowered = text.casefold().replace("_", "-")
-    if re.search(r"duales?\s+studium|dual\s+study", lowered):
-        return "dual_study"
-    if re.search(r"ausbildung|apprenticeship", lowered):
-        return "apprenticeship"
-    if re.search(r"werkstudent|working student", lowered):
-        return "working_student"
-    if re.search(r"praktikum|internship|\bintern\b", lowered):
-        return "internship"
-    if re.search(r"vollzeit|full[- ]time", lowered):
-        return "full-time"
-    if re.search(r"teilzeit|part[- ]time", lowered):
-        return "part-time"
-    return None
-
-
 def _locations(text: str) -> list[dict]:
     found = []
     for match in re.finditer(r"\b(?:location|arbeitsort|standort|einsatzort|ort)\s*[:\-]\s*([^|\n;]{2,100})", text, re.I):
@@ -396,20 +333,27 @@ def _metadata(text: str, extraction_method: str, *, application_email: str | Non
             "locations": locations, "raw_metadata": meta}
 
 
+def _set_location(info: dict, location: str) -> None:
+    info["location"] = location
+    info["locations"] = []
+    for place in location.split(";"):
+        place = place.strip()
+        if not place:
+            continue
+        country = _label_country(place)
+        info["locations"].append({"label": place, **({"country_code": country} if country else {})})
+
+
 def _job(title: str, url: str, method: str, text: str = "", *, description: str | None = None,
          location: str | None = None, employment_type: str | None = None,
          date_posted: str | None = None, application_email: str | None = None,
-         extras: dict | None = None) -> dict:
+         extras: dict | None = None, infer_employment: bool = True) -> dict:
     info = _metadata(text, method, application_email=application_email)
+    if not infer_employment:
+        # The caller read the employment type from facts; running text would only add guesses.
+        info["employment_type"] = None
     if location:
-        info["location"] = location
-        info["locations"] = []
-        for place in location.split(";"):
-            place = place.strip()
-            if not place:
-                continue
-            country = _label_country(place)
-            info["locations"].append({"label": place, **({"country_code": country} if country else {})})
+        _set_location(info, location)
     if employment_type:
         info["employment_type"] = employment_type
     if isinstance(date_posted, str) and date_posted.strip():
@@ -464,9 +408,29 @@ def _schema_posting(posting: dict, page_url: str) -> dict | None:
     return job
 
 
-def _candidate_title(value: str) -> bool:
+def main_reading(jobs: list[dict]) -> list[dict]:
+    """The postings main's strategies read. Postings the marked-title strategy adds never
+    change decisions main makes from a page (completeness, browser rendering)."""
+    return [job for job in jobs if (job.get("raw_metadata") or {}).get("extraction_method") != "html_marked_title"]
+
+
+def _main_candidate_title(value: str) -> bool:
+    """main's role test, kept for decisions that existing rows depend on (section boundaries)."""
     clean = _clean_text(value).strip(" ·|–—-:")
     return bool(clean and len(clean) <= 150 and clean.casefold() not in _GENERIC_HEADINGS
+                and not re.match(r"^(?:spezialfragen|faq|häufige fragen|frequently asked questions?)\b", clean, re.I)
+                and not re.match(r"^(?:stellenangebote|aktuelle stellenangebote|jobs|vacancies|open positions)\s+(?:für|for|in|at)\b", clean, re.I)
+                and not re.fullmatch(r"(?:internal|all|current|other|more|interne|alle|weitere)\s+(?:vacancies|jobs|positions|openings|stellen(?:angebote)?)", clean, re.I)
+                and _ROLE_WORDS.search(clean))
+
+
+def _candidate_title(value: str) -> bool:
+    """main's role test, minus text that is never a vacancy (SEO and category links, result
+    totals, controls, section headings, audience lists). Facet counts or bare category words,
+    which can title a real posting, stay as main reads them."""
+    clean = _clean_text(value).strip(" ·|–—-:")
+    return bool(clean and len(clean) <= 150 and clean.casefold() not in _GENERIC_HEADINGS
+                and not _audience_list(clean) and not _NEVER_A_ROLE.search(clean)
                 and not re.match(r"^(?:spezialfragen|faq|häufige fragen|frequently asked questions?)\b", clean, re.I)
                 and not re.match(r"^(?:stellenangebote|aktuelle stellenangebote|jobs|vacancies|open positions)\s+(?:für|for|in|at)\b", clean, re.I)
                 and not re.fullmatch(r"(?:internal|all|current|other|more|interne|alle|weitere)\s+(?:vacancies|jobs|positions|openings|stellen(?:angebote)?)", clean, re.I)
@@ -509,21 +473,6 @@ _LOCATION_LABEL = re.compile(
 )
 
 
-_SCREEN_READER_ONLY = re.compile(r"(?:^|\s)(?:sr-only|screen-reader-text|visually-hidden|[\w-]*-visually-hidden|visuallyhidden)(?:\s|$)")
-
-
-def _visible_text(node: _Element) -> str:
-    """Rendered text without screen-reader-only labels ("All Locations")."""
-    if node.hidden or _SCREEN_READER_ONLY.search(node.attrs.get("class", "")):
-        return ""
-    values = []
-    for child in node.children:
-        value = _visible_text(child) if isinstance(child, _Element) else child
-        if value.strip():
-            values.append(value)
-    return _clean_text(" ".join(values))
-
-
 def _node_location(node: _Element, *, exclude: str | None = None) -> str | None:
     for child in node.walk():
         if child.hidden:
@@ -545,9 +494,6 @@ def _node_location(node: _Element, *, exclude: str | None = None) -> str | None:
     return None
 
 
-_MORE_LOCATIONS = re.compile(
-    r"\s*(?:\+|and|und)\s*\d+\s*(?:more|other|further|weitere|andere)?\s*(?:locations?|standorte?|orte?)\s*$", re.I,
-)
 _PLACE_VALUE = re.compile(
     r"[A-ZÄÖÜÉ][\w.'’ -]{0,40}(?:\s*[,/]\s*[A-ZÄÖÜÉ0-9][\w.'’ -]{0,40}){0,3}"
 )
@@ -655,11 +601,57 @@ def _softgarden_job_id(url: str) -> str | None:
     return match[1] if match else None
 
 
-def _inactive_card_class(classes: set[str]) -> bool:
+def _inactive_card_class(classes: set[str], *, strict: bool = False) -> bool:
+    # Theme layout classes ("wp-block-post-template", "section-template--…") are scaffolding,
+    # not a template posting.
     return any(
-        _INACTIVE_CARD_CLASS.search(name) and not name.startswith(("not-", "not_"))
+        not name.startswith(("not-", "not_")) and
+        _INACTIVE_CARD_CLASS.search(re.sub(r"(?:post|block|section|page|site|theme)-template", "-", name)
+                                    if strict else name)
         for name in classes
     )
+
+
+def _inactive_card(card: _Element, *, strict: bool = False) -> bool:
+    """A card a site keeps in its markup but marks closed, disabled or as a template.
+
+    ``strict`` (the paths new in this reader) matches whole state words, so
+    "unfilled" is not "filled", and ignores theme layout classes such as
+    "wp-block-post-template"; the structured-card reader keeps main's test.
+    """
+    state = " ".join(card.attrs.get(key, "") for key in ("data-status", "data-state", "status"))
+    classes = set(card.attrs.get("class", "").casefold().split())
+    state_closed = (any(token in _INACTIVE_STATE_WORDS for token in re.split(r"[\s,;|]+", state.casefold()))
+                    if strict else _INACTIVE_CARD_STATE.search(state))
+    return bool(card.hidden or card.attrs.get("aria-disabled", "").casefold() == "true" or
+                "disabled" in card.attrs or _inactive_card_class(classes, strict=strict) or
+                _true_data_flag(card.attrs, "data-disabled") or _true_data_flag(card.attrs, "data-template") or
+                state_closed)
+
+
+def _destination_key(url: str) -> str:
+    """One posting destination: scheme/host/path without trailing slash, sorted query, no fragment."""
+    parts = urlsplit(_normalized_destination(url))
+    return urlunsplit((parts.scheme, parts.netloc, parts.path.rstrip("/") or "/", parts.query, ""))
+
+
+def _link_key(url: str) -> str:
+    """A link's identity: its destination, plus a hash route ("#/jobs/12") that names a page."""
+    fragment = urlsplit(url).fragment
+    return _destination_key(url) + (f"#{fragment}" if fragment.startswith(("/", "!/")) else "")
+
+
+# Query parameters that name one posting rather than filter a list: ?jobId=123, ?id=7.
+_POSTING_QUERY = re.compile(
+    # Explicit posting parameters name a vacancy whatever their value (?jobId=abc) …
+    r"(?:^|&)(?:job_?id|jobid|vacancy_?id|posting_?id|stellen_?id|req(?:uisition)?_?id|offer_?id|"
+    r"ausschreibungs?_?id|anzeigen_?id|job_?ref|jobnr|stellennr)=[^&]+|"
+    # … generic ones only with a number in the value ("?id=7", but "?ref=lager" filters).
+    r"(?:^|&)(?:id|vacancy|posting|stelle|ref|offer|ausschreibung|anzeige|job)=[^&]*\d[^&]*", re.I)
+# Parameters that only filter or sort a list: a link carrying nothing else is navigation.
+_FILTER_QUERY = re.compile(
+    r"^(?:ref|category|kategorie|filter|bereich|q|query|search|suche|s|type|typ|location|standort|ort|city|"
+    r"department|abteilung|sort|order|page|seite|lang|sprache|utm_\w+|jobtype|jobprofile|profession)$", re.I)
 
 
 def _structured_job_cards(nodes: list[_Element], page_url: str) -> tuple[list[dict], list[dict]]:
@@ -668,12 +660,7 @@ def _structured_job_cards(nodes: list[_Element], page_url: str) -> tuple[list[di
     for card in nodes:
         if card.tag != "a" or card.attrs.get("data-guide-id", "").casefold() != "joblist-card":
             continue
-        state = " ".join(card.attrs.get(key, "") for key in ("data-status", "data-state", "status"))
-        classes = set(card.attrs.get("class", "").casefold().split())
-        if (card.hidden or card.attrs.get("aria-disabled", "").casefold() == "true" or
-                "disabled" in card.attrs or _inactive_card_class(classes) or
-                _true_data_flag(card.attrs, "data-disabled") or _true_data_flag(card.attrs, "data-template") or
-                _INACTIVE_CARD_STATE.search(state)):
+        if _inactive_card(card):
             continue
         context = card.text()
         if _CLOSED_CARD_TEXT.search(context):
@@ -725,7 +712,13 @@ def html_job_key(job: dict) -> tuple[str, ...]:
             return 'destination', _normalized_destination(url)
     if method == "structured_job_card":
         return "destination", _normalized_destination(url)
-    if (parsed and method in {"html_job_link", "html_job_detail"} and _DETAIL_ROUTE.search(path)):
+    if method == "html_marked_title" and "#role-" not in url:
+        # Like the posting's own detail page, unless a query or hash route names the vacancy.
+        key = _link_key(url)
+        if parsed and _DETAIL_ROUTE.search(path) and not _POSTING_QUERY.search(parsed.query) and "#" not in key:
+            return "url", (parsed.hostname or "").casefold(), path.casefold()
+        return "destination", key
+    if (parsed and method in {"html_job_link", "html_job_detail", "html_marked_title"} and _DETAIL_ROUTE.search(path)):
         return "url", (parsed.hostname or "").casefold(), path.casefold()
     title = re.sub(r"\W+", " ", (job.get("title") or "").casefold()).strip()
     locations = sorted(item.get("label", "").casefold() for item in job.get("locations", [])
@@ -739,49 +732,106 @@ def _role_title_key(value: str) -> str:
     return re.sub(r"\W+", " ", _clean_text(title).casefold()).strip()
 
 
-def _ancestors(node: _Element):
-    current = node.parent
-    while current is not None:
-        yield current
-        current = current.parent
+_CONTACT_HEADING = re.compile(
+    r"^(?:kontakt|contact|ansprechpartner(?:in)?|ihr(?:e)? ansprechpartner(?:in)?|dein(?:e)? ansprechpartner(?:in)?|"
+    r"your contact(?: person)?|contact person|recruiting contact)$",
+    re.I,
+)
 
 
-def _detail_description(heading: _Element) -> str | None:
+def _detail_scope(heading: _Element) -> _Element | None:
     # The nearest substantive ancestor bounds the role, keeping earlier biographies
-    # and neighboring columns out. Read only blocks after the confirmed title.
-    scope = next((parent for parent in _ancestors(heading)
-                  if parent.tag not in {"body", "html", "document"} and
-                  len(parent.text()) > len(heading.text()) + (16 if parent.tag in {"main", "article"} else 80)), None)
-    if scope is None:
+    # and neighboring columns out.
+    return next((parent for parent in _ancestors(heading)
+                 if parent.tag not in {"body", "html", "document"} and
+                 len(parent.text()) > len(heading.text()) + (16 if parent.tag in {"main", "article"} else 80)), None)
+
+
+def _fact_label(node: _Element) -> str | None:
+    """A short leaf label ("Vollzeit") in an overview made of icons and spans."""
+    if node.hidden or node.tag not in {"span", "div", "dd"}:
         return None
+    if any(isinstance(child, _Element) and child.text() for child in node.children):
+        return None
+    if any(parent.tag in {"a", "button", "label", "p", "li"} for parent in _ancestors(node)):
+        return None
+    text = node.text().strip(" ·|,–—-")
+    return text if text and len(text) <= 60 else None
+
+
+def _detail_sections(heading: _Element) -> tuple[str | None, list[str], str]:
+    """Description after the confirmed title, overview facts, and contact-block text.
+
+    A section built only from short labels (an "At a glance" row of icons) keeps
+    them as bullets. The contact block names a recruiter rather than describing
+    the role, so it ends the description but stays readable for an application
+    address.
+    """
+    scope = _detail_scope(heading)
+    if scope is None:
+        return None, [], ""
     active, parts, taken = False, [], set()
+    facts: list[str] = []
+    section_facts: list[str] | None = None
+    contact: list[str] | None = None
+
+    def flush_facts():
+        if section_facts:
+            facts.extend(section_facts[:8])
+            parts.extend("- " + fact for fact in section_facts[:8])
+
     for node in scope.walk():
         if node is heading:
             active = True
             continue
-        if not active or node.hidden or node.tag not in {"p", "li", "h1", "h2", "h3", "h4", "h5", "h6"}:
+        if not active or node.hidden:
+            continue
+        if contact is not None:
+            if node.tag in {"p", "li"} and node.text():
+                contact.append(node.text())
+            continue
+        if section_facts is not None and node.tag not in {"h1", "h2", "h3", "h4", "h5", "h6"}:
+            fact = _fact_label(node)
+            if fact and fact not in section_facts:
+                section_facts.append(fact)
+        if node.tag not in {"p", "li", "h1", "h2", "h3", "h4", "h5", "h6"}:
             continue
         # A paragraph inside a list item is already part of that item.
         if any(id(parent) in taken for parent in _ancestors(node)):
             continue
         taken.add(id(node))
         text = node.text()
+        if node.tag in {"p", "li"}:
+            section_facts = None
+        else:
+            flush_facts()
+            section_facts = []
         if (node.tag in {"h2", "h3", "h4", "h5", "h6"} and
                 re.fullmatch(r"our team|unser team|meet (?:our )?team|staff members", text.strip(" :·–—-"), re.I)):
+            section_facts = None
             break
+        if node.tag in {"h2", "h3", "h4", "h5", "h6"} and _CONTACT_HEADING.match(text.strip(" :·–—-")):
+            section_facts, contact = None, []
+            continue
         if re.match(r"^(?:why join us|meet (?:EMBO )?staff|related (?:jobs|content)|other (?:jobs|vacancies))\b", text, re.I):
+            section_facts = None
             break
         if node.tag == "h1":
+            section_facts = None
             break
         if text:
             parts.append(("## " if node.tag != "p" and node.tag != "li" else "- " if node.tag == "li" else "") + text)
+    flush_facts()
+    # Drop a heading left with nothing under it.
+    parts = [part for index, part in enumerate(parts)
+             if not (part.startswith("## ") and (index + 1 == len(parts) or parts[index + 1].startswith("## ")))]
     # Keep bullets of one list together; separate every other block.
     joined = ""
     for index, part in enumerate(parts):
         if index:
             joined += "\n" if part.startswith("- ") and parts[index - 1].startswith("- ") else "\n\n"
         joined += part
-    return joined[:12000] or None
+    return joined[:12000] or None, facts, " ".join(contact or [])
 
 
 def _application_deadline(text: str) -> str | None:
@@ -813,19 +863,307 @@ def _heading_jobs(nodes: list[_Element], page_url: str) -> list[dict]:
             continue
         if active and _STOP_SECTION.match(title):
             stopped = True
+        # Where a section ends is main's decision; whether a heading is emitted is the stricter
+        # one ("Praktikum" between two roles is skipped without ending the section).
+        section_role = _main_candidate_title(title)
         role_title = _candidate_title(title)
-        if active and found_in_section and int(heading.tag[1]) <= section_level and not role_title:
+        if active and found_in_section and int(heading.tag[1]) <= section_level and not section_role:
             stopped = True
-        if not active or stopped or not role_title:
+        if not active or stopped or not section_role:
             continue
         found_in_section = True
+        if not role_title:
+            continue
         context = _context(heading, title)
         email = _application_email(context)
         url = page_url + "#role-" + re.sub(r"[^a-z0-9]+", "-", title.casefold()).strip("-")[:70]
+        card = _card(heading, title)
+        card_lines = [line for line in (_lines(card) if card is not None else [])
+                      if title.casefold() not in line.casefold()]
+        labeled_place, card_place, card_employment = _read_facts(card_lines, unlabeled_lines=6)
         job = _job(title, url, "open_positions_heading", context,
                    description=context if len(context) > len(title) + 35 else None,
-                   application_email=email)
+                   location=labeled_place or title_place(title) or card_place,
+                   employment_type=_title_employment(title) or card_employment or _hours_in_text(" ".join(card_lines)),
+                   infer_employment=False, application_email=email)
         jobs.append(job)
+    return jobs
+
+
+_TITLE_TAGS = frozenset({"a", "b", "dd", "div", "dt", "em", "h1", "h2", "h3", "h4", "h5", "h6", "li", "p",
+                         "span", "strong", "td", "th"})
+_NOT_POSTING_HOSTS = re.compile(r"(?:^|\.)(?:facebook|instagram|linkedin|xing|twitter|x|youtube|kununu|google|"
+                                r"whatsapp|tiktok)\.", re.I)
+
+
+def _marked_title_jobs(root: _Element, page_url: str, existing: list[dict], *, detail_page: bool,
+                       vacancy_page: bool = False) -> list[dict]:
+    texts: dict[int, str] = {}
+
+    def text_of(node: _Element) -> str:
+        # Bottom-up once: _Element.text() recomputes its subtree on every call.
+        if id(node) not in texts:
+            if node.hidden or node.tag in _FORM_CONTROLS:
+                texts[id(node)] = ""
+            else:
+                parts = [text_of(child) if isinstance(child, _Element) else child for child in node.children]
+                texts[id(node)] = _clean_text(" ".join(part for part in parts if part and part.strip()))
+        return texts[id(node)]
+
+    page = _destination_key(page_url)
+    # Rows other strategies read without a URL of their own (a heading on this page,
+    # a structured row falling back to the page) can match any link.
+    unlocated = lambda job: ("#role-" in (job.get("url") or "") or _destination_key(job.get("url") or page_url) == page or
+                             bool((job.get("raw_metadata") or {}).get("microdata_page_fallback")))
+    # By link key, so a row main read for "/jobs/list#/jobs/12" keeps standing for that route.
+    seen_urls = {_link_key(job.get("url") or "") for job in existing if not unlocated(job)}
+    seen_titles = {_norm_title(job.get("title") or "") for job in existing if unlocated(job)}
+    # Titles already read, indexed by word and spelling, and partitioned by destination:
+    # a linked title is only compared with rows for its own destination or rows read
+    # without one, so a list of 1,600 postings (or 40 "Rettungssanitäter" in 40 towns)
+    # stays near-linear.
+    taken: list[tuple[frozenset[str], str]] = []
+    synthetic: set[int] = set()  # taken indexes of existing heading rows with no URL of their own
+    by_word: dict[str, list[int]] = {}
+    by_squash: dict[str, list[int]] = {}
+    unlinked_words: dict[str, list[int]] = {}
+    unlinked_squash: dict[str, list[int]] = {}
+    by_destination: dict[str, list[int]] = {}
+
+    def remember(title: str, url: str, job: dict | None = None) -> None:
+        core, squash = _title_core(title), _title_squash(title)
+        index = len(taken)
+        taken.append((core, url))
+        words, spellings = (unlinked_words, unlinked_squash) if url == "*" else (by_word, by_squash)
+        for word in core:
+            words.setdefault(word, []).append(index)
+            if url == "*":
+                by_word.setdefault(word, []).append(index)
+        if squash:
+            spellings.setdefault(squash, []).append(index)
+            if url == "*":
+                by_squash.setdefault(squash, []).append(index)
+        if url != "*":
+            by_destination.setdefault(url, []).append(index)
+        if job is not None and "#role-" in (job.get("url") or ""):
+            synthetic.add(index)
+
+    def repeats(title: str, target: str | None) -> list[int]:
+        """Rows this title repeats (same role; for a link, same destination or no URL).
+
+        A linked title is compared strictly with rows read without a URL: "Senior
+        Cloud Engineer" on its own link does not repeat a bare "Cloud Engineer".
+        """
+        core, squash = _title_core(title), _title_squash(title)
+        if target:
+            spelled = set(unlinked_squash.get(squash, ())) if squash else set()
+            pool = spelled.union(*(unlinked_words.get(word, ()) for word in core), by_destination.get(target, ()))
+        else:
+            spelled = set(by_squash.get(squash, ())) if squash else set()
+            pool = spelled.union(*(by_word.get(word, ()) for word in core))
+
+        def same(index: int) -> bool:
+            other, url = taken[index]
+            if bool(target) != (url != "*"):
+                # A linked and an unlinked title are one posting only when they name the same role
+                # exactly; "Cloud Engineer" and "Senior Cloud Engineer" are two postings.
+                return bool(core and other) and core == other
+            return index in spelled or _same_role(core, other)
+
+        return [index for index in pool if index not in replaced and same(index)]
+
+    for job in existing:
+        remember(job.get("title") or "", "*" if unlocated(job) else _link_key(job.get("url") or ""), job)
+    replaced: set[int] = set()  # heading rows already standing for one link; no longer compared
+    candidates: list[tuple] = []
+    jobs: list[dict] = []
+    text_of(root)
+
+    def title_line(node: _Element) -> str | None:
+        """The marked title among an element's lines ("… (m/w/d)" plus the line before a lone marker)."""
+        text = texts.get(id(node), "")
+        if not text or len(text) > 400 or not _TITLE_MARKER.search(text):
+            return None
+        lines = _lines(node)
+        for index, line in enumerate(lines):
+            if not _TITLE_MARKER.search(line):
+                continue
+            if index and not re.sub(_TITLE_MARKER, "", line).strip(" ()|/-"):
+                line = f"{lines[index - 1]} {line}"
+            if _marked_title(line):
+                return line
+        return None
+
+    titled = {id(node): line for node in root.walk()
+              if not node.hidden and node.tag in _TITLE_TAGS and (line := title_line(node))}
+    nodes_by_id = {id(node): node for node in root.walk()}
+    leaves = {id(node) for node in root.walk()
+              if id(node) in titled and not any(id(child) in titled for child in node.walk() if child is not node)}
+
+    def heading_like(node: _Element) -> bool:
+        marker = " ".join((node.attrs.get("class", ""), node.attrs.get("itemprop", ""))).casefold()
+        return bool(re.fullmatch(r"h[1-6]", node.tag) or "title" in marker or "titel" in marker)
+
+    headings = {leaf for leaf in leaves if heading_like(nodes_by_id[leaf])}
+    # The page's own title: the title inside its first marked <h1> (even when wrapped,
+    # "<h1><span>…</span></h1>"), or its first marked heading when it has no <h1>.
+    marked_h1 = next((node for node in root.walk() if node.tag == "h1" and id(node) in titled), None)
+    if marked_h1 is not None:
+        main_heading = next((node for node in marked_h1.walk() if id(node) in leaves), marked_h1)
+    else:
+        main_heading = next((node for node in root.walk() if id(node) in headings and re.fullmatch(r"h[1-6]", node.tag)),
+                            None)
+    tag = object()
+
+    def in_link(node: _Element) -> bool:
+        return node.tag == "a" or any(parent.tag == "a" for parent in list(_ancestors(node))[:4])
+
+    def tag_like(index: int) -> bool:
+        """A marked line the page styles as a tag ("<span class=tag>Gastronomie (m/w/d)</span>")."""
+        node = nodes_by_id[index]
+        if index in headings or in_link(node):
+            return False
+        marker = " ".join(element.attrs.get("class", "") for element in (node, node.parent) if element is not None)
+        return bool(re.search(r"(?:^|[\s_-])(?:tags?|badges?|chips?|pills?|labels?|categor(?:y|ies)|kategorien?)"
+                              r"(?:$|[\s_-])", marker, re.I))
+
+    def own_card(node: _Element, title: str):
+        """The nearest container describing this posting and no other (cached text, bounded walk).
+
+        It stops below any container holding another posting's title, so a heading
+        never borrows a neighbouring card's link. A line styled as a tag inside a
+        card whose single link it shares with the card's heading yields ``tag``.
+        """
+        card = None
+        for parent in list(_ancestors(node))[:8]:
+            text = texts.get(id(parent), "")
+            if len(text) > 2200:
+                break
+            others = [id(child) for child in parent.walk() if child is not node and id(child) in leaves]
+            if others:
+                hrefs = {link.attrs.get("href") for link in parent.walk()
+                         if link.tag == "a" and link.attrs.get("href", "").strip() not in {"", "#"}}
+                if tag_like(id(node)) and len(hrefs) == 1 and any(other in headings for other in others):
+                    return tag
+                break
+            if len(text) > len(title) + 2:
+                card = parent
+        return card
+
+    for node in root.walk():
+        if id(node) not in leaves:
+            continue
+        title = titled[id(node)]
+        if any(parent.tag in {"title", "option", "select", "label", "form", "script", "textarea"}
+               for parent in _ancestors(node)):
+            continue
+        title = re.sub(r"\s+(?:mehr erfahren|details|zur stelle|jetzt bewerben|weiterlesen|→|»)$", "", title, flags=re.I)
+        title = re.sub(r"^(?:wanted|neu|new|top|stellenangebot|stellenanzeige|job)\s*[:!]\s*", "", title, flags=re.I)
+        # A slogan after the role: "Fliesenleger (m/w/d) – Du rockst Baustellen wie ein Profi!"
+        title = re.split(r"\s+[–—-]\s+(?=(?:du|sie|wir|dein|deine|ihr|ihre)\b)", title, maxsplit=1, flags=re.I)[0]
+        title = title.strip(" ·|–—-:.")
+        if not _marked_title(title):
+            continue
+        anchor = node if node.tag == "a" else next((parent for parent in list(_ancestors(node))[:4] if parent.tag == "a"), None)
+        card = own_card(node, title)
+        if card is tag:
+            continue
+        if card is not None and any(
+                element is not node and heading_like(element) and element.text() and
+                not any(parent is node for parent in _ancestors(element)) and
+                not any(parent is element for parent in _ancestors(node))
+                for element in card.walk()):
+            # Another (unmarked) heading in the container: a neighbouring card, not this one's.
+            card = None
+        # Only the posting's own elements: page sections carry classes like "section-template--…".
+        own = [node]
+        stop = card if card is not None else (anchor if anchor is not node else None)
+        for depth, parent in enumerate(_ancestors(node)):
+            if stop is None and depth >= 2:
+                break  # without a card, the title's own wrapper ("<div data-status=closed>")
+            own.append(parent)
+            if parent is stop:
+                break
+        if anchor is None and card is not None:
+            links = {link.attrs.get("href") for link in card.walk() if link.tag == "a" and link.attrs.get("href")}
+            if len(links) == 1:
+                anchor = next(link for link in card.walk() if link.tag == "a" and link.attrs.get("href"))
+        if any(_inactive_card(element, strict=True) for element in (*own, *([anchor] if anchor is not None else []))) or (
+                card is not None and _CLOSED_TEXT_WORDS.search(texts.get(id(card), ""))):
+            continue
+        href = _absolute_http(anchor.attrs.get("href", ""), page_url) if anchor is not None else None
+        query = urlsplit(href).query if href else ""
+        if query and not _POSTING_QUERY.search(query) and (
+                (urlsplit(href).netloc, urlsplit(href).path.rstrip("/")) ==
+                (urlsplit(page_url).netloc, urlsplit(page_url).path.rstrip("/")) or
+                all(_FILTER_QUERY.match(name) for name, _ in parse_qsl(query, keep_blank_values=True))):
+            # A list with another filter ("Prophylaxe (w/m/d)" → ?jobType=13, "?ref=lager") is
+            # navigation; ?jobId=123 names a posting.
+            continue
+        target = _link_key(href) if href else None
+        if target and (_NOT_POSTING_HOSTS.search(urlsplit(href).hostname or "") or target == page):
+            href = target = None
+        if vacancy_page and node is main_heading:
+            # /careers?jobId=123 is this vacancy's own page: its title is saved under the page
+            # URL, never under a nearby "Apply" link.
+            href, target = page_url, _link_key(page_url)
+        if (detail_page or not _STRONG_MARKER.search(title)) and not target:
+            # On a posting's own page, unlinked mentions repeat its title in prose or requirements;
+            # an unlinked "Kolleg*in" form is too often a benefit or a sentence.
+            continue
+        rank = 2 if heading_like(node) else 1
+        candidates.append((node, title, target, card, rank, href))
+
+    # One link, one posting: a card's category tag ("Prophylaxe (w/m/d)") yields to its title.
+    best: dict[str, tuple] = {}
+    for candidate in candidates:
+        target = candidate[2]
+        if target and (target not in best or (candidate[4], len(candidate[1])) > (best[target][4], len(best[target][1]))):
+            best[target] = candidate
+    # Linked titles first: a bare heading repeating one ("Laminierer (m/w/d)" over two
+    # linked "Laminierer" cards) yields to the postings that have their own destination.
+    ordered = sorted(enumerate(candidates), key=lambda item: item[1][2] is None)
+    placed: list[tuple[int, dict]] = []
+    for order, (node, title, target, card, _, href) in ordered:
+        if target and best[target][0] is not node:
+            continue
+        # The job keeps the link as written; ``target`` is only its identity.
+        url = href or page_url + "#role-" + re.sub(r"[^a-z0-9]+", "-", title.casefold()).strip("-")[:70]
+        key = _norm_title(title)
+        # Two links to /vacancy?id=123 and ?id=124 are two postings even with one title.
+        if (target and target in seen_urls and not (vacancy_page and node is main_heading and target == page)) or (
+                not target and key in seen_titles):
+            continue
+        # A second heading for a posting already read (its card title, a subtitle, a repeat,
+        # or a row read without its own URL, like a structured row falling back to the page).
+        matches = repeats(title, target)
+        if matches and target and all(index in synthetic for index in matches):
+            # A heading row another strategy already read is this posting: it keeps its id
+            # (and its Journey history). It stands for one link only, so a second identical
+            # title linking elsewhere (?id=123, ?id=124) is a distinct posting.
+            replaced.add(matches[0])
+            continue
+        if matches:
+            continue
+        seen_titles.add(key)
+        remember(title, target or "*")
+        if target:
+            seen_urls.add(target)
+        # The title may share a line with its facts ("Laminierer (m/w/d) Bonn"): keep the rest.
+        card_lines = [rest for line in (_lines(card) if card is not None else [])
+                      if (rest := line.replace(title, " ").strip(" ·|,–—-"))]
+        labeled_place, card_place, card_employment = _read_facts(card_lines, unlabeled_lines=8)
+        context = texts.get(id(card), title) if card is not None else title
+        job = _job(title, url, "html_marked_title", context,
+                   location=labeled_place or title_place(title) or card_place,
+                   employment_type=_title_employment(title) or card_employment, infer_employment=False,
+                   application_email=_application_email(context))
+        if target:
+            # The destination names the posting, including identity-bearing query parameters
+            # and hash routes ("#/jobs/12").
+            job["id"] = hashlib.sha1(target.encode()).hexdigest()[:20]
+        placed.append((order, job))
+    jobs = [job for _, job in sorted(placed, key=lambda item: item[0])]
     return jobs
 
 
@@ -887,6 +1225,10 @@ def _merge(jobs: list[dict]) -> list[dict]:
         elif new_method in _DETAIL_METHODS and old_method in _STRUCTURED_METHODS:
             existing["raw_metadata"] = {**(job.get("raw_metadata") or {}),
                                         **(existing.get("raw_metadata") or {})}
+            # The record's "FULL_TIME" states hours; a title's "Ausbildung" states the format.
+            if (job.get("employment_type") in _TRAINING_FORMATS and
+                    existing.get("employment_type") not in _TRAINING_FORMATS):
+                existing["employment_type"] = job["employment_type"]
             job = {field: value for field, value in job.items()
                    if field != "raw_metadata" and not (field == "description" and existing.get("description"))}
         elif new_method == "html_job_detail" and old_method != "html_job_detail":
@@ -1044,6 +1386,13 @@ def _microdata_jobs(nodes, page_url):
                 match = re.fullmatch(r'([^,]{2,100}),\s*([A-Z]{2}),\s*(\d{4,6})', str(address.get('streetAddress', '')))
                 if match:
                     address.update(addressLocality=match[1].strip(), addressCountry=match[2], postalCode=match[3])
+                    continue
+                # "Regensburg, DE" without a postal code: accept it when it names a real place.
+                street = str(address.get('streetAddress', ''))
+                found = parse_places(street)
+                if len(found) == 1 and not re.search(r'\d', street):
+                    country = re.search(r',\s*([A-Z]{2})$', street)
+                    address.update(addressLocality=found[0], **({'addressCountry': country[1]} if country else {}))
         job = _schema_posting({**posting, 'url': target}, page_url)
         if job:
             if not posting.get('identifier'):
@@ -1052,6 +1401,31 @@ def _microdata_jobs(nodes, page_url):
             job['raw_metadata']['microdata_page_fallback'] = not bool(explicit_url)
             jobs.append(job)
     return jobs, bool(scopes)
+
+
+
+
+# Explicit page wording needs no particular URL: "Weiter zu Seite 2", "Nächste Seite", "Go to page 3".
+_PAGE_WORDING = re.compile(
+    r"^(?:[‹«<←]\s*)?(?:weiter|vor|nächste|next|go)\b[\w ]{0,12}?\b(?:seite|page)\b|^(?:seite|page)\s+\d+\s*[›»>→]", re.I)
+_MORE_POSTINGS = re.compile(
+    r"^(?:next|nächste|weitere|more|mehr)\s+(?:\d+\s+)?(?:stellen|stellenangebote|jobs|ergebnisse|treffer|"
+    r"einträge|results|positions|vacancies|openings|postings)\b", re.I)
+
+
+def _next_page_link(node: _Element) -> bool:
+    """A link to more of this list. main's rule ("Next", "Weiter", "Nächste", "Ältere", rel=next)
+    plus explicit page wording ("Weiter zu Seite 2", "Next 20 vacancies") and a rel token
+    ("nofollow next"): a page main reads as partial is never read as complete."""
+    if "next" in node.attrs.get("rel", "").casefold().split():
+        return True
+    if node.tag != "a":
+        return False
+    text = node.text()
+    if re.search(r"^(?:next|weiter|nächste|ältere)", text, re.I):
+        return True
+    labels = (_clean_text(text), node.attrs.get("aria-label", "").strip(), node.attrs.get("title", "").strip())
+    return any(_PAGE_WORDING.search(label) for label in labels) or bool(_MORE_POSTINGS.match(labels[0]))
 
 
 def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
@@ -1165,16 +1539,27 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
             valid_vendor_title = (softgarden_id and title_text and len(title_text) <= 150 and
                                   title_text.casefold() not in _GENERIC_HEADINGS and
                                   not _INITIATIVE_APPLICATION.search(title_text) and not _TALENT_POOL.search(title_text))
-            if not _candidate_title(title_text) and not valid_vendor_title:
+            # main's checks, in main's order (its card lookup can fail and mark the scan partial);
+            # never-a-posting titles are dropped only afterwards.
+            if not _main_candidate_title(title_text) and not valid_vendor_title:
                 continue
             card = _card(anchor, title_text)
+            if not _candidate_title(title_text) and not valid_vendor_title:
+                continue
             context = card.text() if card is not None else title_text
             title_location, title_text = _location_from_title(title_text)
-            location = (_node_location(anchor) or title_location or
-                        (_node_location(card, exclude=title_text) if card is not None else None) or
+            card_lines = [line for line in (_lines(card) if card is not None else [])
+                          if title_text.casefold() not in line.casefold()]
+            labeled_place, card_place, card_employment = _read_facts(card_lines, unlabeled_lines=8)
+            marked = _place_label(_node_location(anchor)) or (
+                _place_label(_node_location(card, exclude=title_text)) if card is not None else None)
+            location = (labeled_place or marked or title_place(title_text) or
+                        (_place_label(title_location) if title_location else None) or card_place or
                         _location_from_url(target))
+            employment = (_title_employment(title_text) or card_employment or
+                          _hours_in_text(" ".join(card_lines)))
             job = _job(title_text, target, "softgarden_job_link" if softgarden_id else "html_job_link", context,
-                       location=location, employment_type=_employment(title_text + " " + context),
+                       location=location, employment_type=employment, infer_employment=False,
                        application_email=_application_email(context))
             if softgarden_id:
                 job['id'] = softgarden_id
@@ -1194,6 +1579,37 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
             ((urlsplit(job.get("url") or "").hostname or "").casefold(),
              urlsplit(job.get("url") or "").path.rstrip("/").casefold()) == page_key
             for job in jobs)
+        if structured_page:
+            # The employer's record is kept as is; the page only fills what it left out
+            # (many JSON-LD postings omit employmentType or name only the company seat).
+            h1_nodes = [node for node in nodes if node.tag == "h1" and node.text()]
+            body = next((node for node in nodes if node.tag == "body"), parser.root)
+            if len(h1_nodes) == 1:
+                summary = _summary_lines(body, h1_nodes[0])
+                labeled_place, summary_place, fact_employment = _read_facts(summary)
+                same_page = [job for job in jobs
+                             if (job.get("raw_metadata") or {}).get("extraction_method") in _STRUCTURED_METHODS and
+                             ((urlsplit(job.get("url") or "").hostname or "").casefold(),
+                              urlsplit(job.get("url") or "").path.rstrip("/").casefold()) == page_key]
+                # This page's facts describe this page's posting: on /careers?jobId=123 they
+                # must not fill the row for ?jobId=124.
+                exact = [job for job in same_page if _destination_key(job.get("url") or "") == _destination_key(page_url)]
+                # A page naming its vacancy in the query (?jobId=123) fills only that exact row.
+                names_vacancy = bool(_POSTING_QUERY.search(urlsplit(page_url).query))
+                for job in exact or (same_page if len(same_page) == 1 and not names_vacancy else []):
+                    titled = _title_employment(job.get("title") or "")
+                    employment = titled or fact_employment
+                    # "FULL_TIME" in the record states hours; "Ausbildung" in the title states
+                    # the format, which is what a job seeker filters on.
+                    if employment and (not job.get("employment_type") or
+                                       titled in _TRAINING_FORMATS and job["employment_type"] not in _TRAINING_FORMATS):
+                        job["employment_type"] = employment
+                        job["raw_metadata"]["employment_type_evidence"] = "page_title" if titled else "page_summary"
+                    place = (labeled_place or next(filter(None, map(title_place, _title_variants(
+                        job.get("title") or "", title, summary))), None) or summary_place)
+                    if not job.get("location") and place:
+                        _set_location(job, place)
+                        job["raw_metadata"]["location_evidence"] = "page_summary"
         if not structured_page and (_DETAIL_ROUTE.search(path) or softgarden_id) and not re.search(r"no (?:current |open )?positions|keine (?:offenen )?stellen", lower_text):
             h1_nodes = [node for node in nodes if node.tag == "h1" and node.text()]
             h1_node = h1_nodes[0] if len(h1_nodes) == 1 else None
@@ -1207,14 +1623,35 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
                 apply = apply or form_apply
                 vacancy_marker = any(re.search(r"(?:^|[ _-])vacancy(?:$|[ _-])", parent.attrs.get("class", ""), re.I)
                                      for parent in _ancestors(h1_node))
-                detail_description = _detail_description(h1_node) or ""
+                detail_description, detail_facts, contact_text = _detail_sections(h1_node)
+                detail_description = detail_description or ""
                 detail_context = re.sub(r"^(?:## |- )", "", detail_description, flags=re.M)
-                confirmed = (_candidate_title(h1) and (apply or vacancy_marker or len(detail_context) >= 30))
+                # The page's own title names its posting, like a link to it ("Project Engineer 37").
+                role_title = _candidate_title(h1)
+                # main confirmed on all text after the title, contact block included.
+                confirmed = (role_title and (apply or vacancy_marker or len(detail_context + contact_text) >= 30))
                 if confirmed and not _INITIATIVE_APPLICATION.search(h1) and not _TALENT_POOL.search(h1):
-                    labeled = _labeled_locations(nodes)
-                    detail_location = _leading_location(detail_context) or (labeled[0] if len(labeled) == 1 else None)
-                    job = _job(h1, page_url, "softgarden_job_detail" if softgarden_id else "html_job_detail", detail_context, location=detail_location,
-                               description=detail_description or None, application_email=_application_email(detail_context))
+                    body = next((node for node in nodes if node.tag == "body"), parser.root)
+                    summary = _summary_lines(body, h1_node)
+                    labeled_place, summary_place, fact_employment = _read_facts(summary)
+                    labeled = [place for place in map(_place_label, _labeled_locations(nodes)) if place]
+                    titled_place = next(filter(None, map(title_place, _title_variants(h1, title, summary))), None)
+                    detail_location = (labeled_place or titled_place or summary_place or
+                                       _place_label(_leading_location(detail_context)) or
+                                       (labeled[0] if len(labeled) == 1 else None))
+                    # A line that is nothing but an employment term ("Vollzeit oder Teilzeit")
+                    # is precise enough to read further down, e.g. an "at a glance" box.
+                    # Only hours, though: a lone "Ausbildung" further down is usually a menu link.
+                    later_employment = next((kind for kind in map(_employment_fact, [
+                        line for line in _lines(body, after=h1_node)[:120] if len(line) <= 80])
+                        if kind and kind not in _TRAINING_FORMATS), None)
+                    employment = (_title_employment(h1) or fact_employment or
+                                  _employment_fact(" ".join(detail_facts)) or later_employment or
+                                  _hours_in_text(detail_context))
+                    job = _job(h1, page_url, "softgarden_job_detail" if softgarden_id else "html_job_detail", detail_context,
+                               location=detail_location, employment_type=employment, infer_employment=False,
+                               description=detail_description or None,
+                               application_email=_application_email(detail_context + " " + contact_text))
                     if softgarden_id:
                         job['id'] = softgarden_id
                     deadline = _application_deadline(visible_text)
@@ -1253,19 +1690,33 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
     except Exception as error:  # noqa: BLE001 - one broken strategy must not lose the others
         failures.append("heading_jobs: " + type(error).__name__)
 
+    # A page whose query names one vacancy (/careers?jobId=123) is that vacancy's page:
+    # it cannot list all postings, so nothing is closed from it.
+    vacancy_page = bool(_POSTING_QUERY.search(urlsplit(page_url).query))
+    try:
+        detail_page = any((job.get("raw_metadata") or {}).get("extraction_method") in _DETAIL_METHODS | _STRUCTURED_METHODS and
+                          (job.get("url") or "").rstrip("/") == page_url.rstrip("/") for job in jobs)
+        jobs.extend(_marked_title_jobs(parser.root, page_url, jobs, detail_page=detail_page or vacancy_page,
+                                       vacancy_page=vacancy_page))
+    except Exception as error:  # noqa: BLE001 - one broken strategy must not lose the others
+        failures.append("marked_titles: " + type(error).__name__)
+
     page_locations = _locations(visible_text)
     jobs = _merge(jobs)
     if len(page_locations) == 1:
-        for job in jobs:
+        page_vacancy = _destination_key(page_url) if _POSTING_QUERY.search(urlsplit(page_url).query) else None
+        for job in main_reading(jobs):
+            # On /careers?jobId=123 the page's place belongs to that vacancy, not to ?jobId=124.
+            if page_vacancy and _destination_key(job.get("url") or "") != page_vacancy:
+                continue
             if not job.get("locations"):
                 job["locations"] = page_locations
                 job["location"] = "; ".join(item["label"] for item in page_locations)
                 job.setdefault("raw_metadata", {})["location_evidence"] = "career_page_context"
-    # HTML that signals a next page cannot safely close jobs missing from this page.
-    has_next = any((node.attrs.get("rel", "").casefold() == "next") or
-                   (node.tag == "a" and re.search(r"^(?:next|weiter|nächste|ältere)", node.text(), re.I))
-                   for node in nodes)
+    # HTML that signals a next page cannot safely close jobs missing from this page
+    # (main's rule, plus rel tokens and explicit page wording; see _next_page_link).
+    has_next = any(_next_page_link(node) for node in nodes)
     softgarden_partial = bool(re.fullmatch(r'[a-z0-9-]+\.softgarden\.(io|de)', urlsplit(page_url).hostname or '', re.I))
     return {"jobs": jobs, "role_candidates": role_candidates, "strategy_errors": failures,
-            "complete": not failures and not has_next and not phenom_partial and not softgarden_partial and not microdata_partial and not bool(_DETAIL_ROUTE.search(urlsplit(page_url).path)),
+            "complete": not failures and not has_next and not vacancy_page and not phenom_partial and not softgarden_partial and not microdata_partial and not bool(_DETAIL_ROUTE.search(urlsplit(page_url).path)),
             "page_title": title, "has_open_vacancy_signal": bool(re.search(r"open position|offene stellen|aktuelle jobs|current opportunities|job posting", lower_text))}
