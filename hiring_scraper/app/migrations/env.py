@@ -27,7 +27,11 @@ def run_migrations_online() -> None:
     connectable = engine_from_config(config.get_section(config.config_ini_section, {}), prefix="sqlalchemy.",
                                      poolclass=pool.NullPool)
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata, compare_type=True)
+        # One transaction per migration: a multi-revision upgrade commits each step, so locks a
+        # previous migration took (e.g. ACCESS EXCLUSIVE on jobs) are not held while a later one
+        # waits for or retries its own locks.
+        context.configure(connection=connection, target_metadata=target_metadata, compare_type=True,
+                          transaction_per_migration=True)
         with context.begin_transaction():
             context.run_migrations()
 

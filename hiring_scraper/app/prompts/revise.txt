@@ -1,0 +1,10 @@
+Task: rewrite one unit of the applicant's document following their instruction.
+
+- Change only what the instruction asks for; keep the unit's role in the document.
+- Keep the unit's format and change only the wording: similar length, the same number of
+  sentences, and the same separators and number of parts (a headline like "A | B | C" stays three
+  parts joined by " | ").
+- Keep every fact supported by the EVIDENCE block and cite the ids you rely on in `sources`.
+  If the instruction asks for a fact the evidence does not contain, keep to the evidence and
+  write the closest truthful version.
+- Return the new text for this unit only, as a single paragraph without line breaks.

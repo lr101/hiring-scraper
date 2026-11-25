@@ -6,7 +6,7 @@ import unittest
 from datetime import timedelta
 from unittest.mock import patch
 
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import discovery_worker, worker
@@ -15,6 +15,7 @@ from hiring_scraper.app.discovery_jobs import create_discovery_job
 from hiring_scraper.app.models import (Base, Company, ConfiguredLocation, DiscoveryJob,
                                        DiscoveryJobCompany, DiscoveryRun, Job, JobFeed, ScanRun, utcnow)
 from hiring_scraper.http import Client
+from tests import pg
 
 
 HOME = 'https://example.org/'
@@ -47,12 +48,11 @@ class RecruiteeIntegrationTests(unittest.TestCase):
         self.cache.mkdir()
         capture(self.cache, HOME, ('<a href="' + BOARD + '/">Careers</a>').encode())
         capture(self.cache, FEED, XML, 'application/xml')
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         Base.metadata.create_all(self.engine)
         self.factory = sessionmaker(bind=self.engine, expire_on_commit=False)
         self.patches = [patch.object(discovery_worker, 'SessionLocal', self.factory),
-                        patch.object(discovery_worker, 'engine', self.engine),
-                        patch.object(worker, 'SessionLocal', self.factory), patch.object(worker, 'engine', self.engine),
+                        patch.object(worker, 'SessionLocal', self.factory),
                         patch.object(worker, '_pace_origin')]
         for item in self.patches:
             item.start()

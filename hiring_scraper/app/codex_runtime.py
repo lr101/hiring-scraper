@@ -25,7 +25,7 @@ LOG = logging.getLogger(__name__)
 
 DEVICE_URL = 'https://auth.openai.com/codex/device'
 LOGIN_SECONDS = 900
-GENERATION_SECONDS = 300
+GENERATION_SECONDS = 600
 USAGE_SECONDS = 8
 USAGE_MAX_BYTES = 128 * 1024
 _ansi = re.compile(r'\x1b\[[0-?]*[ -/]*[@-~]')
@@ -72,16 +72,50 @@ def _command(subcommand):
 
 
 @contextmanager
-def _lock(root):
+def _lock(root, *, shared=False):
     _prepare(root)
     descriptor = os.open(root / 'runtime.lock', os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
     try:
-        try: fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        try: fcntl.flock(descriptor, (fcntl.LOCK_SH if shared else fcntl.LOCK_EX) | fcntl.LOCK_NB)
         except BlockingIOError:
             raise HTTPException(409, 'The ChatGPT connection is busy signing in or preparing documents. Try again shortly.') from None
         yield descriptor
     finally:
         os.close(descriptor)
+
+
+_DEFAULT_INFERENCE_CONCURRENCY = 25
+
+
+def inference_concurrency():
+    for name in ('RADIUS_APPLICATION_AI_CONCURRENCY', 'RADIUS_CODEX_CONCURRENCY', 'RADIUS_MATCH_AI_CONCURRENCY'):
+        raw = os.getenv(name)
+        if raw is None or not raw.strip():
+            continue
+        try:
+            return max(1, int(raw))
+        except ValueError:
+            return _DEFAULT_INFERENCE_CONCURRENCY
+    return _DEFAULT_INFERENCE_CONCURRENCY
+
+
+@contextmanager
+def _generation_lease(root):
+    # Shared account access prevents login/disconnect during inference. Independent
+    # slot locks bound actual subprocesses across all processes sharing this home.
+    with _lock(root, shared=True) as account:
+        for slot in range(inference_concurrency()):
+            descriptor = os.open(root / f'inference-{slot}.lock', os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+            try:
+                try:
+                    fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError:
+                    continue
+                yield (account, descriptor)
+                return
+            finally:
+                os.close(descriptor)
+        raise HTTPException(409, 'All ChatGPT inference slots are busy. Try again shortly.')
 
 
 def _write(root, data):
@@ -158,6 +192,17 @@ def status():
         elif login.get('state') == 'expired': data['login_state'] = 'expired'
         elif login.get('state') == 'error':
             data.update(login_state='error', login_error='Sign-in did not complete. Enable device code login in ChatGPT security settings, then try again.')
+        if data['login_state'] == 'expired':
+            # The deadline can pass before the monitor kills the child and
+            # releases its inherited lease. Do not offer retry until cleanup
+            # finishes, including the brief interval after writing "expired".
+            try:
+                with _lock(root):
+                    pass
+            except HTTPException as error:
+                if error.status_code != 409:
+                    raise
+                data['login_state'] = 'starting'
     return data
 
 
@@ -225,19 +270,19 @@ def logout():
     return status()
 
 
-def subscription_usage():
+def subscription_usage(*, limit_percent=100):
     """Read only Radius subscription limits; never start a model turn."""
     root = _root()
     try:
-        with _lock(root):
-            return _subscription_usage(root)
+        with _lock(root, shared=True):
+            return _subscription_usage(root, limit_percent=limit_percent)
     except HTTPException:
-        return evaluate(None)
+        return evaluate(None, limit_percent=limit_percent)
 
 
-def _subscription_usage(root):
+def _subscription_usage(root, *, limit_percent=100):
     # The caller owns the runtime lease, including throughout guarded generation.
-    unavailable = evaluate(None)
+    unavailable = evaluate(None, limit_percent=limit_percent)
     if not (root / 'home/auth.json').is_file():
         return {**unavailable, 'reason': 'disconnected'}
     process = None
@@ -290,7 +335,7 @@ def _subscription_usage(root):
             if (not isinstance(account, dict) or not isinstance(account.get('account'), dict) or
                     account['account'].get('type') != 'chatgpt'):
                 return {**unavailable, 'reason': 'disconnected'}
-            return evaluate(request(3, 'account/rateLimits/read'))
+            return evaluate(request(3, 'account/rateLimits/read'), limit_percent=limit_percent)
     except (OSError, ValueError, RecursionError, HTTPException):
         return unavailable
     finally:
@@ -319,11 +364,11 @@ def _generation_failure(stderr, returncode):
     if status:
         code = status.group(1)
         if code.startswith('5'):
-            return f'ChatGPT returned HTTP {code} (server error). Try again later or use the ChatGPT handoff.'
-        return f'ChatGPT returned HTTP {code}. Try again or use the ChatGPT handoff.'
+            return f'ChatGPT returned HTTP {code} (server error). Try again later.'
+        return f'ChatGPT returned HTTP {code}. Try again.'
     if re.search(r'service unavailable|bad gateway', diagnostic):
-        return 'ChatGPT reported that the service is unavailable. Try again later or use the ChatGPT handoff.'
-    return f'ChatGPT runtime exited with code {returncode}; its error could not be classified. Try again or use the ChatGPT handoff.'
+        return 'ChatGPT reported that the service is unavailable. Try again later.'
+    return f'ChatGPT runtime exited with code {returncode}; its error could not be classified. Try again.'
 
 
 def _provider_error_detail(diagnostic, prompt):
@@ -359,7 +404,7 @@ def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None, mode
              reasoning_effort=None, usage_limit_percent=None):
     root = _root()
     _binary()
-    with _lock(root) as descriptor:
+    with _generation_lease(root) as descriptors:
         if not _connected(root):
             raise HTTPException(401, 'Continue with ChatGPT to use your subscription before preparing documents.')
         if usage_limit_percent is not None:
@@ -388,7 +433,7 @@ def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None, mode
                 with diagnostic_file.open('wb') as diagnostics, (workspace / 'stdout').open('wb') as stdout:
                     process = subprocess.Popen(command, env=_environment(root, workspace), cwd=workspace,
                         stdin=subprocess.PIPE, stdout=stdout, stderr=diagnostics,
-                        text=True, start_new_session=True, pass_fds=(descriptor,))
+                        text=True, start_new_session=True, pass_fds=descriptors)
                 deadline = time.monotonic() + min(timeout, GENERATION_SECONDS)
                 first = True
                 while True:
@@ -421,7 +466,7 @@ def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None, mode
                     raise HTTPException(502, detail)
                 if not output_path.exists():
                     LOG.warning('ChatGPT preparation failed: runtime produced no output file')
-                    raise HTTPException(502, 'ChatGPT runtime produced no output file. Try again or use the ChatGPT handoff.')
+                    raise HTTPException(502, 'ChatGPT runtime produced no output file. Try again.')
                 if output_path.stat().st_size > 1024 * 1024: raise ValueError()
                 result = json.loads(output_path.read_text())
                 if not isinstance(result, dict): raise ValueError()

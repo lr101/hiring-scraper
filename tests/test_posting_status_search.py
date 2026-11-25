@@ -3,16 +3,15 @@ import unittest
 from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from hiring_scraper.app import api
 from hiring_scraper.app.models import Base, Company, Job, JobFeed, JobLocation, utcnow
+from tests import pg
 
 
 class PostingStatusSearchTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         Base.metadata.create_all(self.engine)
         self.addCleanup(self.engine.dispose)
         self.session = Session(self.engine)
@@ -35,7 +34,7 @@ class PostingStatusSearchTests(unittest.TestCase):
         self.session.commit()
 
     def search(self, **options):
-        return api.list_jobs(49.0068705, 8.4034195, 15, None, None, 'Karlsruhe', 0, 20,
+        return pg.list_jobs(self.engine, 49.0068705, 8.4034195, 15, None, None, 'Karlsruhe', 0, 20,
                              session=self.session, **options)
 
     def test_default_search_shows_only_open_jobs_with_explicit_state(self):
@@ -56,7 +55,7 @@ class PostingStatusSearchTests(unittest.TestCase):
     def test_all_search_and_keyword_search_include_closed_jobs(self):
         result = self.search(posting_status='all')
         self.assertEqual({item['external_id'] for item in result['items']}, {'open', 'closed', 'expired-closed'})
-        result = api.list_jobs(49.0068705, 8.4034195, 15, None, 'expired-closed', 'Karlsruhe', 0, 20,
+        result = pg.list_jobs(self.engine, 49.0068705, 8.4034195, 15, None, 'expired-closed', 'Karlsruhe', 0, 20,
                                posting_status='closed', session=self.session)
         self.assertEqual([item['external_id'] for item in result['items']], ['expired-closed'])
 

@@ -1,4 +1,4 @@
-"""Fictional application types for repeatable headless extension experiments."""
+"""Fictional application types for repeatable headless extension tests."""
 COMMON = '<meta charset="utf-8"><title>Job application experiment</title><style>body{font:16px system-ui;max-width:800px;margin:24px auto}label{display:block;margin:12px}input,textarea,select{padding:8px}iframe{height:100px}button{margin:10px}</style>'
 STATE = '''<script>window.draft={submissions:0};document.querySelectorAll('input,textarea,select').forEach(el=>{el.addEventListener('input',()=>window.draft[el.id]=el.type==='checkbox'?el.checked:el.value);el.addEventListener('change',()=>window.draft[el.id]=el.type==='checkbox'?el.checked:el.value)});document.querySelectorAll('form').forEach(form=>form.onsubmit=e=>{e.preventDefault();window.draft.submissions++});</script>'''
 

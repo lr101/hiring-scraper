@@ -8,7 +8,7 @@ import unicodedata
 import xml.etree.ElementTree as ET
 from urllib.parse import urljoin, urlsplit, urlunsplit
 from .ats import fetch_feed, identify, parse_feed
-from .html_jobs import extract_html_jobs, html_job_key
+from .html_jobs import extract_html_jobs, html_job_key, main_reading
 from .pages import (CAREER, JOB_DETAIL_PATH, JOB_LISTING_PATH, NON_JOB_SECTION_PATH,
                     clean_url, inspect_page)
 
@@ -102,7 +102,8 @@ def _needs_browser_render(url, info, body, extraction):
     has_listing_route = bool(JOB_LISTING_PATH.search(path))
     has_career_route_without_links = bool(CAREER.search(path) and not any(
         candidate.get('score', 0) >= 84 for candidate in info.get('candidates', [])))
-    if extraction.get('jobs') or not (has_listing_route or has_career_route_without_links):
+    # Postings only the marked-title reader finds never stop a scripted listing's render.
+    if main_reading(extraction.get('jobs') or []) or not (has_listing_route or has_career_route_without_links):
         return False
     if (not has_listing_route and
             info.get('classification') not in {'career_content', 'jobposting'} and
@@ -393,7 +394,8 @@ def discover(seed, client, max_pages=24, max_depth=5):
                     page['browser_requests'] = rendered_meta['browser_requests']
                 if rendered_meta.get('state') == 'ok' and rendered_meta.get('rendered'):
                     rendered_info = inspect_page(
-                        final, rendered_body, preferred_locations=seed.get('preferred_locations'))
+                        final, rendered_body.decode('utf-8', errors='replace'),
+                        preferred_locations=seed.get('preferred_locations'))
                     page.update(rendered_info)
                     page['candidates'] = rendered_info['candidates'][:12]
                     page['browser_rendered'] = True
@@ -403,7 +405,10 @@ def discover(seed, client, max_pages=24, max_depth=5):
             page['html_extracted_job_count'] = len(extraction['jobs'])
             page['unconfirmed_role_count'] = len(extraction['role_candidates'])
             if extraction['jobs']:
+                # A page only the marked-title reader finds postings on is new to discovery: it
+                # is saved as partial, so nothing is ever closed on its evidence alone.
                 html_job_pages.append({**extraction,'url':final,'depth':depth,
+                                       'complete':bool(extraction['complete'] and main_reading(extraction['jobs'])),
                                        'classification':info.get('classification'),
                                        'capture':page.get('capture'),
                                        'provider':'browser_html' if page.get('browser_rendered') else 'html_jobs',

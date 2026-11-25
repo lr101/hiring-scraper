@@ -8,22 +8,30 @@ import unittest
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
 from fastapi import HTTPException
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import inspect
 from sqlalchemy.orm import Session
-from sqlalchemy.pool import StaticPool
 from starlette.requests import Request
 
 from hiring_scraper.app import models, profiles
-import test_application_documents as document_tests
+from tests import pg
+
+
+def png_fixture(width=24):
+    from io import BytesIO
+    from PIL import Image
+
+    output = BytesIO()
+    Image.new('RGB', (width, 24), 'blue').save(output, format='PNG')
+    return output.getvalue()
 
 
 class ProfilePhotoTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://', connect_args={'check_same_thread': False}, poolclass=StaticPool)
+        self.engine = pg.engine(self)
         models.Base.metadata.create_all(self.engine)
         self.session = Session(self.engine)
         self.profile_id = profiles.create_profile(profiles.ProfileRequest(name='Alex'), self.session)['id']
-        self.png = base64.b64decode(document_tests.ApplicationDocumentTests.photo().split(',', 1)[1])
+        self.png = png_fixture()
 
     def tearDown(self):
         self.session.close()
@@ -60,7 +68,7 @@ class ProfilePhotoTests(unittest.TestCase):
         for data, filename in [(b'bad', 'portrait.png'), (b'', 'portrait.png'),
                                (self.png[:-1], 'portrait.png'), (self.png, '../portrait.png'),
                                (self.png, 'portrait.svg'), (b'x' * (2 * 1024 * 1024 + 1), 'portrait.png'),
-                               (base64.b64decode(document_tests.ApplicationDocumentTests.photo(width=10000).split(',', 1)[1]), 'portrait.png')]:
+                               (png_fixture(width=10000), 'portrait.png')]:
             with self.subTest(filename=filename, size=len(data)), self.assertRaises(HTTPException) as error:
                 self.upload(data, filename)
             self.assertIn(error.exception.status_code, [413, 422])
@@ -117,7 +125,7 @@ class PhotoMigrationTests(unittest.TestCase):
     def test_migration_round_trip_preserves_profiles(self):
         self.assertIsNotNone(importlib.util.find_spec('hiring_scraper.app.migrations.versions.0032_profile_photo'), 'Profile photo migration is missing')
         migration = importlib.import_module('hiring_scraper.app.migrations.versions.0032_profile_photo')
-        engine = create_engine('sqlite://')
+        engine = pg.isolated_engine(self)
         with engine.begin() as connection:
             connection.exec_driver_sql('CREATE TABLE user_profiles (id INTEGER PRIMARY KEY)')
             connection.exec_driver_sql('INSERT INTO user_profiles VALUES (1)')

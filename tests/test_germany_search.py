@@ -2,15 +2,16 @@
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 from fastapi import HTTPException
 from hiring_scraper.app import api, models
 from hiring_scraper.app.discovery_jobs import company_ids_for_search
+from tests import pg
 
 class GermanySearchTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         models.Base.metadata.create_all(self.engine)
         self.factory = sessionmaker(self.engine, expire_on_commit=False)
     def tearDown(self):
@@ -78,7 +79,7 @@ class GermanySearchTests(unittest.TestCase):
             self.assertEqual({row['name'] for row in companies['items']}, {'bw','be'})
             ids = company_ids_for_search(session, SimpleNamespace(search_scope='country'))
             self.assertEqual(set(ids), {row['id'] for row in companies['items']})
-            jobs = api.list_jobs(session=session, company_id=None, query=None, offset=0, limit=100, country='DE', country_code='DE')
+            jobs = pg.list_jobs(self.engine, session=session, company_id=None, query=None, offset=0, limit=100, country='DE', country_code='DE')
             self.assertEqual(jobs['total'], 0)
             self.assertEqual(jobs['counts']['filtered']['expired'], 2)
             self.assertEqual(api.summary(session=session, country='DE')['jobs_for_location'], 0)
@@ -142,7 +143,7 @@ class GermanySearchTests(unittest.TestCase):
             session.add(models.Job(feed=feed, external_id='role', title='Engineer', location_text='Karlsruhe', url='https://de.example/role'))
         with self.factory() as session:
             profile = create_profile(ProfileRequest(name='Profile', search_area={'label':'Karlsruhe','latitude':49,'longitude':8,'radius_km':15,'country_code':'DE'}), session)
-            item = api.list_jobs(session=session, company_id=None, query=None, offset=0, limit=100, country='DE', profile_id=profile['id'], min_match_score=0, include_unknown=True)['items'][0]
+            item = pg.list_jobs(self.engine, session=session, company_id=None, query=None, offset=0, limit=100, country='DE', profile_id=profile['id'], min_match_score=0, include_unknown=True)['items'][0]
             detail = api.get_job(item['id'], session, profile_id=profile['id'], country='DE')
             self.assertEqual(detail['geography'], item['geography'])
             self.assertIn('profile_match', detail)
@@ -151,11 +152,62 @@ class GermanySearchTests(unittest.TestCase):
         with self.factory.begin() as session:
             company = models.Company(source='test', source_id='detail', name='Employer', country_code='DE')
             feed = models.JobFeed(company=company, provider='html_jobs', status='parsed', feed_url='https://de.example/jobs')
-            job = models.Job(feed=feed, external_id='role', title='Engineer', url='https://de.example/role')
+            job = models.Job(feed=feed, external_id='role', title='Engineer', location_text='Köln', url='https://de.example/role')
             session.add(job)
         with self.factory() as session:
             detail = api.get_job(job.id, session, country='DE')
-            self.assertEqual(detail['geography']['match_kind'], 'employer_in_country')
+            self.assertEqual(detail['geography']['match_kind'], 'work_location')
+            self.assertTrue(detail['geography']['eligible'])
+
+    def test_germany_scope_uses_the_work_location_and_keeps_unknown_locations(self):
+        with self.factory.begin() as session:
+            company = models.Company(source='test', source_id='abroad', name='German employer', country_code='DE',
+                                     state='Bayern')
+            feed = models.JobFeed(company=company, provider='html_jobs', status='parsed', feed_url='https://de.example/jobs')
+            abroad = models.Job(feed=feed, external_id='ro', title='Engineer', location_text='Bucharest, Romania',
+                                url='https://de.example/ro')
+            unknown = models.Job(feed=feed, external_id='none', title='Engineer', url='https://de.example/none')
+            local = models.Job(feed=feed, external_id='de', title='Engineer', location_text='München',
+                               url='https://de.example/de')
+            session.add_all([abroad, unknown, local])
+        with self.factory() as session:
+            from hiring_scraper.app.search_snapshots import result_scope
+            # The Romanian role is out; a posting that states no workplace stays, flagged unknown.
+            for job_id, expected, kind in ((abroad.id, False, None), (unknown.id, True, 'location_unknown'),
+                                           (local.id, True, 'work_location')):
+                with self.subTest(job=job_id):
+                    geography = api.get_job(job_id, session, country='DE')['geography']
+                    self.assertEqual((geography['eligible'], geography['match_kind']), (expected, kind))
+                    job = session.get(models.Job, job_id)
+                    state_scope = result_scope(job, 0, 0, 15, None, None, state='Bayern')
+                    self.assertEqual((state_scope['eligible'], state_scope['match_kind']), (expected, kind))
+                    self.assertEqual(bool(state_scope['unknowns']), kind == 'location_unknown')
+            urls = {item['url'] for item in pg.list_jobs(
+                self.engine, session=session, company_id=None, query=None, offset=0, limit=100,
+                country='DE', include_unknown=True)['items']}
+            self.assertEqual(urls, {'https://de.example/de', 'https://de.example/none'})
+
+    def test_journey_keeps_postings_without_a_work_location_as_unknown(self):
+        from hiring_scraper.app.job_search import application_match_allowed
+        with self.factory.begin() as session:
+            german = models.Company(source='test', source_id='j-de', name='German employer', country_code='DE')
+            foreign = models.Company(source='test', source_id='j-ro', name='Romanian employer', country_code='RO')
+            german_feed = models.JobFeed(company=german, provider='html_jobs', status='parsed', feed_url='https://de.example/j')
+            foreign_feed = models.JobFeed(company=foreign, provider='html_jobs', status='parsed', feed_url='https://ro.example/j')
+            unknown = models.Job(feed=german_feed, external_id='u', title='Engineer', url='https://de.example/u')
+            abroad = models.Job(feed=german_feed, external_id='ro', title='Engineer', location_text='Bucharest, Romania',
+                                url='https://de.example/ro')
+            foreign_unknown = models.Job(feed=foreign_feed, external_id='fu', title='Engineer', url='https://ro.example/u')
+            profile = models.UserProfile(name='Journey', preferences={})
+            session.add_all([unknown, abroad, foreign_unknown, profile])
+        with self.factory() as session:
+            profile = session.get(models.UserProfile, profile.id)
+            result = {'eligible': True, 'score': 60, 'uncertain': False}
+            allowed = {job_id: application_match_allowed(session.get(models.Job, job_id), profile, result)
+                       for job_id in (unknown.id, abroad.id, foreign_unknown.id)}
+            self.assertEqual(allowed, {unknown.id: True, abroad.id: False, foreign_unknown.id: False})
+            profile.preferences = {'matching_defaults': {'include_unknown': False}}
+            self.assertFalse(application_match_allowed(session.get(models.Job, unknown.id), profile, result))
     def test_next_check_uses_earliest_persisted_schedule_and_pause_hides_it(self):
         from datetime import datetime, timezone
         career_due = datetime(2026, 10, 15, 12, tzinfo=timezone.utc)
@@ -165,6 +217,6 @@ class GermanySearchTests(unittest.TestCase):
             session.add(models.JobFeed(company=company, provider='html_jobs', status='parsed', feed_url='https://de.example/jobs', next_scan_at=feed_due))
         with self.factory.begin() as session:
             company = session.scalar(select(models.Company))
-            self.assertEqual(api.get_company(company.id, session)['next_check_at'], '2026-10-14T08:00:00')
+            self.assertEqual(api.get_company(company.id, session)['next_check_at'], '2026-10-14T08:00:00+00:00')
             company.crawl_paused = True
             self.assertIsNone(api.get_company(company.id, session)['next_check_at'])

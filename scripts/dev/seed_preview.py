@@ -6,7 +6,7 @@ from datetime import timedelta
 
 from sqlalchemy import select
 
-from hiring_scraper.app.database import IS_SQLITE, SessionLocal, engine, initialize_sqlite_schema
+from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.models import ConfiguredLocation, UserProfile, utcnow
 
 
@@ -22,9 +22,6 @@ DEMO_PROFILE_NAME = "Preview demo profile"
 
 
 def main() -> None:
-    if IS_SQLITE:
-        initialize_sqlite_schema(engine)
-
     created_location = False
     created_profile = False
     now = utcnow()

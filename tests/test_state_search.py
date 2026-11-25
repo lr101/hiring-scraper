@@ -3,24 +3,23 @@ import json
 import tempfile
 import unittest
 from datetime import timedelta
-from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 from fastapi import HTTPException
 from hiring_scraper.app import api, discovery_worker as worker, models
 from hiring_scraper.location_discovery import fetch_location_companies
+from tests import pg
 
 
 class StateSearchTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
-        self.engine = create_engine(f"sqlite:///{Path(self.directory.name) / 'state.db'}")
+        self.engine = pg.engine(self)
         models.Base.metadata.create_all(self.engine)
         self.factory = sessionmaker(bind=self.engine, autoflush=False, expire_on_commit=False)
-        self.patches = [patch.object(worker, 'SessionLocal', self.factory),
-                        patch.object(worker, 'engine', self.engine), patch.object(api, 'IS_SQLITE', True)]
+        self.patches = [patch.object(worker, 'SessionLocal', self.factory), ]
         for item in self.patches:
             item.start()
 
@@ -144,11 +143,11 @@ class StateSearchTests(unittest.TestCase):
             companies = api.list_companies(query=None, offset=0, limit=100,
                 session=session, state='Baden-Wuerttemberg')
             self.assertEqual({row['name'] for row in companies['items']}, {'North', 'South', 'No website'})
-            jobs = api.list_jobs(company_id=None, query=None, offset=0, limit=100,
+            jobs = pg.list_jobs(self.engine, company_id=None, query=None, offset=0, limit=100,
                 session=session, state='Baden-Württemberg', country_code='DE')
             self.assertEqual(jobs['total'], 2)
             self.assertEqual(jobs['counts']['filtered']['outside_area'], 2)
-            remote = api.list_jobs(company_id=None, query=None, offset=0, limit=100,
+            remote = pg.list_jobs(self.engine, company_id=None, query=None, offset=0, limit=100,
                 session=session, state='Baden-Württemberg', location_scope='remote', country_code='DE')
             self.assertEqual(remote['total'], 0)
             self.assertEqual(api.summary(session=session, state='Baden-Württemberg')['companies_in_radius'], 3)
@@ -178,7 +177,7 @@ class StateSearchTests(unittest.TestCase):
             profile = create_profile(ProfileRequest(name='Profile', search_area={
                 'label': 'Karlsruhe', 'city': 'Karlsruhe', 'latitude': 49.0,
                 'longitude': 8.4, 'radius_km': 15, 'country_code': 'DE'}), session)
-            page = api.list_jobs(company_id=None, query=None, offset=0, limit=100, session=session,
+            page = pg.list_jobs(self.engine, company_id=None, query=None, offset=0, limit=100, session=session,
                 state='Baden-Württemberg', profile_id=profile['id'], min_match_score=0, include_unknown=True)
             self.assertEqual({row['external_id'] for row in page['items']}, {'bw-one', 'bw-two'})
             self.assertEqual(page['counts']['filtered']['expired'], 1)
@@ -187,7 +186,7 @@ class StateSearchTests(unittest.TestCase):
                 self.assertEqual(detail['geography'], item['geography'])
                 self.assertIn('profile_match', detail)
                 self.assertNotIn('profile_match', item)
-            partial = api.list_jobs(company_id=None, query='Engineer', offset=1, limit=1,
+            partial = pg.list_jobs(self.engine, company_id=None, query='Engineer', offset=1, limit=1,
                                    session=session, state='Baden-Württemberg')
             self.assertEqual(partial['total'], 2)
             self.assertEqual(len(partial['items']), 1)
@@ -208,39 +207,6 @@ class StateSearchTests(unittest.TestCase):
             job = session.get(models.DiscoveryJob, location['first_discovery_job']['id'])
             self.assertEqual(job.stage, 'career_page_discovery')
             self.assertEqual(job.candidate_total, 1)
-
-    def test_upgrade_preserves_existing_radius_searches_on_both_sqlite_paths(self):
-        from alembic import command
-        from alembic.config import Config
-        from hiring_scraper.app.database import initialize_sqlite_schema
-        for method in ('alembic', 'startup'):
-            with self.subTest(method=method):
-                path = Path(self.directory.name) / (method + '.db')
-                target = create_engine(f'sqlite:///{path}')
-                # Keep migration logging isolated from the rest of the test suite.
-                config = Config()
-                config.set_main_option('script_location', 'hiring_scraper/app/migrations')
-                config.set_main_option('sqlalchemy.url', str(target.url))
-                with patch.dict('os.environ', {'DATABASE_URL': str(target.url)}):
-                    command.upgrade(config, '0011_location_scan_retries')
-                    with target.begin() as connection:
-                        connection.exec_driver_sql("INSERT INTO configured_locations "
-                            "(label, latitude, longitude, created_at, updated_at) "
-                            "VALUES ('Karlsruhe', 49.0, 8.4, '2026-01-01', '2026-01-01')")
-                        connection.exec_driver_sql("INSERT INTO companies "
-                            "(source, source_id, name, career_status) "
-                            "VALUES ('test', 'legacy', 'Existing employer', 'not_checked')")
-                    if method == 'alembic':
-                        command.upgrade(config, 'head')
-                    else:
-                        initialize_sqlite_schema(target)
-                        initialize_sqlite_schema(target)
-                    with sessionmaker(bind=target)() as session:
-                        location = session.scalar(select(models.ConfiguredLocation))
-                        self.assertEqual(location.search_scope, 'radius')
-                        self.assertEqual(location.label, 'Karlsruhe')
-                        self.assertIsNone(session.scalar(select(models.Company)).state)
-                    target.dispose()
 
     def test_recurring_state_schedule_refreshes_all_saved_sources_without_rediscovery(self):
         location = self.save_state()

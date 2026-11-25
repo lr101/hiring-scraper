@@ -1,0 +1,131 @@
+{
+  "id": "ops_analyst",
+  "archetype": "Operations and process improvement analyst (deutschsprachiges Profil, Englisch B2)",
+  "location_region": "Köln, Deutschland",
+  "desired_roles": [
+    "Prozessanalyst",
+    "Operations Analyst",
+    "Process Improvement Manager"
+  ],
+  "secondary_roles": [
+    "Business Analyst",
+    "Controller Operations",
+    "Prozessmanager"
+  ],
+  "skills": [
+    "Prozessmodellierung",
+    "BPMN",
+    "Lean",
+    "Six Sigma",
+    "Power BI",
+    "SQL",
+    "Excel",
+    "KPI-Reporting",
+    "Root-Cause-Analyse",
+    "Workshopmoderation",
+    "SAP",
+    "Prozessdokumentation"
+  ],
+  "languages": [
+    "German",
+    "English"
+  ],
+  "language_levels": {
+    "German": "C1",
+    "English": "B2"
+  },
+  "experience_years": 6,
+  "work_styles": [
+    "hybrid",
+    "onsite"
+  ],
+  "employment_types": [
+    "full_time"
+  ],
+  "summary": "Wirtschaftsinformatiker mit sechs Jahren Erfahrung in Prozessanalyse und operativer Steuerung. Ich erhebe Ist-Prozesse, finde mit Datenanalysen die Engpässe, moderiere Verbesserungsworkshops und baue Kennzahlen-Dashboards in Power BI. Muttersprache nicht Deutsch, im Beruf aber auf C1-Niveau.",
+  "cv_career_facts": {
+    "experiences": [
+      {
+        "title": "Junior Prozessanalyst Versicherung",
+        "start": "2020-08",
+        "end": "2022-07",
+        "current": false,
+        "description": "Prozessaufnahme in der Schadenbearbeitung, Modellierung in BPMN, Auswertung von Durchlaufzeiten in Excel und SQL."
+      },
+      {
+        "title": "Process Improvement Analyst E-Commerce",
+        "start": "2022-08",
+        "end": "",
+        "current": true,
+        "description": "Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserungsmaßnahmen."
+      }
+    ],
+    "education": [
+      {
+        "title": "B.Sc. Wirtschaftsinformatik",
+        "start": "2016-10",
+        "end": "2020-07",
+        "current": false,
+        "completed": true,
+        "description": "Studium abgeschlossen, Schwerpunkt Prozessmanagement."
+      }
+    ]
+  },
+  "skill_evidence": {
+    "BPMN": {
+      "context": "professional",
+      "note": "Modelliert und dokumentiert Prozesse mit Fachbereichen."
+    },
+    "Power BI": {
+      "context": "professional",
+      "note": "Baut und pflegt Dashboards für Versand- und Retourenkennzahlen."
+    },
+    "SQL": {
+      "context": "professional",
+      "note": "Abfragen für Prozessanalysen, keine Datenbankentwicklung."
+    },
+    "Lean": {
+      "context": "professional",
+      "note": "Moderiert Workshops zu Verschwendung und Engpässen."
+    },
+    "Six Sigma": {
+      "context": "academic",
+      "note": "Green-Belt-Schulung mit Projektarbeit."
+    }
+  },
+  "application_preferences": {
+    "willing_to_work_onsite": true,
+    "authorized_to_work": true,
+    "authorization_country": "Germany",
+    "sponsorship_required": false
+  },
+  "education": [
+    {
+      "level": "bachelor",
+      "field": "Wirtschaftsinformatik",
+      "status": "completed",
+      "completed": true,
+      "current": false,
+      "equivalency": ""
+    }
+  ],
+  "certifications": [
+    "Lean Six Sigma Green Belt"
+  ],
+  "excluded_terms": [
+    "Praktikum",
+    "Werkstudent"
+  ],
+  "application_details": {
+    "experiences": [
+      {
+        "title": "Junior Prozessanalyst Versicherung",
+        "description": "Prozessaufnahme in der Schadenbearbeitung, Modellierung in BPMN, Auswertung von Durchlaufzeiten in Excel und SQL."
+      },
+      {
+        "title": "Process Improvement Analyst E-Commerce",
+        "description": "Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserungsmaßnahmen."
+      }
+    ]
+  }
+}

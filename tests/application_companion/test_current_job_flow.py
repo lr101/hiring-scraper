@@ -1,9 +1,5 @@
 """The extension opens Radius preparation for the selected current job."""
-import json
 import io
-import os
-import re
-from pathlib import Path
 from playwright.sync_api import expect
 from .test_production_preparation import ProductionHarness
 from .test_application_journey import LISTING
@@ -67,8 +63,7 @@ class CurrentJobFlowTests(ProductionHarness):
         self.assertTrue(replaced.ok, replaced.text())
         self.page.goto(LISTING)
         popup = self.popup()
-        tab_id = self.worker.evaluate("async url=>(await chrome.tabs.query({})).find(tab=>tab.url===url).id", LISTING)
-        response = popup.evaluate("async tabId=>chrome.runtime.sendMessage({type:'prepare-current-job',tabId,jobId:1574})",tab_id)
+        response = popup.evaluate("()=>chrome.runtime.sendMessage({type:'prepare-job',jobId:1574})")
         self.assertTrue(response['ok'], response)
         state = self.worker.evaluate("async () => chrome.storage.local.get(['radiusVault','applicant'])")
         self.assertEqual(state['applicant']['experiences'][0]['id'],'work-new')

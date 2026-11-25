@@ -48,6 +48,25 @@ class CodexUsageTests(unittest.TestCase):
         self.assertTrue(hasattr(self.runtime, 'subscription_usage'), 'Public safe quota probe is missing')
         return self.runtime.subscription_usage()
 
+    def test_default_usage_has_no_half_capacity_guard(self):
+        self.configure(quota_payload=self.payload(self.window(75)))
+        usage = self.runtime.subscription_usage()
+        self.assertTrue(usage['allowed'])
+        self.assertEqual(usage['limit_percent'], 100)
+        self.configure(quota_payload=self.payload(self.window(100)))
+        self.assertFalse(self.runtime.subscription_usage()['allowed'])
+
+    def test_locked_generation_allows_99_but_never_invokes_provider_at_exhaustion(self):
+        self.configure(quota_payload=self.payload(self.window(99)))
+        self.assertEqual(self.runtime.generate('Rank', {}, usage_limit_percent=100),
+                         {'answer': 'prepared'})
+        self.configure(quota_payload=self.payload(self.window(100)))
+        with patch.object(self.runtime, '_command', wraps=self.runtime._command) as command:
+            with self.assertRaises(HTTPException) as caught:
+                self.runtime.generate('Rank', {}, usage_limit_percent=100)
+            self.assertEqual(caught.exception.status_code, 429)
+            self.assertNotIn('exec', [call.args[0] for call in command.call_args_list])
+
     @contextmanager
     def started_probe(self, *, child=False):
         # Time only the controlled stall after the fixture has started; heavily
@@ -69,7 +88,7 @@ class CodexUsageTests(unittest.TestCase):
     def test_reads_subscription_five_hour_window_with_handshake_and_isolated_auth(self):
         usage = self.usage()
         self.assertEqual({key: usage[key] for key in ('available', 'allowed', 'reason', 'used_percent', 'window_minutes', 'limit_percent')},
-            {'available': True, 'allowed': True, 'reason': 'ready', 'used_percent': 49, 'window_minutes': 300, 'limit_percent': 50})
+            {'available': True, 'allowed': True, 'reason': 'ready', 'used_percent': 49, 'window_minutes': 300, 'limit_percent': 100})
         seen = json.loads((self.root / 'usage-seen.json').read_text())
         self.assertEqual([message['method'] for message in seen['messages']],
                          ['initialize', 'initialized', 'account/read', 'account/rateLimits/read'])
@@ -80,6 +99,13 @@ class CodexUsageTests(unittest.TestCase):
             self.assertNotIn(key, seen['env'])
         self.assertFalse((self.root / 'seen.json').exists(), 'Quota reads must not launch inference')
         self.assertNotIn('private@', json.dumps(usage))
+
+    def test_default_allows_usage_above_fifty_until_exhausted(self):
+        for used in (50, 75, 99):
+            self.configure(quota_payload=self.payload(self.window(used)))
+            self.assertTrue(self.usage()['allowed'])
+        self.configure(quota_payload=self.payload(self.window(100)))
+        self.assertFalse(self.usage()['allowed'])
 
     def test_accepts_secondary_five_hour_window_and_never_substitutes_other_windows(self):
         self.configure(quota_payload=self.payload(self.window(2, 15), self.window(45)))
@@ -108,7 +134,7 @@ class CodexUsageTests(unittest.TestCase):
         self.configure(quota_payload={'rateLimits': buckets['codex'], 'rateLimitsByLimitId': buckets})
         usage = self.usage()
         self.assertEqual(usage['used_percent'], 52)
-        self.assertEqual(usage['reason'], 'usage_limit_reached')
+        self.assertEqual(usage['reason'], 'ready')
         buckets['gpt-6-luna']['primary']['usedPercent'] = 40
         self.configure(quota_payload={'rateLimits': buckets['codex'], 'rateLimitsByLimitId': buckets})
         self.assertEqual(self.usage()['used_percent'], 40)
@@ -250,3 +276,16 @@ class CodexUsageTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class LongWindowReportTests(unittest.TestCase):
+    def test_weekly_window_is_reported_without_changing_the_gate(self):
+        from hiring_scraper.app.codex_usage import evaluate
+        import time
+        soon = time.time() + 3600
+        payload = {'rateLimitsByLimitId': {'codex': {
+            'primary': {'usedPercent': 10, 'windowDurationMins': 300, 'resetsAt': soon},
+            'secondary': {'usedPercent': 66, 'windowDurationMins': 10080, 'resetsAt': soon + 86400}}}}
+        usage = evaluate(payload)
+        self.assertEqual((usage['used_percent'], usage['allowed']), (10, True))
+        self.assertEqual((usage['long_used_percent'], usage['long_window_minutes']), (66, 10080))

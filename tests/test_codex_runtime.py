@@ -41,6 +41,28 @@ class CodexRuntimeTests(unittest.TestCase):
         home=self.root/'home'; home.mkdir(exist_ok=True)
         (home/'auth.json').write_text(json.dumps({'auth_mode':mode}))
 
+    def test_generate_runs_parallel_subprocesses(self):
+        from concurrent.futures import ThreadPoolExecutor
+        runtime = self.module(); self.connect()
+        (self.root / 'fixture.json').write_text(json.dumps({'delay': .2}))
+        barrier = threading.Barrier(2)
+        def generate():
+            barrier.wait(timeout=5)
+            return runtime.generate('CV', {'type': 'object'})
+        with ThreadPoolExecutor(2) as pool:
+            results = list(pool.map(lambda _: generate(), range(2)))
+        self.assertEqual(results, [{'answer': 'prepared'}, {'answer': 'prepared'}])
+
+    def test_parallel_inference_slots_keep_account_mutations_exclusive(self):
+        runtime = self.module(); self.connect()
+        # A second generation lease must coexist, while sign-in/disconnect stays exclusive.
+        with runtime._generation_lease(self.root):
+            with runtime._generation_lease(self.root):
+                with self.assertRaises(HTTPException):
+                    with runtime._lock(self.root):
+                        pass
+                self.assertTrue(runtime.subscription_usage()['allowed'])
+
     def test_api_key_environment_cannot_enable_subscription_preparation(self):
         runtime=self.module()
         self.assertFalse(runtime.status()['enabled'])
@@ -109,6 +131,17 @@ class CodexRuntimeTests(unittest.TestCase):
         runtime.logout()
         self.assertFalse(runtime.status()['enabled'])
         self.assertFalse((self.root/'home/auth.json').exists())
+
+    def test_expiration_waits_for_login_runtime_cleanup(self):
+        runtime = self.module()
+        for state in ('pending', 'expired'):
+            with self.subTest(state=state):
+                with runtime._lock(self.root):
+                    runtime._write(self.root, {'state': state, 'expires_at': time.time() - 1})
+                    status = runtime.status()
+                    self.assertEqual(status['login_state'], 'starting')
+                    self.assertNotIn('user_code', status)
+                self.assertEqual(runtime.status()['login_state'], 'expired')
 
     def test_expired_sign_in_releases_the_runtime_for_a_new_attempt(self):
         runtime=self.module()
@@ -226,6 +259,24 @@ class CodexRuntimeTests(unittest.TestCase):
             self.assertFalse(runtime.status()['available'])
             with self.assertRaises(HTTPException) as raised:runtime.start_login()
         self.assertEqual(raised.exception.status_code,503)
+
+    def test_inference_concurrency_defaults_to_25_and_honors_overrides_with_legacy_fallback(self):
+        runtime = self.module()
+        clean = {k: v for k, v in os.environ.items()
+                 if k not in {'RADIUS_APPLICATION_AI_CONCURRENCY', 'RADIUS_CODEX_CONCURRENCY', 'RADIUS_MATCH_AI_CONCURRENCY'}}
+        with patch.dict(os.environ, clean, clear=True):
+            self.assertEqual(runtime.inference_concurrency(), 25)
+        with patch.dict(os.environ, {**clean, 'RADIUS_MATCH_AI_CONCURRENCY': '12'}, clear=True):
+            self.assertEqual(runtime.inference_concurrency(), 12)
+        with patch.dict(os.environ, {**clean, 'RADIUS_MATCH_AI_CONCURRENCY': '12', 'RADIUS_CODEX_CONCURRENCY': '7'}, clear=True):
+            self.assertEqual(runtime.inference_concurrency(), 7)
+        with patch.dict(os.environ, {**clean, 'RADIUS_MATCH_AI_CONCURRENCY': '12', 'RADIUS_CODEX_CONCURRENCY': '7',
+                                     'RADIUS_APPLICATION_AI_CONCURRENCY': '9'}, clear=True):
+            self.assertEqual(runtime.inference_concurrency(), 9)
+        with patch.dict(os.environ, {**clean, 'RADIUS_APPLICATION_AI_CONCURRENCY': '0'}, clear=True):
+            self.assertEqual(runtime.inference_concurrency(), 1)
+        with patch.dict(os.environ, {**clean, 'RADIUS_APPLICATION_AI_CONCURRENCY': 'not-a-number'}, clear=True):
+            self.assertEqual(runtime.inference_concurrency(), 25)
 
     def test_native_runtime_cannot_advertise_shell_files_browser_or_agent_tools(self):
         native = shutil.which('codex')

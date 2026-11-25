@@ -77,11 +77,31 @@ jobs:
     concurrency:
       group: extension-${{ matrix.shard }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
       cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    permissions:
+      contents: read
+    env:
+      TEST_POSTGRES_URL: postgresql+psycopg://postgres:radius-ci-only@127.0.0.1:5432/radius_test
+      DATABASE_URL: postgresql+psycopg://postgres:radius-ci-only@127.0.0.1:5432/radius_test
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      # Browser tests run the real API against PostgreSQL/PostGIS/pgvector built
+      # from this checkout (no published image needed). The throwaway container
+      # listens only on the runner and is discarded with it.
+      - name: Start PostgreSQL/PostGIS with pgvector
+        run: |
+          docker build --quiet -f docker/Dockerfile.postgres -t radius-db-ci .
+          docker run -d --name radius-db-ci -p 127.0.0.1:5432:5432 \
+            -e POSTGRES_DB=radius_test -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=radius-ci-only radius-db-ci
+          for _ in $(seq 60); do
+            docker exec radius-db-ci pg_isready -h 127.0.0.1 -U postgres -d radius_test && exit 0
+            sleep 2
+          done
+          docker logs radius-db-ci
+          exit 1
 
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
@@ -106,7 +126,7 @@ jobs:
       - name: Use Ubuntu HTTPS package mirrors
         run: |
           # The runner's Azure mirror can trickle downloads without triggering failover.
-          # Both Playwright and the PDF runtime install packages through this list.
+          # Playwright installs Chromium dependencies through this list.
           printf '%s\tpriority:%s\n' \
             'https://archive.ubuntu.com/ubuntu/' 1 \
             'https://security.ubuntu.com/ubuntu/' 2 \
@@ -116,14 +136,28 @@ jobs:
         run: |
           uv sync --locked
           npm --prefix frontend ci
+          export PLAYWRIGHT_BROWSERS_PATH="$RUNNER_TEMP/radius-playwright"
           uv run python -m playwright install --with-deps chromium
+          printf 'PLAYWRIGHT_BROWSERS_PATH=%s\n' "$PLAYWRIGHT_BROWSERS_PATH" >> "$GITHUB_ENV"
 
-      - name: Install PDF export runtime
+      - name: Allow the PDF renderer to use the Chromium sandbox
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libreoffice-writer fonts-liberation texlive-luatex texlive-latex-recommended
-          libreoffice --version
-          lualatex --version
+          # Ubuntu 24.04 restricts user namespaces for downloaded Chromium builds.
+          # Grant access to Playwright's PDF renderer on this runner only.
+          shopt -s nullglob
+          shells=("$PLAYWRIGHT_BROWSERS_PATH"/chromium_headless_shell-*/chrome-headless-shell-linux64/chrome-headless-shell)
+          if (( ${#shells[@]} != 1 )) || [[ ! -x "${shells[0]}" ]]; then
+            echo 'Expected one installed Playwright Chromium headless shell' >&2
+            exit 1
+          fi
+          shell_path=$(realpath -e -- "${shells[0]}")
+          sudo apparmor_parser -r <<EOF
+          abi <abi/4.0>,
+          include <tunables/global>
+          profile radius-ci-pdf-renderer "$shell_path" flags=(unconfined) {
+            userns,
+          }
+          EOF
 
       - name: Install pinned Codex subscription runtime
         run: |
@@ -244,7 +278,7 @@ jobs:
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}

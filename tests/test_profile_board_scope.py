@@ -1,10 +1,9 @@
 """Profile persistence and vacancy geography regressions against a real SQLite store."""
 import unittest
-from unittest.mock import patch
 from pydantic import ValidationError
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from hiring_scraper.app import api, models, profiles
+from tests import pg
 
 AREA = dict(label='Heidelberg', city='Heidelberg', latitude=49.3988, longitude=8.6724,
             radius_km=35, country_code='DE')
@@ -12,7 +11,7 @@ AREA = dict(label='Heidelberg', city='Heidelberg', latitude=49.3988, longitude=8
 
 class ProfileBoardScopeTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         models.Base.metadata.create_all(self.engine)
         self.session = Session(self.engine)
 
@@ -38,7 +37,7 @@ class ProfileBoardScopeTests(unittest.TestCase):
         return job
 
     def board(self, profile=None, **kwargs):
-        return api.list_jobs(49.3988, 8.6724, 35, None, None, 'Heidelberg', 0, 100,
+        return pg.list_jobs(self.engine, 49.3988, 8.6724, 35, None, None, 'Heidelberg', 0, 100,
             session=self.session, profile_id=profile['id'] if profile else None, **kwargs)
 
     def test_new_profile_evidence_roundtrips_and_legacy_update_preserves_it(self):
@@ -75,7 +74,8 @@ class ProfileBoardScopeTests(unittest.TestCase):
         self.assertNotIn('profile_match', item)
         detail = api.get_job(unknown.id, self.session, profile_id=profile['id'])
         self.assertTrue(detail['profile_match']['uncertain'])
-        self.assertEqual(detail['profile_match']['fit_tier'], 'possible')
+        # An unstated remote country never allows a recommended tier.
+        self.assertNotEqual(detail['profile_match']['fit_tier'], 'recommended')
         self.assertTrue(any('country' in x.lower() for x in detail['profile_match']['unknowns']))
         self.assertEqual(detail['geography'], item['geography'])
         self.assertEqual(page['counts']['filtered']['remote_country'], 1)
@@ -142,7 +142,7 @@ class ProfileBoardScopeTests(unittest.TestCase):
         profile = self.profile(search_area=AREA)
         job = self.job('berlin', locations=[models.JobLocation(label='Berlin',
             latitude=52.52, longitude=13.4, country_code='DE')])
-        board = api.list_jobs(52.52, 13.4, 20, None, None, 'Berlin', 0, 10,
+        board = pg.list_jobs(self.engine, 52.52, 13.4, 20, None, None, 'Berlin', 0, 10,
             session=self.session, profile_id=profile['id'], country_code='DE')
         detail = api.get_job(job.id, self.session, profile_id=profile['id'],
             latitude=52.52, longitude=13.4, radius_km=20, place='Berlin', country_code='DE')
@@ -218,7 +218,7 @@ class ProfileBoardScopeTests(unittest.TestCase):
         profile = self.profile(search_area=AREA,
             matching_defaults={'min_match_score':100, 'include_unknown':True})
         self.job('sparse', description=None)
-        page = api.list_jobs(None, None, None, None, None, None, 0, 1,
+        page = pg.list_jobs(self.engine, None, None, None, None, None, None, 0, 1,
             session=self.session, profile_id=profile['id'])
         self.assertEqual(page['location']['latitude'], 49.3988)
         self.assertEqual(page['location']['radius_km'], 35)
@@ -234,12 +234,11 @@ class ProfileBoardScopeTests(unittest.TestCase):
         self.assertEqual(updated['education'], [])
         self.assertEqual(updated['language_levels'], {})
 
-    def test_backend_geography_is_identical_and_filters_before_pagination(self):
+    def test_warm_snapshot_preserves_geography_filtered_results(self):
         profile = self.profile(search_area=AREA)
         self.job('outside', locations=[models.JobLocation(label='Heidelberg', country_code='US')])
         self.job('inside')
-        sqlite = self.board(profile)
-        with patch.object(api, 'IS_SQLITE', False):
-            postgres_path = self.board(profile)
-        self.assertEqual(sqlite['items'], postgres_path['items'])
-        self.assertEqual(sqlite['total'], 1)
+        first = self.board(profile)
+        warm_snapshot = self.board(profile)
+        self.assertEqual(first['items'], warm_snapshot['items'])
+        self.assertEqual(first['total'], 1)

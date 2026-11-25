@@ -1,5 +1,6 @@
 import json
 import unittest
+from unittest.mock import patch
 from hiring_scraper.discovery import discover, trusted_html_jobs, trusted_html_source
 
 class FixtureClient:
@@ -11,6 +12,18 @@ class FixtureClient:
     get_feed = get
 
 class DiscoveryTests(unittest.TestCase):
+    def test_rendered_html_bytes_are_inspected(self):
+        url = 'https://acme.de/careers'
+        client = FixtureClient({url: '<html><title>Careers</title><h1>Jobs</h1></html>'})
+        client.max_requests = 100
+        client.records = []
+        with patch('hiring_scraper.discovery._needs_browser_render', return_value=True), \
+             patch('hiring_scraper.discovery.trusted_html_source', return_value=True), \
+             patch('hiring_scraper.browser.render_public_page', return_value=(
+                 {'state': 'ok', 'rendered': True}, '<html><title>Karriere</title></html>'.encode())):
+            result = discover({'name': 'Acme', 'website': url}, client, max_pages=1)
+        self.assertTrue(result['pages'][0]['browser_rendered'])
+
     def test_company_root_redirect_establishes_canonical_first_party_host(self):
         seed = {'name': 'USU GmbH', 'website': 'https://www.usu.de/'}
         home = {'url': 'https://www.usu.com/', 'requested_url': 'https://www.usu.de/',

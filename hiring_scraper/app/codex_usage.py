@@ -14,10 +14,12 @@ def _number(value):
         return False
 
 
-def evaluate(payload, limit_percent=50):
+def evaluate(payload, limit_percent=100):
     result = {'available': False, 'allowed': False, 'reason': 'usage_unavailable',
               'used_percent': None, 'resets_at': None, 'window_minutes': 300,
-              'limit_percent': limit_percent}
+              'limit_percent': limit_percent,
+              # The longest window (usually weekly); informational, the five-hour window gates use.
+              'long_used_percent': None, 'long_resets_at': None, 'long_window_minutes': None}
     if not isinstance(payload, dict):
         return result
     buckets = []
@@ -49,6 +51,7 @@ def evaluate(payload, limit_percent=50):
         result['reason'] = 'five_hour_window_unavailable'
         return result
     five_hour = []
+    longest = None
     exhausted = False
     now = time.time()
     for bucket in applicable:
@@ -68,11 +71,15 @@ def evaluate(payload, limit_percent=50):
                 return result
             if minutes == 300:
                 five_hour.append((used, resets))
-            elif minutes > 300 and used >= 100:
-                exhausted = True
+            elif minutes > 300:
+                exhausted = exhausted or used >= 100
+                if longest is None or (minutes, used) > (longest[0], longest[1]):
+                    longest = (minutes, used, resets)
     if not five_hour:
         result['reason'] = 'five_hour_window_unavailable'
         return result
+    if longest is not None:
+        result.update(long_window_minutes=longest[0], long_used_percent=longest[1], long_resets_at=longest[2])
     used, resets = max(five_hour, key=lambda entry: (entry[0], entry[1]))
     allowed = used < limit_percent and not exhausted
     result.update(available=True, allowed=allowed, reason='ready' if allowed else 'usage_limit_reached',
