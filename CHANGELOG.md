@@ -10,6 +10,10 @@ no historical releases have been reconstructed.
 
 ## [Unreleased]
 
+### Fixed
+
+- Postings with nothing to compare (title only, or a description the parser could not read, so the analysis finds no duties or requirements) are no longer scored from their title alone, which ranked them above real matches. They are marked **Not enough text to score**: no score, never a Journey New card, still listed on the board and on their job page. The matcher version is now `v3-evidence-3`, so every profile is rescored once from the stored analyses (no model calls) and existing automatic New cards for such postings are removed; cards you moved or saved stay.
+
 ### Added
 
 - Laptop GPU for the local models: Settings → Matching model → **Local models** → **Laptop GPU** takes the laptop's VPN address, a switch, and offers `radius-laptop-gpu.sh` for a Fedora laptop with an NVIDIA GPU (pinned llama.cpp CUDA build and weights, SHA-256 checked, systemd user services on ports 8091/8092). While the laptop is enabled and answers with the pinned models, `job-analysis-worker` sends local model calls there, as many postings and pairs at once as the laptop has slots (`JOB_ANALYSIS_MAX_PARALLEL`, default 4), and checks evidence in a second thread so the GPU keeps analysing; when the laptop goes offline, calls return to the homelab containers. New endpoints: `GET`/`PUT /api/v1/matching-model/laptop-gpu` and `GET /api/v1/matching-model/laptop-setup.sh`. The worker's database pool defaults to 8 (`JOB_ANALYSIS_DB_POOL_SIZE`). See `docs/local-models.md`.

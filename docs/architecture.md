@@ -232,7 +232,9 @@ the job's occupation and industry; `matching_v3.score` adds five evidence compon
 bounded penalties and a DEV-fitted monotone calibration.
 
 A job without a usable analysis or pair evidence is `pending`: stored with score 0,
-never turned into a Journey New card, and shown as analysing. After an edit, the
+never turned into a Journey New card, and shown as analysing. A job whose analysis has no
+duties and no scored requirements (title only, unreadable description) is `unscorable`:
+score 0, labelled "Not enough text to score", and likewise never a Journey New card. After an edit, the
 previous analysis (status `stale`) and evidence stay in use until replaced; evidence
 is only joined to the exact analysis revision it was computed for.
 

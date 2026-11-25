@@ -121,6 +121,13 @@ function FitSummary({ match, profileId }: { match?: ProfileMatch; profileId: num
       {!match.eligible && <FitConcerns items={concerns(match)} />}
     </aside>
   }
+  if (match.unscorable) {
+    return <aside className="job-fit job-fit-pending" aria-label="Fit with your profile">
+      <p className="job-fit-verdict">Not enough text to score</p>
+      <p className="job-fit-note">The posting lists no duties or requirements to compare with your CV, so it gets
+        no score and stays out of Journey. Check the original post yourself.</p>
+    </aside>
+  }
   const { tone, label } = verdict(match)
   const counts = fitCounts(match)
   const context = [match.job_context?.occupation, match.job_context?.industry].filter(Boolean).join(' · ')
@@ -212,7 +219,7 @@ export default function JobPage({ job, profileId, onApplicationSaved }: {
     job.locations.length > 1 ? `+${job.locations.length - 1} more` : '',
   ].filter(Boolean).join(' ')
   const style = workStyle(job)
-  const showChecklists = !!match && !match.pending && (
+  const showChecklists = !!match && !match.pending && !match.unscorable && (
     (match.duty_evidence?.duties.length ?? 0) > 0 || (match.requirement_observations ?? []).some(row => row.strength))
   async function markOriginalPostOpened() {
     if (profileId === null) return
@@ -258,7 +265,7 @@ export default function JobPage({ job, profileId, onApplicationSaved }: {
           <summary>Each requirement against your CV</summary>
           <FitChecklists match={match!} />
         </details>}
-        {match && !match.pending && <details className="job-score-details" id="job-score-details">
+        {match && !match.pending && !match.unscorable && <details className="job-score-details" id="job-score-details">
           <summary>How this score was built</summary>
           <JobEvidence enrichment={job.enrichment} match={match} embedded />
         </details>}

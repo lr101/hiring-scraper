@@ -745,7 +745,8 @@ class PostgresConcurrencyTests(unittest.TestCase):
         with self.factory.begin() as session:
             profile = UserProfile(name='Journey refresh', preferences={'matching_defaults': {'min_match_score': 0}})
             job = Job(feed_id=feed_id, external_id='journey', title='Engineer',
-                      url='https://example.test/journey', is_remote=True)
+                      url='https://example.test/journey', is_remote=True,
+                      description='Build backend services for customers.')
             session.add_all([profile, job])
             session.flush()
             source_changes.jobs_changed(session, [job.id])

@@ -264,6 +264,24 @@ def _pending_result(job: dict, profile: dict, enriched: dict, gate_result: dict)
     }
 
 
+def _unscorable_result(job: dict, profile: dict, enriched: dict, gate_result: dict,
+                       analysis: dict) -> dict[str, Any]:
+    """The analysis found no duties or requirements (a title-only or badly parsed posting).
+
+    A score from the title alone would rank these above real matches, so they get none:
+    the job stays on the board and its page, but never becomes a Journey New card.
+    """
+    result = _pending_result(job, profile, enriched, gate_result)
+    context = {key: analysis.get(key) for key in ('occupation', 'industry') if analysis.get(key)}
+    return {
+        **result, 'pending': False, 'unscorable': True, 'label': 'Not enough text to score',
+        'unknowns': ['The posting lists no duties or requirements to compare with your CV.',
+                     *(item['detail'] for item in gate_result['flags'])],
+        **({'job_context': {'occupation': context.get('occupation', ''), 'industry': context.get('industry', '')}}
+           if context else {}),
+    }
+
+
 def match_job_v3(
     job: dict,
     profile: dict,
@@ -285,6 +303,8 @@ def match_job_v3(
         return _pending_result(job, profile, enriched, gate_result)
 
     parts = components(analysis, evidence)
+    if not parts['duties'] and not any(not row['gated'] for row in parts['requirements']):
+        return _unscorable_result(job, profile, enriched, gate_result, analysis)
     evidence_refs = {row.get('ref') for row in evidence.get('items') or [] if isinstance(row, dict)}
     values = parts['values']
     raw, contributions = raw_score(values, weights)

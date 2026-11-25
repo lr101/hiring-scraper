@@ -636,7 +636,12 @@ class StoredExplanationReadPathTests(unittest.TestCase):
         for job in (title_only, soft_conflict, hidden):
             result = match_compute.compute_match(job, profile, docs, scope=scopes[job.id])
             self.assertEqual(result['eligible'], job is not hidden)
-            if job is not hidden:
+            if job is title_only:
+                # Nothing to compare: no score, never a Journey New card, still listed on the board.
+                self.assertTrue(result['unscorable'])
+                self.assertEqual(result['score'], 0)
+                self.assertFalse(application_match_allowed(job, profile, result))
+            elif job is not hidden:
                 self.assertTrue(result['uncertain'])
                 self.assertTrue(application_match_allowed(job, profile, result))
                 strict = _make_profile(preferences={'matching_defaults': {'include_unknown': False}})

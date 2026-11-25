@@ -502,6 +502,7 @@ def _build_explanation_pass(
         'task_fit': _json_safe(result.get('task_fit')),
         'qualification_fit': _json_safe(result.get('qualification_fit')),
         'pending': bool(result.get('pending', False)),
+        'unscorable': bool(result.get('unscorable', False)),
     }
     job_context = result.get('job_context')
     if isinstance(job_context, dict):
@@ -640,6 +641,7 @@ def build_explanation(
         'mandatory_review': bool(result.get('mandatory_review', False)),
         'language_review': bool(result.get('language_review', False)),
         'pending': bool(result.get('pending', False)),
+        'unscorable': bool(result.get('unscorable', False)),
         'truncated': True,
     }
     if stamp is not None:
