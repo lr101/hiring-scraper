@@ -129,8 +129,11 @@ profile hide a job.
 Jobs the models have not analysed yet show **Analysing job…** and stay out of
 Journey until they are done; jobs in a profile's local search area are analysed
 first. To keep the local LLM's throughput focused on likely matches when
-covering all of Germany, automatic analysis applies a two-stage gate:
+covering all of Germany, automatic analysis applies these gates:
 
+- **Workplace**: postings with positive evidence that all workplaces are abroad
+  skip automatic LLM analysis. Postings with remote options, mixed workplaces,
+  or unclear locations remain eligible for the other checks.
 - **Age cutoff** (`RADIUS_ANALYSIS_MAX_AGE_DAYS`, default `14`): only postings
   published within the window (falling back to `first_seen_at` when `date_posted`
   is not an ISO date) enter or remain eligible in the automatic queue.
