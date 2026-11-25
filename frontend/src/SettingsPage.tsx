@@ -103,9 +103,9 @@ function UsageTile() {
   </section>
 }
 
-type MatchingStatus = { mode: 'luna_first' | 'local'; active: 'luna' | 'local'; reason: string; max_5h_percent: number; max_weekly_percent: number }
+type MatchingStatus = { mode: 'luna' | 'local'; ready: boolean; reason: string }
 
-/** Luna through the subscription first, local models as backup or only. */
+/** Manual switch between GPT-6 Luna and the local models; no automatic fallback. */
 function MatchingModel() {
   const [state, setState] = useState<MatchingStatus | null>(null)
   const [saving, setSaving] = useState(false)
@@ -130,7 +130,7 @@ function MatchingModel() {
     finally { setSaving(false) }
   }
   const options: { value: MatchingStatus['mode']; label: string }[] = [
-    { value: 'luna_first', label: 'Luna first' }, { value: 'local', label: 'Local only' },
+    { value: 'luna', label: 'GPT-6 Luna' }, { value: 'local', label: 'Local models' },
   ]
   return <div className="settings-model">
     <div className="settings-segmented" role="radiogroup" aria-labelledby="matching-model-heading">
@@ -138,11 +138,9 @@ function MatchingModel() {
         aria-checked={state?.mode === option.value} onClick={() => void choose(option.value)}>{option.label}</button>)}
     </div>
     {state && <p className="settings-note" role="status">
-      Now scoring with <b>{state.active === 'luna' ? 'GPT-6 Luna' : 'the local models'}</b>
-      {state.mode === 'luna_first' && state.active === 'local' ? ` · ${state.reason}` : ''}
-    </p>}
-    {state?.mode === 'luna_first' && <p className="settings-note">
-      Luna runs below {state.max_5h_percent}% of the 5-hour window and {state.max_weekly_percent}% of the week, leaving the rest for applications.
+      {state.mode === 'luna'
+        ? state.ready ? 'Luna scores new postings. The llm and llm-reranker containers can stay stopped.' : state.reason
+        : 'The llm and llm-reranker containers score new postings; keep them running.'}
     </p>}
     {error && <p className="settings-error" role="alert">{error}</p>}
   </div>
@@ -254,7 +252,7 @@ export default function SettingsPage() {
           <a className="settings-action" href="/profile">Manage profiles <Chevron /></a>
         </Row>
         <Row id="matching-model-heading" title="Matching model"
-          help="GPT-6 Luna reads postings and checks your CV through your ChatGPT subscription while it has room. Otherwise the local models take over.">
+          help="GPT-6 Luna reads postings and checks your CV through your ChatGPT subscription. The local models need about 6 GB of RAM. Switching applies to new work; nothing falls back automatically.">
           <MatchingModel />
         </Row>
       </section>

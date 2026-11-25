@@ -34,12 +34,12 @@ def preparation_usage():
 
 @router.get('/matching-model')
 def matching_model():
-    """Which model scores jobs now: Luna while the subscription has headroom, else local."""
+    """The matching model selected in Settings, and whether it can run now."""
     return JSONResponse(remote_matching.status(), headers={'Cache-Control': 'no-store'})
 
 
 class MatchingModeSetting(StrictModel):
-    mode: Literal['luna_first', 'local']
+    mode: Literal['luna', 'local']
 
 
 @router.put('/matching-model')

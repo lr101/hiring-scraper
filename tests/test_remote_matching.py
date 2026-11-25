@@ -1,4 +1,4 @@
-"""GPT-6 Luna as the primary matching model with the local models as backup."""
+"""GPT-6 Luna or the local models, switched by hand, with no automatic fallback."""
 import json
 import os
 import tempfile
@@ -10,11 +10,10 @@ from hiring_scraper.app import remote_matching as luna
 from hiring_scraper.matching_v3 import weights as W
 
 
-def usage(five_hour=10, weekly=20, available=True):
-    return {'available': available, 'used_percent': five_hour, 'long_used_percent': weekly}
+from fastapi import HTTPException
 
 
-class ModeAndHeadroomTests(unittest.TestCase):
+class ModeTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.env = mock.patch.dict(os.environ, {'RADIUS_CODEX_STATE_DIR': self.tmp.name})
@@ -24,27 +23,37 @@ class ModeAndHeadroomTests(unittest.TestCase):
         self.env.stop()
         self.tmp.cleanup()
 
-    def test_mode_defaults_to_luna_first_and_persists(self):
-        self.assertEqual(luna.mode(), 'luna_first')
+    def test_mode_defaults_to_luna_and_persists(self):
+        self.assertEqual(luna.mode(), 'luna')
         luna.set_mode('local')
         self.assertEqual(luna.mode(), 'local')
         with self.assertRaises(ValueError):
             luna.set_mode('cloud')
 
-    def test_headroom_leaves_the_subscription_for_applications(self):
-        self.assertEqual(luna.headroom(usage()), (True, 'ready'))
-        self.assertFalse(luna.headroom(usage(five_hour=60))[0])
-        self.assertFalse(luna.headroom(usage(weekly=70))[0])
-        self.assertFalse(luna.headroom(usage(available=False))[0])
-        self.assertFalse(luna.headroom({})[0])
-        with mock.patch.dict(os.environ, {'RADIUS_MATCH_LUNA_MAX_WEEKLY': '90'}):
-            self.assertTrue(luna.headroom(usage(weekly=80))[0])
+    def test_earlier_luna_first_setting_reads_as_luna(self):
+        luna._settings_path().write_text(json.dumps({'mode': 'luna_first'}))
+        self.assertEqual(luna.mode(), 'luna')
 
-    def test_local_mode_never_uses_luna(self):
+    def test_status_reports_whether_the_selected_model_can_run(self):
+        with mock.patch.object(luna.codex_runtime, 'status', return_value={'enabled': True}):
+            self.assertEqual(luna.status(), {'mode': 'luna', 'ready': True, 'reason': ''})
+        with mock.patch.object(luna.codex_runtime, 'status', return_value={'enabled': False}):
+            self.assertFalse(luna.status()['ready'])
         luna.set_mode('local')
-        with mock.patch.object(luna, '_usage', return_value=usage()):
-            self.assertFalse(luna.luna_allowed())
-            self.assertEqual(luna.status()['active'], 'local')
+        self.assertEqual(luna.status(), {'mode': 'local', 'ready': True, 'reason': ''})
+
+    def test_service_errors_keep_work_queued_but_too_long_postings_fail(self):
+        for status, detail in ((429, 'ChatGPT rate limit reached.'), (401, 'Continue with ChatGPT'),
+                               (504, 'ChatGPT preparation timed out.')):
+            with self.subTest(status=status), \
+                    mock.patch.object(luna.codex_runtime, 'generate', side_effect=HTTPException(status, detail)):
+                with self.assertRaises(luna.LunaUnavailable):
+                    luna.analyse_lines(['Job title: PO'])
+        too_long = HTTPException(502, 'The application exceeds the model context limit. Reduce the CV.')
+        with mock.patch.object(luna.codex_runtime, 'generate', side_effect=too_long):
+            with self.assertRaises(ValueError) as raised:
+                luna.analyse_lines(['Job title: PO'])
+        self.assertNotIsInstance(raised.exception, OSError)
 
 
 ANALYSIS = {'occupation': 'Product management', 'industry': 'Software',
@@ -85,41 +94,52 @@ class EvidenceMappingTests(unittest.TestCase):
         self.assertIn('0 Product Owner', prompt)
 
 
-class WorkerFallbackTests(unittest.TestCase):
+class WorkerModelSelectionTests(unittest.TestCase):
     LINES = ['Job title: Product Owner', 'Ihre Aufgaben', 'Run discovery interviews']
     SCOPES = ['title', 'heading', 'duty']
+    LUNA_OUTPUT = 'OCC Product\nIND Software\nDUTIES\nD 2 | Run discovery interviews\nREQUIREMENTS\nEND'
 
-    def test_luna_analysis_is_marked_and_failures_fall_back(self):
-        with mock.patch.object(luna, 'luna_allowed', return_value=True), \
-                mock.patch.object(luna, 'analyse_lines', return_value='OCC Product\nIND Software\nDUTIES\nD 2 | Run discovery interviews\nREQUIREMENTS\nEND'):
-            payload = worker._luna_analysis(self.LINES, self.SCOPES)
+    def test_luna_mode_never_calls_the_local_models(self):
+        with mock.patch.object(luna, 'use_luna', return_value=True), \
+                mock.patch.object(luna, 'analyse_lines', return_value=self.LUNA_OUTPUT), \
+                mock.patch.object(worker, 'analyse_lines') as local_llm:
+            payload = worker._analyse(self.LINES, self.SCOPES, worker.analyse_lines)
+        local_llm.assert_not_called()
         self.assertEqual(payload['provider'], 'luna')
         self.assertEqual([row['text'] for row in payload['duties']], ['Run discovery interviews'])
-        with mock.patch.object(luna, 'luna_allowed', return_value=True), \
-                mock.patch.object(luna, 'analyse_lines', side_effect=RuntimeError('rate limited')):
-            self.assertIsNone(worker._luna_analysis(self.LINES, self.SCOPES))
-        with mock.patch.object(luna, 'luna_allowed', return_value=False), \
-                mock.patch.object(luna, 'analyse_lines') as called:
-            self.assertIsNone(worker._luna_analysis(self.LINES, self.SCOPES))
-            called.assert_not_called()
-
-    def test_evidence_falls_back_to_the_local_reranker(self):
-        local = {'items': [], 'role': None, 'domain': None, 'context': 'x'}
-        with mock.patch.object(luna, 'luna_allowed', return_value=True), \
-                mock.patch.object(luna, 'compute_evidence', side_effect=RuntimeError('busy')), \
-                mock.patch.object(worker, 'compute_evidence', return_value=local) as fallback:
-            result = worker._evidence_with_backup(ANALYSIS, 'PO', SOURCE, b'', worker.embed, worker.rerank)
-        self.assertIs(result, local)
-        fallback.assert_called_once()
-        with mock.patch.object(luna, 'luna_allowed', return_value=True), \
-                mock.patch.object(luna, 'compute_evidence', return_value={'provider': 'luna'}):
-            self.assertEqual(worker._evidence_with_backup(ANALYSIS, 'PO', SOURCE, b'', worker.embed, worker.rerank),
+        with mock.patch.object(luna, 'use_luna', return_value=True), \
+                mock.patch.object(luna, 'compute_evidence', return_value={'provider': 'luna'}), \
+                mock.patch.object(worker, 'compute_evidence') as local_reranker:
+            self.assertEqual(worker._evidence(ANALYSIS, 'PO', SOURCE, b'', worker.embed, worker.rerank),
                              {'provider': 'luna'})
-        # An injected reranker (tests, tools) always uses the local path.
-        with mock.patch.object(luna, 'luna_allowed', return_value=True) as allowed, \
+        local_reranker.assert_not_called()
+
+    def test_unreachable_luna_raises_os_error_instead_of_falling_back(self):
+        # OSError pauses the stage and keeps the job queued (see _Stage.run).
+        with mock.patch.object(luna, 'use_luna', return_value=True), \
+                mock.patch.object(luna, 'analyse_lines', side_effect=luna.LunaUnavailable('rate limited')), \
+                mock.patch.object(worker, 'analyse_lines') as local_llm:
+            with self.assertRaises(OSError):
+                worker._analyse(self.LINES, self.SCOPES, worker.analyse_lines)
+        local_llm.assert_not_called()
+        with mock.patch.object(luna, 'use_luna', return_value=True), \
+                mock.patch.object(luna, 'compute_evidence', side_effect=luna.LunaUnavailable('busy')), \
+                mock.patch.object(worker, 'compute_evidence') as local_reranker:
+            with self.assertRaises(OSError):
+                worker._evidence(ANALYSIS, 'PO', SOURCE, b'', worker.embed, worker.rerank)
+        local_reranker.assert_not_called()
+
+    def test_local_mode_and_injected_models_never_call_luna(self):
+        local = {'items': [], 'role': None, 'domain': None, 'context': 'x'}
+        with mock.patch.object(luna, 'use_luna', return_value=False), \
+                mock.patch.object(luna, 'compute_evidence') as remote, \
                 mock.patch.object(worker, 'compute_evidence', return_value=local):
-            worker._evidence_with_backup(ANALYSIS, 'PO', SOURCE, b'', worker.embed, lambda q, d: [0.0] * len(d))
-            allowed.assert_not_called()
+            self.assertIs(worker._evidence(ANALYSIS, 'PO', SOURCE, b'', worker.embed, worker.rerank), local)
+        remote.assert_not_called()
+        with mock.patch.object(luna, 'use_luna', return_value=True) as selected, \
+                mock.patch.object(worker, 'compute_evidence', return_value=local):
+            worker._evidence(ANALYSIS, 'PO', SOURCE, b'', worker.embed, lambda q, d: [0.0] * len(d))
+            selected.assert_not_called()
 
 
 class CalibrationTests(unittest.TestCase):

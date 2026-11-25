@@ -10,6 +10,10 @@ no historical releases have been reconstructed.
 
 ## [Unreleased]
 
+### Changed
+
+- The matching model is switched by hand only: Settings → Matching model chooses **GPT-6 Luna** (default) or **Local models**. The five-hour and weekly usage caps (`RADIUS_MATCH_LUNA_MAX_5H`, `RADIUS_MATCH_LUNA_MAX_WEEKLY`) and the automatic fallback to the local models are removed. With Luna selected, an unreachable ChatGPT pauses matching and keeps work queued instead of using the local models. The `llm` and `llm-reranker` containers now start only with `COMPOSE_PROFILES=local-models`, so they can stay off (about 6 GB less RAM). A stored `luna_first` setting reads as `luna`; `PUT /api/v1/matching-model` takes `luna` or `local`, and `GET` returns `{mode, ready, reason}`.
+
 ### Added
 
 - Local LLM job-analysis pre-ranking gate and age cutoff (migration `0047_analysis_prerank`): automatic analysis now skips postings older than `RADIUS_ANALYSIS_MAX_AGE_DAYS` (default `14`, using safe text comparison on ISO `date_posted` with `first_seen_at` fallback) and postings whose `multilingual-e5-small` cosine similarity against all profiles falls below `RADIUS_ANALYSIS_MIN_SIMILARITY` (default `0.80`), processing eligible postings in descending similarity order (preserving local-area preference when a profile has a local radius). Postings saved by the user, moved to a non-automatic Journey stage, or opened on the job page override the gate with priority.

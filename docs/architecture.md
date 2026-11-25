@@ -20,8 +20,8 @@ development, run the same modules with `python -m hiring_scraper.app.<module>`.
 | Discovery worker | `app.discovery_worker` | Runs search-area campaigns: finds employers from OpenStreetMap, resolves missing homepages, and discovers career pages and ATS feeds. |
 | Search snapshot worker | `app.search_snapshot_worker` | Rebuilds materialized job-search snapshots so browsing does not wait for ranking, and backfills stale precomputed Germany/state job scope columns (`job_location_scope.py`) in bounded batches. |
 | Semantic search worker | `app.semantic_search_worker` | Hosts the pinned local multilingual E5 embedding model and indexes companies and jobs. |
-| Job analysis worker | `app.job_analysis_worker` | Drains the job analysis and pair evidence queues with GPT-6 Luna through the ChatGPT subscription while it has headroom, and the local `llm` and `llm-reranker` containers otherwise (see `docs/local-models.md`). |
-| Model containers | `llm`, `llm-reranker` | llama.cpp servers for the pinned Qwen3.5-4B (posting analysis) and Qwen3-Reranker-0.6B (CV evidence checks). CPU only. |
+| Job analysis worker | `app.job_analysis_worker` | Drains the job analysis and pair evidence queues with the model selected in Settings: GPT-6 Luna through the ChatGPT subscription, or the local `llm` and `llm-reranker` containers (see `docs/local-models.md`). No automatic fallback. |
+| Model containers | `llm`, `llm-reranker` | llama.cpp servers for the pinned Qwen3.5-4B (posting analysis) and Qwen3-Reranker-0.6B (CV evidence checks). CPU only. Optional `local-models` compose profile. |
 | Profile match worker | `app.profile_match_worker` | Scores profiles against jobs from stored analyses and evidence (no inference) and rebuilds stale matches. |
 | Application preparation worker | `app.application_preparation_worker` | Runs inference and PDF rendering on separate threads with independent PostgreSQL queues. |
 
