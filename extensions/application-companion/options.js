@@ -502,6 +502,12 @@ document.querySelector("#clear").onclick = async () => {
   render(emptyProfile());
   status("Saved profile deleted.");
 };
+// Typing before the saved profile loads would be overwritten by the first render
+// (and then saved blank), so the editor stays disabled until that render.
+const loadingControls = [
+  ...document.querySelector("#profile-form").elements,
+].filter((control) => !control.disabled);
+for (const control of loadingControls) control.disabled = true;
 try {
   const { applicant } = await chrome.storage.local.get("applicant");
   render(applicant ? validateProfile(applicant) : emptyProfile());
@@ -510,6 +516,8 @@ try {
     "The saved profile is invalid. Import a valid profile or delete it.",
     true,
   );
+} finally {
+  for (const control of loadingControls) control.disabled = false;
 }
 
 for (const [language, target] of [
