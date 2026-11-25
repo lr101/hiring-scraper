@@ -10,6 +10,10 @@ no historical releases have been reconstructed.
 
 ## [Unreleased]
 
+### Added
+
+- Laptop GPU for the local models: Settings → Matching model → **Local models** → **Laptop GPU** takes the laptop's VPN address, a switch, and offers `radius-laptop-gpu.sh` for a Fedora laptop with an NVIDIA GPU (pinned llama.cpp CUDA build and weights, SHA-256 checked, systemd user services on ports 8091/8092). While the laptop is enabled and answers with the pinned models, `job-analysis-worker` sends local model calls there, as many postings and pairs at once as the laptop has slots (`JOB_ANALYSIS_MAX_PARALLEL`, default 4), and checks evidence in a second thread so the GPU keeps analysing; when the laptop goes offline, calls return to the homelab containers. New endpoints: `GET`/`PUT /api/v1/matching-model/laptop-gpu` and `GET /api/v1/matching-model/laptop-setup.sh`. The worker's database pool defaults to 8 (`JOB_ANALYSIS_DB_POOL_SIZE`). See `docs/local-models.md`.
+
 ### Changed
 
 - The matching model is switched by hand only: Settings → Matching model chooses **GPT-6 Luna** (default) or **Local models**. The five-hour and weekly usage caps (`RADIUS_MATCH_LUNA_MAX_5H`, `RADIUS_MATCH_LUNA_MAX_WEEKLY`) and the automatic fallback to the local models are removed. With Luna selected, an unreachable ChatGPT pauses matching and keeps work queued instead of using the local models. The `llm` and `llm-reranker` containers now start only with `COMPOSE_PROFILES=local-models`, so they can stay off (about 6 GB less RAM). A stored `luna_first` setting reads as `luna`; `PUT /api/v1/matching-model` takes `luna` or `local`, and `GET` returns `{mode, ready, reason}`.

@@ -32,7 +32,7 @@ build-backend = "setuptools.build_meta"
 include = ["hiring_scraper*"]
 
 [tool.setuptools.package-data]
-"hiring_scraper.app" = ["*.json", "*.txt", "prompts/*.txt"]
+"hiring_scraper.app" = ["*.json", "*.txt", "*.sh", "prompts/*.txt"]
 hiring_scraper = ["elections/*.csv"]
 
 [tool.uv]

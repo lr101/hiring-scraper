@@ -96,6 +96,63 @@ Cost: each Luna call carries about 10k input tokens (half cached) and 150–260 
 tokens; one posting needs one analysis call plus one evidence call per profile. 129
 calls used about 1% of a Plus plan's five-hour window and under 1% of its week.
 
+## Laptop GPU (optional)
+
+A laptop with an NVIDIA GPU in the same VPN can take over the local models whenever it
+is on, and hand them back when it sleeps. It runs the same pinned llama.cpp build,
+weights and model keys as the homelab, so stored analyses and evidence stay valid
+whichever machine produced them.
+
+**On the laptop (Fedora, NVIDIA driver 570+ working, `nvidia-smi` succeeds):**
+
+1. Settings → Matching → Matching model → **Local models** → **Laptop GPU**: enter the
+   laptop's VPN IP (or VPN host name) and save.
+2. **Download setup script** (`radius-laptop-gpu.sh`, the address is filled in), then:
+
+   ```sh
+   bash radius-laptop-gpu.sh install   # once: llama.cpp CUDA 12.8 build + runtime, weights, user services
+   bash radius-laptop-gpu.sh start     # whenever you want to lend the GPU
+   bash radius-laptop-gpu.sh stop      # free it again
+   bash radius-laptop-gpu.sh status    # both servers and GPU memory
+   ```
+
+   The script checks SHA-256 digests for every download, needs no system CUDA toolkit
+   (it ships the pinned `cudart` libraries next to `llama-server`), installs two systemd
+   user services (`radius-llm`, `radius-reranker`) that listen only on the VPN address,
+   and opens ports 8091/8092 in the firewalld zone of the VPN interface. Traffic is plain
+   HTTP inside the VPN. `autostart on` starts them with your login; `uninstall` removes
+   everything again.
+3. Tick **Use my laptop's GPU while it is online**. The status line shows whether each
+   laptop server is up and how many requests it takes at once.
+
+Sizing is picked from GPU memory: on a 4 GB card (for example a laptop RTX 3050 Ti) the
+4B model takes two postings at once (8k tokens each, about 3.3–3.8 GB with llama.cpp's
+`--fit` moving any layer that does not fit to the CPU), and the reranker runs on the
+laptop CPU. With 6 GB or more the reranker joins the GPU and three or four postings run
+at once. Override with `PARALLEL=… RERANK_DEVICE=gpu|cpu bash radius-laptop-gpu.sh install`.
+
+**On the homelab server** nothing in the code or compose files needs to change:
+
+- `job-analysis-worker` and `api` must reach the laptop's VPN address on TCP 8091 and
+  8092. With the VPN client (WireGuard, Tailscale, …) on the Docker host this works out
+  of the box: container traffic leaves through the host's routes. If the VPN runs in a
+  container of its own, or VPN ACLs limit traffic, allow homelab → laptop on these two
+  ports. Check from the worker:
+  `docker compose exec job-analysis-worker python -c "import urllib.request as u; print(u.urlopen('http://LAPTOP_IP:8091/health', timeout=3).read())"`
+- Keep the `llm` and `llm-reranker` containers (`COMPOSE_PROFILES=local-models`)
+  running if matching should continue on the CPU while the laptop is away. Without them,
+  work simply stays queued until the laptop is back.
+
+**How the worker uses it.** Before each call the worker checks the laptop (`/health`
+and `/props`, cached for 20 s) and uses it only when it answers with the pinned model
+key. A failed call routes the next one back to the homelab immediately; the item stays
+queued as with any outage. While the laptop serves, the worker sends as many postings
+and profile/posting pairs at once as the laptop servers have slots (capped by
+`JOB_ANALYSIS_MAX_PARALLEL`, default 4), and checks evidence in a second thread while
+postings are analysed, so the GPU does not wait for the reranker. The homelab
+containers keep one call at a time on shared cores. Batched GPU inference can differ
+from the CPU in the last digits; the evaluation fixtures stay recorded on the CPU.
+
 ## Throughput and priorities
 
 On four laptop cores the LLM needs about 25–50 s per posting and the reranker about
@@ -117,7 +174,7 @@ one analysis worker runs at a time (PostgreSQL advisory lock).
 
 Both model containers have `cpu_shares: 256` so the API and crawlers stay responsive,
 memory limits of 4.5 GB and 1.5 GB, and no extra Linux capabilities. The worker calls them one at a time, so they
-share the same cores without competing. Tune with `LLM_THREADS`,
+share the same cores without competing (the laptop GPU, when used, runs calls in parallel; see above). Tune with `LLM_THREADS`,
 `LLM_MEMORY_LIMIT` and `LLM_RERANKER_MEMORY_LIMIT` in `.env`.
 
 ## Local development

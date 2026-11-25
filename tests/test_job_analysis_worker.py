@@ -1,4 +1,5 @@
 """Background local-model pipeline: analysis, CV units and pair evidence reach Journey."""
+import threading
 import unittest
 from unittest.mock import patch
 
@@ -280,6 +281,32 @@ class JobAnalysisWorkerTests(unittest.TestCase):
         self.assertLessEqual(sizes[-1], 20)
         with self.factory() as session:
             self.assertEqual(session.get(models.JobAnalysis, self.near_id).status, 'ok')
+
+
+    def test_laptop_slots_analyse_and_check_several_postings_at_once(self):
+        analysis_barrier = threading.Barrier(2, timeout=10)
+
+        def analyse(lines):
+            analysis_barrier.wait()  # Both postings are in flight together.
+            return LLM_OUTPUT
+
+        self.assertEqual(sorted(worker.analyse_next_jobs(2, analyse=analyse)), sorted([self.near_id, self.far_id]))
+        with self.factory() as session:
+            for job_id in (self.near_id, self.far_id):
+                self.assertEqual(session.get(models.JobAnalysis, job_id).status, 'ok')
+        self.assertTrue(worker.refresh_profile_units_once(embed_fn=fake_embed))
+        evidence_barrier, started = threading.Barrier(2, timeout=10), set()
+
+        def rerank(query, documents):
+            if threading.get_ident() not in started:
+                started.add(threading.get_ident())
+                evidence_barrier.wait()  # Both pairs are checked together.
+            return fake_rerank(query, documents)
+
+        with patch.object(worker, 'evidence_parallel', return_value=2):
+            self.assertEqual(worker.refresh_evidence_once(embed_fn=fake_embed, rerank_fn=rerank), 2)
+        self.assertFalse(self.match(self.near_id)['pending'])
+        self.assertFalse(self.match(self.far_id)['pending'])
 
 
 if __name__ == '__main__':

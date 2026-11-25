@@ -2111,6 +2111,11 @@ html[data-theme="dark"] .settings-page {
 .settings-inline-form button { padding: 7px 12px; border: 1px solid var(--st-accent); border-radius: 8px; background: var(--st-accent); color: #ffffff; font-weight: 600; }
 .settings-inline-form button:disabled { opacity: 0.55; }
 .settings-saved { color: var(--st-accent); font-size: 12px; font-weight: 600; }
+.settings-laptop { display: grid; gap: 8px; justify-items: start; margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--st-line); }
+.settings-laptop h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--st-ink); }
+.settings-laptop code { font-size: 11px; }
+.settings-check { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--st-ink); }
+.settings-check input { width: 16px; height: 16px; accent-color: var(--st-accent); }
 .settings-error { margin: 0; color: var(--st-high); font-size: 12px; }
 .settings-link-rows { margin: 0; padding: 0; list-style: none; }
 .settings-link-rows li { border-bottom: 1px solid var(--st-line); }
