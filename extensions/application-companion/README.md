@@ -15,23 +15,31 @@ The ZIP is unsigned and installed manually. To update, replace the extracted fil
 ## Daily flow
 
 - Open the extension on the employer's job or linked application page. The popup shows only the current job. Other roles at the company and recent applications are not promoted into the main view. If a URL matches several roles, choose the current role explicitly.
-- Choose **Prepare with ChatGPT**. The extension reads the current job and selected profile from Radius, chooses the English/German base CV, copies the complete brief, and opens ChatGPT directly. Paste the brief there. Your CV is not placed in a URL; opening ChatGPT alone does not send it. If copying is blocked, reopen the popup on the employer tab and copy from **Application brief**. Briefs expire after 30 minutes and are tied to job/profile/CV and saved facts.
-- ChatGPT saves the marked CV and letter in code Canvases and returns a downloadable `application-package.json`. Return to the employer tab, reopen the extension, and choose **Import ChatGPT result → Import result file**, or paste the package/return link. A result for another job/profile/CV is rejected.
-- Download the CV or letter as LaTeX PDF/source from the popup. Choose **Attach prepared documents** on a supported linked form to attach the generated files. Choose **Fill known details** to fill supported fields. The extension never submits the form.
-- Use **Prepare from these questions** to capture the current form's question labels and constraints, then open ChatGPT directly with those questions included. Entered values are not captured.
-- If navigation/login loses the job link, expand **Link this page to a job**, find the intended role, then explicitly choose **Use on this page**. Generic `/apply` pages require confirmation for each fill.
-- Radius access stays in the background. The popup refreshes stale cached connections; saving a profile in the extension updates Radius. Connection setup, profile selection, base-CV imports, prompt preparation, result imports, and document downloads all have extension controls. Login to the Radius deployment may still require its normal sign-in page.
+- Connect your ChatGPT subscription once in Radius settings. The backend keeps this connection for devices using the same Radius instance.
+- Choose **Prepare documents** to open the Radius editor. Review the tailored CV
+  and cover letter, then download their PDFs in Radius and attach them on the form.
+- Choose **Fill known details** on a supported form to reuse your saved profile
+  facts. The extension never submits the form.
+- **Prepare from these questions** captures the current form's labels and
+  constraints. Entered values are excluded.
+- If navigation or login loses the job link, expand **Link this page to a job**,
+  choose the intended role, then choose **Use on this page**. Generic `/apply`
+  pages require confirmation for each fill.
 - On an unlinked page, **Track this company or save a job** remains available for adding that specific page. It stays hidden while a current job is selected.
 
 ## Data and freshness
 
-Connected application details and CV text are copied from your selected Radius profile into trusted local extension storage, not Chrome Sync. Standalone contact/work history stays in local extension storage. The selected employer page receives those facts when you click Fill, and prepared document files when you click Attach prepared documents. Captured question schemas are stored for up to 20 job/profile pairs and copied only to the connected Radius origin. PDF/DOCX exports send prepared text or template edits to Radius for transient rendering; generated files are not persisted by this endpoint. Export contains personal information; keep it private. **Delete saved profile** removes the reusable profile and prepared extension packages; **Disconnect Radius** clears the connection, catalog, aliases and prepared packages and revokes its permissions.
+Your selected profile and base CV sync to trusted local extension storage.
+Captured question schemas are kept for up to 20 job/profile pairs and copied
+to the connected Radius origin. V2 documents live on the Radius server. You
+can reconnect a saved v1 package in the extension settings during migration.
 
-CV files attached to a Radius profile are stored on the Radius server. The alternative browser-local CV text and all generated application drafts are stored in that Radius site's localStorage; they persist on this device and can be read by scripts on that origin. Use a trusted Radius deployment. Remove attached CVs in the profile editor; **Delete saved CV** clears a browser-local CV and its drafts. Clearing site data removes browser-local CVs and drafts, while attached profile CVs remain on the server. Deleting extension data does not delete Radius site data, and vice versa. Do not use fictional examples with real applicant facts.
+Legacy packages expire after seven days or when the selected profile, original
+CV version or reusable facts change. Their attachment flow still requires
+explicit confirmation. Disconnecting Radius clears the local connection,
+catalog, aliases and prepared packages.
 
-Packages turn grey after seven days or when the selected profile, original CV version or reusable facts change. CV metadata refreshes while Radius is open; the current profile or browser-local CV version is checked again before tailored filling. A stale cached draft cannot silently rebind to edited reusable facts. The extension validates job/profile/version and conflicting contact emails; it cannot independently verify every generated claim. Review all generated text.
-
-Catalog sync is bounded to 2,000 jobs, 2 MB of retained metadata, 20 pages and one minute. A limit is reported in connection settings. Opening the popup on an uncached public posting looks up its exact URL in Radius; **Link a discovered job** searches the server and preserves its active/newest ordering, with cached matches available offline. Lookup ignores marketing parameters, preserves meaningful queries and SPA fragments, and narrows by those references before examining at most 100 candidates for the same page path. If that limit is exceeded, choose the job through search. Lookup, save and import share the bounded cache; refresh preserves prepared/linked roles outside the sync window. Badge updates send only the hostname to Radius for live company/feed status; they never send the page path or query. Login/session and shared generic application URLs are excluded from automatic lookup. A job opened directly in Radius can still be prepared and imported by ID. The extension does not run background crawls; companies and feeds you add use the Radius server's scheduled workers.
+Catalog sync is bounded to 2,000 jobs, 2 MB of retained metadata, 20 pages and one minute. A limit is reported in connection settings. Opening the popup on an uncached public posting looks up its exact URL in Radius; **Link a discovered job** searches the server and preserves its active/newest ordering, with cached matches available offline. Lookup ignores marketing parameters, preserves meaningful queries and SPA fragments, and narrows by those references before examining at most 100 candidates for the same page path. If that limit is exceeded, choose the job through search. Lookup, save and import share the bounded cache; refresh preserves prepared/linked roles outside the sync window. Badge updates send only the hostname to Radius for live company/feed status; they never send the page path or query. Login/session and shared generic application URLs are excluded from automatic lookup. A job opened directly in Radius can also be prepared there. The extension does not run background crawls; companies and feeds you add use the Radius server's scheduled workers.
 
 Structured work histories include stable experience IDs, locations and known dates (`YYYY` or `YYYY-MM`). Missing months stay blank. Optional `cv_bullet_ids` connect selected CV paragraph edits to an experience; alternatively return `experience_bullets: [{"experience_id":"job-1","bullets":["Known accomplishment."]}]`. Original employment facts remain unchanged. Existing differing form values are preserved and reported.
 
@@ -39,7 +47,7 @@ Structured work histories include stable experience IDs, locations and known dat
 
 Deploy the API, frontend and downloadable extension from the same tested commit. The application image already includes LibreOffice Writer and Liberation fonts for PDF exports; a standalone API deployment needs those packages too. This change adds no database migration. Keep the deployment's existing access controls in place for CV and document endpoints.
 
-After deployment, check `/health/ready`, download the extension ZIP and verify its SHA-256 checksum. Update the unpacked extension in its existing folder, click **Reload** in Chrome, and reload the Radius and employer tabs. With fictional data on a controlled form, verify question capture, the returned package, PDF/DOCX downloads and explicit file selection. Confirm that consent remains unchecked, no submit event fires and preparation does not change the tracked application stage. File selection may upload immediately on real employer sites, so use a controlled form for this check.
+After deployment, check `/health/ready`, download the extension ZIP and verify its SHA-256 checksum. Update the unpacked extension in its existing folder, click **Reload** in Chrome, and reload the Radius and employer tabs. With fictional data on a controlled form, verify question capture and explicit filling. In Radius, confirm that the structured editor downloads both PDFs. Confirm that consent remains unchecked, no submit event fires and preparation does not change the tracked application stage. File selection may upload immediately on real employer sites, so use a controlled form for this check.
 
 If rollout fails, redeploy the previous API/frontend image and restore the matching extension package, then reload both tabs. This slice has no schema change to reverse. Packages containing captured form answers require the new extension's binding checks; prepare a fresh package after rolling back rather than reusing those drafts.
 
@@ -70,7 +78,9 @@ Select a Radius profile under Connection. Contact details, common answers (inclu
 
 ### Adaptable field matching
 
-Save marked **English and German base LaTeX CVs** in the Radius profile editor, or paste both sources into the standalone extension editor. Work and study records, including responsibilities, are extracted from non-printing markers instead of a separate profile editor. Use the formatting prompt shown beside the CV fields, or [the documented prompt](../../docs/cv-formatting-prompt.md). Keep the newest entry first and stable IDs identical across translations. Application preparation selects the matching base language; an explicit language choice overrides automatic posting-language detection. CV downloads and attachments use LaTeX PDF or .tex source only. Employer fields that accept only DOCX require manual handling.
+Application details also accept confirmed salutation, birth name, full birth date (`YYYY-MM-DD`), birthplace, nationality, driving licence and reusable additional information. Edit these in Radius or the standalone extension profile, then sync. Blank facts remain for review; nationality is never derived from residence, and birth name is never copied from surname. Exact job-linked prepared answers remain available when the corresponding reusable fact is blank. On bewerber-online.de, Bootstrap question groups recover mislinked labels and datepicker fields receive the observed `DD.MM.YYYY` format. Readable frames without controls or nested frames (such as similar-job lists) do not count as missing application fields. Consent and submission remain manual.
+
+Save marked **English and German base LaTeX CVs** in the Radius profile editor, or paste both sources into the standalone extension editor. Work and study records, including responsibilities, are extracted from non-printing markers instead of a separate profile editor. Use the formatting prompt shown beside the CV fields, or [the documented prompt](../../docs/cv-formatting-prompt.md). Keep the newest entry first and stable IDs identical across translations. Application preparation selects the matching base language; an explicit language choice overrides automatic posting-language detection. Structured application documents download as PDFs in Radius. Employer fields that accept only DOCX require manual handling.
 
 Prefilled work rows can appear in a different order: the companion matches employer, title, known dates or a checked current-role control to saved jobs, and fills only when the assignment is unique across the rows. Empty rows receive the remaining jobs in saved order. Ambiguous or contradictory rows remain for review; an existing employer, title or known date can identify the intended job. Matching never invents missing months.
 
@@ -86,9 +96,7 @@ This approach draws on [Bitwarden's multi-attribute identity matching and browse
 
 The browser regression suite exercises the shipped MV3 extension against fictional forms: English/German conversational labels, nested identifiers, contradictory hints, localized native choices, repeat fills, unknown preferences, disabled options, preservation of existing answers and editor persistence. Run it with the Development and verification commands above.
 
-See [profile-first matching experiments](../../reports/autofill-lab/README.md) for the research, reproducible stress set and limitations of fuzzy, semantic and global assignment strategies. Experimental matchers are not imported into the extension runtime.
-
-The [expanded corpus](../../reports/autofill-lab/expanded.md) evaluates 499 forms and 950 scored fields, excluding support controls. It covers varied label layouts, confirmations, unrelated questions, preserved values, native choices, mid-fill context changes and reordered/ambiguous work records. Results are synthetic regression evidence, not an estimate of real ATS accuracy.
+The synthetic form corpus in `tests/application_companion/autofill_corpus.py` covers varied label layouts, confirmations, unrelated questions, preserved values, native choices, mid-fill context changes and reordered/ambiguous work records. It is regression evidence, not an estimate of real ATS accuracy.
 
 Real-form layouts also support full work-history textareas, numbered career entries, latest-employer prompts and paired period / employer-and-duties fields beneath explicit career headings. These format the saved records in profile order, retaining year/month precision and using “Present” for current roles. Existing incompatible drafts are preserved; text is never truncated to fit a shorter control. Site-specific Add/Save editors still require manual completion.
 
@@ -96,4 +104,4 @@ When bare “Name” accompanies one applicant “Vorname” question, it uses t
 
 Contact matching handles bounded German required prefixes and single-question paragraph labels. Bare “Name” alongside one unambiguous “Vorname” means surname; explicit full-name prompts retain their meaning. Postal-code/city and full postal addresses are composed only when all components are saved. A split street/house-number form is left for review when the profile supplies only a combined address line.
 
-See the [offline real-company evaluation](../../reports/autofill-real/improvements.md) for the fixed captures, before/after results and untested framework workflows.
+`tests/application_companion/test_real_autofill_improvements.py` keeps offline regressions for layouts first observed on real company forms.

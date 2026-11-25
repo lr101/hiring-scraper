@@ -1,6 +1,14 @@
-import { parseTexCV, validateTailoredCV } from "./tex-cv.js";
+import { validateLocalizedContent } from "./profile-language.js";
+import { parseTexCV, validateCVTranslations } from "./tex-cv.js";
 // Shared by the editor and service worker. No inferred dates or answers.
 const contacts = [
+  "salutation",
+  "birth_name",
+  "birth_date",
+  "birth_place",
+  "nationality",
+  "driving_licence",
+  "additional_information",
   "first_name",
   "last_name",
   "email",
@@ -34,6 +42,7 @@ export function validateProfile(input) {
     "experiences",
     "cv_text",
     "base_cvs",
+    "localized_content",
     "education",
     "application",
     "source_notes",
@@ -48,8 +57,21 @@ export function validateProfile(input) {
     return value.trim();
   };
   const profile = Object.fromEntries(
-    contacts.map((key) => [key, text(input[key], key)]),
+    contacts.map((key) => [
+      key,
+      text(input[key], key, key === "additional_information" ? 10000 : 300),
+    ]),
   );
+  if (
+    profile.birth_date &&
+    (!/^[1-9][0-9]{3}-[0-9]{2}-[0-9]{2}$/.test(profile.birth_date) ||
+      !Number.isFinite(Date.parse(profile.birth_date)) ||
+      new Date(profile.birth_date).toISOString().slice(0, 10) !==
+        profile.birth_date)
+  )
+    fail(
+      "birth_date: provide a real complete date (YYYY-MM-DD), or leave it blank.",
+    );
   if (profile.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email))
     fail("Enter a valid email address or leave it blank.");
   for (const name of ["linkedin", "website", "portfolio", "github"])
@@ -63,6 +85,10 @@ export function validateProfile(input) {
       if (url.protocol !== "https:" || url.username || url.password)
         fail("Enter a complete HTTPS website URL.");
     }
+  if (input.localized_content !== undefined)
+    profile.localized_content = validateLocalizedContent(
+      input.localized_content,
+    );
   profile.base_cvs = {};
   for (const [language, source] of Object.entries(input.base_cvs ?? {})) {
     if (!["en", "de"].includes(language))
@@ -71,7 +97,7 @@ export function validateProfile(input) {
     profile.base_cvs[language] = source;
   }
   if (profile.base_cvs.en && profile.base_cvs.de)
-    validateTailoredCV(profile.base_cvs.en, profile.base_cvs.de);
+    validateCVTranslations(profile.base_cvs.en, profile.base_cvs.de);
   const history = input.cv_text?.includes("\\begin{document}")
     ? parseTexCV(input.cv_text)
     : null;

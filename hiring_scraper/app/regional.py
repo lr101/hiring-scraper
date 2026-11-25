@@ -15,6 +15,7 @@ from pathlib import Path
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
+from hiring_scraper.app import source_changes
 from hiring_scraper.app.models import Company, Job, JobFeed, UserProfile
 from hiring_scraper.app.job_search import (
     job_search_signature, refresh_application_matches_for_jobs, replace_job_locations,
@@ -66,6 +67,7 @@ def import_snapshot(session: Session, snapshot, observed_at: str | None = None) 
     counts = {'companies_created': 0, 'feeds_created': 0, 'jobs_created': 0, 'jobs_updated': 0, 'skipped': 0}
     feed_ids = set()
     touched_job_ids: set[int] = set()
+    written_companies: set[int] = set()
     for row in _rows(snapshot):
         try:
             if isinstance(row, dict) and 'external_id' in row and 'raw_metadata' in row:
@@ -117,6 +119,7 @@ def import_snapshot(session: Session, snapshot, observed_at: str | None = None) 
             session.add(feed)
             session.flush()
             counts['feeds_created'] += 1
+        written_companies.add(company.id)
         feed.next_scan_at = None
         feed.status = 'selected_search'
         feed.last_checked_at = _timestamp(observed_at or job_data['raw_metadata'].get('source_observed_at'))
@@ -241,6 +244,8 @@ def import_snapshot(session: Session, snapshot, observed_at: str | None = None) 
         feed = session.get(JobFeed, feed_id)
         feed.job_count = session.scalar(select(func.count(Job.id)).where(Job.feed_id == feed_id, Job.is_active.is_(True)))
     session.flush()
+    source_changes.companies_changed(session, written_companies)
+    source_changes.feeds_changed(session, feed_ids)
     if touched_job_ids:
         refresh_application_matches_for_jobs(session, touched_job_ids)
     return counts
@@ -287,8 +292,7 @@ def main(argv=None):
     search.add_argument('--retries', type=int, default=2)
     search.add_argument('--import', action='store_true', dest='import_after', help='Import resulting snapshot into the application')
     args = parser.parse_args(argv)
-    from hiring_scraper.app.database import SessionLocal, engine, initialize_sqlite_schema
-    initialize_sqlite_schema(engine)
+    from hiring_scraper.app.database import SessionLocal
     with SessionLocal() as session:
         try:
             if args.command == 'import':

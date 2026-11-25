@@ -1,6 +1,6 @@
 """Check posting-state search in an isolated preview, retaining synthetic demo jobs.
 
-POSTING_TEST_WEB_URL=... POSTING_TEST_DATABASE_URL=sqlite:////tmp/serve-dev-worktree/... \
+POSTING_TEST_WEB_URL=... POSTING_TEST_DATABASE_URL=postgresql+psycopg://.../radius_preview_<slug> \
     .venv/bin/python tests/frontend_posting_status_browser.py
 """
 import os
@@ -18,9 +18,9 @@ from hiring_scraper.app.models import Company, Job, JobFeed, JobLocation, utcnow
 
 web = os.environ['POSTING_TEST_WEB_URL'].rstrip('/')
 database_url = os.environ['POSTING_TEST_DATABASE_URL']
-assert database_url.startswith('sqlite:////tmp/serve-dev-worktree/hiring-scraper/'), 'Use an isolated preview database'
+assert '/radius_preview_' in database_url, 'Use an isolated preview database (scripts/dev/preview.sh)'
 marker = 'PostingStateDemo' + uuid4().hex[:8]
-engine = create_engine(database_url, connect_args={'timeout': 30})
+engine = create_engine(database_url)
 with Session(engine) as session:
     company = Company(source='preview_posting_status', source_id=marker,
                       name='Synthetic posting state demo', country_code='DE')
@@ -65,7 +65,7 @@ with sync_playwright() as pw:
             expect(page.get_by_role('link', name=closed_title, exact=True)).to_be_visible()
             page.get_by_role('link', name=closed_title, exact=True).click()
             expect(page.get_by_role('heading', name=closed_title, exact=True)).to_be_visible()
-            expect(page.locator('.metadata-grid').get_by_text('Closed', exact=True)).to_have_count(2)
+            expect(page.locator('.job-page-closed')).to_contain_text('This posting closed on')
             assert not errors, errors
             screenshot = Path('/tmp') / f'posting-status-detail-{width}.png'
             page.screenshot(path=str(screenshot), full_page=True, animations='disabled')

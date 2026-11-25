@@ -3,40 +3,41 @@ from __future__ import annotations
 
 import hashlib
 import ipaddress
-import logging
+import json
+import math
 import os
 import re
 import threading
 import time
-import unicodedata
 from datetime import datetime, timedelta, timezone
-import json
-import math
-from math import cos, radians
 from pathlib import Path
 from typing import Annotated, Any, Literal
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
-from uuid import uuid4
-
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from hiring_scraper.app.companion import router as companion_router
-from hiring_scraper.app.application_documents import router as application_documents_router
+from hiring_scraper.app.application_documents_v2 import router as application_documents_v2_router
+from hiring_scraper.app.application_generation import router as application_generation_router
+from hiring_scraper.app.focus import router as focus_router
+from hiring_scraper.app.journey import (  # noqa: F401 - re-exported for existing callers
+    APPLICATION_WEEKLY_GOAL, ApplicationRequest, _application_momentum_json, get_application_momentum,
+    list_applications, list_job_applications, router as journey_router, set_job_application,
+)
 from pydantic import BaseModel, Field
-from sqlalchemy import and_, case, delete, func, or_, select, text, true, update
+from sqlalchemy import and_, case, func, or_, select, text, update
 from sqlalchemy.orm import Session, aliased, joinedload, selectinload
-
-from hiring_scraper.app.database import IS_SQLITE, SessionLocal, engine, get_session, initialize_sqlite_schema
+from hiring_scraper.app import source_changes
+from hiring_scraper.app.database import dialect_insert, get_session
+from hiring_scraper.app.match_documents import USABLE_ANALYSIS_STATUSES
 from hiring_scraper.app.models import (
-    ApplicationMomentumEvent, Base, Company, ConfiguredLocation,
-    DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobApplication,
-    JobSearchRefresh, JobSearchResult, JobSearchSnapshot, JobSearchState, ProfileJobMatch, SemanticSearchDocument,
-    SemanticSearchIndexState, UserProfile,
-    JobFeed, JobLocation, LocationCache, ScanRun, utcnow,
+    Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany,
+    DiscoveryRun, Job, JobAnalysis, JobAnalysisQueue, JobApplication, JobFeed, JobSearchResult, JobSearchSnapshot,
+    JobVacancyGroup,
+    LocationCache, ScanRun, SemanticSearchDocument, SemanticSearchIndexState, utcnow,
 )
 from hiring_scraper.app.discovery_jobs import (
     configured_location_json, create_discovery_job as make_discovery_job, discovery_job_json, german_company_filter,
@@ -48,20 +49,20 @@ from hiring_scraper.app.feed_schedules import (
 )
 from hiring_scraper.app.default_job_feeds import ensure_default_job_feeds
 from hiring_scraper.app.company_identity import company_domain, find_company_by_website, is_hosted_job_site
-from hiring_scraper.geography import GERMAN_STATES, haversine_m, normalize_german_state
-from hiring_scraper.app.enrichment import current_enrichment, job_input
+from hiring_scraper.geography import GERMAN_STATES, normalize_german_state
 from hiring_scraper.app.profiles import router as profiles_router, require_profile
-from hiring_scraper.app.applications import (APPLIED_STATUSES, APPLICATION_STATUSES, ApplicationRequest,
-                                            ApplicationStatus, application_json, close_job_applications)
+from hiring_scraper.app.applications import (
+    APPLICATION_STATUSES, ApplicationStatus, application_json,
+    canonical_application_states_for_jobs, close_job_applications,
+)
 from hiring_scraper.app.job_search import (
-    ProfileIndexChanged, ensure_profile_match_indexes, refresh_application_matches_for_jobs,
+    refresh_application_matches_for_jobs,
 )
-from hiring_scraper.matching import VERSION as MATCHING_VERSION, match_job
-from hiring_scraper.app.board_scope import (
-    deduplicate_jobs, expiry, fully_remote, geographic_scope, remote_countries,
-    german_location_text_names, german_state_bounds, location_text_names,
-    vacancy_keys, vacancy_text_scope,
-)
+from hiring_scraper.job_analysis import VERSION as ANALYSIS_VERSION
+from hiring_scraper.matching import VERSION as MATCHING_VERSION
+from hiring_scraper.semantic_matching import MODEL_KEY as SEMANTIC_MODEL_KEY
+from hiring_scraper.app import search_snapshots
+from hiring_scraper.app.board_scope import deduplicate_jobs
 
 
 KARLSRUHE = {"label": "Karlsruhe, Baden-Württemberg, Deutschland", "city": "Karlsruhe",
@@ -71,14 +72,7 @@ ATS_FEED_PROVIDERS = {"greenhouse", "lever", "personio", "ashby", "recruitee", "
 MANAGED_FEED_PROVIDERS = {"external_html", "browser_html", "rss", "arbeitsagentur", *ATS_FEED_PROVIDERS}
 _NOMINATIM_LOCK = threading.Lock()
 _LAST_NOMINATIM_REQUEST = 0.0
-_LOG = logging.getLogger(__name__)
-_SEARCH_SNAPSHOT_REFRESH_DELAY_SECONDS = 2.0
-_SEARCH_SNAPSHOT_REFRESH_LEASE_SECONDS = 15 * 60
-_SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS = 15 * 60
-_WORK_LOCATION_GEOGRAPHY_VERSION = 'work-location-text-v2'
-_SEMANTIC_MODEL_KEY = "intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
 _SEMANTIC_EMBEDDING_URL = os.getenv("SEMANTIC_EMBEDDING_URL", "http://127.0.0.1:8001/embed")
-APPLICATION_WEEKLY_GOAL = max(1, int(os.getenv("APPLICATION_WEEKLY_GOAL", "10")))
 _QUERY_EMBEDDINGS: dict[str, list[float]] = {}
 _QUERY_EMBEDDING_LOCK = threading.Lock()
 
@@ -114,12 +108,12 @@ def _query_embedding(query: str) -> list[float] | None:
 def _semantic_index_ready(session: Session, entity_type: str) -> bool:
     return bool(session.scalar(select(SemanticSearchIndexState.backfill_complete).where(
         SemanticSearchIndexState.entity_type == entity_type,
-        SemanticSearchIndexState.model_revision == _SEMANTIC_MODEL_KEY,
+        SemanticSearchIndexState.model_revision == SEMANTIC_MODEL_KEY,
     )))
 
 
 def _search_query_embedding(session: Session, query: str | None, entity_type: str) -> list[float] | None:
-    if not query or IS_SQLITE or not _semantic_index_ready(session, entity_type):
+    if not query or not _semantic_index_ready(session, entity_type):
         return None
     # These read endpoints must return their connection before local HTTP I/O.
     # A burst of embedding requests otherwise exhausts the database pool.
@@ -471,132 +465,6 @@ def _with_city_election_results(results: list[dict[str, Any]]) -> list[dict[str,
     return enriched
 
 
-def _distance(company: Company, latitude: float, longitude: float) -> float:
-    if company.latitude is None or company.longitude is None:
-        return float("inf")
-    return haversine_m(latitude, longitude, company.latitude, company.longitude)
-
-
-def _coordinate_bbox_filters(latitude: float, longitude: float, radius_km: float,
-                             latitude_column, longitude_column):
-    latitude_delta = radius_km / 110.0
-    filters = [
-        latitude_column.is_not(None), longitude_column.is_not(None),
-        latitude_column.between(max(-90.0, latitude - latitude_delta),
-                                min(90.0, latitude + latitude_delta)),
-    ]
-    longitude_scale = abs(cos(radians(latitude)))
-    if longitude_scale > 1e-6:
-        longitude_delta = min(360.0, radius_km / (110.0 * longitude_scale))
-        if longitude_delta < 180.0:
-            west, east = longitude - longitude_delta, longitude + longitude_delta
-            if west < -180:
-                filters.append(or_(longitude_column >= west + 360, longitude_column <= east))
-            elif east > 180:
-                filters.append(or_(longitude_column >= west, longitude_column <= east - 360))
-            else:
-                filters.append(longitude_column.between(west, east))
-    return filters
-
-
-def _sqlite_company_bbox(latitude: float, longitude: float, radius_km: float):
-    """Use indexed coordinate bounds before the exact Python haversine check."""
-    return _coordinate_bbox_filters(latitude, longitude, radius_km,
-                                    Company.latitude, Company.longitude)
-
-
-def _location_text_patterns(value: str) -> set[str]:
-    source = value.strip().casefold().replace('ß', 'ss')
-    normalized = unicodedata.normalize('NFKD', source)
-    normalized = ''.join(char for char in normalized if not unicodedata.combining(char))
-    transliterated = source.translate(str.maketrans({'ä': 'ae', 'ö': 'oe', 'ü': 'ue'}))
-    patterns = set()
-    for raw in {value.strip().casefold(), value.strip().upper()}:
-        raw_words = re.sub(r'[^A-Za-z0-9äöüÄÖÜ]+', '%', raw).strip('%')
-        if raw_words:
-            patterns.add(f'%{raw_words}%')
-    for variant in {normalized, transliterated}:
-        words = re.sub(r'[^a-z0-9]+', '%', variant).strip('%')
-        if words:
-            patterns.add(f'%{words}%')
-    return patterns
-
-
-def _job_location_text_candidate(value: str):
-    patterns = {pattern for name in location_text_names(value)
-                for pattern in _location_text_patterns(name)}
-    return or_(*(Job.location_text.ilike(pattern) for pattern in patterns),
-               *(Job.locations.any(JobLocation.label.ilike(pattern)) for pattern in patterns))
-
-
-def _remote_job_candidate():
-    return or_(Job.work_arrangement == 'remote',
-               and_(Job.is_remote.is_(True), Job.work_arrangement.is_(None)))
-
-
-def _job_area_candidates(latitude: float, longitude: float, radius_km: float,
-                         place: str | None, location_scope: str):
-    """Broadly narrow jobs before Python performs exact workplace and remote checks."""
-    expiry_clause = or_(Job.raw_metadata["validThrough"].as_string().is_not(None),
-                        Job.raw_metadata["valid_through"].as_string().is_not(None))
-    if location_scope == 'remote':
-        return or_(_remote_job_candidate(), expiry_clause)
-    if not IS_SQLITE:
-        location_ids = select(JobLocation.job_id).where(text(
-            "ST_DWithin(job_locations.location_geog, "
-            "ST_SetSRID(ST_MakePoint(:longitude, :latitude),4326)::geography, :radius_m, false)"
-        ).bindparams(longitude=longitude, latitude=latitude, radius_m=radius_km * 1000))
-        spatial_clause = Job.id.in_(location_ids)
-    else:
-        bounds = _coordinate_bbox_filters(latitude, longitude, radius_km,
-                                          JobLocation.latitude, JobLocation.longitude)
-        location_ids = select(JobLocation.job_id).where(*bounds)
-        spatial_clause = Job.id.in_(location_ids)
-    clauses = [spatial_clause, expiry_clause, _remote_job_candidate()]
-    if place:
-        clauses.append(_job_location_text_candidate(place))
-    return or_(*clauses)
-
-
-def _job_state_text_candidates(state: str):
-    patterns = {pattern for value in german_location_text_names(state)
-                for pattern in _location_text_patterns(value)}
-    candidates = [*(Job.location_text.ilike(pattern) for pattern in patterns),
-                  *(Job.locations.any(JobLocation.label.ilike(pattern)) for pattern in patterns)]
-    if bounds := german_state_bounds().get(state):
-        west, south, east, north = bounds
-        candidates.append(Job.locations.any(and_(
-            JobLocation.latitude.between(south, north),
-            JobLocation.longitude.between(west, east),
-        )))
-    return or_(*candidates)
-
-
-def _job_germany_text_candidates():
-    patterns = {pattern for value in ('Germany', 'Deutschland', *german_location_text_names())
-                for pattern in _location_text_patterns(value)}
-    country_code_patterns = (
-        'DE', 'DE %', 'DE,%', 'DE/%', 'DE-%', 'DE)%',
-        '%, DE', '%, DE %', '%, DE,%', '%,DE', '%,DE %',
-        '% DE', '% DE %', '% DE,%', '%/DE', '%/DE %', '%/DE,%',
-        '%(DE)%', '% (DE)%', '%(DE %', '% (DE %',
-        '%;DE%', '%; DE%', '%|DE%', '%| DE%', '%\nDE%',
-    )
-    candidates = [*(Job.location_text.ilike(pattern) for pattern in patterns),
-                  *(Job.locations.any(JobLocation.label.ilike(pattern)) for pattern in patterns),
-                  *(Job.location_text.ilike(pattern) for pattern in country_code_patterns),
-                  *(Job.locations.any(JobLocation.label.ilike(pattern)) for pattern in country_code_patterns)]
-    bounds = tuple(german_state_bounds().values())
-    if bounds:
-        west = min(bound[0] for bound in bounds)
-        south = min(bound[1] for bound in bounds)
-        east = max(bound[2] for bound in bounds)
-        north = max(bound[3] for bound in bounds)
-        candidates.append(Job.locations.any(and_(
-            JobLocation.latitude.between(south, north),
-            JobLocation.longitude.between(west, east),
-        )))
-    return or_(*candidates)
 
 
 def _company_json(company: Company, distance_m: float, active_job_count: int | None = None) -> dict[str, Any]:
@@ -624,52 +492,6 @@ def _company_json(company: Company, distance_m: float, active_job_count: int | N
             sum(feed.job_count or 0 for feed in company.feeds)}
 
 
-def _job_deduplication_key(job: Job) -> tuple[Any, ...]:
-    return vacancy_keys(job)[-1]
-
-
-def _deduplicate_jobs(jobs: list[Job]) -> list[Job]:
-    return deduplicate_jobs(jobs)
-
-
-def _sort_jobs(jobs: list[Job], sort: str) -> list[Job]:
-    if sort == "newest":
-        dated = [job for job in jobs if job.date_posted]
-        undated = [job for job in jobs if not job.date_posted]
-        dated.sort(key=lambda job: (job.date_posted or "", job.id), reverse=True)
-        undated.sort(key=lambda job: (job.title.casefold(), job.id))
-        return dated + undated
-    if sort == "title":
-        return sorted(jobs, key=lambda job: (job.title.casefold(), _job_employer(job).casefold(), job.id))
-    if sort == "company":
-        return sorted(jobs, key=lambda job: (_job_employer(job).casefold(), job.title.casefold(), job.id))
-    return sorted(jobs, key=lambda job: (not job.is_remote, job.title.casefold(), job.id))
-
-
-def _job_date_rank(value: Any) -> float:
-    if isinstance(value, datetime):
-        parsed = value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value
-        return parsed.timestamp()
-    if not isinstance(value, str) or not value:
-        return float("-inf")
-    try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-        parsed = parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed
-        return parsed.timestamp()
-    except ValueError:
-        return float("-inf")
-
-
-def _job_employer(job: Job) -> str:
-    if job.employer_company is not None:
-        return job.employer_company.name
-    metadata = job.raw_metadata if isinstance(job.raw_metadata, dict) else {}
-    organization = metadata.get("hiring_organization")
-    if isinstance(organization, dict) and isinstance(organization.get("name"), str) and organization["name"].strip():
-        return organization["name"].strip()
-    return job.feed.company.name
-
-
 def _unique_active_job_counts(session: Session, company_ids: list[int]) -> dict[int, int]:
     if not company_ids:
         return {}
@@ -683,7 +505,7 @@ def _unique_active_job_counts(session: Session, company_ids: list[int]) -> dict[
         company_id = job.employer_company_id or job.feed.company_id
         if company_id in grouped:
             grouped[company_id].append(job)
-    return {company_id: len(_deduplicate_jobs(rows)) for company_id, rows in grouped.items()}
+    return {company_id: len(deduplicate_jobs(rows)) for company_id, rows in grouped.items()}
 
 
 def _feed_json(feed: JobFeed) -> dict[str, Any]:
@@ -697,56 +519,6 @@ def _feed_json(feed: JobFeed) -> dict[str, Any]:
             "last_error": feed.last_error}
 
 
-def _job_json(job: Job, *, include_description: bool = False) -> dict[str, Any]:
-    feed, source_company = job.feed, job.feed.company
-    company = job.employer_company or source_company
-    raw_metadata = job.raw_metadata if isinstance(job.raw_metadata, dict) else {}
-    organization = raw_metadata.get("hiring_organization")
-    organization = organization if isinstance(organization, dict) else {}
-    employer_name = organization.get("name") if isinstance(organization.get("name"), str) else None
-    employer_url = organization.get("url") if isinstance(organization.get("url"), str) else None
-    employer_host = urlsplit(employer_url).hostname if employer_url else None
-    source_company_name = source_company.name
-    resolved_employer_name = (company.name if job.employer_company is not None else
-                              employer_name.strip() if employer_name and employer_name.strip() else source_company.name)
-    locations = [{"label": location.label, "latitude": location.latitude,
-                  "longitude": location.longitude, "precision": location.precision,
-                  "country_code": location.country_code,
-                  "city_election_result": municipality_vote_result(location.label, location.country_code)}
-                 for location in job.locations]
-    data = {"id": job.id, "external_id": job.external_id, "title": job.title,
-            "url": job.url, "company_id": company.id,
-            "employer_company_id": job.employer_company_id,
-            "company_name": resolved_employer_name,
-            "company_name_is_employer": bool(job.employer_company is not None or
-                                                (employer_name and employer_name.strip() and
-                                                 employer_name.strip().casefold() != source_company_name.casefold())),
-            "company_domain": company.domain or (employer_host if job.employer_company is None else None) or source_company.domain,
-            "company_website": company.website_url or (employer_url if job.employer_company is None else None) or source_company.website_url,
-            "company_source_url": company.source_url or source_company.source_url,
-            "source_company_id": source_company.id, "source_company_name": source_company.name,
-            "provider": feed.provider,
-            "board_url": feed.board_url, "feed_status": feed.status,
-            "locations": locations, "location_text": job.location_text,
-            "is_remote": job.is_remote, "work_arrangement": job.work_arrangement,
-            "employment_type": job.employment_type,
-            "schedule": job.schedule, "department": job.department,
-            "seniority": job.seniority, "date_posted": job.date_posted,
-            "salary": job.salary, "first_seen_at": job.first_seen_at.isoformat(),
-            "last_seen_at": job.last_seen_at.isoformat(), "is_active": job.is_active,
-            "posting_status": "open" if job.is_active else "closed",
-            "closed_at": job.closed_at.isoformat() if job.closed_at else None,
-            "raw_metadata": job.raw_metadata}
-    data.update(expiry(job))
-    data['remote_country_codes'] = sorted(remote_countries(job))
-    data["enrichment"] = current_enrichment(job)
-    if include_description:
-        data["description"] = job.description
-    else:
-        data["description_preview"] = (job.description or "")[:280]
-    return data
-
-
 app = FastAPI(title="Hiring Discovery API", version="0.3.0",
               description="Company discovery, jobs and profile matching for German locations")
 default_origins = "http://localhost:5173,http://127.0.0.1:5173"
@@ -755,16 +527,12 @@ app.add_middleware(CORSMiddleware, allow_origins=cors_origins,
                    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["*"])
 
 
-@app.on_event("startup")
-def initialize_sqlite() -> None:
-    if IS_SQLITE:
-        initialize_sqlite_schema(engine)
-    # Feed scans and stale search snapshot refreshes run in separate workers.
-
-
 app.include_router(profiles_router)
 app.include_router(companion_router)
-app.include_router(application_documents_router)
+app.include_router(application_documents_v2_router)
+app.include_router(application_generation_router)
+app.include_router(focus_router)
+app.include_router(journey_router)
 
 
 @app.get("/health/ready")
@@ -786,8 +554,7 @@ def _canonical_country(country: str | None) -> str | None:
 
 def _lock_germany_inventory(session: Session) -> None:
     """Serialize Germany inventory create requests before checking for a live job."""
-    if engine.dialect.name == "postgresql":
-        session.execute(text("SELECT pg_advisory_xact_lock(1547632348, 1)"))
+    session.execute(text("SELECT pg_advisory_xact_lock(1547632348, 1)"))
 
 
 def _active_germany_inventory(session: Session) -> DiscoveryJob | None:
@@ -802,15 +569,6 @@ def _country_location() -> dict[str, Any]:
     return {"label": "Germany", "country": "DE", "state": None, "city": None, "postcode": None,
             "search_scope": "country", "latitude": 0.0, "longitude": 0.0,
             "precision": "country_boundary", "type": "country", "country_code": "de"}
-
-
-def _canonical_state(state: str | None) -> str | None:
-    if state is None:
-        return None
-    try:
-        return normalize_german_state(state)
-    except ValueError as error:
-        raise HTTPException(status_code=422, detail=str(error)) from error
 
 
 def _state_location(state: str) -> dict[str, Any]:
@@ -876,7 +634,7 @@ def create_configured_location(request: ConfiguredLocationCreate,
             return result
         values = _country_location()
     elif search_scope == "state":
-        state = _canonical_state(_model_value(request, "state"))
+        state = search_snapshots.canonical_state(_model_value(request, "state"))
         if not state:
             raise HTTPException(status_code=422, detail="Choose a German state")
         values = _state_location(state)
@@ -977,7 +735,7 @@ def create_discovery_job(request: DiscoveryJobCreate,
         latitude, longitude, radius_km, configured_location_id = 0.0, 0.0, 15, None
     elif _model_value(request, "search_scope", "radius") == "state":
         search_scope = "state"
-        state = _canonical_state(_model_value(request, "state"))
+        state = search_snapshots.canonical_state(_model_value(request, "state"))
         if not state:
             raise HTTPException(status_code=422, detail="Choose a German state")
         label, city, postcode = state, None, None
@@ -1307,7 +1065,7 @@ def list_companies(latitude: float = Query(49.0068705, ge=-90, le=90),
                    session: Session = Depends(get_session),
                    discovery: Literal['all','domain','career','feed','jobs'] = 'all',
                    sort: Literal['distance','name'] = 'distance', state: str | None = None, country: str | None = None) -> dict[str, Any]:
-    state = _canonical_state(state)
+    state = search_snapshots.canonical_state(state)
     employer_country = _canonical_country(country)
     base = select(Company).options(selectinload(Company.feeds))
     filters = []
@@ -1330,7 +1088,7 @@ def list_companies(latitude: float = Query(49.0068705, ge=-90, le=90),
         session.execute(text("SET LOCAL hnsw.iterative_scan = relaxed_order"))
         session.execute(text("SET LOCAL hnsw.ef_search = 100"))
         vector_filter = and_(SemanticSearchDocument.entity_type == "company",
-                             SemanticSearchDocument.model_revision == _SEMANTIC_MODEL_KEY)
+                             SemanticSearchDocument.model_revision == SEMANTIC_MODEL_KEY)
         vector_distance = SemanticSearchDocument.embedding.cosine_distance(vector)
     if state or employer_country:
         filters.append(german_company_filter() if employer_country else Company.state == state)
@@ -1365,66 +1123,51 @@ def list_companies(latitude: float = Query(49.0068705, ge=-90, le=90),
                 "location": {"state": state, "country": employer_country,
                              "search_scope": "country" if employer_country else "state"}}
     radius_m = radius_km * 1000
-    if not IS_SQLITE:
-        spatial_clause = text("ST_DWithin(companies.location_geog, ST_SetSRID(ST_MakePoint(:longitude, :latitude),4326)::geography, :radius_m, false)")
-        filters.append(spatial_clause)
-        base = base.where(*filters)
-        if vector is not None:
-            count = session.scalar(select(func.count()).select_from(Company).join(
+    spatial_clause = text("ST_DWithin(companies.location_geog, ST_SetSRID(ST_MakePoint(:longitude, :latitude),4326)::geography, :radius_m, false)")
+    filters.append(spatial_clause)
+    base = base.where(*filters)
+    if vector is not None:
+        count = session.scalar(select(func.count()).select_from(Company).join(
+            SemanticSearchDocument, and_(SemanticSearchDocument.entity_id == Company.id, vector_filter)
+        ).where(*filters).params(longitude=longitude, latitude=latitude, radius_m=radius_m)) or 0
+        if count:
+            distance_m = text("ST_Distance(companies.location_geog, "
+                              "ST_SetSRID(ST_MakePoint(:longitude, :latitude),4326)::geography, false)")
+            rows = session.execute(select(Company, vector_distance.label("semantic_distance"),
+                                          distance_m.label("distance_m")).join(
                 SemanticSearchDocument, and_(SemanticSearchDocument.entity_id == Company.id, vector_filter)
-            ).where(*filters).params(longitude=longitude, latitude=latitude, radius_m=radius_m)) or 0
-            if count:
-                distance_m = text("ST_Distance(companies.location_geog, "
-                                  "ST_SetSRID(ST_MakePoint(:longitude, :latitude),4326)::geography, false)")
-                rows = session.execute(select(Company, vector_distance.label("semantic_distance"),
-                                              distance_m.label("distance_m")).join(
-                    SemanticSearchDocument, and_(SemanticSearchDocument.entity_id == Company.id, vector_filter)
-                ).options(selectinload(Company.feeds)).where(*filters).order_by(
-                    vector_distance, Company.id).offset(offset).limit(limit).params(
-                        longitude=longitude, latitude=latitude, radius_m=radius_m)).all()
-                counts = _unique_active_job_counts(session, [company.id for company, _, _ in rows])
-                items = []
-                for company, distance, meters in rows:
-                    item = _company_json(company, float(meters), counts.get(company.id, 0))
-                    item["semantic_score"] = round(1 - float(distance), 4)
-                    items.append(item)
-                return {"items": items, "total": count, "offset": offset, "limit": limit,
-                        "search_mode": "semantic",
-                        "location": {"latitude": latitude, "longitude": longitude, "radius_km": radius_km}}
-            vector = None
-            filters.append(Company.name.ilike(f"%{normalized_query}%"))
-            base = select(Company).options(selectinload(Company.feeds)).where(*filters)
+            ).options(selectinload(Company.feeds)).where(*filters).order_by(
+                vector_distance, Company.id).offset(offset).limit(limit).params(
+                    longitude=longitude, latitude=latitude, radius_m=radius_m)).all()
+            counts = _unique_active_job_counts(session, [company.id for company, _, _ in rows])
+            items = []
+            for company, distance, meters in rows:
+                item = _company_json(company, float(meters), counts.get(company.id, 0))
+                item["semantic_score"] = round(1 - float(distance), 4)
+                items.append(item)
+            return {"items": items, "total": count, "offset": offset, "limit": limit,
+                    "search_mode": "semantic",
+                    "location": {"latitude": latitude, "longitude": longitude, "radius_km": radius_km}}
+        vector = None
+        filters.append(Company.name.ilike(f"%{normalized_query}%"))
+        base = select(Company).options(selectinload(Company.feeds)).where(*filters)
 
-        count = session.scalar(select(func.count()).select_from(Company).where(*filters).params(
-            longitude=longitude, latitude=latitude, radius_m=radius_m)) or 0
-        distance = text("ST_Distance(companies.location_geog, ST_SetSRID(ST_MakePoint(:longitude, :latitude),4326)::geography, false) AS distance_m")
-        ordered_query = base.add_columns(distance)
-        if sort == 'name':
-            ordered_query = ordered_query.order_by(Company.name.asc(), Company.id.asc())
-        else:
-            ordered_query = ordered_query.order_by(text("distance_m ASC"), Company.name.asc(), Company.id.asc())
-        rows = session.execute(ordered_query.offset(offset).limit(limit).params(
-            longitude=longitude, latitude=latitude, radius_m=radius_m)).all()
-        counts = _unique_active_job_counts(session, [company.id for company, _ in rows])
-        items = [_company_json(company, float(meters), counts.get(company.id, 0)) for company, meters in rows]
-        return {"items": items, "total": count, "offset": offset, "limit": limit,
-                "search_mode": "keyword" if normalized_query else "browse",
-                "location": {"latitude": latitude, "longitude": longitude, "radius_km": radius_km}}
-
-    candidates = list(session.scalars(base.where(*filters, *_sqlite_company_bbox(latitude, longitude, radius_km))))
-    candidates = [(company, _distance(company, latitude, longitude)) for company in candidates]
-    candidates = [(company, distance) for company, distance in candidates if distance <= radius_m]
+    count = session.scalar(select(func.count()).select_from(Company).where(*filters).params(
+        longitude=longitude, latitude=latitude, radius_m=radius_m)) or 0
+    distance = text("ST_Distance(companies.location_geog, ST_SetSRID(ST_MakePoint(:longitude, :latitude),4326)::geography, false) AS distance_m")
+    ordered_query = base.add_columns(distance)
     if sort == 'name':
-        candidates.sort(key=lambda pair: (pair[0].name.casefold(), pair[1], pair[0].id))
+        ordered_query = ordered_query.order_by(Company.name.asc(), Company.id.asc())
     else:
-        candidates.sort(key=lambda pair: (pair[1], pair[0].name.casefold(), pair[0].id))
-    total = len(candidates)
-    page = candidates[offset:offset + limit]
-    counts = _unique_active_job_counts(session, [company.id for company, _ in page])
-    items = [_company_json(company, distance, counts.get(company.id, 0)) for company, distance in page]
-    return {"items": items, "total": total, "offset": offset, "limit": limit,
+        ordered_query = ordered_query.order_by(text("distance_m ASC"), Company.name.asc(), Company.id.asc())
+    rows = session.execute(ordered_query.offset(offset).limit(limit).params(
+        longitude=longitude, latitude=latitude, radius_m=radius_m)).all()
+    counts = _unique_active_job_counts(session, [company.id for company, _ in rows])
+    items = [_company_json(company, float(meters), counts.get(company.id, 0)) for company, meters in rows]
+    return {"items": items, "total": count, "offset": offset, "limit": limit,
             "search_mode": "keyword" if normalized_query else "browse",
             "location": {"latitude": latitude, "longitude": longitude, "radius_km": radius_km}}
+
 
 
 def _resolved_search_area(profile, latitude, longitude, radius_km, place, country_code):
@@ -1439,873 +1182,6 @@ def _resolved_search_area(profile, latitude, longitude, radius_km, place, countr
             'place': place if isinstance(place, str) else area.get('city'),
             'country': country_code.upper() if isinstance(country_code, str) else area.get('country_code') or 'DE',
             'profile_area': bool(area), 'explicit': explicit}
-
-
-def _profile_match(job, profile, scope):
-    match = match_job(job_input(job), profile.matching_preferences, current_enrichment(job))
-    if scope is not None:
-        match['unknowns'] = list(dict.fromkeys(match['unknowns'] + scope['unknowns']))
-        if scope['unknowns']:
-            match['uncertain'] = True
-            if match.get('fit_tier') == 'recommended':
-                match['fit_tier'] = 'possible'
-        if not scope['eligible']:
-            match['eligible'] = False
-            match['fit_tier'] = 'unlikely'
-            match['conflicts'] = match['conflicts'] + ['Search scope: ' + scope['reason'].replace('_', ' ')]
-    return match
-
-
-def _result_scope(job, latitude, longitude, radius_km, place, country, state=None, employer_country=None,
-                  *, include_expired=False):
-    if employer_country and (include_expired or not expiry(job)['expired']):
-        if fully_remote(job):
-            return geographic_scope(job, latitude, longitude, radius_km, place, employer_country,
-                                    include_expired=include_expired)
-        text_scope = vacancy_text_scope(job, country=employer_country)
-        if text_scope is not None:
-            return {'eligible': text_scope, 'reason': None if text_scope else 'outside_area',
-                    'unknowns': [], 'match_kind': 'work_location' if text_scope else None}
-        company = job.employer_company or job.feed.company
-        source_company = job.feed.company
-        has_german_workplace = any(
-            str(location.country_code or "").casefold() == "de" for location in job.locations)
-        eligible = (company.country_code == 'DE' or company.state in GERMAN_STATES or
-                    source_company.source == "default_job_feed" or has_german_workplace)
-        return {'eligible': eligible, 'reason': None if eligible else 'outside_area',
-                'unknowns': [], 'match_kind': ('remote' if fully_remote(job) else 'employer_in_country') if eligible else None}
-    if state and (include_expired or not expiry(job)['expired']):
-        if fully_remote(job):
-            return geographic_scope(job, latitude, longitude, radius_km, place, 'DE',
-                                    include_expired=include_expired)
-        text_scope = vacancy_text_scope(job, state=state)
-        if text_scope is not None:
-            return {'eligible': text_scope, 'reason': None if text_scope else 'outside_area',
-                    'unknowns': [], 'match_kind': 'work_location' if text_scope else None}
-        company = job.employer_company or job.feed.company
-        eligible = company.state == state or job.feed.company.state == state
-        return {'eligible': eligible, 'reason': None if eligible else 'outside_area',
-                'unknowns': [], 'match_kind': ('remote' if fully_remote(job) else 'employer_in_state') if eligible else None}
-    return geographic_scope(job, latitude, longitude, radius_km, place, country,
-                            include_expired=include_expired)
-
-
-def _search_scope(job, latitude, longitude, radius_km, place, country,
-                  location_scope, state, employer_country, posting_status='open'):
-    scope = _result_scope(job, latitude, longitude, radius_km, place, country, state, employer_country,
-                          include_expired=posting_status != 'open' and not job.is_active)
-    if scope['reason'] != 'expired' and location_scope == 'remote' and not fully_remote(job):
-        return {'eligible': False, 'reason': 'not_remote', 'unknowns': [], 'match_kind': None}
-    if scope['eligible'] and location_scope == 'area' and fully_remote(job):
-        return {'eligible': False, 'reason': 'remote_not_selected', 'unknowns': [], 'match_kind': 'remote'}
-    return scope
-
-
-def _scoped_candidate_winners(session, candidate_ids, latitude, longitude, radius_km,
-                              place, country, location_scope, state, employer_country, posting_status='open'):
-    """Stream scope checks and retain only the canonical job from each duplicate group."""
-    groups: dict[int, dict[str, Any]] = {}
-    seen: dict[tuple, int] = {}
-    filtered = {'expired': 0, 'remote_country': 0, 'outside_area': 0,
-                'remote_not_selected': 0, 'not_remote': 0}
-    scoped_count = 0
-    for start in range(0, len(candidate_ids), 200):
-        batch_ids = candidate_ids[start:start + 200]
-        jobs = session.scalars(select(Job).where(Job.id.in_(batch_ids)).options(
-            joinedload(Job.feed).joinedload(JobFeed.company),
-            joinedload(Job.employer_company), selectinload(Job.locations),
-        )).unique().all()
-        for job in jobs:
-            scope = _search_scope(job, latitude, longitude, radius_km, place, country,
-                                  location_scope, state, employer_country, posting_status)
-            if not scope['eligible']:
-                filtered[scope['reason']] += 1
-                continue
-            scoped_count += 1
-            keys = vacancy_keys(job)
-            existing = {seen[key] for key in keys if key in seen}
-            group_id = min(existing) if existing else job.id
-            quality = (job.is_active and not expiry(job)['expired'],
-                       len(job.description or ''), len(job.locations), -job.id)
-            merged_keys = set(keys)
-            winner = (job.id, quality, scope)
-            for old_group in existing:
-                previous = groups.pop(old_group)
-                merged_keys.update(previous['keys'])
-                if previous['winner'][1] > winner[1]:
-                    winner = previous['winner']
-            groups[group_id] = {'keys': merged_keys, 'winner': winner}
-            for key in merged_keys:
-                seen[key] = group_id
-    winners = sorted((group['winner'][0], group['winner'][2]) for group in groups.values())
-    return winners, scoped_count, filtered
-
-
-def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
-               profile, min_match_score, include_unknown, place=None, country=None,
-               location_scope='area', state=None, employer_country=None,
-               include_internal=False, indexed_matches=None, precomputed_scopes=None):
-    filtered = {'expired': 0, 'remote_country': 0, 'outside_area': 0,
-                'remote_not_selected': 0, 'not_remote': 0,
-                'profile_conflict': 0, 'below_score': 0, 'uncertain': 0}
-    if precomputed_scopes is not None:
-        scoped = jobs
-        scopes = precomputed_scopes
-        unique = jobs
-    else:
-        scoped, scopes = [], {}
-        for job in jobs:
-            scope = _search_scope(job, latitude, longitude, radius_km, place, country,
-                                  location_scope, state, employer_country)
-            if scope['eligible']:
-                scoped.append(job)
-                scopes[job.id] = scope
-            else:
-                filtered[scope['reason']] += 1
-        unique = _deduplicate_jobs(scoped)
-    matching = _sort_jobs(unique, sort)
-    matches = {}
-    if profile is not None:
-        selected = []
-        for job in matching:
-            indexed = (indexed_matches or {}).get(job.id)
-            if indexed_matches is not None and indexed is None:
-                match = {'eligible': False, 'score': 0, 'fit_tier': 'unlikely',
-                         'uncertain': False, 'unknowns': []}
-            elif indexed is None:
-                match = _profile_match(job, profile, scopes[job.id])
-            else:
-                scope_unknowns = scopes[job.id].get('unknowns') or []
-                tier = indexed.match_tier
-                uncertain = bool(indexed.match_uncertain or scope_unknowns)
-                if scope_unknowns and tier == 'recommended':
-                    tier = 'possible'
-                match = {'eligible': True, 'score': indexed.match_score,
-                         'fit_tier': tier, 'uncertain': uncertain,
-                         'unknowns': scope_unknowns}
-            matches[job.id] = match
-            if not match['eligible']:
-                filtered['profile_conflict'] += 1
-            elif match['score'] < min_match_score:
-                filtered['below_score'] += 1
-            elif not include_unknown and match['uncertain']:
-                filtered['uncertain'] += 1
-            else:
-                selected.append(job)
-        matching = selected
-    if sort in {'relevance', 'match', 'posted', 'discovered'}:
-        def match_order(job):
-            match = matches.get(job.id) or {}
-            score = match.get('score', -1)
-            discovered = _job_date_rank(job.first_seen_at)
-            posted = _job_date_rank(job.date_posted)
-            if sort == 'posted':
-                return (-posted, -score, -discovered, job.title.casefold(), job.id)
-            if sort == 'discovered':
-                return (-discovered, -score, -posted, job.title.casefold(), job.id)
-            return (-score, -discovered, -posted, job.title.casefold(), job.id)
-        matching.sort(key=match_order)
-    items = [] if include_internal else [_job_json(job) for job in matching[offset:offset + limit]]
-    for item in items:
-        item['match_kind'] = scopes[item['id']]['match_kind']
-        item['geography'] = scopes[item['id']]
-        if profile is not None:
-            item['profile_match'] = matches[item['id']]
-    tiers = [matches[job.id].get('fit_tier', 'possible') for job in matching] if profile else []
-    result = {'items': items, 'total': len(matching), 'offset': offset, 'limit': limit,
-            'location': {'latitude': latitude, 'longitude': longitude, 'radius_km': radius_km,
-                         'city': place, 'country_code': country},
-            'location_scope': location_scope,
-            'profile_id': profile.id if profile is not None else None,
-            'counts': {'source': len(jobs), 'scoped': len(unique), 'filtered': filtered,
-                       'duplicates_removed': len(scoped) - len(unique),
-                       'recommended': tiers.count('recommended'), 'possible': tiers.count('possible'),
-                       'unlikely': tiers.count('unlikely')},
-            'coverage': {'source_count': len({job.feed_id for job in jobs}),
-                         'note': 'Observed active source records; selected sources are not exhaustive market coverage.'},
-            'rule': ('work location in Germany, with a German-employer fallback when location is missing or unspecified' if employer_country else 'work location in ' + state + ', with an employer-state fallback when location is missing or unspecified' if state else ('explicitly remote within country scope' if location_scope == 'remote' else
-                     'mapped or parsed work location within radius' if location_scope == 'area' else
-                     'mapped or parsed work location within radius OR explicitly remote within country scope')),
-            'state': state, 'country': employer_country}
-    if profile is not None:
-        result['_matching_job_ids'] = [job.id for job in matching]
-    if include_internal:
-        result['_search_entries'] = [{
-            'job_id': job.id,
-            'scope': scopes[job.id],
-            'match_score': matches.get(job.id, {}).get('score'),
-            'match_tier': matches.get(job.id, {}).get('fit_tier'),
-            'match_uncertain': matches.get(job.id, {}).get('uncertain'),
-        } for job in matching]
-    return result
-
-
-def _search_generation(session: Session) -> int:
-    generation = session.scalar(select(func.max(JobSearchState.id)))
-    return int(generation or 0)
-
-
-def _search_key(generation: int, criteria: dict[str, Any]) -> str:
-    from hiring_scraper.matching import VERSION
-    payload = json.dumps({'generation': generation, 'matching_version': VERSION, **criteria},
-                         sort_keys=True, ensure_ascii=False, separators=(',', ':'))
-    return hashlib.sha256(payload.encode('utf-8')).hexdigest()
-
-
-def _search_criteria_hash(criteria: dict[str, Any]) -> str:
-    stable = _stable_search_criteria(criteria)
-    payload = json.dumps(stable, sort_keys=True, ensure_ascii=False, separators=(',', ':'))
-    return hashlib.sha256(payload.encode('utf-8')).hexdigest()
-
-
-def _search_page(session: Session, candidate_ids: list[int], profiles: list[Any], key: str,
-                 generation: int, source_count: int, source_feed_count: int,
-                 prefilter_filtered: dict[str, int],
-                 sort: str, latitude: float, longitude: float,
-                 radius_km: float, place: str | None, country: str | None,
-                 location_scope: str, state: str | None, employer_country: str | None,
-                 thresholds: dict[int | None, tuple[int, bool]],
-                 criteria: dict[str, Any],
-                 preserve_snapshot_key: str | None = None,
-                 is_prewarmed: bool = False) -> JobSearchSnapshot:
-    """Fetch a cached ordered result or materialize it once for later page reads."""
-    snapshot = session.get(JobSearchSnapshot, key)
-    if snapshot is not None:
-        if is_prewarmed:
-            snapshot.criteria_hash = _search_criteria_hash(criteria)
-            snapshot.is_prewarmed = True
-            session.commit()
-        return snapshot
-
-    if session.get_bind().dialect.name == 'sqlite':
-        from sqlalchemy.dialects.sqlite import insert
-    else:
-        from sqlalchemy.dialects.postgresql import insert
-    now = utcnow()
-    insert_statement = insert(JobSearchSnapshot).values(
-        key=key, generation=generation, payload={},
-        criteria_hash=_search_criteria_hash(criteria), created_at=now,
-        is_prewarmed=is_prewarmed,
-    ).on_conflict_do_nothing(index_elements=['key']).returning(JobSearchSnapshot.key)
-    inserted_key = session.scalar(insert_statement)
-    if inserted_key is None:
-        # A concurrent request owns this key and has committed the complete row set.
-        snapshot = session.get(JobSearchSnapshot, key)
-        if snapshot is not None:
-            return snapshot
-        # The competing transaction rolled back; this request can safely retry.
-        return _search_page(session, candidate_ids, profiles, key, generation, source_count, source_feed_count,
-                            prefilter_filtered,
-                            sort, latitude, longitude,
-                            radius_km, place, country, location_scope, state, employer_country,
-                            thresholds, criteria)
-
-    result_count = 0
-    combined_counts: dict[str, Any] = {
-        'source': 0, 'scoped': 0, 'duplicates_removed': 0,
-        'recommended': 0, 'possible': 0, 'unlikely': 0,
-        'filtered': dict.fromkeys(('expired', 'remote_country', 'outside_area',
-                                   'remote_not_selected', 'not_remote',
-                                   'profile_conflict', 'below_score', 'uncertain'), 0),
-    }
-    winners, scoped_count, geo_filtered = _scoped_candidate_winners(
-        session, candidate_ids, latitude, longitude, radius_km, place, country,
-        location_scope, state, employer_country, criteria.get('posting_status', 'open'),
-    )
-    winner_ids = [job_id for job_id, _ in winners]
-    scopes_by_id = dict(winners)
-    duplicates_removed = scoped_count - len(winners)
-    search_profiles = profiles or [None]
-    for _profile in search_profiles:
-        combined_counts['source'] += source_count
-        combined_counts['scoped'] += len(winners)
-        combined_counts['duplicates_removed'] += duplicates_removed
-        for name, count in geo_filtered.items():
-            combined_counts['filtered'][name] += count
-        for name, count in prefilter_filtered.items():
-            combined_counts['filtered'][name] += count
-
-    # The job graph and profile matches stay bounded to one batch. Only the
-    # compact canonical candidate IDs and exact scope results survive the scan.
-    for start in range(0, len(winner_ids), 200):
-        batch_ids = winner_ids[start:start + 200]
-        jobs = session.scalars(select(Job).where(Job.id.in_(batch_ids)).options(
-            joinedload(Job.feed).joinedload(JobFeed.company),
-            joinedload(Job.employer_company), selectinload(Job.locations),
-        )).unique().all()
-        batch_scopes = {job_id: scopes_by_id[job_id] for job_id in batch_ids}
-        indexed_matches: dict[int, dict[int, ProfileJobMatch]] = {
-            item.id: {} for item in profiles
-        }
-        if profiles and batch_ids:
-            indexed_rows = session.scalars(select(ProfileJobMatch).where(
-                ProfileJobMatch.profile_id.in_([item.id for item in profiles]),
-                ProfileJobMatch.job_id.in_(batch_ids),
-            )).all()
-            for indexed in indexed_rows:
-                indexed_matches[indexed.profile_id][indexed.job_id] = indexed
-
-        result_rows = [{
-            'snapshot_key': key,
-            'job_id': job.id,
-            'scope': batch_scopes[job.id],
-            'scope_uncertain': bool(batch_scopes[job.id].get('unknowns')),
-            'posted_rank': _job_date_rank(job.date_posted),
-            'discovered_rank': _job_date_rank(job.first_seen_at),
-            'title_sort': job.title.casefold(),
-            'company_sort': _job_employer(job).casefold(),
-            'remote_sort': not job.is_remote,
-        } for job in jobs]
-        for profile in search_profiles:
-            min_score, include_unknown = thresholds.get(profile.id if profile else None, (0, True))
-            page = _jobs_page(
-                jobs, sort, 0, 1, latitude, longitude, radius_km, profile,
-                min_score, include_unknown, place, country, location_scope,
-                state, employer_country, include_internal=True,
-                indexed_matches=indexed_matches.get(profile.id, {}) if profile else None,
-                precomputed_scopes=batch_scopes,
-            )
-            entries = page.pop('_search_entries', [])
-            page.pop('_matching_job_ids', None)
-            for name in ('profile_conflict', 'below_score', 'uncertain'):
-                combined_counts['filtered'][name] += page['counts']['filtered'][name]
-            for name in ('recommended', 'possible', 'unlikely'):
-                combined_counts[name] += page['counts'].get(name, 0)
-            result_count += len(entries)
-        if result_rows:
-            session.execute(insert(JobSearchResult), result_rows)
-    snapshot = session.get(JobSearchSnapshot, key)
-    snapshot.payload = {
-        'counts': combined_counts,
-        'coverage': {'source_count': source_feed_count,
-                     'note': 'Observed active source records; selected sources are not exhaustive market coverage.'},
-        'location': {'latitude': latitude, 'longitude': longitude, 'radius_km': radius_km,
-                     'city': place, 'country_code': country},
-        'location_scope': location_scope,
-        'profile_ids': [profile.id for profile in profiles],
-        'profile_id': profiles[0].id if len(profiles) == 1 else None,
-        'total': result_count,
-        'rule': ('work location in Germany, with a German-employer fallback when location is missing or unspecified' if employer_country else
-                 'work location in ' + state + ', with an employer-state fallback when location is missing or unspecified' if state else
-                 ('explicitly remote within country scope' if location_scope == 'remote' else
-                  'mapped or parsed work location within radius' if location_scope == 'area' else
-                  'mapped or parsed work location within radius OR explicitly remote within country scope')),
-        'state': state,
-        'country': employer_country,
-        'criteria': criteria,
-    }
-    # A snapshot stores one scoped row per canonical job; bound both age and count.
-    stale_filter = or_(
-        and_(JobSearchSnapshot.is_prewarmed.is_(True),
-             JobSearchSnapshot.created_at < now - timedelta(seconds=_SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS)),
-        and_(JobSearchSnapshot.is_prewarmed.is_(False),
-             JobSearchSnapshot.created_at < now - timedelta(days=1)),
-    )
-    excess_keys = select(JobSearchSnapshot.key).order_by(
-        JobSearchSnapshot.created_at.desc(), JobSearchSnapshot.key).where(
-            JobSearchSnapshot.is_prewarmed.is_(False))
-    if preserve_snapshot_key is not None:
-        stale_filter = and_(stale_filter, JobSearchSnapshot.key != preserve_snapshot_key)
-        excess_keys = excess_keys.where(JobSearchSnapshot.key != preserve_snapshot_key)
-    excess_keys = excess_keys.offset(32)
-    stale_keys = select(JobSearchSnapshot.key).where(or_(
-        stale_filter, JobSearchSnapshot.key.in_(excess_keys)))
-    session.execute(delete(JobSearchResult).where(JobSearchResult.snapshot_key.in_(stale_keys)))
-    session.execute(delete(JobSearchSnapshot).where(JobSearchSnapshot.key.in_(stale_keys)))
-    session.commit()
-    return snapshot
-
-
-def _stable_search_criteria(criteria: dict[str, Any]) -> dict[str, Any]:
-    return {name: value for name, value in criteria.items() if name != 'freshness_bucket'}
-
-
-def _search_criteria_match(snapshot_criteria: Any, criteria: dict[str, Any]) -> bool:
-    return (isinstance(snapshot_criteria, dict) and
-            _stable_search_criteria(snapshot_criteria) == _stable_search_criteria(criteria))
-
-
-def _latest_stale_snapshot(session: Session, generation: int,
-                           criteria: dict[str, Any]) -> JobSearchSnapshot | None:
-    # Freshness buckets are cache versions, not user-visible search criteria.
-    # Reuse the prior bucket while the worker builds the current one, but keep
-    # the stale window no longer than one bucket so expiry checks stay bounded.
-    stale_before = utcnow() - timedelta(seconds=_SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS)
-    snapshot = session.scalars(select(JobSearchSnapshot).where(
-        JobSearchSnapshot.criteria_hash == _search_criteria_hash(criteria),
-        JobSearchSnapshot.generation <= generation,
-        JobSearchSnapshot.created_at >= stale_before,
-    ).order_by(JobSearchSnapshot.created_at.desc(), JobSearchSnapshot.key).limit(1)).first()
-    if snapshot is None or not _search_criteria_match((snapshot.payload or {}).get('criteria'), criteria):
-        return None
-    return snapshot
-
-
-def _posting_status_filter(posting_status: str):
-    return true() if posting_status == 'all' else Job.is_active.is_(posting_status == 'open')
-
-
-def _materialize_search_snapshot(session: Session, profiles: list[UserProfile], key: str,
-                                 generation: int, criteria: dict[str, Any],
-                                 thresholds: dict[int | None, tuple[int, bool]],
-                                 *, preserve_snapshot_key: str | None = None,
-                                 is_prewarmed: bool = False) -> JobSearchSnapshot:
-    """Build the full scoped result set for a request, outside the response path when possible."""
-    latitude = criteria['latitude']
-    longitude = criteria['longitude']
-    radius_km = criteria['radius_km']
-    place = criteria['place']
-    scope_country = criteria['country']
-    location_scope = criteria['location_scope']
-    state = criteria['state']
-    employer_country = criteria['employer_country']
-    company_id = criteria['company_id']
-    normalized_query = criteria['query']
-    work_style = criteria['work_style']
-    posting_status = criteria.get('posting_status', 'open')
-
-    employer_company = aliased(Company)
-    candidate_statement = (select(Job.id).join(Job.feed).join(JobFeed.company)
-                           .outerjoin(employer_company, Job.employer_company_id == employer_company.id))
-    filters = [_posting_status_filter(posting_status)]
-    if employer_country:
-        scope_candidates = [german_company_filter(employer_company), german_company_filter(Company),
-                            Company.source == "default_job_feed",
-                            Job.locations.any(func.lower(JobLocation.country_code) == "de"),
-                            _job_germany_text_candidates()]
-        if location_scope in {"remote", "area_remote"} or work_style == "remote":
-            scope_candidates.append(_remote_job_candidate())
-        filters.append(or_(*scope_candidates))
-    elif state:
-        scope_candidates = [Company.state == state, employer_company.state == state,
-                            _job_state_text_candidates(state)]
-        if location_scope in {"remote", "area_remote"} or work_style == "remote":
-            scope_candidates.append(_remote_job_candidate())
-        filters.append(or_(*scope_candidates))
-    if company_id is not None:
-        filters.append(or_(JobFeed.company_id == company_id, Job.employer_company_id == company_id))
-    if normalized_query:
-        pattern = f"%{normalized_query}%"
-        filters.append(or_(Job.title.ilike(pattern), Company.name.ilike(pattern), Company.domain.ilike(pattern),
-                           employer_company.name.ilike(pattern), employer_company.domain.ilike(pattern),
-                           Job.raw_metadata["hiring_organization"]["name"].as_string().ilike(pattern)))
-    if work_style == 'remote':
-        remote_clause = or_(Job.work_arrangement == 'remote',
-                            and_(Job.is_remote.is_(True), Job.work_arrangement.is_(None)))
-        filters.append(remote_clause)
-    elif work_style in {'hybrid', 'onsite'}:
-        filters.append(Job.work_arrangement == work_style)
-    source_filters = list(filters)
-    if not state and not employer_country:
-        filters.append(_job_area_candidates(latitude, longitude, radius_km, place, location_scope))
-
-    candidate_cache_key = (generation, _WORK_LOCATION_GEOGRAPHY_VERSION, company_id, normalized_query, state, employer_country,
-                           work_style, latitude, longitude, radius_km, place,
-                           scope_country, location_scope, posting_status)
-    reusable = (not normalized_query and company_id is None and state is None and
-                employer_country is None and work_style == 'all')
-    cached = session.info.get('job_search_candidate_ids') if reusable else None
-    source_rows = select(Job.id.label('job_id'), Job.feed_id.label('feed_id')).join(
-        Job.feed).join(JobFeed.company).outerjoin(
-            employer_company, Job.employer_company_id == employer_company.id
-        ).where(*source_filters).subquery()
-    source_count, source_feed_count = session.execute(select(
-        func.count(source_rows.c.job_id), func.count(func.distinct(source_rows.c.feed_id))
-    )).one()
-    if cached and cached[0] == candidate_cache_key:
-        candidate_ids = cached[1]
-    else:
-        candidate_ids = session.scalars(
-            candidate_statement.where(*filters).order_by(Job.id.asc())
-        ).all()
-        if reusable:
-            session.info['job_search_candidate_ids'] = (candidate_cache_key, candidate_ids)
-    prefilter_excluded = max(0, int(source_count) - len(candidate_ids))
-    prefilter_filtered = {}
-    if prefilter_excluded:
-        prefilter_reason = 'not_remote' if location_scope == 'remote' else 'outside_area'
-        prefilter_filtered[prefilter_reason] = prefilter_excluded
-    return _search_page(session, candidate_ids, profiles, key, generation,
-                        source_count, source_feed_count, prefilter_filtered, 'match',
-                        latitude, longitude, radius_km, place, scope_country,
-                        location_scope, state, employer_country, thresholds, criteria,
-                        preserve_snapshot_key=preserve_snapshot_key,
-                        is_prewarmed=is_prewarmed)
-
-
-def _enqueue_search_snapshot_refresh(session: Session, criteria: dict[str, Any], *, prewarm: bool = False) -> None:
-    """Coalesce refresh requests with the same search criteria in a durable queue."""
-    signature = hashlib.sha256(json.dumps(
-        criteria, sort_keys=True, ensure_ascii=False, separators=(',', ':')
-    ).encode('utf-8')).hexdigest()
-    if session.get_bind().dialect.name == 'sqlite':
-        from sqlalchemy.dialects.sqlite import insert
-    else:
-        from sqlalchemy.dialects.postgresql import insert
-    requested_at = utcnow()
-    refresh_table = JobSearchRefresh.__table__
-    unleased = or_(refresh_table.c.lease_token.is_(None),
-                   refresh_table.c.lease_until.is_(None),
-                   refresh_table.c.lease_until <= requested_at)
-    coalesced_request_time = case(
-        (unleased, refresh_table.c.requested_at),
-        else_=requested_at,
-    )
-    statement = insert(JobSearchRefresh).values(
-        key=signature, criteria=criteria, requested_at=requested_at,
-        lease_token=None, lease_until=None, prewarm=prewarm,
-    ).on_conflict_do_update(index_elements=['key'], set_={
-        'criteria': criteria,
-        'prewarm': or_(refresh_table.c.prewarm, prewarm),
-        # Keep the original debounce start for an idle item so steady search
-        # traffic cannot postpone it forever. During a live lease, move this
-        # timestamp to mark that a follow-up pass is needed after the lease.
-        'requested_at': coalesced_request_time,
-    })
-    session.execute(statement)
-    session.commit()
-
-
-def prewarm_profile_location_snapshots_once() -> int:
-    """Queue profileless browse snapshots for every saved profile/configured area."""
-    if IS_SQLITE:
-        return 0
-    now = utcnow()
-    current_bucket = int(now.timestamp() // _SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS)
-    locations: dict[str, dict[str, Any]] = {}
-
-    def add_area_variants(base: dict[str, Any], *, broad_scope: bool) -> None:
-        variants = [("area_remote", "all"), ("remote", "remote")]
-        if broad_scope:
-            variants.insert(1, ("area", "all"))
-        for location_scope, work_style in variants:
-            criteria = {**base, "location_scope": location_scope, "work_style": work_style}
-            locations[json.dumps(criteria, sort_keys=True, separators=(",", ":"))] = criteria
-
-    with SessionLocal() as session:
-        for profile in session.scalars(select(UserProfile).order_by(UserProfile.id)):
-            area = (profile.preferences or {}).get("search_area") or {}
-            if area.get("latitude") is None or area.get("longitude") is None:
-                continue
-            base = {
-                "matching_version": MATCHING_VERSION,
-                "geography_version": _WORK_LOCATION_GEOGRAPHY_VERSION,
-                "freshness_bucket": current_bucket,
-                "company_id": None, "query": None,
-                "latitude": float(area["latitude"]), "longitude": float(area["longitude"]),
-                "radius_km": float(area.get("radius_km") or 15),
-                "place": area.get("city") or "",
-                "country": str(area.get("country_code") or "DE").upper(), "sort": "match",
-                "state": None, "employer_country": None, "profiles": [],
-            }
-            base = {name: value for name, value in base.items() if name != "sort"}
-            add_area_variants(base, broad_scope=True)
-        for location in session.scalars(select(ConfiguredLocation).where(
-            ConfiguredLocation.enabled.is_(True)).order_by(ConfiguredLocation.id)):
-            state = _canonical_state(location.state) if location.search_scope == "state" else None
-            employer_country = "DE" if location.search_scope == "country" else None
-            for scope_country in (None, "DE"):
-                base = {
-                    "matching_version": MATCHING_VERSION,
-                    "geography_version": _WORK_LOCATION_GEOGRAPHY_VERSION,
-                    "freshness_bucket": current_bucket,
-                    "company_id": None, "query": None,
-                    "latitude": float(location.latitude), "longitude": float(location.longitude),
-                    "radius_km": float(location.radius_km),
-                    "place": location.city or "",
-                    "country": scope_country,
-                    "state": state, "employer_country": employer_country, "profiles": [],
-                }
-                # The frontend's boardLocationParams omits coordinates for state and
-                # country selections, so use the same safe defaults as list_jobs.
-                if state or employer_country:
-                    base.update(latitude=49.0068705, longitude=8.4034195, radius_km=15, place=None)
-                add_area_variants(base, broad_scope=not (state or employer_country))
-        queued = 0
-        for criteria in locations.values():
-            generation = _search_generation(session)
-            current_criteria = {**criteria, "freshness_bucket": current_bucket}
-            current_key = _search_key(generation, current_criteria)
-            snapshot = session.get(JobSearchSnapshot, current_key)
-            if snapshot is None:
-                _enqueue_search_snapshot_refresh(session, current_criteria, prewarm=True)
-                queued += 1
-                continue
-            snapshot.is_prewarmed = True
-            snapshot.criteria_hash = _search_criteria_hash(current_criteria)
-            if snapshot.created_at >= now - timedelta(minutes=5):
-                continue
-            next_criteria = {**criteria, "freshness_bucket": current_bucket + 1}
-            next_key = _search_key(generation, next_criteria)
-            next_snapshot = session.get(JobSearchSnapshot, next_key)
-            if next_snapshot is None:
-                _enqueue_search_snapshot_refresh(session, next_criteria, prewarm=True)
-                queued += 1
-            else:
-                next_snapshot.is_prewarmed = True
-                next_snapshot.criteria_hash = _search_criteria_hash(next_criteria)
-        session.commit()
-        return queued
-
-
-def _claim_search_snapshot_refresh() -> tuple[str, dict[str, Any], str, datetime, bool] | None:
-    token = str(uuid4())
-    now = utcnow()
-    with SessionLocal.begin() as session:
-        refresh = session.scalars(select(JobSearchRefresh).where(
-            JobSearchRefresh.requested_at <= now - timedelta(seconds=_SEARCH_SNAPSHOT_REFRESH_DELAY_SECONDS),
-            or_(JobSearchRefresh.lease_until.is_(None), JobSearchRefresh.lease_until <= now),
-        ).order_by(JobSearchRefresh.requested_at, JobSearchRefresh.key)
-            .with_for_update(skip_locked=True).limit(1)).first()
-        if refresh is None:
-            return None
-        refresh.lease_token = token
-        refresh.lease_until = now + timedelta(seconds=_SEARCH_SNAPSHOT_REFRESH_LEASE_SECONDS)
-        return refresh.key, dict(refresh.criteria), token, refresh.requested_at, refresh.prewarm
-
-
-def _finish_search_snapshot_refresh(key: str, token: str, requested_at: datetime,
-                                    *, retry: bool = False) -> None:
-    with SessionLocal.begin() as session:
-        owned = (JobSearchRefresh.key == key, JobSearchRefresh.lease_token == token)
-        unchanged = (*owned, JobSearchRefresh.requested_at == requested_at)
-        if not retry:
-            removed = session.execute(delete(JobSearchRefresh).where(*unchanged))
-            if removed.rowcount:
-                return
-        # Conditional DML rechecks ownership after any concurrent enqueue or
-        # reclaim. A follow-up request keeps its timestamp and stays queued.
-        session.execute(update(JobSearchRefresh).where(*owned).values(
-            lease_token=None, lease_until=None,
-            requested_at=case((JobSearchRefresh.requested_at == requested_at, utcnow()),
-                              else_=JobSearchRefresh.requested_at) if retry
-                         else JobSearchRefresh.requested_at,
-        ))
-
-
-def process_search_snapshot_refresh_once() -> bool:
-    """Process one queued refresh; called by the dedicated search worker."""
-    try:
-        claimed = _claim_search_snapshot_refresh()
-    except Exception:
-        _LOG.exception("Could not claim a job search snapshot refresh")
-        return False
-    if claimed is None:
-        return False
-    key, criteria, token, requested_at, prewarm = claimed
-    try:
-        # On-demand work can cross a boundary; proactive work can target the
-        # next bucket so it is ready before the current snapshot expires.
-        criteria = dict(criteria)
-        current_bucket = int(utcnow().timestamp() // _SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS)
-        try:
-            requested_bucket = int(criteria.get('freshness_bucket', current_bucket))
-        except (TypeError, ValueError):
-            requested_bucket = current_bucket
-        criteria['freshness_bucket'] = min(max(requested_bucket, current_bucket), current_bucket + 1)
-        profile_criteria = {int(item['id']): item for item in criteria.get('profiles', [])}
-        with SessionLocal() as session:
-            profile_ids = list(profile_criteria)
-            profiles = session.scalars(select(UserProfile).where(
-                UserProfile.id.in_(profile_ids)).order_by(UserProfile.id)
-            ).all() if profile_ids else []
-            current_profiles = (len(profiles) == len(profile_ids) and all(
-                profile.match_index_version == profile_criteria[profile.id].get('match_index_version')
-                for profile in profiles
-            ))
-            if current_profiles:
-                generation = _search_generation(session)
-                current_key = _search_key(generation, criteria)
-                current_snapshot = session.get(JobSearchSnapshot, current_key)
-                if current_snapshot is None:
-                    thresholds = {
-                        int(item['id']): (int(item['min_match_score']), bool(item['include_unknown']))
-                        for item in criteria.get('profiles', [])
-                    }
-                    if not profiles:
-                        thresholds[None] = (0, True)
-                    stale = _latest_stale_snapshot(session, generation, criteria)
-                    _materialize_search_snapshot(
-                        session, profiles, current_key, generation, criteria, thresholds,
-                        preserve_snapshot_key=stale.key if stale is not None else None,
-                        is_prewarmed=prewarm,
-                    )
-                elif prewarm and not current_snapshot.is_prewarmed:
-                    current_snapshot.is_prewarmed = True
-                    current_snapshot.criteria_hash = _search_criteria_hash(criteria)
-                    session.commit()
-        _finish_search_snapshot_refresh(key, token, requested_at)
-    except Exception:
-        _LOG.exception("Could not refresh a materialized job search snapshot")
-        try:
-            _finish_search_snapshot_refresh(key, token, requested_at, retry=True)
-        except Exception:
-            _LOG.exception("Could not release a failed search snapshot refresh lease")
-    return True
-
-
-def _semantic_jobs_page(session: Session, vector: list[float], *,
-                        latitude: float, longitude: float, radius_km: float,
-                        place: str | None, country: str | None,
-                        location_scope: str, work_style: str,
-                        company_id: int | None, state: str | None,
-                        employer_country: str | None, profile: UserProfile | None,
-                        offset: int, limit: int, job_status: str | None,
-                        posting_status: str = 'open') -> dict[str, Any]:
-    """Return nearby jobs in local-model relevance order without profile-match data."""
-    session.execute(text("SET LOCAL hnsw.iterative_scan = relaxed_order"))
-    session.execute(text("SET LOCAL hnsw.ef_search = 100"))
-    session.execute(text("SET LOCAL hnsw.max_scan_tuples = 100000"))
-    employer_company = aliased(Company)
-    distance = SemanticSearchDocument.embedding.cosine_distance(vector)
-    statement = (select(Job.id, distance.label("semantic_distance"))
-        .select_from(Job)
-        .join(SemanticSearchDocument, and_(
-            SemanticSearchDocument.entity_type == "job",
-            SemanticSearchDocument.entity_id == Job.id,
-            SemanticSearchDocument.model_revision == _SEMANTIC_MODEL_KEY,
-        ))
-        .join(JobFeed, JobFeed.id == Job.feed_id)
-        .join(Company, Company.id == JobFeed.company_id)
-        .outerjoin(employer_company, Job.employer_company_id == employer_company.id))
-    filters = [_posting_status_filter(posting_status)]
-    if employer_country:
-        scope_candidates = [german_company_filter(employer_company), german_company_filter(Company),
-                            Company.source == "default_job_feed",
-                            Job.locations.any(func.lower(JobLocation.country_code) == "de"),
-                            _job_germany_text_candidates()]
-        if location_scope in {"remote", "area_remote"} or work_style == "remote":
-            scope_candidates.append(_remote_job_candidate())
-        filters.append(or_(*scope_candidates))
-    elif state:
-        scope_candidates = [Company.state == state, employer_company.state == state,
-                            _job_state_text_candidates(state)]
-        if location_scope in {"remote", "area_remote"} or work_style == "remote":
-            scope_candidates.append(_remote_job_candidate())
-        filters.append(or_(*scope_candidates))
-    if company_id is not None:
-        filters.append(or_(JobFeed.company_id == company_id, Job.employer_company_id == company_id))
-    if work_style == "remote":
-        filters.append(or_(Job.work_arrangement == "remote",
-                           and_(Job.is_remote.is_(True), Job.work_arrangement.is_(None))))
-    elif work_style in {"hybrid", "onsite"}:
-        filters.append(Job.work_arrangement == work_style)
-    if not state and not employer_country:
-        filters.append(_job_area_candidates(latitude, longitude, radius_km, place, location_scope))
-    candidate_filters = list(filters)
-    if job_status is not None:
-        candidate_filters.append(Job.id.in_(select(JobApplication.job_id).where(
-            JobApplication.profile_id == profile.id,
-            JobApplication.status == job_status,
-        )))
-    filtered_statement = statement.where(*candidate_filters)
-    candidate_count = int(session.scalar(select(func.count()).select_from(
-        filtered_statement.order_by(None).with_only_columns(Job.id).subquery())) or 0)
-    batch_size = max(1_000, limit * 10)
-    candidate_ids: list[int] = []
-    score_by_id: dict[int, float] = {}
-    fetch_offset = 0
-    winners = []
-    scoped_count = 0
-    geo_filtered: dict[str, int] = {}
-    ordered_ids: list[int] = []
-    scopes: dict[int, dict[str, Any]] = {}
-    while fetch_offset < candidate_count:
-        candidates = session.execute(filtered_statement.order_by(
-            distance, Job.id).offset(fetch_offset).limit(batch_size)).all()
-        if not candidates:
-            break
-        candidate_ids.extend(int(row.id) for row in candidates)
-        score_by_id.update({int(row.id): float(row.semantic_distance) for row in candidates})
-        fetch_offset += len(candidates)
-        winners, scoped_count, geo_filtered = _scoped_candidate_winners(
-            session, candidate_ids, latitude, longitude, radius_km, place, country,
-            location_scope, state, employer_country, posting_status,
-        )
-        scopes = dict(winners)
-        ordered_ids = sorted((job_id for job_id, _scope in winners),
-                             key=lambda job_id: (score_by_id.get(job_id, 1.0), job_id))
-        if len(ordered_ids) >= offset + limit or len(candidates) < batch_size:
-            break
-    applications_by_job: dict[int, JobApplication] = {}
-    if profile is not None and ordered_ids:
-        applications_by_job = {row.job_id: row for row in session.scalars(select(JobApplication).where(
-            JobApplication.profile_id == profile.id,
-            JobApplication.job_id.in_(ordered_ids),
-        ))}
-    application_counts = dict.fromkeys(APPLICATION_STATUSES, 0)
-    if profile is not None:
-        application_rows = session.execute(select(
-            JobApplication.job_id, JobApplication.status,
-        ).select_from(JobApplication).join(Job, Job.id == JobApplication.job_id)
-            .join(JobFeed, JobFeed.id == Job.feed_id)
-            .join(Company, Company.id == JobFeed.company_id)
-            .outerjoin(employer_company, Job.employer_company_id == employer_company.id)
-            .where(
-                JobApplication.profile_id == profile.id, *filters,
-                Job.id.in_(select(SemanticSearchDocument.entity_id).where(
-                    SemanticSearchDocument.entity_type == "job",
-                    SemanticSearchDocument.model_revision == _SEMANTIC_MODEL_KEY,
-                )),
-            )).all()
-        application_status_by_job = {int(job_id): status for job_id, status in application_rows}
-        if application_status_by_job:
-            application_winners, _, _ = _scoped_candidate_winners(
-                session, list(application_status_by_job), latitude, longitude, radius_km,
-                place, country, location_scope, state, employer_country, posting_status,
-            )
-            for job_id, _scope in application_winners:
-                status = application_status_by_job.get(job_id)
-                if status in application_counts:
-                    application_counts[status] += 1
-    complete_scan = fetch_offset >= candidate_count
-    total = len(ordered_ids) if complete_scan else candidate_count
-    page_ids = ordered_ids[offset:offset + limit]
-    jobs = session.scalars(select(Job).where(Job.id.in_(page_ids)).options(
-        joinedload(Job.feed).joinedload(JobFeed.company), joinedload(Job.employer_company),
-        selectinload(Job.locations),
-    )).unique().all() if page_ids else []
-    jobs_by_id = {job.id: job for job in jobs}
-    items = []
-    for job_id in page_ids:
-        job = jobs_by_id.get(job_id)
-        if job is None:
-            continue
-        item = _job_json(job)
-        item["match_kind"] = scopes[job_id].get("match_kind")
-        item["geography"] = scopes[job_id]
-        item["semantic_score"] = round(1 - score_by_id.get(job_id, 1.0), 4)
-        if profile is not None:
-            item["profile_id"] = profile.id
-            item["profile_name"] = profile.name
-            application = applications_by_job.get(job_id)
-            item["application"] = application_json(application) if application else None
-        items.append(item)
-    return {
-        "items": items, "total": total, "total_is_upper_bound": not complete_scan,
-        "offset": offset, "limit": limit,
-        "profile_id": profile.id if profile else None,
-        "profile_ids": [profile.id] if profile else [],
-        "application_counts": application_counts,
-        "counts": {"source": candidate_count, "scoped": len(winners),
-                   "filtered": {**dict.fromkeys(("profile_conflict", "below_score", "uncertain"), 0),
-                                **geo_filtered},
-                   "duplicates_removed": max(0, scoped_count - len(winners)),
-                   "recommended": 0, "possible": 0, "unlikely": 0},
-        "coverage": {"source_count": candidate_count,
-                     "note": "Observed indexed postings; semantic results are ranked by text similarity."},
-        "location": {"latitude": latitude, "longitude": longitude, "radius_km": radius_km,
-                     "city": place, "country_code": country},
-        "location_scope": location_scope,
-        "rule": ("work location in Germany, with a German-employer fallback when location is missing or unspecified" if employer_country else
-                 "work location in " + state + ", with an employer-state fallback when location is missing or unspecified" if state else
-                 ("explicitly remote within country scope" if location_scope == "remote" else
-                  "mapped or parsed work location within radius" if location_scope == "area" else
-                  "mapped or parsed work location within radius OR explicitly remote within country scope")),
-        "state": state, "country": employer_country, "search_mode": "semantic",
-        "semantic_window": fetch_offset, "semantic_candidates": len(candidate_ids),
-        "snapshot_stale": False,
-    }
 
 
 @app.get("/api/v1/jobs")
@@ -2329,7 +1205,7 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
               posting_status: Literal['open', 'closed', 'all'] = 'open',
               country_code: Annotated[str | None, Query(pattern=r'^[A-Za-z]{2}$')] = None,
               state: str | None = None, country: str | None = None) -> dict[str, Any]:
-    state = _canonical_state(state)
+    state = search_snapshots.canonical_state(state)
     employer_country = _canonical_country(country)
     selected_ids: list[int] = []
     if profile_ids is not None:
@@ -2347,7 +1223,6 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     tracking_profile = require_profile(profile_id, session) if profile_id is not None else None
     # Search context uses one profile only for its saved location and application
     # tracking. Browse retrieval and ranking never need the profile match index.
-    profiles: list[UserProfile] = []
     if job_status is not None and tracking_profile is None:
         raise HTTPException(status_code=422, detail='Select a profile before filtering by application status')
     profile = tracking_profile
@@ -2366,7 +1241,7 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     normalized_query = ' '.join(query.split()) if query else None
     vector = _search_query_embedding(session, normalized_query, 'job')
     if vector is not None:
-        semantic_page = _semantic_jobs_page(
+        semantic_page = search_snapshots.semantic_jobs_page(
             session, vector,
             latitude=latitude, longitude=longitude, radius_km=radius_km,
             place=place, country=scope_country, location_scope=location_scope,
@@ -2379,13 +1254,13 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
             return semantic_page
     # Browse snapshots are profileless; profile matching is handled separately
     # and cannot delay or filter ordinary search.
-    generation = _search_generation(session)
+    generation = search_snapshots.search_generation(session)
     criteria = {
         'matching_version': MATCHING_VERSION,
-        'geography_version': _WORK_LOCATION_GEOGRAPHY_VERSION,
+        'geography_version': search_snapshots.WORK_LOCATION_GEOGRAPHY_VERSION,
         # Expiry is time based, so rotate cache keys every 15 minutes even if
         # no crawler has changed the underlying row generation.
-        'freshness_bucket': int(utcnow().timestamp() // _SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS),
+        'freshness_bucket': int(utcnow().timestamp() // search_snapshots.SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS),
         'company_id': company_id,
         'query': normalized_query,
         'latitude': latitude, 'longitude': longitude, 'radius_km': radius_km,
@@ -2403,40 +1278,39 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     snapshot_stale = False
     if snapshot_id is not None:
         snapshot = session.get(JobSearchSnapshot, snapshot_id)
-        if snapshot is None or not _search_criteria_match(
+        if snapshot is None or not search_snapshots.search_criteria_match(
                 (snapshot.payload or {}).get('criteria'), snapshot_criteria):
             raise HTTPException(status_code=409, detail='Search snapshot expired or criteria changed; restart from page one')
-        current_key = _search_key(generation, snapshot_criteria)
+        current_key = search_snapshots.search_key(generation, snapshot_criteria)
         if snapshot.generation != generation or snapshot.key != current_key:
             current_snapshot = session.get(JobSearchSnapshot, current_key)
             if current_snapshot is not None:
                 snapshot = current_snapshot
             else:
-                latest_snapshot = _latest_stale_snapshot(session, generation, snapshot_criteria)
+                latest_snapshot = search_snapshots.latest_stale_snapshot(session, generation, snapshot_criteria)
                 if latest_snapshot is None:
                     raise HTTPException(status_code=409, detail='Search snapshot expired or criteria changed; restart from page one')
                 snapshot = latest_snapshot
                 snapshot_stale = True
-                _enqueue_search_snapshot_refresh(session, snapshot_criteria)
+                search_snapshots.enqueue_search_snapshot_refresh(session, snapshot_criteria)
         key = snapshot.key
         generation = snapshot.generation
     else:
-        key = _search_key(generation, snapshot_criteria)
+        key = search_snapshots.search_key(generation, snapshot_criteria)
         snapshot = session.get(JobSearchSnapshot, key)
     if snapshot is None:
-        latest_snapshot = _latest_stale_snapshot(session, generation, snapshot_criteria)
+        latest_snapshot = search_snapshots.latest_stale_snapshot(session, generation, snapshot_criteria)
         if latest_snapshot is not None:
             snapshot = latest_snapshot
             key = snapshot.key
             generation = snapshot.generation
             snapshot_stale = True
-            _enqueue_search_snapshot_refresh(session, snapshot_criteria)
+            search_snapshots.enqueue_search_snapshot_refresh(session, snapshot_criteria)
         else:
-            snapshot = _materialize_search_snapshot(
-                session, profiles, key, generation, snapshot_criteria, thresholds,
-            ) if IS_SQLITE else None
+            # Snapshots are built by the search snapshot worker, never inside a request.
+            snapshot = None
             if snapshot is None:
-                _enqueue_search_snapshot_refresh(session, snapshot_criteria)
+                search_snapshots.enqueue_search_snapshot_refresh(session, snapshot_criteria)
                 return {
                     "items": [], "total": 0, "offset": offset, "limit": limit,
                     "profile_id": tracking_profile.id if tracking_profile else None,
@@ -2451,16 +1325,9 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
                 }
     result_count = select(func.count()).select_from(JobSearchResult).join(
         Job, Job.id == JobSearchResult.job_id).where(
-        JobSearchResult.snapshot_key == key, _posting_status_filter(posting_status))
+        JobSearchResult.snapshot_key == key, search_snapshots.posting_status_filter(posting_status))
     result_rows = select(JobSearchResult, Job).join(Job, Job.id == JobSearchResult.job_id).where(
-        JobSearchResult.snapshot_key == key, _posting_status_filter(posting_status))
-    if job_status is not None:
-        application_join = and_(JobApplication.profile_id == tracking_profile.id,
-                                JobApplication.job_id == JobSearchResult.job_id)
-        result_count = result_count.join(JobApplication, application_join).where(
-            JobApplication.status == job_status)
-        result_rows = result_rows.join(JobApplication, application_join).where(
-            JobApplication.status == job_status)
+        JobSearchResult.snapshot_key == key, search_snapshots.posting_status_filter(posting_status))
     total = session.scalar(result_count) or 0
     result_order = {
         'posted': (JobSearchResult.posted_rank.desc(), JobSearchResult.discovered_rank.desc(),
@@ -2473,21 +1340,54 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     }.get(search_sort, (JobSearchResult.discovered_rank.desc(),
                         JobSearchResult.posted_rank.desc(), JobSearchResult.title_sort,
                         JobSearchResult.job_id))
-    selected_rows = session.execute(result_rows.options(
+    result_options = result_rows.options(
         joinedload(Job.feed).joinedload(JobFeed.company),
         joinedload(Job.employer_company), selectinload(Job.locations),
-    ).order_by(*result_order).offset(offset).limit(limit)).unique().all()
-    selected_results = [(row[0], row[1], None) for row in selected_rows]
+    ).order_by(*result_order)
+    application_counts = dict.fromkeys(APPLICATION_STATUSES, 0)
     applications_by_job = {}
-    if tracking_profile and selected_results:
-        selected_job_ids = [result.job_id for result, _, _ in selected_results]
-        applications_by_job = {item.job_id: item for item in session.scalars(select(JobApplication).where(
-            JobApplication.profile_id == tracking_profile.id,
-            JobApplication.job_id.in_(selected_job_ids),
-        ))}
+    if tracking_profile is not None and job_status is not None:
+        # Status filtering needs identity-aware state for unindexed legacy
+        # copies. Scan the cached result set in bounded pages before slicing.
+        selected_results = []
+        seen_groups = set()
+        seen_matching_groups = set()
+        matched_count = 0
+        cursor = 0
+        batch_size = 400
+        while cursor < total:
+            rows = session.execute(result_options.offset(cursor).limit(batch_size)).unique().all()
+            if not rows:
+                break
+            batch_jobs = [row[1] for row in rows]
+            states_by_job = canonical_application_states_for_jobs(
+                session, tracking_profile.id, batch_jobs)
+            for result_row, job in rows:
+                application = states_by_job.get(job.id)
+                if application is None:
+                    continue
+                group_key = application.vacancy_group_id or application.job_id
+                if group_key not in seen_groups:
+                    seen_groups.add(group_key)
+                    application_counts[application.status] += 1
+                if application.status != job_status or group_key in seen_matching_groups:
+                    continue
+                seen_matching_groups.add(group_key)
+                if matched_count >= offset and len(selected_results) < limit:
+                    selected_results.append((result_row, job, None))
+                    applications_by_job[job.id] = application
+                matched_count += 1
+            cursor += len(rows)
+        total = matched_count
+    else:
+        selected_rows = session.execute(result_options.offset(offset).limit(limit)).unique().all()
+        selected_results = [(row[0], row[1], None) for row in selected_rows]
+        applications_by_job = (canonical_application_states_for_jobs(
+            session, tracking_profile.id, (job for _, job, _ in selected_results))
+            if tracking_profile else {})
     items = []
     for result_row, job, match_row in selected_results:
-        item = _job_json(job)
+        item = search_snapshots.job_json(job)
         item['match_kind'] = result_row.scope.get('match_kind')
         item['geography'] = result_row.scope
         if tracking_profile is not None:
@@ -2496,13 +1396,24 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
             application = applications_by_job.get(job.id)
             item['application'] = application_json(application) if application else None
         items.append(item)
-    application_counts = dict.fromkeys(APPLICATION_STATUSES, 0)
-    if tracking_profile:
+    if tracking_profile and job_status is None:
+        application_job = aliased(Job)
+        application_group = aliased(JobVacancyGroup)
+        candidate_group = aliased(JobVacancyGroup)
+        same_application_group = select(application_group.job_id).where(
+            application_group.vacancy_group_id == candidate_group.vacancy_group_id)
+        application_match = and_(
+            JobApplication.profile_id == tracking_profile.id,
+            JobApplication.job_id.in_(select(application_job.id).where(
+                or_(application_job.id == JobSearchResult.job_id,
+                    and_(candidate_group.vacancy_group_id.is_not(None),
+                         application_job.id.in_(same_application_group))))),
+        )
         count_statement = select(JobApplication.status, func.count()).select_from(
-            JobSearchResult).join(Job, Job.id == JobSearchResult.job_id).join(JobApplication, and_(
-                JobApplication.profile_id == tracking_profile.id,
-                JobApplication.job_id == JobSearchResult.job_id,
-            )).where(JobSearchResult.snapshot_key == key, _posting_status_filter(posting_status))
+            JobSearchResult).join(Job, Job.id == JobSearchResult.job_id).outerjoin(
+                candidate_group, candidate_group.job_id == Job.id).join(
+                JobApplication, application_match).where(
+                    JobSearchResult.snapshot_key == key, search_snapshots.posting_status_filter(posting_status))
         counts = session.execute(count_statement.group_by(JobApplication.status)).all()
         application_counts.update(dict(counts))
     payload = snapshot.payload or {}
@@ -2514,239 +1425,6 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
             'snapshot_id': key, 'snapshot_stale': snapshot_stale}
 
 
-def _application_momentum_json(session: Session) -> dict[str, int]:
-    now = utcnow()
-    week_start = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=now.weekday())
-    weekly_jobs: dict[datetime, set[int]] = {}
-    lifetime_jobs: set[int] = set()
-    applied_events = session.execute(select(
-        ApplicationMomentumEvent.job_id,
-        ApplicationMomentumEvent.occurred_at,
-        ApplicationMomentumEvent.is_legacy,
-    ).where(ApplicationMomentumEvent.event_type == 'applied')
-        .order_by(ApplicationMomentumEvent.occurred_at)).all()
-    counted_weekly_jobs: set[int] = set()
-    for job_id, occurred_at, is_legacy in applied_events:
-        lifetime_jobs.add(job_id)
-        if is_legacy or job_id in counted_weekly_jobs:
-            continue
-        counted_weekly_jobs.add(job_id)
-        occurred_at = occurred_at.replace(tzinfo=timezone.utc) if occurred_at.tzinfo is None else occurred_at.astimezone(timezone.utc)
-        event_week = occurred_at.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=occurred_at.weekday())
-        weekly_jobs.setdefault(event_week, set()).add(job_id)
-
-    weekly_goal = APPLICATION_WEEKLY_GOAL
-    applied_this_week = len(weekly_jobs.get(week_start, set()))
-    successful_weeks = 0
-    streak_week = week_start
-    if len(weekly_jobs.get(streak_week, set())) < weekly_goal:
-        streak_week -= timedelta(days=7)
-    while len(weekly_jobs.get(streak_week, set())) >= weekly_goal:
-        successful_weeks += 1
-        streak_week -= timedelta(days=7)
-
-    interview_count = session.scalar(select(func.count(func.distinct(ApplicationMomentumEvent.job_id))).where(
-        ApplicationMomentumEvent.event_type == 'interview',
-    )) or 0
-    jobs_won = session.scalar(select(func.count(func.distinct(ApplicationMomentumEvent.job_id))).where(
-        ApplicationMomentumEvent.event_type == 'accepted',
-    )) or 0
-    return {
-        'weekly_goal': weekly_goal,
-        'applied_this_week': applied_this_week,
-        'lifetime_applied': len(lifetime_jobs),
-        'successful_weeks': successful_weeks,
-        'interview_count': interview_count,
-        'jobs_won': jobs_won,
-    }
-
-
-@app.get('/api/v1/application-momentum')
-def get_application_momentum(session: Session = Depends(get_session)) -> dict[str, int]:
-    return _application_momentum_json(session)
-
-
-@app.put('/api/v1/profiles/{profile_id}/applications/{job_id}')
-def set_job_application(profile_id: int, job_id: int, request: ApplicationRequest,
-                        session: Session = Depends(get_session)) -> dict[str, Any]:
-    require_profile(profile_id, session)
-    # Serialize tracking with source closure before reading the posting state.
-    # SQLite needs a write to acquire the same protection as FOR UPDATE.
-    if session.get_bind().dialect.name == 'sqlite':
-        session.execute(update(Job).where(Job.id == job_id).values(
-            is_active=Job.is_active).execution_options(synchronize_session=False))
-    # Only application state changes; NO KEY UPDATE serializes source closure
-    # and allows a concurrent match-index foreign-key check to finish.
-    job = session.scalar(select(Job).where(Job.id == job_id).with_for_update(key_share=True)
-                         .execution_options(populate_existing=True))
-    if job is None:
-        raise HTTPException(status_code=404, detail='Job not found')
-    locked_profile_id = session.scalar(select(UserProfile.id).where(
-        UserProfile.id == profile_id).with_for_update())
-    if locked_profile_id is None:
-        raise HTTPException(status_code=404, detail='Profile not found')
-    previous_status = session.scalar(select(JobApplication.status).where(
-        JobApplication.profile_id == profile_id, JobApplication.job_id == job_id))
-    requested_status = request.status
-    if not job.is_active:
-        if request.status == 'new' and previous_status in ('accepted', 'rejected', 'closed'):
-            target_status = previous_status
-        elif request.status in ('accepted', 'rejected'):
-            target_status = request.status
-        else:
-            target_status = 'rejected' if request.status in APPLIED_STATUSES else 'closed'
-        request = request.model_copy(update={'status': target_status})
-    # Atomic upsert makes repeat saves and simultaneous requests safe on both stores.
-    if session.get_bind().dialect.name == 'sqlite':
-        from sqlalchemy.dialects.sqlite import insert
-    else:
-        from sqlalchemy.dialects.postgresql import insert
-    now = utcnow()
-    statement = insert(JobApplication).values(profile_id=profile_id, job_id=job_id,
-        status=request.status, previous_status=None, auto_created=False,
-        created_at=now, updated_at=now).on_conflict_do_update(
-            index_elements=['profile_id', 'job_id'], set_={
-                'status': request.status,
-                'auto_created': False,
-                'previous_status': case((JobApplication.status != request.status, JobApplication.status),
-                                        else_=JobApplication.previous_status),
-                'updated_at': now,
-            })
-    session.execute(statement)
-    momentum_event_type = {
-        'waiting_for_reply': 'applied',
-        'automated_application': 'applied',
-        'interview': 'interview',
-        'accepted': 'accepted',
-    }.get(requested_status)
-    if request.action == 'stage' and momentum_event_type and previous_status != requested_status:
-        # Count a profile/job only once across the manual and autofill sent stages.
-        already_counted = momentum_event_type == 'applied' and session.scalar(select(ApplicationMomentumEvent.id).where(
-            ApplicationMomentumEvent.profile_id == profile_id,
-            ApplicationMomentumEvent.job_id == job_id,
-            ApplicationMomentumEvent.event_type == 'applied',
-        ).limit(1)) is not None
-        if not already_counted:
-            session.add(ApplicationMomentumEvent(
-                profile_id=profile_id,
-                job_id=job_id,
-                event_type=momentum_event_type,
-                occurred_at=now,
-            ))
-    session.commit()
-    application = session.scalar(select(JobApplication).where(
-        JobApplication.profile_id == profile_id, JobApplication.job_id == job_id)
-        .execution_options(populate_existing=True))
-    return application_json(application)
-
-
-@app.get('/api/v1/profiles/{profile_id}/applications')
-def list_job_applications(profile_id: int,
-                          status: ApplicationStatus | None = None,
-                          offset: Annotated[int, Query(ge=0)] = 0,
-                          limit: Annotated[int, Query(ge=1, le=100)] = 40,
-                          session: Session = Depends(get_session)) -> dict[str, Any]:
-    require_profile(profile_id, session)
-    counts = dict.fromkeys(APPLICATION_STATUSES, 0)
-    counts.update(dict(session.execute(select(JobApplication.status, func.count()).where(
-        JobApplication.profile_id == profile_id).group_by(JobApplication.status)).all()))
-    statement = select(JobApplication).where(JobApplication.profile_id == profile_id)
-    if status is not None:
-        statement = statement.where(JobApplication.status == status)
-    applications = session.scalars(statement.options(
-        joinedload(JobApplication.job).joinedload(Job.feed).joinedload(JobFeed.company),
-        joinedload(JobApplication.job).joinedload(Job.employer_company),
-        joinedload(JobApplication.job).selectinload(Job.locations))
-        .order_by(JobApplication.updated_at.desc(), JobApplication.id.desc())
-        .offset(offset).limit(limit)).unique().all()
-    items = []
-    for application in applications:
-        item = _job_json(application.job)
-        item['application'] = application_json(application)
-        items.append(item)
-    return {'profile_id': profile_id, 'items': items, 'counts': counts,
-            'total': counts[status] if status is not None else sum(counts.values()),
-            'offset': offset, 'limit': limit}
-
-
-@app.get('/api/v1/applications')
-def list_applications(profile_ids: str = Query(..., max_length=1200),
-                      statuses: str | None = Query(None, max_length=160),
-                      sort: Literal['match', 'posted', 'discovered'] = 'match',
-                      offset: Annotated[int, Query(ge=0)] = 0,
-                      limit: Annotated[int, Query(ge=1, le=100)] = 40,
-                      session: Session = Depends(get_session)) -> dict[str, Any]:
-    try:
-        selected_ids = list(dict.fromkeys(int(value) for value in profile_ids.split(',') if value))
-    except ValueError as error:
-        raise HTTPException(status_code=422, detail='profile_ids must be a comma-separated list of IDs') from error
-    if not selected_ids or len(selected_ids) > 100 or any(value < 1 for value in selected_ids):
-        raise HTTPException(status_code=422, detail='Select between 1 and 100 valid profiles')
-    profiles = [require_profile(value, session) for value in selected_ids]
-    selected_statuses: list[str] = []
-    if statuses and statuses != 'all':
-        selected_statuses = list(dict.fromkeys(value for value in statuses.split(',') if value))
-        if not selected_statuses or any(value not in APPLICATION_STATUSES for value in selected_statuses):
-            raise HTTPException(status_code=422, detail='statuses contains an unknown application state')
-
-    # Rebuild selected profiles together so a shared active-job scan can fill
-    # their indexes and create New states for newly visible matches.
-    try:
-        index_rebuilt = ensure_profile_match_indexes(session, profiles)
-    except ProfileIndexChanged as error:
-        raise HTTPException(status_code=409,
-                            detail='Profile or job inventory changed during search; retry the request') from error
-    if index_rebuilt:
-        session.commit()
-
-    counts = dict.fromkeys(APPLICATION_STATUSES, 0)
-    count_rows = session.execute(select(JobApplication.status, func.count()).where(
-        JobApplication.profile_id.in_(selected_ids)).group_by(JobApplication.status)).all()
-    counts.update(dict(count_rows))
-    statement = select(JobApplication, Job).join(Job, Job.id == JobApplication.job_id).outerjoin(
-        ProfileJobMatch, and_(ProfileJobMatch.profile_id == JobApplication.profile_id,
-                              ProfileJobMatch.job_id == JobApplication.job_id)
-    ).where(
-        JobApplication.profile_id.in_(selected_ids))
-    if selected_statuses:
-        statement = statement.where(JobApplication.status.in_(selected_statuses))
-    if sort == 'posted':
-        statement = statement.order_by(Job.date_posted.desc().nullslast(),
-                                       ProfileJobMatch.match_score.desc().nullslast(),
-                                       Job.first_seen_at.desc(), JobApplication.id.desc())
-    elif sort == 'discovered':
-        statement = statement.order_by(Job.first_seen_at.desc(),
-                                       ProfileJobMatch.match_score.desc().nullslast(),
-                                       Job.date_posted.desc().nullslast(), JobApplication.id.desc())
-    else:
-        statement = statement.order_by(ProfileJobMatch.match_score.desc().nullslast(),
-                                       Job.first_seen_at.desc(), Job.date_posted.desc().nullslast(),
-                                       JobApplication.id.desc())
-    total_statement = select(func.count()).select_from(JobApplication).where(
-        JobApplication.profile_id.in_(selected_ids))
-    if selected_statuses:
-        total_statement = total_statement.where(JobApplication.status.in_(selected_statuses))
-    total = session.scalar(total_statement) or 0
-    rows = session.execute(statement.options(
-        joinedload(JobApplication.profile),
-        joinedload(JobApplication.job).joinedload(Job.feed).joinedload(JobFeed.company),
-        joinedload(JobApplication.job).joinedload(Job.employer_company),
-        joinedload(JobApplication.job).selectinload(Job.locations)
-    ).offset(offset).limit(limit)).unique().all()
-    profiles_by_id = {profile.id: profile for profile in profiles}
-    items = []
-    for application, job in rows:
-        item = _job_json(job)
-        item['application'] = application_json(application)
-        item['profile_id'] = application.profile_id
-        item['profile_name'] = profiles_by_id[application.profile_id].name
-        item['profile_match'] = _profile_match(job, profiles_by_id[application.profile_id], None)
-        items.append(item)
-    return {'profile_ids': selected_ids, 'items': items, 'counts': counts,
-            'total': total,
-            'offset': offset, 'limit': limit, 'sort': sort}
-
-
 @app.get("/api/v1/jobs/{job_id}")
 def get_job(job_id: int, session: Session = Depends(get_session),
             profile_id: Annotated[int | None, Query(ge=1)] = None,
@@ -2755,29 +1433,73 @@ def get_job(job_id: int, session: Session = Depends(get_session),
             radius_km: Annotated[float | None, Query(gt=0, le=200)] = None,
             place: Annotated[str | None, Query(max_length=120)] = None,
             country_code: Annotated[str | None, Query(pattern=r'^[A-Za-z]{2}$')] = None,
-            state: str | None = None, country: str | None = None) -> dict[str, Any]:
-    state = _canonical_state(state)
+            state: str | None = None, country: str | None = None,
+            include_analysis: bool = True) -> dict[str, Any]:
+    state = search_snapshots.canonical_state(state)
     employer_country = _canonical_country(country)
-    statement = select(Job).options(joinedload(Job.feed).joinedload(JobFeed.company),
-                                    joinedload(Job.employer_company),
-                                    selectinload(Job.locations)).where(Job.id == job_id)
-    job = session.scalars(statement).unique().first()
-    if not job:
+    statement = (select(Job)
+                 .options(joinedload(Job.feed).joinedload(JobFeed.company),
+                          joinedload(Job.employer_company), selectinload(Job.locations))
+                 .where(Job.id == job_id))
+    analysis_fields = ('occupation', 'industry', 'duties', 'requirements')
+    if include_analysis:
+        statement = (statement
+                     .outerjoin(JobAnalysis, JobAnalysis.job_id == Job.id)
+                     .outerjoin(JobAnalysisQueue, JobAnalysisQueue.job_id == Job.id)
+                     .add_columns(
+                         JobAnalysis.status, JobAnalysis.version,
+                         JobAnalysisQueue.job_id.is_not(None), JobAnalysisQueue.priority,
+                         *(JobAnalysis.payload[field] for field in analysis_fields),
+                     ))
+    row = session.execute(statement).one_or_none()
+    if row is None:
         raise HTTPException(status_code=404, detail="Job not found")
-    data = _job_json(job, include_description=True)
+    job = row[0]
+    data = search_snapshots.job_json(job, include_description=True)
+    promoted_priority = False
+    if include_analysis:
+        analysis_status, version, is_queued, is_priority, *values = row[1:]
+        is_current_version = version == ANALYSIS_VERSION
+        needs_analysis = job.is_active and not (analysis_status == 'ok' and is_current_version)
+        if needs_analysis and (not is_queued or not is_priority):
+            from hiring_scraper.app.analysis_gate import enqueue_priority_analysis
+            enqueue_priority_analysis(session, job.id)
+            promoted_priority = True
+            is_queued = True
+        refreshing = job.is_active and bool(is_queued)
+        data['analysis_refreshing'] = refreshing
+        data['analysis'] = None
+        if analysis_status in USABLE_ANALYSIS_STATUSES and all(value is not None for value in values):
+            data['analysis_state'] = 'ready' if is_current_version and analysis_status == 'ok' else 'outdated'
+            data['analysis'] = dict(zip(analysis_fields, values, strict=True))
+        elif analysis_status == 'failed' and is_current_version:
+            data['analysis_state'] = 'failed'
+        else:
+            data['analysis_state'] = 'pending' if refreshing else 'unavailable'
+
+    # Stored enrichment can still contain this retired warning. Filter it on read
+    # without rewriting the job or invalidating other enrichment signals.
+    enrichment = data['enrichment']
+    legacy_warning = 'No skills recognized in the current vocabulary'
+    if legacy_warning in enrichment['warnings']:
+        data['enrichment'] = {**enrichment, 'warnings': [w for w in enrichment['warnings'] if w != legacy_warning]}
     if employer_country and profile_id is None:
-        data['geography'] = _result_scope(job, 0, 0, 15, None, None, state, employer_country)
+        data['geography'] = search_snapshots.result_scope(job, 0, 0, 15, None, None, state, employer_country)
     if profile_id is not None:
         profile = require_profile(profile_id, session)
         resolved = _resolved_search_area(profile, latitude, longitude, radius_km, place, country_code)
-        scope = _result_scope(job, resolved['latitude'], resolved['longitude'],
+        scope = search_snapshots.result_scope(job, resolved['latitude'], resolved['longitude'],
                                  resolved['radius_km'], resolved['place'],
                                  resolved['country'] if resolved['profile_area'] or isinstance(country_code, str) else None, state, employer_country) if state or employer_country or resolved['profile_area'] or resolved['explicit'] else None
         data['geography'] = scope
-        data['profile_match'] = _profile_match(job, profile, scope)
-        application = session.scalar(select(JobApplication).where(
-            JobApplication.profile_id == profile.id, JobApplication.job_id == job.id))
+        # Application-state lookups (include_analysis=false) skip matching: it can
+        # load the full analysis and evidence, and those callers discard it.
+        if include_analysis:
+            data['profile_match'] = search_snapshots.profile_match(job, profile, scope)
+        application = canonical_application_states_for_jobs(session, profile.id, [job]).get(job.id)
         data['application'] = application_json(application) if application else None
+    if promoted_priority:
+        session.commit()
     return data
 
 
@@ -2794,16 +1516,15 @@ def get_company(company_id: int,
         JobFeed.company_id == company_id, Job.employer_company_id == company_id)).options(
             joinedload(Job.feed).joinedload(JobFeed.company), joinedload(Job.employer_company),
             selectinload(Job.locations))).unique().all()
-    all_jobs = _deduplicate_jobs(source_jobs)
-    active_jobs = _deduplicate_jobs([job for job in all_jobs if job.is_active])
+    all_jobs = deduplicate_jobs(source_jobs)
+    active_jobs = deduplicate_jobs([job for job in all_jobs if job.is_active])
     data = _company_json(company, float("inf"), len(active_jobs))
     data["feeds"] = [_feed_json(feed) for feed in company.feeds]
-    job_data = [_job_json(job) for job in all_jobs]
+    job_data = [search_snapshots.job_json(job) for job in all_jobs]
     if profile is not None and job_data:
-        applications = {row.job_id: application_json(row) for row in session.scalars(select(JobApplication).where(
-            JobApplication.profile_id == profile.id,
-            JobApplication.job_id.in_([item["id"] for item in job_data]),
-        ))}
+        applications = {job_id: application_json(state) for job_id, state in
+                        canonical_application_states_for_jobs(session, profile.id, all_jobs).items()
+                        if state is not None}
         for item in job_data:
             item["application"] = applications.get(item["id"])
     data["jobs"] = job_data
@@ -2822,6 +1543,7 @@ def update_company(company_id: int, request: CompanyUpdate,
     company.domain = domain
     company.domain_match_method = "manual" if domain else None
     company.domain_evidence_url = None
+    source_changes.companies_changed(session, [company.id])
     session.commit()
     return {"id": company.id, "domain": company.domain,
             "domain_match_method": company.domain_match_method}
@@ -2859,10 +1581,7 @@ def list_special_feeds(session: Session = Depends(get_session)) -> dict[str, Any
 @app.post("/api/v1/feeds", status_code=201)
 def create_managed_feed(request: ManagedFeedCreate,
                         session: Session = Depends(get_session)) -> dict[str, Any]:
-    if session.get_bind().dialect.name == 'sqlite':
-        from sqlalchemy.dialects.sqlite import insert
-    else:
-        from sqlalchemy.dialects.postgresql import insert
+    insert = dialect_insert(session)
     source_url = _managed_page_url(request.feed_url)
     source_config = _managed_feed_config(session, request, request.provider)
     source = _managed_feed_source(source_url, request.provider, source_config)
@@ -2912,6 +1631,7 @@ def create_managed_feed(request: ManagedFeedCreate,
             company = (session.get(Company, company_id) if company_created else
                        session.scalar(select(Company).where(
                            Company.source == 'managed_feed', Company.source_id == source_id)))
+    company_before = source_changes.tracked_values(company)
     if website_url:
         if not company.website_url:
             company.website_url = website_url
@@ -2931,8 +1651,11 @@ def create_managed_feed(request: ManagedFeedCreate,
     duplicate = session.scalar(select(JobFeed).where(
         JobFeed.company_id == company.id, JobFeed.provider == source["provider"],
         JobFeed.feed_url == source["feed_url"]))
+    company_edited = company_created or source_changes.tracked_values(company) != company_before
     if duplicate:
         if track_company:
+            if company_edited:
+                source_changes.companies_changed(session, [company.id])
             session.commit()
             return {**_managed_feed_json(duplicate), "company_created": False, "already_tracked": True}
         raise HTTPException(status_code=409, detail="This page is already managed for this company")
@@ -2951,6 +1674,9 @@ def create_managed_feed(request: ManagedFeedCreate,
                 JobFeed.provider == source['provider'], JobFeed.feed_url == source['feed_url'])))
     if source["provider"] == "arbeitsagentur" and not already_tracked:
         _schedule_managed_arbeitsagentur_feed(session, feed, now)
+    if company_edited:
+        source_changes.companies_changed(session, [company.id])
+    source_changes.feeds_changed(session, [feed.id])
     session.commit()
     session.refresh(feed)
     return {**_managed_feed_json(feed), "company_created": company_created, "already_tracked": already_tracked}
@@ -2998,11 +1724,12 @@ def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
     company_id = feed.company_id
     # Persist any location cache entry and release the preparation connection.
     session.commit()
-    if session.get_bind().dialect.name == 'postgresql':
-        session.scalar(select(Company.id).where(Company.id == company_id).with_for_update())
-    locked = session.execute(update(JobFeed).where(JobFeed.id == feed_id).values(
-        source_revision=JobFeed.source_revision).execution_options(synchronize_session=False))
-    if locked.rowcount != 1:
+    session.scalar(select(Company.id).where(Company.id == company_id).with_for_update())
+    # Take the full-strength row lock now: the edit below may change feed_url,
+    # part of a unique key. Upgrading a weaker lock later can deadlock with a
+    # result writer already queued on this feed row.
+    locked = session.scalar(select(JobFeed.id).where(JobFeed.id == feed_id).with_for_update())
+    if locked is None:
         raise HTTPException(status_code=404, detail="Job feed not found")
     feed = session.scalar(select(JobFeed).options(joinedload(JobFeed.company)).where(
         JobFeed.id == feed_id).execution_options(populate_existing=True))
@@ -3095,6 +1822,7 @@ def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
         session.flush()
         if new_provider == "arbeitsagentur" and replacement_enabled:
             _schedule_managed_arbeitsagentur_feed(session, replacement, now)
+        source_changes.feeds_changed(session, [feed.id, replacement.id])
         session.commit()
         session.refresh(replacement)
         return _managed_feed_json(replacement)
@@ -3122,6 +1850,7 @@ def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
             _schedule_managed_arbeitsagentur_feed(session, feed, now)
         else:
             feed.next_scan_at = now
+    source_changes.feeds_changed(session, [feed.id])
     session.commit()
     session.refresh(feed)
     return _managed_feed_json(feed)
@@ -3181,7 +1910,7 @@ def summary(latitude: float = Query(49.0068705, ge=-90, le=90),
             radius_km: float = Query(15, gt=0, le=200),
             place: str | None = Query(None, max_length=120),
             session: Session = Depends(get_session), state: str | None = None, country: str | None = None) -> dict[str, Any]:
-    state = _canonical_state(state)
+    state = search_snapshots.canonical_state(state)
     employer_country = _canonical_country(country)
     company_page = list_companies(latitude, longitude, radius_km, None, 0, 1, session, state=state, country=employer_country)
     job_page = list_jobs(latitude=latitude, longitude=longitude, radius_km=radius_km,
@@ -3193,10 +1922,6 @@ def summary(latitude: float = Query(49.0068705, ge=-90, le=90),
     if state or employer_country:
         domain_count = session.scalar(select(func.count(Company.id)).where(
             german_company_filter() if employer_country else Company.state == state, Company.domain.is_not(None))) or 0
-    elif IS_SQLITE:
-        domain_candidates = session.scalars(select(Company).where(
-            Company.domain.is_not(None), *_sqlite_company_bbox(latitude, longitude, radius_km))).all()
-        domain_count = sum(_distance(company, latitude, longitude) <= radius_km * 1000 for company in domain_candidates)
     else:
         domain_count = session.scalar(text("SELECT count(*) FROM companies WHERE domain IS NOT NULL AND ST_DWithin(location_geog, ST_SetSRID(ST_MakePoint(:longitude,:latitude),4326)::geography,:radius_m,false)")
                                       .params(longitude=longitude, latitude=latitude, radius_m=radius_km * 1000)) or 0

@@ -5,7 +5,10 @@ FROM ${POSTGIS_IMAGE}
 # from its pinned upstream release. Keep the Debian/glibc base: the persistent
 # database cluster was initialized with its libc collation provider.
 ARG PGVECTOR_VERSION=v0.8.7
-RUN find /etc/apt -type f \( -name '*.list' -o -name '*.sources' \) -exec sed -i \
+RUN getconf GNU_LIBC_VERSION 2>/dev/null | grep -q '^glibc ' || { \
+        echo 'PostgreSQL image must use glibc for its persistent cluster' >&2; exit 1; \
+    } \
+    && find /etc/apt -type f \( -name '*.list' -o -name '*.sources' \) -exec sed -i \
         -e 's#deb.debian.org/debian#archive.debian.org/debian#g' \
         -e 's#security.debian.org/debian-security#archive.debian.org/debian-security#g' \
         -e 's#apt.postgresql.org/pub/repos/apt#apt-archive.postgresql.org/pub/repos/apt#g' \

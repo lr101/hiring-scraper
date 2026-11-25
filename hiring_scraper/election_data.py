@@ -32,7 +32,7 @@ _GERMANY_LABELS = {"de", "deu", "germany", "deutschland", "allemagne", "duitslan
 # "Essen, BE" is enough to show that the location is outside Germany.
 _FOREIGN_COUNTRY_CODES = set((
     "ad ae af ag ai al am ao aq ar as at au aw ax az ba bb bd bf bg bh bi bj "
-    "bl bm bn bo bq br bs bt bv bw by bz ca cc cd cf cg ch ci ck cl cm cn co "
+    "be bl bm bn bo bq br bs bt bv bw by bz ca cc cd cf cg ch ci ck cl cm cn co "
     "cr cu cv cw cx cy cz dj dk dm do dz ec ee eg eh er es et fi fj fk fm fo "
     "fr ga gb gd ge gf gg gh gi gl gm gn gp gq gr gs gt gu gw gy hk hm hn hr "
     "ht hu id ie il im in io iq ir is it je jm jo jp ke kg kh ki km kn kp kr "

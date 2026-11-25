@@ -10,7 +10,8 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import func, or_, select, update
 from sqlalchemy.orm import Session, aliased, joinedload, load_only
 
-from hiring_scraper.app.database import get_session
+from hiring_scraper.app import source_changes
+from hiring_scraper.app.database import dialect_insert, get_session
 from hiring_scraper.app.company_identity import company_domain, find_company_by_website, is_hosted_job_site
 from hiring_scraper.app.models import Company, Job, JobApplication, JobFeed, UserProfile, utcnow
 from hiring_scraper.app.board_scope import expiry
@@ -231,10 +232,7 @@ def search_companion_jobs(
 def save_companion_job(request: SaveJobRequest,
                        session: Session = Depends(get_session)) -> dict:
     """Save one posting to one profile; it does not subscribe that profile to a feed."""
-    if session.get_bind().dialect.name == 'sqlite':
-        from sqlalchemy.dialects.sqlite import insert
-    else:
-        from sqlalchemy.dialects.postgresql import insert
+    insert = dialect_insert(session)
     profile = session.get(UserProfile, request.profile_id)
     if profile is None:
         raise HTTPException(status_code=404, detail='Profile not found')
@@ -295,6 +293,9 @@ def save_companion_job(request: SaveJobRequest,
         if created:
             session.execute(update(JobFeed).where(JobFeed.id == feed.id).values(
                 job_count=func.coalesce(JobFeed.job_count, 0) + 1))
+            # Core inserts bypass the ORM: declare the saved posting so it is
+            # matched and appears in search like any other job.
+            source_changes.jobs_changed(session, [job.id])
 
     now = utcnow()
     application_id = session.scalar(insert(JobApplication).values(
@@ -304,6 +305,8 @@ def save_companion_job(request: SaveJobRequest,
     application = session.scalar(select(JobApplication).where(
         JobApplication.profile_id == profile.id, JobApplication.job_id == job.id))
     already_added = application_id is None
+    from hiring_scraper.app.analysis_gate import enqueue_priority_if_needed
+    enqueue_priority_if_needed(session, job.id, is_active=job.is_active)
     session.commit()
     company = job.employer_company or job.feed.company
     return {

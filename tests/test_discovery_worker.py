@@ -3,29 +3,27 @@ import tempfile
 import threading
 import unittest
 from datetime import timedelta, timezone
-from pathlib import Path
 from unittest.mock import patch
 
-from sqlalchemy import create_engine, event, select, update
+from sqlalchemy import event, select
 from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import discovery_worker as worker
 from hiring_scraper.app import worker as feed_worker
 from hiring_scraper.browser import BROWSER_CLIENT_REQUEST_BUDGET
 from hiring_scraper.app.models import Base, Company, DiscoveryRun, Job, JobFeed, ScanRun, utcnow
+from tests import pg
 
 
 class DiscoveryWorkerTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
-        self.engine = create_engine(f"sqlite:///{Path(self.directory.name) / 'worker.db'}")
+        self.engine = pg.engine(self)
         Base.metadata.create_all(self.engine)
         self.factory = sessionmaker(bind=self.engine, autoflush=False, expire_on_commit=False)
         self.patches = [
             patch.object(worker, "SessionLocal", self.factory),
-            patch.object(worker, "engine", self.engine),
             patch.object(feed_worker, "SessionLocal", self.factory),
-            patch.object(feed_worker, "engine", self.engine),
         ]
         for item in self.patches:
             item.start()
@@ -176,7 +174,6 @@ class DiscoveryWorkerTests(unittest.TestCase):
                 return next(responses)
 
         with patch.object(feed_worker, "SessionLocal", self.factory), \
-                patch.object(feed_worker, "engine", self.engine), \
                 patch.object(feed_worker, "Client", OfflineClient), \
                 patch.object(feed_worker, "_pace_origin"):
             self.assertTrue(feed_worker.scan_once())
@@ -372,11 +369,10 @@ class DiscoveryWorkerTests(unittest.TestCase):
 class FeedWorkerSafetyTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
-        self.engine = create_engine(f"sqlite:///{Path(self.directory.name) / 'feed-worker.db'}")
+        self.engine = pg.engine(self)
         Base.metadata.create_all(self.engine)
         self.factory = sessionmaker(bind=self.engine, autoflush=False, expire_on_commit=False)
-        self.patches = [patch.object(feed_worker, "SessionLocal", self.factory),
-                        patch.object(feed_worker, "engine", self.engine)]
+        self.patches = [patch.object(feed_worker, "SessionLocal", self.factory)]
         for item in self.patches:
             item.start()
 
@@ -430,14 +426,17 @@ class FeedWorkerSafetyTests(unittest.TestCase):
     def test_feed_edit_lock_serializes_with_in_flight_result_persistence(self):
         feed_id, run_id = self._feed_and_run(revision=1)
         api_session = self.factory()
-        api_session.execute(update(JobFeed).where(JobFeed.id == feed_id).values(
-            source_revision=JobFeed.source_revision).execution_options(synchronize_session=False))
+        # Mirror update_managed_feed: company first, then a full-strength feed lock.
+        company_id = api_session.scalar(select(JobFeed.company_id).where(JobFeed.id == feed_id))
+        api_session.scalar(select(Company.id).where(Company.id == company_id).with_for_update())
+        api_session.scalar(select(JobFeed.id).where(JobFeed.id == feed_id).with_for_update())
         worker_update_started = threading.Event()
         worker_errors = []
 
         def observe_worker_update(_connection, _cursor, statement, _parameters, _context, _executemany):
+            # The writer queues on the company row before it reaches the feed.
             if (threading.current_thread().name == "feed-result-persist" and
-                    statement.lstrip().upper().startswith("UPDATE JOB_FEEDS")):
+                    "FROM COMPANIES" in statement.upper() and "FOR UPDATE" in statement.upper()):
                 worker_update_started.set()
 
         event.listen(self.engine, "before_cursor_execute", observe_worker_update)
@@ -520,7 +519,9 @@ class FeedWorkerSafetyTests(unittest.TestCase):
 
         def before_sql(connection, cursor, statement, parameters, context, executemany):
             if threading.current_thread().name == 'journey-save' and (
-                    statement.startswith('UPDATE jobs SET') or statement.startswith('INSERT INTO job_applications')):
+                    statement.startswith('UPDATE jobs SET') or statement.startswith('INSERT INTO job_applications')
+                    or statement.startswith('INSERT INTO job_vacancy_identities')
+                    or statement.startswith('INSERT INTO job_vacancy_groups')):
                 tracking_write.set()
 
         def after_sql(connection, cursor, statement, parameters, context, executemany):

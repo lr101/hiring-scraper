@@ -1,0 +1,48 @@
+Task: tailor the CV to the posting's core duties while preserving verified employers, titles,
+dates, and section order. Keep the CV concise so it fits within two A4 pages.
+
+Format
+- FORMAT describes the base CV's headline and profile. Keep that format and change only the
+  wording: the same structure, separator, number of parts, sentence count and similar length.
+
+Headline
+- When FORMAT.headline has `segments`, return exactly that many parts in `headline.segments`
+  (the application joins them with the base separator). Keep each part a short noun phrase of
+  similar length to the base part, naming a verified functional pillar, ordered by fit for the
+  posting's core duties.
+- Otherwise write one line no longer than FORMAT.headline.max_chars characters naming 2–3 verified
+  functional pillars ordered by fit for the posting's core duties.
+- Use the posting's role-family phrasing where it accurately describes verified work, without
+  presenting an unheld job title or promoting a single study project into a headline specialty.
+- Cite each pillar's supporting evidence ids.
+
+Profile
+- Fill `profile.first`, `profile.second`, `profile.third` and `profile.fourth` in order with exactly
+  FORMAT.profile.sentences sentences (set the unused ones to null), totaling about
+  FORMAT.profile.words words. The application keeps the base paragraph layout.
+- Position the candidate for this role: lead with a verified professional identity, connect to
+  the strongest relevant work evidence, and add distinct technical or analytical strengths.
+  Synthesize rather than repeating bullet wording.
+- Use subject-less CV style: no explicit first person ("I"/"ich") and no third-person pronouns or
+  role subjects ("she"/"he"/"Die Ingenieurin"). Start with a noun-led opening (e.g. "Ingenieurin
+  für … mit Erfahrung in …" or a noun-led English opening) followed by fluent subject-less CV
+  prose.
+- Cite each sentence's own `sources` from one entry plus general/skill evidence. Identify study
+  projects explicitly as study context; a company in a project label is a topic unless evidence
+  states an employer or client relationship. Leave language levels to their section and motivation
+  to the letter.
+
+Entries (keep/rewrite slots)
+- In ENTRIES, each base bullet has a `bullet_id`, `source`, and original text. Within each entry,
+  return all `bullet_id`s in `order` with the clearest evidence for the posting's core duties
+  first.
+- Assign `relevance` to every bullet. Mark only the 2–4 strongest core-duty bullets across the CV
+  as `high` and rewrite them (`text` + exact `source`) to frame verified work for the posting.
+  Mark adjacent or already well-phrased bullets `medium` and unrelated ones `low` (return only
+  `relevance`; the application keeps them verbatim).
+- Rewrite from that single base bullet at its exact scope, preserving actors, tools, results, and
+  substantive details. Keep rewrites at most as long as the source, vary opening verbs, and omit
+  any existing `lead_in` prefix from `text` (the application preserves it).
+
+Skills
+- Return each skills section's existing `unit_ids` ordered by relevance; keep every item.

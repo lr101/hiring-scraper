@@ -3,15 +3,16 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from sqlalchemy import create_engine, select, func
+from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 from hiring_scraper.app.models import Base, UserProfile, Job
+from tests import pg
 
 
 class CVBoardImportTests(unittest.TestCase):
     def test_explicit_import_reuses_profile_and_updates_verified_preferences(self):
         from hiring_scraper.app.cv_board import import_board
-        engine = create_engine('sqlite://')
+        engine = pg.engine(self)
         Base.metadata.create_all(engine)
         with tempfile.TemporaryDirectory() as directory, Session(engine) as session:
             profile = Path(directory) / 'profile.json'
@@ -34,9 +35,26 @@ class CVBoardImportTests(unittest.TestCase):
             self.assertEqual(saved.preferences['skill_evidence']['CAD']['context'], 'academic')
             self.assertEqual(saved.preferences['search_area']['radius_km'], 35)
 
+    def test_committed_reimport_restarts_the_profile_index(self):
+        from hiring_scraper.app.cv_board import import_board
+        engine = pg.engine(self)
+        with tempfile.TemporaryDirectory() as directory, Session(engine) as session:
+            profile = Path(directory) / 'profile.json'
+            profile.write_text(json.dumps({'name': 'Anonymous project profile', 'skills': ['CAD'],
+                'summary': 'Mechanical engineer designing machine parts for production lines.'}))
+            profile_id = import_board(session, profile, [])['profile_id']
+            session.commit()
+            session.get(UserProfile, profile_id).match_index_version = 'current'
+            session.commit()
+            profile.write_text(json.dumps({'name': 'Anonymous project profile', 'skills': ['Python'],
+                'summary': 'Software developer building data pipelines for research teams.'}))
+            import_board(session, profile, [])
+            session.commit()  # strict mode fails here if the profile change is undeclared
+            self.assertIsNone(session.get(UserProfile, profile_id).match_index_version)
+
     def test_invalid_profile_does_not_import_jobs(self):
         from hiring_scraper.app.cv_board import import_board
-        engine = create_engine('sqlite://')
+        engine = pg.engine(self)
         Base.metadata.create_all(engine)
         with tempfile.TemporaryDirectory() as directory, Session(engine) as session:
             path = Path(directory) / 'profile.json'
@@ -49,7 +67,7 @@ class CVBoardImportTests(unittest.TestCase):
     def test_employer_supplement_is_idempotent_and_keeps_source_expiry(self):
         from hiring_scraper.app.cv_board import import_board
         from hiring_scraper.app.models import JobFeed
-        engine = create_engine('sqlite://')
+        engine = pg.engine(self)
         Base.metadata.create_all(engine)
         with tempfile.TemporaryDirectory() as directory, Session(engine) as session:
             profile = Path(directory) / 'profile.json'

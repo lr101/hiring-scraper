@@ -1,0 +1,10 @@
+{
+  "id": "job_0014",
+  "lang": "de",
+  "title": "Technical Product Owner Schnittstellen (m/w/d)",
+  "company": "Softwarehaus für Versicherer",
+  "location_text": "Köln",
+  "work_arrangement": "remote",
+  "description": "Wir entwickeln Plattformen für Versicherungsunternehmen und suchen einen Technical Product Owner für unsere Schnittstellen-Produkte (REST, Events).\n\nIhre Aufgaben\n- Backlog der API-Plattform pflegen und mit Entwicklung und Fachbereich priorisieren\n- Technische Anforderungen von Partnerunternehmen aufnehmen und als Stories beschreiben\n- Dokumentation und Versionierung der Schnittstellen verantworten\n- Releases mit dem Betriebsteam abstimmen\n\nIhr Profil\n- Zwei bis fünf Jahre Erfahrung als Product Owner oder Requirements Engineer\n- Verständnis von REST-APIs und Datenmodellen, SQL-Kenntnisse\n- Erfahrung mit Scrum und Jira\n- Gute Deutschkenntnisse und Englisch für die Dokumentation",
+  "description_kind": "summary"
+}

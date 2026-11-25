@@ -5,13 +5,16 @@ import logging
 import os
 import time
 
-from hiring_scraper.app.api import (
-    prewarm_profile_location_snapshots_once, process_search_snapshot_refresh_once,
+from hiring_scraper.app.search_snapshots import (
+    backfill_job_location_scopes_once,
+    prewarm_profile_location_snapshots_once,
+    process_search_snapshot_refresh_once,
 )
 
 
 POLL_SECONDS = max(0.25, float(os.getenv("SEARCH_SNAPSHOT_POLL_SECONDS", "1")))
 PREWARM_SECONDS = max(30, float(os.getenv("SEARCH_SNAPSHOT_PREWARM_SECONDS", "60")))
+BACKFILL_BATCH_SIZE = 500
 
 
 def main() -> None:
@@ -31,7 +34,14 @@ def main() -> None:
             except Exception:
                 logging.getLogger(__name__).exception("Could not prewarm profile/location search snapshots")
             last_prewarm = now
-        if not process_search_snapshot_refresh_once():
+        backfilled = 0
+        try:
+            backfilled = backfill_job_location_scopes_once(batch_size=BACKFILL_BATCH_SIZE)
+        except Exception:
+            logging.getLogger(__name__).exception("Could not backfill job location scopes")
+        # Give queued requests a turn between full backfill batches.
+        refreshed = process_search_snapshot_refresh_once()
+        if not backfilled and not refreshed:
             time.sleep(POLL_SECONDS)
 
 

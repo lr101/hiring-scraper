@@ -1,438 +1,571 @@
+import { useEffect, useRef, useState } from 'react'
+import ChatGPTConnection from './ChatGPTConnection'
 import { selectCVLanguage } from '../../extensions/application-companion/tex-cv.js'
-import { downloadApplicationDocument } from './applicationDocumentExport'
-import type { DocumentFormat } from './applicationDocumentExport'
-import type { LatexDocuments } from './applicationLatex'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import PDFPreview from './PDFPreview'
-import type { Profile } from './profile'
-import { applicationDocumentFilename, applicationStartLink, readApplicationReturnInput, assertFinishedText, buildApplicationPrompt, buildFitAssessmentPrompt, readApplicationReturn, documentHTML, documentPlainText, documentSections, parseApplicationPackage, parseApplicationResponse, parseTemplateChanges } from './applicationHandoff'
-import type { ApplicationDocuments, ApplicationPackage, HandoffJob, TemplateParagraph } from './applicationHandoff'
+import { DocumentEditor } from './documents/DocumentEditor'
+import type { CvDocument, Finding } from './documents/types'
+import { findUnitById, updateUnitText } from './documents/editing'
+import {
+  ApplicationHttpError, applicationPostingURL, applicationRequest, applicationStartLink, isActive, jsonRequest, pollDocumentPdf,
+  preparationStages, taskErrorMessage,
+} from './applicationDocuments'
+import type { DocumentKind, Documents, Language, Mode, Revision, Structure, Task, Version } from './applicationDocuments'
 import { readApplicationForm } from './applicationForm'
-import type { FormAnswers } from './applicationForm'
+import { useApplicationDraft } from './useApplicationDraft'
+import type { Profile } from './profile'
+import './application-preparation.css'
 
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
-const CHATGPT = 'https://chatgpt.com/'
+const KINDS = ['cv', 'letter'] as const
+const LABELS = { cv: 'CV', letter: 'Cover letter', review: 'Review' }
+type Job = { id: number; title: string; company_name: string; url?: string; description?: string | null; expired?: boolean; is_active?: boolean }
+
+function message(reason: unknown) {
+  return reason instanceof Error ? reason.message : 'Radius could not complete this request. Try again.'
+}
 
 export default function ApplicationPreparationPage({ jobId }: { jobId: number }) {
-  const [job, setJob] = useState<HandoffJob | null>(null)
-  const [profiles, setProfiles] = useState<Profile[]>([])
+  const [data, setData] = useState<{ job: Job; profiles: Profile[] }>()
   const [profileId, setProfileId] = useState(new URLSearchParams(location.search).get('profile_id') ?? '')
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [incoming, setIncoming] = useState(() => ({ hash: /^#applicationz?=/.test(location.hash) ? location.hash : '' }))
-  useEffect(() => {
-    function receive() {
-      if (!/^#applicationz?=/.test(location.hash)) return
-      setIncoming({ hash: location.hash })
-      // Remove private document data before rendering previews or following links.
-      history.replaceState(history.state, '', location.pathname + location.search)
-    }
-    receive()
-    window.addEventListener('hashchange', receive)
-    return () => window.removeEventListener('hashchange', receive)
-  }, [])
+
   useEffect(() => {
     const controller = new AbortController()
-    async function load() {
-      try {
-        const [jobResponse, profilesResponse] = await Promise.all([
-          fetch(`${API}/api/v1/jobs/${jobId}`, { signal: controller.signal }),
-          fetch(`${API}/api/v1/profiles`, { signal: controller.signal }),
-        ])
-        if (!jobResponse.ok || !profilesResponse.ok) throw new Error('Could not load this application. Go back to the job and try again.')
-        const [jobData, profileData] = await Promise.all([jobResponse.json(), profilesResponse.json()])
-        setJob(jobData); setProfiles(profileData.items)
-        if (!new URLSearchParams(location.search).has('profile_id') && profileData.items.length === 1) setProfileId(String(profileData.items[0].id))
-      } catch (reason) { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Could not load this application.') }
-      finally { if (!controller.signal.aborted) setLoading(false) }
-    }
-    void load()
+    const { signal } = controller
+    void Promise.all([
+      applicationRequest<Job>(`${API}/api/v1/jobs/${jobId}`, { signal }),
+      applicationRequest<{ items: Profile[] }>(`${API}/api/v1/profiles`, { signal }),
+    ]).then(([job, profiles]) => {
+      if (signal.aborted) return
+      setData({ job, profiles: profiles.items })
+      if (!new URLSearchParams(location.search).has('profile_id') && profiles.items.length === 1) {
+        setProfileId(String(profiles.items[0].id))
+      }
+    }).catch(reason => { if (!signal.aborted) setError(message(reason)) })
     return () => controller.abort()
   }, [jobId])
-  const profile = profiles.find(item => String(item.id) === profileId)
-  const href = applicationStartLink(jobId, profile?.id)
-  const editHref = profile ? `/profile/${profile.id}/edit?return_to=${encodeURIComponent(href)}#profile-cv` : '/profile/new'
+
+  const profile = data?.profiles.find(item => String(item.id) === profileId)
+  const returnTo = applicationStartLink(jobId, profile?.id)
+  const editHref = profile ? `/profile/${profile.id}/edit?return_to=${encodeURIComponent(returnTo)}#profile-cv` : '/profile/new'
+
   return <div className="app-shell application-workspace"><main className="content application-finish-page">
-    <a className="back-link" href={`/jobs/${jobId}${profileId ? `?profile_id=${profileId}` : ''}`}>← Back to job</a>
-    {loading ? <div className="loading-state">Preparing your application…</div> : error ? <p className="error-banner" role="alert">{error}</p> : job && <>
-      <header className="application-finish-heading"><h1>{job.company_name}</h1><p>{job.title}</p></header>
-      {!profile ? <section className="application-finish-card"><h2>{profiles.length ? 'Choose your profile' : 'Add a profile to get started'}</h2>
-        {profiles.length ? <label>Application profile<select value={profileId} onChange={event => {
-          setProfileId(event.target.value)
-          history.replaceState({}, '', applicationStartLink(jobId, Number(event.target.value)))
-        }}><option value="">Choose a profile</option>{profiles.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-          : <a className="primary-button" href={`/profile/new?return_to=${encodeURIComponent(applicationStartLink(jobId))}`}>Create profile</a>}</section>
-        : !profile.cv ? <section className="application-finish-card"><h2>Attach your CV once</h2><p>Add your CV to {profile.name}. It will be ready for this application and every one after it.</p>
-          <a className="primary-button" href={editHref}>Attach CV to profile →</a></section>
-          : <ApplicationFinish key={profile.id} job={job} profile={profile} editHref={editHref} incoming={incoming} />}
+    <a className="back-link" href={`/jobs/${jobId}${profileId ? `?profile_id=${encodeURIComponent(profileId)}` : ''}`}>← Back to job</a>
+    {error ? <p className="error-banner" role="alert">{error}</p> : !data ? <p role="status">Loading application…</p> : <>
+      <header className="application-finish-heading"><h1>{data.job.company_name}</h1><p>{data.job.title}</p></header>
+      {!profile ? <section className="application-finish-card"><h2>{data.profiles.length ? 'Choose your profile' : 'Add a profile to get started'}</h2>
+        {data.profiles.length ? <label>Application profile<select value={profileId} onChange={event => {
+          const next = event.target.value
+          setProfileId(next)
+          history.replaceState(history.state, '', applicationStartLink(jobId, Number(next)))
+        }}><option value="">Choose a profile</option>{data.profiles.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+          : <a className="primary-button" href={`/profile/new?return_to=${encodeURIComponent(returnTo)}`}>Create profile</a>}
+      </section> : !profile.cv ? <section className="application-finish-card"><h2>Attach a base CV</h2>
+        <p>Add your CV to {profile.name} to prepare an application.</p>
+        <a className="primary-button" href={editHref}>Attach CV to profile</a>
+      </section> : <Preparation key={`${data.job.id}:${profile.id}`} job={data.job} profile={profile} editHref={editHref} />}
     </>}
   </main></div>
 }
 
-function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJob; profile: Profile; editHref: string; incoming: { hash: string } }) {
-  const [cvText, setCVText] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [step, setStep] = useState<'handoff' | 'response' | 'edit'>('handoff')
-  const [language, setLanguage] = useState('the language of the job posting')
-  const [briefType, setBriefType] = useState<'application' | 'fit'>('application')
-  const [documentLayout, setDocumentLayout] = useState<'original' | 'latex'>('latex')
-  const [latexDocuments, setLatexDocuments] = useState<LatexDocuments>()
-  const [notes, setNotes] = useState('')
-  const [response, setResponse] = useState('')
-  const [documents, setDocuments] = useState<ApplicationDocuments>({ cv: '', coverLetter: '', answers: '', reviewNotes: '' })
-  const [form, setForm] = useState(() => readApplicationForm(job.id, profile.id!))
-  const [formAnswers, setFormAnswers] = useState<FormAnswers>()
-  useEffect(() => {
-    const update = () => setForm(readApplicationForm(job.id, profile.id!))
-    document.addEventListener('radius-form-updated', update); window.addEventListener('storage', update)
-    // A capture may arrive after the initial render but before we subscribe.
-    update()
-    return () => { document.removeEventListener('radius-form-updated', update); window.removeEventListener('storage', update) }
-  }, [job.id, profile.id])
-  const [selected, setSelected] = useState<keyof ApplicationDocuments>('cv')
-  const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
-  const [manual, setManual] = useState(false)
-  const [manualResult, setManualResult] = useState(false)
-  const [optionsOpen, setOptionsOpen] = useState(false)
+function Preparation({ job, profile, editHref }: { job: Job; profile: Profile; editHref: string }) {
+  const root = `${API}/api/v1/profiles/${profile.id}`
+  const documentsUrl = `${root}/application-documents`
+  const query = `?job_id=${job.id}`
+  const cv = useApplicationDraft(`${documentsUrl}/cv${query}`)
+  const letter = useApplicationDraft(`${documentsUrl}/letter${query}`)
+  const [language, setLanguage] = useState<Language>(() => selectCVLanguage('auto', `${job.title}\n${job.description ?? ''}`) === 'de' ? 'de' : 'en')
+  const [mode, setMode] = useState<Mode>('full')
+  const [base, setBase] = useState<Structure>()
+  const [baseBody, setBaseBody] = useState<CvDocument | null>(null)
+  const [baseError, setBaseError] = useState('')
+  const [baseConflict, setBaseConflict] = useState(false)
+  const [baseOpen, setBaseOpen] = useState(false)
+  const [baseSaving, setBaseSaving] = useState(false)
+  const [baseReload, setBaseReload] = useState(0)
+  const [task, setTask] = useState<Task | null>(null)
+  const [taskLoaded, setTaskLoaded] = useState(false)
+  const [documentsLoaded, setDocumentsLoaded] = useState(false)
+  const [pollError, setPollError] = useState('')
+  const [actionError, setActionError] = useState('')
   const [busy, setBusy] = useState(false)
-  const [template, setTemplate] = useState<{ source_sha256: string; paragraphs: TemplateParagraph[] } | null>(null)
-  const [changes, setChanges] = useState<TemplateParagraph[]>([])
-  const [pdf, setPDF] = useState<{ url: string; body: string } | null>(null)
-  const [previewBusy, setPreviewBusy] = useState(false)
-  const [previewError, setPreviewError] = useState('')
-  const [draftReady, setDraftReady] = useState(false)
-  const [storageError, setStorageError] = useState('')
-  const [draftExpiresAt, setDraftExpiresAt] = useState(0)
-  const restored = useRef(false)
-  const skipHydrationSave = useRef(false)
-  const lastReturn = useRef<object | null>(null)
-  const importVersion = useRef(0)
-  const pdfURL = useRef('')
-  const promptRef = useRef<HTMLTextAreaElement>(null)
+  const taskMutation = useRef(false)
+  const pollEpoch = useRef(0)
+  const taskSettingsLoaded = useRef(false)
+  const [refresh, setRefresh] = useState(0)
+  const [selectedKind, setSelectedKind] = useState<DocumentKind>()
+  const [dismissedOutput, setDismissedOutput] = useState<string[]>([])
+  const [form, setForm] = useState(() => readApplicationForm(job.id, profile.id!))
+  const [connected, setConnected] = useState(false)
+  const closed = job.expired || job.is_active === false
+  const postingUrl = applicationPostingURL(job.url)
+  const baseDirty = baseBody !== (base?.document ?? null)
+  const active = isActive(task)
+  const selected = selectedKind ?? (cv.body ? 'cv' : 'letter')
+  const currentDraft = selected === 'cv' ? cv : letter
+  const structureUrl = `${root}/cv/structure?language=${language}`
+  const photoUrl = profile.photo ? `${root}/photo?v=${encodeURIComponent(profile.photo.updated_at)}` : undefined
+
   useEffect(() => {
     const controller = new AbortController()
-    setLoading(true); setCVText(''); setError('')
-    async function get(path: string) {
-      const result = await fetch(`${API}/api/v1/profiles/${profile.id}/cv/${path}`, { signal: controller.signal, cache: 'no-store' })
-      const data = await result.json()
-      if (!result.ok) throw new Error(data.detail ?? 'Could not read the saved CV.')
-      return data
-    }
-    Promise.all([get(`text?language=${selectCVLanguage(language, job.description ?? '')}`), Promise.resolve(null)])
-      .then(([data, layout]) => { setCVText(data.text); setTemplate(layout) })
-      .catch(reason => { if (!controller.signal.aborted) setError(reason.message) })
-      .finally(() => { if (!controller.signal.aborted) setLoading(false) })
+    setBaseConflict(false)
+    setBase(undefined)
+    setBaseBody(null)
+    setBaseError('')
+    void applicationRequest<Structure>(structureUrl, { signal: controller.signal }).then(data => {
+      if (controller.signal.aborted) return
+      setBase(data)
+      setBaseBody(data.document)
+      setBaseOpen(data.source !== 'stored')
+    }).catch(reason => { if (!controller.signal.aborted) setBaseError(message(reason)) })
     return () => controller.abort()
-  }, [profile.id, language, job.description])
-  const context = useMemo(() => ({ job_id: job.id, profile_id: profile.id!, cv_updated_at: profile.cv!.updated_at }), [job.id, profile.id, profile.cv?.updated_at])
-  const applicationLanguage = selectCVLanguage(language, job.description ?? '') === 'de' ? 'German' : 'English'
-  const returnURL = new URL(applicationStartLink(job.id, profile.id), location.origin).href
-  const draftKey = `radius:application-draft:v1:${job.id}:${profile.id}`
-  const prompt = useMemo(() => briefType === 'fit' ? buildFitAssessmentPrompt({ job, profile, language: applicationLanguage, cvText })
-    : buildApplicationPrompt({ job, profile, language: applicationLanguage, cvText, notes, templateParagraphs: template?.paragraphs,
-      handoff: { ...context, return_url: returnURL }, form }), [briefType, job, profile, applicationLanguage, cvText, notes, template, context, returnURL, form])
+  }, [structureUrl, baseReload])
+
   useEffect(() => {
-    if (loading || !cvText || restored.current) return
-    restored.current = true
-    try {
-      const raw = localStorage.getItem(draftKey)
-      const saved = raw && raw.length <= 450000 ? JSON.parse(raw) : null
-      if (saved && Date.now() - saved.saved_at < 7 * 86400000 && saved.saved_at <= Date.now() && JSON.stringify(saved.context) === JSON.stringify(context)) {
-        if (saved.package) {
-          const imported = parseApplicationPackage(JSON.stringify(saved.package), context, template?.paragraphs, undefined, cvText)
-          setDocuments(imported.documents); setChanges(imported.changes)
-          setLatexDocuments(imported.latexDocuments)
-          if (imported.latexDocuments) setDocumentLayout('latex')
-          setFormAnswers(imported.formAnswers)
-        }
-        if (['handoff', 'response', 'edit'].includes(saved.step) && (saved.step !== 'edit' || saved.package)) setStep(saved.step)
-        if (typeof saved.response === 'string' && saved.response.length <= 200000) setResponse(saved.response)
-        if (typeof saved.language === 'string' && saved.language.length < 100) setLanguage(saved.language)
-        if (typeof saved.notes === 'string' && saved.notes.length <= 5000) setNotes(saved.notes)
-        setDraftExpiresAt(saved.saved_at + 7 * 86400000)
-        skipHydrationSave.current = true
-      } else if (raw) localStorage.removeItem(draftKey)
-    } catch {
-      // Discard corrupt drafts as well; never retain an unusable document silently.
-      try { localStorage.removeItem(draftKey) } catch { /* Storage may be disabled. */ }
+    const update = () => {
+      const next = readApplicationForm(job.id, profile.id!)
+      setForm(current => current?.form_id === next?.form_id ? current : next)
     }
-    setDraftReady(true)
-  }, [loading, cvText, draftKey, context, template])
-  useEffect(() => {
-    if (!draftReady || !incoming.hash || lastReturn.current === incoming) return
-    let cancelled = false
-    const version = ++importVersion.current
-    void readApplicationReturn(incoming.hash).then(text => {
-      if (cancelled || version !== importVersion.current) return
-      lastReturn.current = incoming
-      const imported = parseApplicationPackage(text ?? '', context, template?.paragraphs, form, cvText)
-      setDocuments(imported.documents); setChanges(imported.changes); setSelected('cv'); setStep('edit'); setError('')
-      setLatexDocuments(imported.latexDocuments)
-      if (imported.latexDocuments) setDocumentLayout('latex')
-      setFormAnswers(imported.formAnswers)
-      setNotice(''); setOptionsOpen(false)
-    }).catch(reason => {
-      if (cancelled || version !== importVersion.current) return
-      lastReturn.current = incoming
-      setError(reason instanceof Error ? reason.message : 'Could not import this return link. Import the application package file instead.')
-    })
-    return () => { cancelled = true }
-  }, [draftReady, incoming, context, template, form])
-  useEffect(() => {
-    if (!draftReady) return
-    // Restoring a draft is not an edit and must not extend its expiry window.
-    if (skipHydrationSave.current) { skipHydrationSave.current = false; return }
-    const result: ApplicationPackage | null = documents.cv ? { format: 'radius-application-v1', ...context,
-      cv: template ? changes : documents.cv, cover_letter: documents.coverLetter, application_answers: documents.answers, review_notes: documents.reviewNotes, ...(formAnswers ? {form_answers:formAnswers} : {}), ...(latexDocuments ? {latex_documents:latexDocuments} : {}) } : null
-    // No original CV bytes are copied into browser storage. Drafts expire in a week.
-    if (step === 'handoff' && !result && !response && !notes) return
-    try {
-      const savedAt = Date.now()
-      localStorage.setItem(draftKey, JSON.stringify({ context, package: result, step, language, notes, response, saved_at: savedAt }))
-      setDraftExpiresAt(savedAt + 7 * 86400000)
-      setStorageError('')
-    } catch { setStorageError('This browser cannot save your draft. Export your documents before closing the page.') }
-  }, [draftReady, draftKey, context, documents, changes, template, step, language, notes, response, formAnswers, latexDocuments])
-  useEffect(() => {
-    if (!draftExpiresAt) return
-    function expire() {
-      if (Date.now() < draftExpiresAt) return
-      clearDraft()
-      setNotice('Your browser draft expired after 7 days without changes. Your original CV is still attached.')
+    document.addEventListener('radius-form-updated', update)
+    window.addEventListener('storage', update)
+    update()
+    return () => {
+      document.removeEventListener('radius-form-updated', update)
+      window.removeEventListener('storage', update)
     }
-    const timer = setTimeout(expire, Math.max(0, draftExpiresAt - Date.now()))
-    window.addEventListener('focus', expire)
-    return () => { clearTimeout(timer); window.removeEventListener('focus', expire) }
-  }, [draftExpiresAt])
-  const exportBody = JSON.stringify(template ? { source_sha256: template.source_sha256, changes } : { job_id: context.job_id, cv_updated_at: context.cv_updated_at, cv: documents.cv, cover_letter: documents.coverLetter, latex_documents: latexDocuments })
+  }, [job.id, profile.id])
+
+  const receiveCV = cv.receive
+  const receiveLetter = letter.receive
   useEffect(() => {
-    if (step !== 'edit' || selected !== 'cv' || (!template && !latexDocuments?.cv)) return
     const controller = new AbortController()
-    setPreviewBusy(true); setPreviewError('')
-    const timer = setTimeout(() => {
-      fetch(`${API}/api/v1/profiles/${profile.id}/${template ? 'cv/export?format=pdf&preview=true' : 'application-document?kind=cv&format=latex_pdf'}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: exportBody, signal: controller.signal,
-      }).then(async result => {
-        if (!result.ok) { const data = await result.json(); throw new Error(data.detail ?? 'Could not preview the template.') }
-        const blob = await result.blob()
-        if (controller.signal.aborted) return
-        if (pdfURL.current) URL.revokeObjectURL(pdfURL.current)
-        pdfURL.current = URL.createObjectURL(blob)
-        setPDF({ url: pdfURL.current, body: exportBody })
-      }).catch(reason => { if (!controller.signal.aborted) setPreviewError(reason.message) })
-        .finally(() => { if (!controller.signal.aborted) setPreviewBusy(false) })
-    }, 1000)
-    return () => { clearTimeout(timer); controller.abort() }
-  }, [step, selected, template, profile.id, exportBody, latexDocuments?.cv])
-  useEffect(() => () => { if (pdfURL.current) URL.revokeObjectURL(pdfURL.current) }, [])
-  const section = documentSections.find(item => item.key === selected)!
-  const text = documents[selected]
-  const finalCVText = template ? template.paragraphs.map(row => changes.find(change => change.id === row.id)?.text ?? row.text).join('\n') : documents.cv
-
-  async function start(openChatGPT = true) {
-    setError(''); setNotice(''); setBusy(true); setManualResult(false); setOptionsOpen(false); setManual(false)
-    // Copy during the click, before opening a tab can take focus away. The
-    // gesture-based copy also works in browsers that block the Clipboard API.
-    const copying = (async () => {
-      const field = document.createElement('textarea')
-      const previousFocus = document.activeElement
-      field.value = prompt; field.readOnly = true
-      field.style.cssText = 'position:fixed;left:-9999px;top:0'
-      document.body.appendChild(field)
-      try {
-        field.focus({ preventScroll: true }); field.select()
-        if (document.execCommand('copy')) return true
-      } catch { /* Try the Clipboard API when gesture-based copying is unavailable. */ }
-      finally {
-        field.remove()
-        if (previousFocus instanceof HTMLElement) previousFocus.focus({ preventScroll: true })
+    let timer: ReturnType<typeof setTimeout>
+    async function poll() {
+      const epoch = pollEpoch.current
+      const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(15000)])
+      const [status, latest] = await Promise.allSettled([
+        applicationRequest<{ task: Task | null }>(`${documentsUrl}/task${query}`, { signal }),
+        applicationRequest<Documents>(documentsUrl + query, { signal }),
+      ])
+      if (controller.signal.aborted) return
+      if (latest.status === 'fulfilled') {
+        receiveCV(latest.value.cv)
+        receiveLetter(latest.value.letter)
+        setDocumentsLoaded(true)
       }
-      try { await navigator.clipboard.writeText(prompt); return true }
-      catch { return false }
-    })()
-    // Navigation must not depend on clipboard permission or an async result.
-    const target = openChatGPT ? window.open(CHATGPT, '_blank') : null
-    if (target) target.opener = null
-    try {
-      if (briefType === 'application') setStep('response')
-      if (await copying) {
-        if (openChatGPT && !target) setManual(true)
-        setNotice(target || !openChatGPT ? 'Brief copied. Paste it in ChatGPT and send.' : 'Brief copied. Use Open ChatGPT to continue.')
-      } else {
-        setManual(true)
-        setError('Clipboard access was blocked. Copy the selected brief, then paste it in ChatGPT.')
-        setTimeout(() => { promptRef.current?.focus(); promptRef.current?.select() }, 0)
+      if (status.status === 'fulfilled' && epoch === pollEpoch.current && !taskMutation.current) {
+        const next = status.value.task
+        if (!taskSettingsLoaded.current && next?.preparation) {
+          setLanguage(next.preparation.language)
+          setMode(next.preparation.mode)
+        }
+        taskSettingsLoaded.current = true
+        setTask(next)
+        setTaskLoaded(true)
       }
-    } finally { setBusy(false) }
-  }
-
-  async function importResponse(input = response) {
-    const version = ++importVersion.current
-    setError(''); setNotice('')
-    try {
-      const text = await readApplicationReturnInput(input, returnURL)
-      if (version !== importVersion.current) return
-      // Existing four-section replies remain importable from the manual field.
-      const legacy = text.trim().replace(/^```(?:markdown|text)?\s*\n/, '').startsWith('<<<CV>>>')
-      const parsed = legacy ? parseApplicationResponse(text) : null
-      const imported = parsed && !cvText.includes('% radius:entry ') ? { documents: parsed, changes: template ? parseTemplateChanges(parsed.cv, template.paragraphs) : [], formAnswers: undefined, latexDocuments: undefined }
-        : parseApplicationPackage(text, context, template?.paragraphs, form, cvText)
-      if (template) assertFinishedText(template.paragraphs.map(row => imported.changes.find(change => change.id === row.id)?.text ?? row.text).join('\n'))
-      setDocuments(imported.documents); setChanges(imported.changes); setSelected('cv'); setStep('edit')
-      setLatexDocuments(imported.latexDocuments)
-      if (imported.latexDocuments) setDocumentLayout('latex')
-      setFormAnswers(imported.formAnswers)
-      setNotice(''); setOptionsOpen(false)
+      const failure = [status, latest].find(item => item.status === 'rejected')
+      setPollError(failure ? 'Could not refresh preparation. Radius will try again.' : '')
+      timer = setTimeout(() => void poll(), status.status === 'fulfilled' && !isActive(status.value.task) ? 5000 : 1500)
     }
-    catch (reason) { if (version === importVersion.current) setError(reason instanceof Error ? reason.message : 'Could not read this response.') }
-  }
+    void poll()
+    return () => { controller.abort(); clearTimeout(timer) }
+  }, [documentsUrl, query, receiveCV, receiveLetter, refresh])
 
-  async function pastePackage() {
+  const unsaved = baseDirty || cv.dirty || letter.dirty
+  useEffect(() => {
+    if (!unsaved) return
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = '' }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [unsaved])
+
+  async function taskAction(url: string, payload: unknown) {
+    if (taskMutation.current) return
+    taskMutation.current = true
+    pollEpoch.current++
+    setBusy(true)
+    setActionError('')
     try {
-      const value = await navigator.clipboard.readText()
-      setResponse(value); await importResponse(value)
-    } catch {
-      setError('Paste the copied result in the box.')
-      document.getElementById('application-package')?.focus()
+      const result = await applicationRequest<{ task: Task }>(url, jsonRequest('POST', payload, AbortSignal.timeout(20000)))
+      setTask(result.task)
+      setTaskLoaded(true)
+    } catch (reason) { setActionError(message(reason)) }
+    finally {
+      taskMutation.current = false
+      setBusy(false)
+      setRefresh(current => current + 1)
     }
   }
 
-  async function importFile(file?: File) {
-    if (!file) return
-    if (file.size > 200000) { setError('Choose an application package file under 200 KB.'); return }
-    try { const value = await file.text(); setResponse(value); await importResponse(value) }
-    catch { setError('Could not read this file. Copy and paste the application package instead.') }
-  }
-
-  function clearDraft() {
-    importVersion.current++
-    setManualResult(false); setOptionsOpen(false)
-    try { localStorage.removeItem(draftKey); setStorageError('') }
-    catch { setStorageError('This browser could not remove the saved draft. Clear this site’s browser storage to remove it.') }
-    setDocuments({ cv: '', coverLetter: '', answers: '', reviewNotes: '' }); setChanges([]); setResponse(''); setNotes(''); setFormAnswers(undefined)
-    setLatexDocuments(undefined)
-    setLanguage('the language of the job posting'); setDraftExpiresAt(0)
-    setStep('handoff'); setError(''); setNotice('Browser draft cleared. Your original CV is still attached.'); setManual(false)
-  }
-
-  async function downloadDocument(format: DocumentFormat) {
-    setBusy(true); setError('')
+  async function saveBase() {
+    if (!baseBody || !base?.revision || baseSaving) return
+    setBaseSaving(true)
+    setBaseError('')
     try {
-      const kind = selected === 'cv' ? 'cv' : 'cover_letter'
-      assertFinishedText(selected === 'cv' ? finalCVText : text)
-      await downloadApplicationDocument({ ...context, cv: template ? changes : documents.cv, cover_letter: documents.coverLetter, latex_documents: latexDocuments }, kind, format, applicationDocumentFilename(job.company_name, kind === 'cv' ? 'cv' : 'coverLetter', format === 'latex_pdf' ? 'pdf' : format))
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not export this document.') }
-    finally { setBusy(false) }
+      const saved = await applicationRequest<Structure>(structureUrl, jsonRequest('PUT', { document: baseBody, expected_revision: base.revision }, AbortSignal.timeout(20000)))
+      setBase(saved)
+      setBaseBody(saved.document)
+      setBaseOpen(false)
+      setRefresh(current => current + 1)
+    } catch (reason) {
+      setBaseConflict(reason instanceof ApplicationHttpError && reason.status === 409)
+      setBaseError(message(reason))
+    }
+    finally { setBaseSaving(false) }
   }
 
-  function printDocument() {
-    try { assertFinishedText(text) } catch (reason) { setError((reason as Error).message); return }
-    const target = window.open('about:blank', '_blank')
-    if (!target) { setError('Allow popups to open the print window.'); return }
-    target.opener = null
-    target.document.open(); target.document.write(documentHTML(text, applicationDocumentFilename(job.company_name, selected, 'pdf').replace(/\.pdf$/, ''))); target.document.close()
-    target.focus(); target.print()
-    setNotice('Choose Save as PDF. Turn off browser headers and footers for a clean document.')
+  const canPrepare = !closed && !active && !busy && connected && taskLoaded
+    && base?.source === 'stored' && !baseDirty && !baseSaving
+  function prepare() {
+    if (canPrepare) void taskAction(`${documentsUrl}/prepare`, { job_id: job.id, language, mode })
   }
 
-  async function copyDocument() {
-    setError(''); setNotice('')
-    try { assertFinishedText(text) } catch (reason) { setError((reason as Error).message); return }
+  const canRevise = connected && taskLoaded && !closed && !active && !busy
+  function revise(kind: DocumentKind, unitId: string, instruction: string, version: Version) {
+    void taskAction(`${documentsUrl}/${kind}/revise${query}`, {
+      unit_id: unitId, instruction, expected_version: version.version, expected_revision: version.revision,
+    })
+  }
+
+  const retryRevision = task?.kind === 'revise' ? task.revision : undefined
+  const revisionDraft = retryRevision?.document === 'cv' ? cv : letter
+  const retryVersion = revisionDraft.draft?.saved
+  const retryUnit = retryRevision && revisionDraft.body && findUnitById(revisionDraft.body, retryRevision.unit_id)
+  const canRetryRevision = canRevise && retryVersion !== undefined && retryUnit
+    && !revisionDraft.dirty && !revisionDraft.saving && !revisionDraft.conflict
+  const retryPrepare = task?.kind === 'prepare' && (task.state === 'failed' || task.state === 'partial' || task.state === 'cancelled')
+  const retryMatchesControls = !task?.preparation || (task.preparation.language === language && task.preparation.mode === mode)
+
+  return <div className="application-preparation-v2">
+    {closed && <p className="preparation-warning">This posting is closed or expired. Check the original posting before applying.</p>}
+    <section className="application-finish-card" aria-labelledby="prepare-documents-heading">
+      <h2 id="prepare-documents-heading">Prepare your application</h2>
+      <ChatGPTConnection onChange={setConnected} preparing={active || busy} compact />
+      <div className="preparation-settings">
+        <label>Document language<select value={language} disabled={baseSaving || active || busy || !taskLoaded} onChange={event => {
+          if (baseDirty && !window.confirm('Discard unsaved edits to this base CV?')) return
+          setBaseConflict(false)
+    setBase(undefined)
+          setBaseBody(null)
+          setLanguage(event.target.value as Language)
+        }}><option value="en">English</option><option value="de">Deutsch</option></select></label>
+        <label>Preparation mode<select value={mode} disabled={active || busy || !taskLoaded} onChange={event => setMode(event.target.value as Mode)}>
+          <option value="full">Full (with review)</option><option value="fast">Fast (CV and cover letter)</option>
+        </select></label>
+      </div>
+      {baseError && <p className="preparation-error" role="alert">{baseError}</p>}
+      {cv.body ? null : !base ? <p role="status">{baseError ? <button onClick={() => setBaseReload(current => current + 1)}>Retry loading base CV</button> : 'Loading base CV…'}</p>
+        : !baseBody ? <div><ul>{base.errors.map(error => <li key={error}>{error}</li>)}</ul><a href={editHref}>Manage base CVs in your profile</a></div>
+        : <details className="base-cv-review" open={baseOpen} onToggle={event => setBaseOpen(event.currentTarget.open)}>
+          <summary>{base.source === 'imported' ? 'Review imported base CV' : 'Review or edit base CV'}</summary>
+          <p>Radius uses this CV as the source for future applications in this language. Review each editable section before saving.</p>
+          <DocumentEditor value={baseBody} onChange={setBaseBody} photoUrl={photoUrl} readOnly={baseSaving} saving={baseSaving} />
+          <button type="button" disabled={baseSaving || baseConflict || (!baseDirty && base.source === 'stored')} onClick={() => void saveBase()}>
+            {baseSaving ? 'Saving base CV…' : base.source === 'imported' ? 'Confirm and save base CV' : 'Save base CV changes'}
+          </button>
+          {baseConflict && <button type="button" onClick={() => setBaseReload(current => current + 1)}>
+            Discard local edits and reload base CV
+          </button>}
+        </details>}
+      {!!form?.fields.length && <p className="finish-help">{form.fields.length} questions captured by the application companion. Open the employer form to review them.</p>}
+      <div className="preparation-actions">
+        <button type="button" className="primary-button" disabled={!canPrepare} onClick={prepare}>
+          {busy && !active ? 'Starting…' : retryPrepare && retryMatchesControls ? (task?.failed_stage === 'review' ? 'Retry review' : 'Retry preparation') : 'Prepare documents'}
+        </button>
+        {retryPrepare && !retryMatchesControls && <button type="button" disabled={!task?.preparation || baseDirty || baseSaving}
+          onClick={() => { if (task?.preparation) { setLanguage(task.preparation.language); setMode(task.preparation.mode) } }}>
+          Restore previous preparation settings
+        </button>}
+      </div>
+      {task && (active || task.state === 'failed' || task.state === 'partial' || task.state === 'cancelled') && <PreparationStatus task={task}>
+        {task.state === 'running' && <button type="button" disabled={busy} onClick={() => void taskAction(
+          `${documentsUrl}/task/cancel${query}&task_id=${encodeURIComponent(task.id)}`, {},
+        )}>Cancel {task.kind === 'revise' ? 'revision' : 'preparation'}</button>}
+        {retryRevision && (task.state === 'failed' || task.state === 'cancelled') && <button type="button" disabled={!canRetryRevision}
+          onClick={() => { if (retryVersion !== undefined) revise(retryRevision.document, retryRevision.unit_id, retryRevision.instruction, retryVersion) }}>
+          Retry revision
+        </button>}
+      </PreparationStatus>}
+      {actionError && <p className="preparation-error" role="alert">{actionError}</p>}
+      {pollError && <p role="status">{pollError}</p>}
+    </section>
+
+    {!documentsLoaded && <p role="status">Loading saved documents…</p>}
+    {(cv.body || letter.body) && <section className="application-finish-card" aria-label="Application documents">
+      <div className="preparation-actions" role="tablist" aria-label="Document tabs">
+        {KINDS.map(kind => <button type="button" key={kind} role="tab" id={`application-tab-${kind}`}
+          aria-selected={selected === kind} aria-controls="application-document-panel"
+          tabIndex={selected === kind ? 0 : -1}
+          onClick={() => setSelectedKind(kind)} onKeyDown={event => {
+            const next = event.key === 'Home' ? KINDS[0] : event.key === 'End' ? KINDS[1]
+              : ['ArrowLeft', 'ArrowRight'].includes(event.key) ? KINDS.find(item => item !== kind) : undefined
+            if (!next) return
+            event.preventDefault()
+            setSelectedKind(next)
+            document.getElementById(`application-tab-${next}`)?.focus()
+          }}>{LABELS[kind]}</button>)}
+      </div>
+      {(cv.draft?.saved.stale_inputs || letter.draft?.saved.stale_inputs) && <div className="preparation-warning" role="status">
+        <p>The saved inputs changed after these documents were prepared.</p>
+        <button type="button" disabled={!canPrepare} onClick={prepare}>Regenerate</button>
+      </div>}
+      <div id="application-document-panel" role="tabpanel" aria-labelledby={`application-tab-${selected}`}>
+        {currentDraft.body ? <TailoredDocument key={selected} kind={selected} draft={currentDraft} documentsUrl={documentsUrl} query={query}
+        photoUrl={photoUrl} canRevise={canRevise} onRevise={revise} task={task} dismissedOutput={dismissedOutput}
+        dismissOutput={key => setDismissedOutput(current => [...current, key])}
+        refresh={() => setRefresh(current => current + 1)} />
+          : <p role="status">{LABELS[selected]} will appear here when it is ready.</p>}
+      </div>
+      {postingUrl && <div className="preparation-actions">
+        <a href={postingUrl} target="_blank" rel="noopener noreferrer">Open job posting ↗</a>
+      </div>}
+    </section>}
+  </div>
+}
+
+function PreparationStatus({ task, children }: { task: Task; children: React.ReactNode }) {
+  const active = isActive(task)
+  const retryAt = task.next_attempt_at ? Date.parse(task.next_attempt_at) : NaN
+  const eta = Number.isFinite(retryAt) ? Math.max(0, Math.ceil((retryAt - Date.now()) / 1000)) : null
+  const stages = preparationStages(task.preparation?.mode)
+  const stage = stages.find(step => step === task.stage)
+  const failedStage = stages.find(step => step === task.failed_stage)
+  const label = task.state === 'cancelling' ? 'Cancelling…'
+    : task.state === 'cancelled' ? 'Cancelled'
+      : task.state === 'partial' ? 'Preparation partially complete'
+      : task.state === 'failed' ? (task.kind === 'revise' ? 'Revision failed' : 'Preparation failed')
+        : task.stage === 'retry_wait' ? 'Waiting to retry'
+          : task.stage === 'queued' ? 'Queued'
+            : task.kind === 'revise' ? 'Revising a document'
+              : task.stage === 'finalize' ? 'Saving documents'
+                : stage === 'review' ? 'Reviewing documents'
+                  : stage ? `Preparing ${LABELS[stage]}` : 'Starting preparation'
+  return <div className="generation-status">
+    <div role={task.state === 'failed' || task.state === 'partial' ? 'alert' : 'status'}>
+      <strong>{label}</strong>
+      {task.attempts > 0 && task.kind !== 'legacy' && <p>Attempt {task.attempts} of 3</p>}
+      {eta !== null && <p>Next retry {eta > 0 ? `in about ${eta} seconds` : 'is due now'}.</p>}
+      {failedStage && (task.state === 'partial' || task.state === 'failed' || task.stage === 'retry_wait')
+        && <p>{LABELS[failedStage]} could not finish.{task.state === 'partial' && ' Your drafts are still available.'}</p>}
+      {task.error_code && <p>{taskErrorMessage(task)}</p>}
+    </div>
+    {active && task.kind === 'prepare' && <ol aria-label="Preparation progress">
+      {stages.map(step => <li key={step} aria-current={stage === step ? 'step' : undefined}>
+        {LABELS[step]}{step !== stage && task.stages[step] ? ' · started' : ''}
+      </li>)}
+    </ol>}
+    {children}
+  </div>
+}
+
+type TailoredDocumentProps = {
+  kind: DocumentKind
+  draft: ReturnType<typeof useApplicationDraft>
+  documentsUrl: string
+  query: string
+  photoUrl?: string
+  canRevise: boolean
+  onRevise: (kind: DocumentKind, unitId: string, instruction: string, version: Version) => void
+  task: Task | null
+  dismissedOutput: string[]
+  dismissOutput: (key: string) => void
+  refresh: () => void
+}
+
+function TailoredDocument({
+  kind, draft, documentsUrl, query, photoUrl, canRevise, onRevise, task, dismissedOutput, dismissOutput, refresh,
+}: TailoredDocumentProps) {
+  const [versions, setVersions] = useState<Version[]>()
+  const [selectedVersion, setSelectedVersion] = useState('')
+  const [versionBusy, setVersionBusy] = useState(false)
+  const [reverting, setReverting] = useState(false)
+  const [reloading, setReloading] = useState(false)
+  const [error, setError] = useState('')
+  const [findingEdit, setFindingEdit] = useState<{ finding: Finding; original: string; text: string }>()
+  const [pdfBusy, setPdfBusy] = useState(false)
+  const [pdfError, setPdfError] = useState('')
+  const [pdfRetryVersion, setPdfRetryVersion] = useState<number>()
+  const downloadController = useRef<AbortController | null>(null)
+  useEffect(() => () => downloadController.current?.abort(), [])
+
+  if (!draft.body || !draft.draft) return null
+  const { body } = draft
+  const { saved } = draft.draft
+  const url = `${documentsUrl}/${kind}`
+  const unsettled = draft.dirty || draft.saving || draft.conflict || reverting
+  const readOnly = reverting || reloading || Boolean(draft.draft.held)
+  const outputKey = `${task?.id}:${kind}`
+  const showOutput = !dismissedOutput.includes(outputKey) && !isActive(task)
+  const revision = showOutput && task?.state === 'completed' && task.kind === 'revise' ? task.result as Revision | undefined : undefined
+  const originalUnit = revision?.document === kind && findUnitById(body, revision.unit_id)
+  const suggestion = revision?.document === kind && !revision.applied && originalUnit
+    && originalUnit.text !== revision.text ? revision : undefined
+  const canAccept = Boolean(originalUnit && originalUnit.text === suggestion?.original_text && saved.revision === suggestion?.base_revision)
+  const held = showOutput && task?.held?.[kind]
+
+  async function getLatest() {
+    const current = await applicationRequest<Documents>(documentsUrl + query, { signal: AbortSignal.timeout(15000) })
+    if (!current[kind]) throw new Error('This document is no longer stored.')
+    return current[kind]
+  }
+
+  async function reloadSaved() {
+    setError('')
+    setReloading(true)
     try {
-      if (typeof ClipboardItem !== 'undefined' && navigator.clipboard.write) await navigator.clipboard.write([new ClipboardItem({
-        'text/plain': new Blob([documentPlainText(text)], { type: 'text/plain' }),
-        'text/html': new Blob([documentHTML(text, section.label)], { type: 'text/html' }),
-      })])
-      else await navigator.clipboard.writeText(documentPlainText(text))
-      setNotice(`${section.label} copied for your document editor.`)
-    } catch { setError('Clipboard access was blocked. Copy the document text directly from the editor.') }
+      draft.reload(await getLatest())
+    } catch (reason) { setError(message(reason)) }
+    finally { setReloading(false) }
+  }
+
+  async function loadVersions() {
+    if (versions) {
+      setVersions(undefined)
+      return
+    }
+    setError('')
+    setVersionBusy(true)
+    try {
+      const result = await applicationRequest<{ versions: Version[] }>(`${url}/versions${query}`,
+        { signal: AbortSignal.timeout(15000) })
+      setVersions(result.versions)
+      setSelectedVersion('')
+    } catch (reason) { setError(message(reason)) }
+    finally { setVersionBusy(false) }
+  }
+
+  async function revertVersion() {
+    if (unsettled || !selectedVersion) return
+    setError('')
+    setReverting(true)
+    try {
+      await applicationRequest(`${url}/revert${query}`, jsonRequest('POST', {
+        version: Number(selectedVersion), expected_version: saved.version, expected_revision: saved.revision,
+      }, AbortSignal.timeout(20000)))
+      draft.receive(await getLatest())
+      setVersions(undefined)
+      setSelectedVersion('')
+    } catch (reason) { setError(message(reason)) }
+    finally { setReverting(false); refresh() }
+  }
+
+  async function download() {
+    if (unsettled || downloadController.current) return
+    const controller = new AbortController()
+    downloadController.current = controller
+    setPdfBusy(true)
+    setPdfError('')
+    const version = saved.version
+    try {
+      const blob = await pollDocumentPdf(`${url}/pdf${query}&version=${version}&revision=${saved.revision}`, controller.signal, pdfRetryVersion === version)
+      if (controller.signal.aborted) return
+      const href = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = href
+      anchor.download = `application-${kind}-v${version}.pdf`
+      anchor.click()
+      setTimeout(() => URL.revokeObjectURL(href), 1000)
+      setPdfRetryVersion(undefined)
+    } catch (reason) {
+      if (!controller.signal.aborted) {
+        setPdfError(message(reason))
+        setPdfRetryVersion(version)
+      }
+    } finally {
+      downloadController.current = null
+      if (!controller.signal.aborted) setPdfBusy(false)
+    }
   }
 
   return <>
-    {!loading && cvText && <span hidden className="application-cv-ready" data-original-cv-text={cvText} />}
-    {step === 'handoff' && <div className="application-cv-ready"><span aria-hidden="true">✓</span><div><strong>{profile.cv?.languages?.[applicationLanguage === 'German' ? 'de' : 'en']?.filename ?? profile.cv?.filename}</strong></div><a href={editHref}>Change CV</a></div>}
-    {(job.expired || job.is_active === false) && <p className="preparation-warning">This posting is closed or expired. Check the original post before applying.</p>}
-    <ol className="finish-progress" aria-label="Application steps"><li aria-current={step === 'handoff' ? 'step' : undefined}>1 · ChatGPT</li><li aria-current={step === 'response' ? 'step' : undefined}>2 · Return</li><li aria-current={step === 'edit' ? 'step' : undefined}>3 · Download</li></ol>
-    <section className="application-finish-card">
-      {step === 'handoff' && <>
-        <h2>{briefType === 'fit' ? 'Is this role worth applying for?' : 'Tailor this application.'}</h2>
-        <label>Brief type<select aria-label="Brief type" value={briefType} onChange={event => { setBriefType(event.target.value as 'application' | 'fit'); setNotice(''); setError('') }}>
-          <option value="application">Prepare application documents</option><option value="fit">Assess job fit</option>
-        </select></label>
-        <p>{briefType === 'fit' ? 'Compare the role with your evidence, career goals and working preferences in ChatGPT. The assessment stays in that conversation.' : 'Paste the brief in ChatGPT. It saves your LaTeX in code Canvases, then creates a return link containing that source.'}</p>
-        <p className="finish-help"><a href={editHref.replace('#profile-cv', '#profile-personalization')}>Edit career evidence and writing voice</a></p>
-        {form && <p className="finish-help">This application step’s questions and answer limits are included in your brief.</p>}
-        <button className="primary-button" disabled={loading || !cvText || busy || !draftReady} onClick={() => void start()}>{loading ? 'Reading CV…' : briefType === 'fit' ? 'Assess fit in ChatGPT ↗' : 'Copy brief & open ChatGPT ↗'}</button>
-        {briefType === 'fit' && manual && <a className="page-link" href={CHATGPT} target="_blank" rel="noreferrer">Open ChatGPT ↗</a>}
-      </>}
-      {step === 'response' && <>
-        <h2>Finish in ChatGPT.</h2>
-        <p>Click <strong>Return to Radius with my documents</strong> in ChatGPT.</p>
-        <div className="finish-actions"><a className="primary-button" href={CHATGPT} target="_blank" rel="noreferrer">Open ChatGPT ↗</a></div>
-        <details className="finish-options" open={manualResult} onToggle={event => setManualResult(event.currentTarget.open)}><summary>Import manually</summary>
-          <label>Import result file<input type="file" accept=".json,.txt,application/json,text/plain" onChange={event => { void importFile(event.target.files?.[0]); event.currentTarget.value = '' }} /></label>
-          <label htmlFor="application-package">Or paste a result<textarea id="application-package" aria-label="Application package" rows={5} value={response} maxLength={200000} onChange={event => setResponse(event.target.value)}
-            onPaste={event => { const value = event.clipboardData.getData('text/plain'); if (value) { event.preventDefault(); setResponse(value); void importResponse(value) } }}
-            placeholder="Paste the return link or package from ChatGPT." /></label>
-          <button onClick={() => void pastePackage()}>Paste & open documents</button>
-          {response.trim() && <button onClick={() => void importResponse()}>Open documents</button>}
-          {documents.cv && <button className="finish-text-button" onClick={() => { setStep('edit'); setError(''); setManualResult(false) }}>Keep current documents</button>}
-        </details>
-      </>}
-      {step === 'edit' && <>
-        <h2>Your documents are ready.</h2>
-        <div className="finish-document-picker" role="group" aria-label="Choose document">{documentSections.filter(item => item.key !== 'reviewNotes').map(item => <button key={item.key} aria-pressed={selected === item.key} onClick={() => { setSelected(item.key); setNotice(''); setError('') }}>{item.label}</button>)}</div>
-        {selected === 'cv' && <p className="finish-help">CV downloads use LaTeX rendering. <a href={editHref}>Manage English and German base CVs</a>.</p>}
-        {selected === 'coverLetter' && <>
-          <label>PDF layout<select aria-label="PDF layout" value={documentLayout} onChange={event => setDocumentLayout(event.target.value as 'original' | 'latex')}>
-            <option value="original">Standard layout</option><option value="latex">LaTeX · single column</option>
-          </select></label>
-          {documentLayout === 'latex' && <p className="finish-help">{latexDocuments?.cover_letter ? 'Downloads use the LaTeX source returned from ChatGPT. The link captures a snapshot; regenerate it after editing a Canvas.' : 'LaTeX creates a new layout from your finished text.'} Download the PDF to see the compiled layout.</p>}
-        </>}
-        <div className="finish-actions finish-download-actions">{(selected === 'cv' || selected === 'coverLetter') ? <>
-          <button className="primary-button" disabled={busy} onClick={() => void downloadDocument(selected === 'cv' || documentLayout === 'latex' ? 'latex_pdf' : 'pdf')}>{busy ? 'Preparing…' : 'Download PDF'}</button>
-          {selected !== 'cv' && <button disabled={busy} onClick={() => void downloadDocument('docx')}>Download editable DOCX</button>}
-          {(selected === 'cv' || documentLayout === 'latex') && <button disabled={busy} onClick={() => void downloadDocument('tex')}>Download LaTeX source</button>}
-        </> : <><button className="primary-button" disabled={!text.trim()} onClick={printDocument}>Print / save PDF</button><button disabled={!text.trim()} onClick={() => void copyDocument()}>Copy to document editor</button></>}</div>
-        {selected === 'answers' && formAnswers && <section aria-label="Prepared form answers"><h3>Answers for the captured step</h3>{form?.form_id !== formAnswers.form_id && <p className="finish-help">These answers belong to an earlier capture. Question IDs are shown because the current captured form does not match.</p>}{formAnswers.answers.map(answer => <div key={answer.id}><strong>{(form?.form_id === formAnswers.form_id ? form.fields.find(field => field.id === answer.id)?.label : undefined) ?? answer.id}</strong><pre>{answer.value}</pre></div>)}<p className="finish-help">These answers fill only the unchanged captured form. Editing the reference text clears them.</p></section>}
-        <div className="finish-download-preview">{selected === 'cv' ? <div className="template-pdf-preview">{previewBusy && <p role="status">Preparing preview…</p>}
-          {previewError && <p role="alert">{previewError}</p>}{pdf?.body === exportBody && <PDFPreview key={pdf.url} url={pdf.url} />}</div>
-          : <iframe title={`${section.label} preview`} sandbox="" srcDoc={documentHTML(text, section.label)} />}</div>
-        <details className="finish-options"><summary>{selected === 'cv' ? 'Edit LaTeX source' : 'Edit document text'}</summary>
-          {selected === 'cv' && !template ? <label>CV LaTeX source<textarea aria-label="CV LaTeX source" rows={18} maxLength={100000} value={latexDocuments?.cv ?? ''} onChange={event => setLatexDocuments(current => ({ ...current, cv: event.target.value }))} /><span>Keep the marked history and verified metadata intact. The PDF preview updates after edits.</span></label> : selected === 'cv' && template ? <div className="template-paragraph-editor"><p className="finish-help">Longer text can shift page breaks.</p>
-            {template.paragraphs.map(row => <label key={row.id}>Paragraph {row.id + 1}<textarea aria-label={`CV paragraph ${row.id + 1}`} rows={Math.max(1, Math.min(4, Math.ceil(row.text.length / 65)))} maxLength={5000}
-              value={changes.find(change => change.id === row.id)?.text ?? row.text} onChange={event => { setLatexDocuments(current => current ? { ...current, cv: undefined } : undefined); setChanges(current => {
-                const next = current.filter(change => change.id !== row.id)
-                return event.target.value === row.text ? next : [...next, { id: row.id, text: event.target.value }]
-              }) }} /></label>)}</div>
-            : <label>{section.label} text<textarea aria-label={`${section.label} text`} rows={18} value={text} onChange={event => { setDocuments(current => ({ ...current, [selected]: event.target.value })); if (selected === 'answers') setFormAnswers(undefined); if (selected === 'cv' || selected === 'coverLetter') setLatexDocuments(current => current ? { ...current, [selected === 'cv' ? 'cv' : 'cover_letter']: undefined } : undefined) }} /></label>}
-        </details>
-      </>}
-      <details className="finish-options finish-secondary-options" open={optionsOpen} onToggle={event => setOptionsOpen(event.currentTarget.open)}><summary>Options</summary>
-        {step === 'handoff' && <>
-          <label>Document language<select aria-label="Document language" value={language} onChange={event => setLanguage(event.target.value)}>
-            <option value="the language of the job posting">Match the job posting</option><option>English</option><option>German</option>
-          </select></label>
-          <p className="finish-help">Selected base CV: {applicationLanguage}. An explicit language selection overrides automatic detection.</p>
-          <label>Additional instructions<textarea value={notes} maxLength={5000} rows={3} onChange={event => setNotes(event.target.value)} placeholder="Optional instructions for this application" /></label>
-          {profile.custom_instructions?.trim() && <a className="finish-help" href={editHref.replace('#profile-cv', '#profile-custom-instructions')}>Edit profile instructions</a>}
-          <button disabled={loading || !draftReady} onClick={() => { setOptionsOpen(false); setManualResult(true); setStep('response') }}>I already have a result</button>
-        </>}
-        {step !== 'handoff' && <button onClick={() => { setStep('handoff'); setOptionsOpen(false); setError('') }}>Back to brief</button>}
-        {step === 'edit' && <button onClick={() => { setOptionsOpen(false); setManualResult(true); setStep('response') }}>Paste a new response</button>}
-        {step !== 'edit' && <button disabled={!cvText} onClick={() => { setOptionsOpen(false); setManual(true); setTimeout(() => { promptRef.current?.focus(); promptRef.current?.select() }, 0) }}>Show brief</button>}
-        {draftExpiresAt > 0 && <button onClick={clearDraft}>Clear browser draft</button>}
-        {step === 'edit' && documents.reviewNotes && <p className="finish-help">{documents.reviewNotes}</p>}
+    <div className="preparation-actions">
+      <button type="button" disabled={versionBusy || reverting} onClick={() => void loadVersions()}>
+        {versions ? 'Close version history' : 'Version history'}
+      </button>
+      {draft.error && <button type="button" disabled={draft.saving} onClick={() => void draft.save()}>Retry save</button>}
+    </div>
+    {versions && <div className="preparation-actions">
+      <label>Restore a previous version<select value={selectedVersion} onChange={event => setSelectedVersion(event.target.value)}>
+        <option value="">Choose a version</option>
+        {versions.filter(item => item.version < saved.version).map(item => <option key={item.version} value={item.version}>
+          Version {item.version} · {new Date(item.created_at).toLocaleString()}
+        </option>)}
+      </select></label>
+      <button type="button" disabled={unsettled || !selectedVersion} onClick={() => void revertVersion()}>
+        {reverting ? 'Restoring…' : 'Restore version'}
+      </button>
+    </div>}
+    {draft.conflict && <div className="preparation-warning" role="alert">
+      <p>A newer version is saved in Radius. Your local edits are still here.</p>
+      <div className="preparation-actions">
+        <button type="button" disabled={draft.saving || reloading} onClick={() => void reloadSaved()}>Reload saved version</button>
+        <button type="button" disabled={draft.saving || reloading || !draft.remote} onClick={() => { if (draft.remote) void draft.save(draft.remote) }}>
+          Overwrite with my edits
+        </button>
+      </div>
+    </div>}
+    {error && <p className="preparation-error" role="alert">{error}</p>}
+    {pdfBusy && <p role="status">Waiting for PDF rendering…</p>}
+    {pdfError && pdfRetryVersion === saved.version && <p className="preparation-error" role="alert">
+      {pdfError} <button type="button" disabled={unsettled} onClick={() => void download()}>Retry PDF</button>
+    </p>}
+    {held && task && <div className="preparation-warning">
+      <p>A prepared {LABELS[kind].toLowerCase()} is available. Radius kept your newer edits as the saved version.</p>
+      <details><summary>Preview generated document</summary>
+        <DocumentEditor value={held.body} onChange={() => {}} findings={held.findings} photoUrl={photoUrl} readOnly />
       </details>
-      {manual && step !== 'edit' && cvText && <div className="finish-manual">
-        <label>Brief to copy<textarea ref={promptRef} aria-label="Prepared application prompt" value={prompt} readOnly rows={6} /></label>
-        <button disabled={busy} onClick={() => void start(false)}>Copy brief</button>
-      </div>}
-      {notice && <p className="preparation-notice" role="status">{notice}</p>}
-      {error && <p className="preparation-error" role="alert">{error} {!cvText && !loading && <a href={editHref}>Update CV</a>}</p>}
-      {storageError && <p className="preparation-error" role="alert">{storageError}</p>}
-    </section>
-    {step !== 'handoff' && !storageError && <p className="finish-saved-note">Saved on this device · 7 days</p>}
+      <div className="preparation-actions">
+        <button type="button" disabled={unsettled} onClick={() => {
+          draft.adopt(held.body, { id: task.id, findings: held.findings, stale_inputs: held.stale_inputs })
+          dismissOutput(outputKey)
+        }}>Use generated document</button>
+        <button type="button" onClick={() => dismissOutput(outputKey)}>Keep my document</button>
+      </div>
+    </div>}
+    {findingEdit && <form className="preparation-review-panel" onSubmit={event => {
+      event.preventDefault()
+      const id = findingEdit.finding.unit_id
+      if (readOnly || !id || findUnitById(body, id)?.text !== findingEdit.original) return
+      draft.edit(updateUnitText(body, id, findingEdit.text))
+      draft.dismiss(findingEdit.finding)
+      setFindingEdit(undefined)
+    }}>
+      <p>{findingEdit.finding.suggestion}</p>
+      <label>Replacement text
+        <textarea value={findingEdit.text} maxLength={1200} rows={3}
+          onChange={event => setFindingEdit({ ...findingEdit, text: event.target.value })} autoFocus />
+      </label>
+      <div className="preparation-actions">
+        <button type="submit" disabled={readOnly || findingEdit.original === findingEdit.text
+          || findUnitById(body, findingEdit.finding.unit_id!)?.text !== findingEdit.original}>Apply edit</button>
+        <button type="button" onClick={() => setFindingEdit(undefined)}>Cancel</button>
+      </div>
+    </form>}
+    <DocumentEditor value={body} onChange={draft.edit} photoUrl={photoUrl} findings={draft.findings}
+      saving={draft.saving ? 'saving' : draft.error ? 'error' : unsettled ? 'idle' : 'saved'}
+      saveError={draft.error} readOnly={readOnly}
+      onDownloadPdf={() => void download()} downloadDisabled={unsettled || pdfBusy}
+      onImproveUnit={(unitId, text) => {
+        setFindingEdit(undefined)
+        if (canRevise && !unsettled && findUnitById(body, unitId)) onRevise(kind, unitId, text, saved)
+      }}
+      improveDisabled={!canRevise || unsettled}
+      suggestion={suggestion ? {
+        unitId: suggestion.unit_id,
+        text: suggestion.text,
+        notes: suggestion.findings.map(finding => finding.message),
+        canAccept: canAccept && !readOnly,
+        onAccept: () => {
+          draft.edit(updateUnitText(body, suggestion.unit_id, suggestion.text))
+          dismissOutput(outputKey)
+        },
+        onDismiss: () => dismissOutput(outputKey),
+      } : null}
+      onDismissFinding={draft.dismiss}
+      onApplyFinding={finding => {
+        const unit = finding.unit_id && findUnitById(body, finding.unit_id)
+        if (unit) {
+          setFindingEdit({ finding, original: unit.text, text: unit.text })
+        }
+      }} />
   </>
 }

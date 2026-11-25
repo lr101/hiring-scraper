@@ -33,8 +33,33 @@
     el instanceof HTMLSelectElement
       ? el.value
       : el.textContent.trim();
+  const groupLabel = (el) => {
+    const group = el.closest(".form-group");
+    if (
+      group &&
+      group.querySelectorAll("input,select,textarea,[role=combobox]").length ===
+        1
+    ) {
+      const labels = group.querySelectorAll(":scope > label");
+      if (labels.length === 1) return labels[0];
+    }
+    return null;
+  };
   const labelsFor = (el) => {
-    const associated = [...(el.labels || [])];
+    // Some Bootstrap ATS templates copy label[for] from another question.
+    // Recover the single local question and reject misplaced labels belonging
+    // to another single-control group. Preserve other valid native labels so
+    // contradictory meanings still prevent filling.
+    const local = groupLabel(el);
+    const associated = [...(el.labels || [])].filter((node) => {
+      const group = node.closest(".form-group");
+      if (!group || group.contains(el)) return true;
+      const controls = group.querySelectorAll(
+        "input,select,textarea,[role=combobox]",
+      );
+      return controls.length !== 1 || groupLabel(controls[0]) !== node;
+    });
+    if (local && !associated.includes(local)) return [local, ...associated];
     if (associated.length) return associated;
     const sibling = el.previousElementSibling;
     // Some ATS templates omit label[for]. Only infer a direct preceding
@@ -96,6 +121,30 @@
     ).slice(0, 180);
   };
   const aliases = {
+    salutation: ["salutation", "anrede", "honorific prefix"],
+    birth_name: ["birth name", "maiden name", "geburtsname"],
+    birth_date: ["birth date", "date of birth", "geburtsdatum"],
+    birth_place: ["birth place", "place of birth", "geburtsort"],
+    nationality: [
+      "nationality",
+      "citizenship",
+      "staatsangehorigkeit",
+      "staatsangehoerigkeit",
+      "kennung staatsangehoerigkeit",
+    ],
+    driving_licence: [
+      "driving licence",
+      "driving license",
+      "driver s license",
+      "fuhrerschein",
+      "fuehrerschein",
+    ],
+    additional_information: [
+      "additional information",
+      "further information",
+      "weitere informationen",
+      "mochten sie uns noch weitere informationen mitteilen",
+    ],
     first_name: ["first", "first name", "given name", "forename", "vorname"],
     last_name: ["last", "last name", "surname", "family name", "nachname"],
     full_name: [
@@ -213,6 +262,8 @@
   };
   const auto = {
     "given-name": "first_name",
+    "honorific-prefix": "salutation",
+    bday: "birth_date",
     "family-name": "last_name",
     name: "full_name",
     email: "email",
@@ -350,7 +401,7 @@
             ["internship", "praktikum"],
             ["working student", "werkstudent", "werkstudententatigkeit"],
           ]
-        : key === "country"
+        : ["country", "nationality"].includes(key)
           ? [["germany", "deutschland", "de", "ger"]]
           : [];
     return terms.some(
@@ -371,6 +422,25 @@
           name,
         ),
     );
+  function experienceYearsControl(el) {
+    if (!(el instanceof HTMLSelectElement)) return false;
+    const hints = [
+      el.id || "",
+      el.name || "",
+      el.getAttribute("aria-label") || "",
+      referencedText(el),
+      ...labelsFor(el).map((node) => node.textContent),
+    ].map(cleanHint);
+    return hints.some((hint) =>
+      [
+        "job experience",
+        "years of experience",
+        "years of professional experience",
+        "total years of experience",
+        "berufserfahrung",
+      ].includes(hint),
+    );
+  }
   function key(el) {
     const section = sectionContext(el);
     if (foreignPersonScope(section)) return null;
@@ -378,6 +448,7 @@
     if (history?.key) return "experience:" + history.key;
     const presentation = globalThis.applicationHistory?.presentationKey(el);
     if (presentation) return "history:" + presentation;
+    if (experienceYearsControl(el)) return "experience_years";
     // "Name", "Email" and "City" also occur in other people's contact
     // cards, schools and employers. Only a structured adapter can establish
     // the identity of a history row; applicant contacts are not a fallback.
@@ -623,14 +694,148 @@
       return false;
     }
   }
+  function dateValue(el, value) {
+    if (
+      !/^[1-9][0-9]{3}-[0-9]{2}-[0-9]{2}$/.test(value || "") ||
+      el.type === "date"
+    )
+      return value;
+    const format =
+      el.getAttribute("data-date-format") ||
+      (location.hostname === "www.bewerber-online.de" &&
+      el.matches("input.datepicker")
+        ? "dd.mm.yyyy"
+        : "");
+    return format.toLowerCase() === "dd.mm.yyyy"
+      ? value.split("-").reverse().join(".")
+      : value;
+  }
+  function experienceMonths(experiences) {
+    if (!experiences?.length) return null;
+    const monthRange = (value) => {
+      const match = String(value || "").match(
+        /^([1-9][0-9]{3})(?:-(0[1-9]|1[0-2]))?$/,
+      );
+      if (!match) return null;
+      const yearStart = Number(match[1]) * 12;
+      if (!match[2]) return { earliest: yearStart, latest: yearStart + 11 };
+      const month = yearStart + Number(match[2]) - 1;
+      return { earliest: month, latest: month };
+    };
+    const now = new Date();
+    const currentMonth = now.getFullYear() * 12 + now.getMonth();
+    const shortestPeriods = [];
+    const longestPeriods = [];
+    for (const entry of experiences) {
+      const start = monthRange(entry.start);
+      const end = entry.current
+        ? { earliest: currentMonth, latest: currentMonth }
+        : monthRange(entry.end);
+      if (!start || !end || end.latest <= start.earliest) return null;
+      if (end.earliest > start.latest)
+        shortestPeriods.push([start.latest, end.earliest]);
+      longestPeriods.push([start.earliest, end.latest]);
+    }
+    const totalMonths = (periods) => {
+      if (!periods.length) return 0;
+      periods.sort((left, right) => left[0] - right[0] || left[1] - right[1]);
+      let total = 0;
+      let [start, end] = periods[0];
+      for (const [nextStart, nextEnd] of periods.slice(1)) {
+        if (nextStart <= end) end = Math.max(end, nextEnd);
+        else {
+          total += end - start;
+          [start, end] = [nextStart, nextEnd];
+        }
+      }
+      return total + end - start;
+    };
+    return {
+      minimum: totalMonths(shortestPeriods),
+      maximum: totalMonths(longestPeriods),
+    };
+  }
+  function experienceYearBand(el, profile) {
+    const months = experienceMonths(profile.experiences || []);
+    if (months === null || months.maximum < 1)
+      return {
+        value: "",
+        source: "CV work dates",
+        reason:
+          "The saved CV dates do not establish a reliable total work-experience duration.",
+      };
+    const options = [...el.options].filter(
+      (option) => !option.disabled && option.value,
+    );
+    const categories = options.flatMap((option) => {
+      const text = cleanHint(option.textContent || "");
+      if (/\b(einsteiger|entry level|no experience)\b/.test(text))
+        return [{ option, kind: "entry", limit: 0 }];
+      const number =
+        text.match(/\d+(?:[.,]\d+)?/) ||
+        option.value.match(/^\d+(?:[.,]\d+)?$/);
+      if (!number) return [];
+      const limit = Number(number[0].replace(",", "."));
+      if (!Number.isFinite(limit)) return [];
+      if (/\b(or more|oder mehr|at least|and over|plus|ab)\b/.test(text))
+        return [{ option, kind: "minimum", limit }];
+      if (/\b(up to|bis|max(?:imum)?)\b/.test(text))
+        return [{ option, kind: "maximum", limit }];
+      return [];
+    });
+    const bandFor = (years) => {
+      const minimums = categories
+        .filter(({ kind, limit }) => kind === "minimum" && years >= limit)
+        .sort((left, right) => right.limit - left.limit);
+      const maximums = categories
+        .filter(
+          ({ kind, limit }) =>
+            (kind === "maximum" && years <= limit) ||
+            (kind === "entry" && years === 0),
+        )
+        .sort((left, right) => left.limit - right.limit);
+      return minimums[0] || maximums[0] || null;
+    };
+    const lowerBand = bandFor(months.minimum / 12);
+    const upperBand = bandFor(months.maximum / 12);
+    if (
+      !lowerBand ||
+      !upperBand ||
+      lowerBand.option.value !== upperBand.option.value
+    )
+      return {
+        value: "",
+        source: "CV work dates",
+        reason:
+          "The approximate CV dates span more than one work-experience range, so this answer needs review.",
+      };
+    const selected = lowerBand;
+    if (!selected)
+      return {
+        value: "",
+        source: "CV work dates",
+        reason:
+          "The form does not offer one clear range for the duration in the saved work history.",
+      };
+    return {
+      value: selected.option.value,
+      source: "CV work dates (approximate range)",
+      reason:
+        "The range uses saved work dates, merges overlapping roles, and checks the CV's year/month precision.",
+    };
+  }
   function valueFor(field, profile, answers, scoped, preparedAnswer) {
     const { el, key } = field;
     const structured = globalThis.applicationHistory?.mapping(el, profile);
     if (structured) return structured;
     const pref = profile.preferences || {};
+    if (key === "experience_years") return experienceYearBand(el, profile);
     if (key?.startsWith("pref:")) {
       const property = key.slice(5);
-      let value = pref[property];
+      let value =
+        property === "available_from"
+          ? dateValue(el, pref[property])
+          : pref[property];
       let reason = "This reusable answer has not been supplied.";
       const name = normalize(field.label);
       if (property === "authorized_to_work") {
@@ -784,13 +989,40 @@
             "This form separates street and house number; the profile contains a combined address line. Review both fields manually.",
         };
     }
+    // These questions previously used the exact job-linked answer path.
+    // A new reusable fact must not hide an already prepared explicit answer.
+    if (
+      key &&
+      [
+        "salutation",
+        "birth_name",
+        "birth_date",
+        "birth_place",
+        "nationality",
+        "driving_licence",
+        "additional_information",
+      ].includes(key) &&
+      !profile[key] &&
+      scoped
+    ) {
+      const answer = preparedAnswer || answers.get(normalize(field.label));
+      if (answer)
+        return {
+          value: key === "birth_date" ? dateValue(el, answer) : answer,
+          source: preparedAnswer ? "Prepared form answer" : "ChatGPT package",
+        };
+    }
     if (key)
       return {
         value:
           key === "full_name"
             ? [profile.first_name, profile.last_name].filter(Boolean).join(" ")
-            : profile[key] || "",
+            : key === "birth_date"
+              ? dateValue(el, profile[key])
+              : profile[key] || "",
         source: "CV/profile",
+        reason:
+          "Save this confirmed fact in your profile, then sync and fill again.",
       };
     if (scoped && profile.application?.form_answers)
       return {
@@ -888,14 +1120,17 @@
         manual: !!manual,
       };
     });
+    const safeURL =
+      globalThis.applicationPageContext?.sanitizeURL(location.href) ||
+      `${location.origin}${location.pathname}`;
     const shape = JSON.stringify({
-      url: location.href,
+      url: safeURL,
       identity: globalThis.applicationPageContext?.identity(),
       fields,
     });
     if (shape.length > 30000)
       throw new Error("This form is too large to prepare automatically.");
-    return { url: location.href, fields, shape, controls };
+    return { url: safeURL, fields, shape, controls };
   }
 
   async function describeCapture({ url, fields, shape }) {
@@ -1464,16 +1699,32 @@
       }
     }
     for (const frame of document.querySelectorAll("iframe"))
-      if (visible(frame))
+      if (visible(frame)) {
+        // A same-origin recommendations frame without editable controls is
+        // unrelated to filling. Cross-origin frames remain reported for review.
+        try {
+          if (
+            frame.contentDocument?.body &&
+            frame.contentDocument.readyState === "complete" &&
+            (frame.contentDocument.URL !== "about:blank" ||
+              !frame.getAttribute("src") ||
+              frame.src === "about:blank") &&
+            !frame.contentDocument.querySelector(
+              "input:not([type=hidden]),select,textarea,iframe,[contenteditable]:not([contenteditable=false]),[role=combobox],[role=textbox],[role=checkbox],[role=radio]",
+            )
+          )
+            continue;
+        } catch {}
         report.push({
           id: "frame",
-          label: frame.title || "Embedded application frame",
+          label: frame.title || "Embedded frame",
           required: false,
           status: "unsupported",
           reason:
-            "Open the embedded application directly; this run operates on the top document.",
+            "This frame was not inspected. If it contains application fields, open it directly to fill them.",
           source: "",
         });
+      }
     for (const element of document.querySelectorAll("*"))
       if (element.shadowRoot && visible(element))
         report.push({

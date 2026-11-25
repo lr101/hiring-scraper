@@ -31,3 +31,13 @@ test('retains missing contacts as blank and rejects unsafe URL schemes', () => {
   assert.throws(() => validateProfile({...example,linkedin:'javascript:alert(1)'}));
   assert.throws(() => validateProfile({...example,email:'unknown'}));
 });
+
+test('retains explicit personal facts and validates full birth dates', () => {
+  const facts = {salutation:'Herr', birth_name:'Beispiel', birth_date:'1992-02-29', birth_place:'Bonn', nationality:'Deutschland', driving_licence:'Klasse B', additional_information:'Kontakt per E-Mail.'};
+  const profile = validateProfile({...example, ...facts});
+  for (const [key, value] of Object.entries(facts)) assert.equal(profile[key], value);
+  for (const date of ['1991-02-29', '1992-13-01', '29.02.1992', '1992-02', '0000-01-01']) {
+    assert.throws(() => validateProfile({...example, birth_date:date}), /birth/i);
+  }
+  for (const key of Object.keys(facts)) assert.equal(validateProfile({})[key], '');
+});

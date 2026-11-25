@@ -5,10 +5,14 @@ Runs in the server image: python -m hiring_scraper.app.enrichment [--fetch-detai
 from __future__ import annotations
 
 import argparse
+from collections import OrderedDict
+from concurrent.futures import Future
+from copy import deepcopy
+from threading import Lock
 import hashlib
 import json
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
 import time
 
@@ -26,9 +30,52 @@ SOURCE_FIELDS = ('title','url','description','raw_metadata','seniority','employm
 
 def job_input(job: Job) -> dict:
     source = {field: getattr(job, field) for field in SOURCE_FIELDS}
+    # The database's historical False default is not evidence of an onsite
+    # requirement. Preserve unknown workplace scope for matching and AI inputs.
+    if source['is_remote'] is False and not source.get('work_arrangement'):
+        source['is_remote'] = None
     source["locations"] = [{"label": row.label, "country_code": row.country_code}
                             for row in job.locations]
     return source
+
+
+# Bound process-local reuse to derived signals. Equal source hashes share one
+# extraction even when two Journey requests scan the same jobs concurrently.
+_ENRICHMENT_CACHE_SIZE = 4096
+_ENRICHMENT_CACHE: OrderedDict[tuple[str, str], dict] = OrderedDict()
+_ENRICHMENT_PENDING: dict[tuple[str, str], Future] = {}
+_ENRICHMENT_CACHE_LOCK = Lock()
+
+
+def _cached_enrichment(source: dict, digest: str) -> dict:
+    key = (VERSION, digest)
+    with _ENRICHMENT_CACHE_LOCK:
+        cached = _ENRICHMENT_CACHE.get(key)
+        if cached is not None:
+            _ENRICHMENT_CACHE.move_to_end(key)
+            return deepcopy(cached)
+        pending = _ENRICHMENT_PENDING.get(key)
+        owner = pending is None
+        if owner:
+            pending = Future()
+            _ENRICHMENT_PENDING[key] = pending
+    if not owner:
+        return deepcopy(pending.result())
+    try:
+        result = enrich_job(source)
+    except BaseException as error:
+        with _ENRICHMENT_CACHE_LOCK:
+            _ENRICHMENT_PENDING.pop(key, None)
+        pending.set_exception(error)
+        raise
+    with _ENRICHMENT_CACHE_LOCK:
+        _ENRICHMENT_CACHE[key] = result
+        _ENRICHMENT_CACHE.move_to_end(key)
+        while len(_ENRICHMENT_CACHE) > _ENRICHMENT_CACHE_SIZE:
+            _ENRICHMENT_CACHE.popitem(last=False)
+        _ENRICHMENT_PENDING.pop(key, None)
+    pending.set_result(result)
+    return deepcopy(result)
 
 
 def current_enrichment(job: Job) -> dict:
@@ -37,7 +84,14 @@ def current_enrichment(job: Job) -> dict:
     stored = job.enrichment or {}
     if stored.get('version') == VERSION and stored.get('source_hash') == digest:
         return stored
-    return enrich_job(source)
+    cached = getattr(job, '_current_enrichment_cache', None)
+    if cached and cached.get('version') == VERSION and cached.get('source_hash') == digest:
+        return cached
+    # A page can serialize and match the same ORM job several times. Reuse its
+    # extraction for this source without dirtying persisted rows on a read.
+    result = _cached_enrichment(source, digest)
+    job._current_enrichment_cache = result
+    return result
 
 
 def refresh_enrichment(job: Job) -> None:
@@ -99,7 +153,7 @@ def backfill(limit: int = 200, *, fetch_details: bool = False, client=None) -> d
         session.commit()
     if not candidates:
         return counts
-    client = client or Client(Path('/tmp/hiring-scraper-enrichment'), timeout=12, delay=1,
+    client = client or Client(Path('/tmp/hiring-scraper-enrichment'), persist_captures=False, timeout=12, delay=1,
                               max_requests=limit*8, origin_pacer=ORIGIN_PACER,
                               user_agent=os.getenv("HIRING_USER_AGENT", "HiringScraper/0.3 (public job-detail enrichment)"))
     for job_id in candidates:

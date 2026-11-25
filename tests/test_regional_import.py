@@ -3,12 +3,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from sqlalchemy import create_engine, func, select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from hiring_scraper.app.models import Base, Company, Job, JobFeed
 from hiring_scraper.app.regional import import_snapshot, load_search_area
 from hiring_scraper.regional import normalize_job
+from tests import pg
 
 ROW = {'referenznummer': '123-A-S', 'stellenangebotsTitel': 'Project coordinator',
        'firma': 'Example GmbH', 'arbeitgeberKundennummerHash': 'employer-hash',
@@ -18,7 +19,7 @@ ROW = {'referenznummer': '123-A-S', 'stellenangebotsTitel': 'Project coordinator
 
 class RegionalImportTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         Base.metadata.create_all(self.engine)
         self.session = Session(self.engine)
     def tearDown(self):
@@ -77,7 +78,7 @@ if __name__ == '__main__':
 
 class RegionalEvidenceRefreshTests(unittest.TestCase):
     def test_sparse_refresh_preserves_agency_and_salary_evidence(self):
-        engine = create_engine('sqlite://')
+        engine = pg.engine(self)
         Base.metadata.create_all(engine)
         with Session(engine) as session:
             import_snapshot(session, [{**ROW, 'istPrivateArbeitsvermittlung': True, 'festgehalt': 50000,
@@ -92,7 +93,7 @@ class RegionalEvidenceRefreshTests(unittest.TestCase):
 
 class RegionalSparseIdentityTests(unittest.TestCase):
     def test_same_employer_reference_remains_one_job_when_sparse_refresh_omits_hash(self):
-        engine = create_engine('sqlite://')
+        engine = pg.engine(self)
         Base.metadata.create_all(engine)
         with Session(engine) as session:
             import_snapshot(session, [ROW])
@@ -104,7 +105,7 @@ class RegionalSparseIdentityTests(unittest.TestCase):
 
 class RegionalVerifiedFieldRefreshTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         Base.metadata.create_all(self.engine)
         self.session = Session(self.engine)
         self.full = {**ROW, 'homeofficemoeglich': True, 'homeofficetyp': 'ANGABE_IN_PROZENT',

@@ -92,6 +92,41 @@
           <p class="muted">Leave anything you have not confirmed blank.</p>
           <div class="grid">
             <label
+              >Salutation / Anrede<input
+                id="salutation"
+                maxlength="300"
+                placeholder="e.g. Herr, Frau"
+            /></label>
+            <label
+              >Birth name / Geburtsname<input id="birth_name" maxlength="300"
+            /></label>
+            <label
+              >Date of birth / Geburtsdatum<input id="birth_date" type="date"
+            /></label>
+            <label
+              >Place of birth / Geburtsort<input
+                id="birth_place"
+                maxlength="300"
+            /></label>
+            <label
+              >Nationality / Staatsangehörigkeit<input
+                id="nationality"
+                maxlength="300"
+            /></label>
+            <label
+              >Driving licence / Führerschein<input
+                id="driving_licence"
+                maxlength="300"
+                placeholder="e.g. Klasse B"
+            /></label>
+            <label class="wide"
+              >Additional information / Weitere Informationen<textarea
+                id="additional_information"
+                maxlength="10000"
+              ></textarea>
+            </label>
+
+            <label
               >First name<input
                 id="first_name"
                 autocomplete="given-name"
@@ -226,15 +261,54 @@
             >
           </div>
         </section>
+        <section class="section" aria-label="Application content">
+          <h2>Application content</h2>
+          <p class="muted">
+            Save German and English wording independently. Contact details,
+            salary, dates and permissions above are shared.
+          </p>
+          <div
+            role="tablist"
+            aria-label="Profile content language"
+            class="actions"
+          >
+            <button
+              type="button"
+              role="tab"
+              id="content-tab-en"
+              aria-controls="content-panel"
+              aria-selected="true"
+            >
+              English
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="content-tab-de"
+              aria-controls="content-panel"
+              aria-selected="false"
+            >
+              Deutsch
+            </button>
+          </div>
+          <div
+            id="content-panel"
+            role="tabpanel"
+            aria-labelledby="content-tab-en"
+          >
+            <div id="localized-fields"></div>
+            <div id="localized-preferences"></div>
+            <div id="localized-cv"></div>
+          </div>
+        </section>
         <section class="section" aria-labelledby="sources-heading">
           <button id="remove-base-cvs" type="button">
             Remove saved base CVs
           </button>
-          <h2 id="sources-heading">Connect CV and ChatGPT result</h2>
+          <h2 id="sources-heading">Connect a base CV or existing package</h2>
           <p class="muted">
-            Paste your marked base LaTeX CVs and the package or return link
-            copied from the application-preparation workflow. No ChatGPT login
-            is needed.
+            Import base CVs for your reusable profile. You can also reconnect an
+            existing Radius v1 application package.
           </p>
           <label
             >Import English .tex file<input
@@ -276,7 +350,7 @@
             </label>
           </details>
           <label
-            >ChatGPT package or Radius return link<textarea
+            >Existing Radius v1 package or return link<textarea
               id="package-input"
               maxlength="300000"
             ></textarea>
@@ -286,22 +360,6 @@
               id="application_url"
               type="url"
           /></label>
-          <details>
-            <summary>Ask ChatGPT for tailored work bullets</summary>
-            <p class="muted">
-              Use this request with the application-preparation prompt. It gives
-              each job a stable reference, so the returned bullets can be
-              connected without parsing employers or dates.
-            </p>
-            <button id="prepare-bullets" type="button">
-              Prepare bullet-point request</button
-            ><label
-              >Request to copy into ChatGPT<textarea
-                id="bullet-prompt"
-                readonly
-              ></textarea>
-            </label>
-          </details>
           <button id="connect" type="button">Connect sources</button>
           <p id="source-notes" class="muted"></p>
           <button id="dummy-return" type="button">

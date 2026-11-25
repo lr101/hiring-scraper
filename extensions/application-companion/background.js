@@ -1,4 +1,3 @@
-import { profileStamp } from "./vault.js";
 import { withCVLanguage } from "./tex-cv.js";
 import {
   pageState,
@@ -11,6 +10,8 @@ import {
   addJobToProfile,
   disconnectRadius,
   prepareJob,
+  preparationStatus,
+  approvePreparedApplication,
   usePage,
   openApplication,
   fillProfile,
@@ -18,13 +19,12 @@ import {
   watchPage,
   importReturnedPackage,
   radiusState,
+  deleteRadiusApplication,
   applyClick,
   installNavigation,
   lookupPage,
   captureQuestions,
   attachPreparedDocuments,
-  prepareCurrentJob,
-  importCurrentResult,
   downloadCurrentDocument,
   saveConnectedApplicant,
   removeConnectedCVs,
@@ -88,13 +88,17 @@ async function handle(message) {
     await prepareJob(message.jobId);
     return {};
   }
+  if (message.type === "preparation-status")
+    return preparationStatus(message.jobId);
   const tabId = message.tabId;
   if (!Number.isInteger(tabId))
     throw new UserError("Select an application tab first.");
-  if (message.type === "prepare-current-job")
-    return prepareCurrentJob(tabId, message.jobId, message.language);
-  if (message.type === "import-current-result")
-    return importCurrentResult(tabId, message.jobId, message.input);
+  if (message.type === "approve-application")
+    return approvePreparedApplication(
+      tabId,
+      message.jobId,
+      message.reviewToken,
+    );
   if (message.type === "download-current-document")
     return downloadCurrentDocument(
       tabId,
@@ -123,22 +127,8 @@ async function handle(message) {
     const saved = (await chrome.storage.session.get(`report:${tabId}`))[
       `report:${tabId}`
     ];
-    const brief = (await chrome.storage.session.get(`brief:${tabId}`))[
-      `brief:${tabId}`
-    ];
-    const { applicant } = await chrome.storage.local.get("applicant");
-    const currentBrief =
-      brief &&
-      brief.expires > Date.now() &&
-      brief.profile_id === catalog.settings?.profile_id &&
-      brief.cv_updated_at === catalog.settings?.cv_updated_at &&
-      brief.profile_stamp === (await profileStamp(applicant)) &&
-      catalog.items.some((item) => item.exact && item.job.id === brief.job_id)
-        ? brief
-        : null;
     return {
       ...info,
-      brief: currentBrief,
       catalog,
       lastReport: saved?.documentId === info.documentId ? saved.report : null,
     };
@@ -292,7 +282,12 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     if (
       !sender.tab ||
       sender.frameId !== 0 ||
-      !["radius-draft", "radius-state", "apply-click"].includes(message?.type)
+      ![
+        "radius-draft",
+        "radius-state",
+        "radius-delete-application",
+        "apply-click",
+      ].includes(message?.type)
     )
       return false;
     const task =
@@ -300,7 +295,9 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
         ? captureDraft(message.source, sender)
         : message.type === "radius-state"
           ? radiusState(sender, message.theme)
-          : applyClick(sender, message);
+          : message.type === "radius-delete-application"
+            ? deleteRadiusApplication(sender)
+            : applyClick(sender, message);
     task
       .then((result) => reply({ ok: true, result }))
       .catch((error) => reply({ ok: false, error: error.message }));
@@ -319,14 +316,14 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
       "select-profile",
       "disconnect-radius",
       "prepare-job",
+      "preparation-status",
+      "approve-application",
       "add-feed",
       "add-job",
       "use-page",
       "open-application",
       "scan-form",
       "attach-documents",
-      "prepare-current-job",
-      "import-current-result",
       "save-connected-applicant",
       "remove-connected-cvs",
       "download-current-document",
@@ -349,11 +346,11 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
             "add-job",
             "use-page",
             "prepare-job",
+            "preparation-status",
+            "approve-application",
             "open-application",
             "scan-form",
             "attach-documents",
-            "prepare-current-job",
-            "import-current-result",
             "save-connected-applicant",
             "remove-connected-cvs",
             "download-current-document",

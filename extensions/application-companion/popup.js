@@ -67,7 +67,7 @@ function action(text, fn, primary = false) {
   return b;
 }
 function entry(item, continuation = false) {
-  const { job, ready, exact } = item;
+  const { job, ready, exact, reviewed } = item;
   const card = document.createElement("article");
   card.className = "job-entry " + (ready && exact ? "prepared" : "discovered");
   card.dataset.jobId = job.id;
@@ -120,13 +120,7 @@ function entry(item, continuation = false) {
     top.disabled = true;
     try {
       if (!ready) await prepare();
-      else if (continuation || !exact) await use();
-      else if (info.supported) {
-        if ((info.catalog?.items || []).filter((i) => i.exact).length > 1)
-          await request("use-page", { jobId: job.id });
-        selectedJob = job.id;
-        await fill();
-      } else await request("open-application", { jobId: job.id });
+      else await request("prepare-job", { jobId: job.id });
     } catch (e) {
       message(e);
     } finally {
@@ -136,12 +130,45 @@ function entry(item, continuation = false) {
   top.disabled = job.active === false;
   top.setAttribute(
     "aria-label",
-    (ready ? "Use prepared application for " : "Prepare CV for ") + job.title,
+    (ready ? "Review prepared application for " : "Prepare CV for ") +
+      job.title,
   );
   if (job.active !== false) {
-    if (ready && (continuation || !exact))
+    if (ready && !reviewed && exact) {
+      links.append(
+        action("Review documents in Radius", () =>
+          request("prepare-job", { jobId: job.id }),
+        ),
+      );
+      links.append(
+        action(
+          "I reviewed these documents",
+          async () => {
+            const result = await request("approve-application", {
+              jobId: job.id,
+              reviewToken: item.review_token,
+            });
+            await refreshCurrent();
+            status.textContent = result.message;
+          },
+          true,
+        ),
+      );
+    } else if (ready && !reviewed) {
+      links.append(
+        action("Review documents in Radius", () =>
+          request("prepare-job", { jobId: job.id }),
+        ),
+      );
+      links.append(
+        action("Link this page", async () => {
+          await request("use-page", { jobId: job.id });
+          await refreshCurrent();
+        }),
+      );
+    } else if (ready && (continuation || !exact))
       links.append(action("Use on this page", use, true));
-    else if (ready && !info.supported)
+    else if (ready && !info.supported && !exact)
       links.append(
         action(
           "Open application",
@@ -149,11 +176,8 @@ function entry(item, continuation = false) {
           true,
         ),
       );
-    else if (!ready)
-      links.append(action("Prepare with ChatGPT", prepare, true));
-    else if (
-      (info.catalog?.items || []).filter((i) => i.exact && i.ready).length > 1
-    )
+    else if (!ready) links.append(action("Prepare documents", prepare, true));
+    else if (ready && exact)
       links.append(
         action(
           "Fill this application",
@@ -189,7 +213,7 @@ function entry(item, continuation = false) {
           await prepareInline(job.id);
         }),
       );
-    if (exact && ready && info.supported)
+    if (exact && ready && reviewed && info.supported)
       links.append(
         action("Attach prepared documents", async () => {
           status.classList.remove("error");
@@ -206,6 +230,44 @@ function entry(item, continuation = false) {
       new URL(job.url).hostname + (exact ? " · Linked page" : "");
   } catch {}
   card.append(links, source);
+  if (exact && !ready) {
+    const progress = document.createElement("small");
+    progress.setAttribute("role", "status");
+    card.append(progress);
+    const labels = {
+      queued: "Queued for preparation",
+      starting: "Starting preparation",
+      cv: "Preparing CV",
+      letter: "Preparing cover letter",
+      review: "Reviewing documents",
+      retry_wait: "Waiting to retry",
+      finalize: "Finishing documents",
+      cancelling: "Cancelling",
+    };
+    const refresh = async () => {
+      if (!card.isConnected) return;
+      try {
+        const jobState = await request("preparation-status", { jobId: job.id });
+        if (!card.isConnected) return;
+        progress.textContent =
+          jobState?.state === "completed"
+            ? "Documents ready to review in Radius"
+            : jobState?.state === "failed"
+              ? `Preparation failed: ${jobState.error || "Open Radius to retry"}`
+              : jobState?.state === "partial"
+                ? "Drafts available. Open Radius to retry preparation."
+                : jobState?.state === "cancelled"
+                  ? "Preparation cancelled"
+                  : labels[jobState?.stage] || "";
+        if (["running", "cancelling"].includes(jobState?.state))
+          setTimeout(refresh, 3000);
+      } catch {
+        progress.textContent =
+          "Preparation status unavailable. Open Radius to check.";
+      }
+    };
+    setTimeout(refresh, 0);
+  }
   return card;
 }
 async function fill() {
@@ -332,82 +394,22 @@ function renderCurrentJob() {
   document.querySelector("#job-search").hidden = !catalog?.connected || !!item;
   document.querySelector("#add-to-radius").hidden =
     !catalog?.connected || !!item;
-  const brief = info?.brief?.job_id === item?.job.id ? info.brief : null;
-  document.querySelector("#prepared-prompt").value = brief?.prompt ?? "";
-  document.querySelector("#prepare-details").hidden = !brief;
-  if (brief) document.querySelector("#brief-language").value = brief.language;
   if (item) selectedJob = item.job.id;
 }
 async function refreshCurrent() {
   info = await request("inspect");
   renderCurrentJob();
 }
-async function copyBrief() {
-  const field = document.querySelector("#prepared-prompt");
-  try {
-    await navigator.clipboard.writeText(field.value);
-    return true;
-  } catch {
-    field.focus();
-    field.select();
-    try {
-      return document.execCommand("copy");
-    } catch {
-      return false;
-    }
-  }
-}
 async function prepareInline(jobId) {
   status.classList.remove("error");
-  status.textContent = "Preparing the current job brief…";
-  const result = await request("prepare-current-job", {
-    jobId,
-    language: document.querySelector("#brief-language").value,
-  });
-  document.querySelector("#prepared-prompt").value = result.prompt;
-  document.querySelector("#prepare-details").hidden = false;
-  const copied = await copyBrief();
-  await chrome.tabs.create({ url: result.chatgpt_url });
-  status.textContent = copied
-    ? "Brief copied. Paste it into ChatGPT, then import its result here."
-    : "ChatGPT opened. Copy the brief below manually, then paste it there.";
-  if (!copied) document.querySelector("#prepare-details").open = true;
+  status.textContent = "Opening your application for preparation and review…";
+  await request("prepare-job", { jobId });
+  status.textContent = "Continue in Radius to review your documents.";
 }
 document.querySelector("#current-job-picker").onchange = (event) => {
   selectedJob = Number(event.target.value) || null;
   renderCurrentJob();
   button.disabled = !selectedJob || !info.supported;
-};
-document.querySelector("#copy-brief").onclick = async () => {
-  status.textContent = (await copyBrief())
-    ? "Brief copied."
-    : "Select and copy the brief manually.";
-};
-async function importResult(input) {
-  status.classList.remove("error");
-  status.textContent = "Connecting the returned documents…";
-  try {
-    const result = await request("import-current-result", {
-      jobId: selectedJob,
-      input,
-    });
-    await refreshCurrent();
-    status.textContent = result.message;
-  } catch (error) {
-    message(error);
-  }
-}
-document.querySelector("#use-result").onclick = () =>
-  importResult(document.querySelector("#result-input").value);
-document.querySelector("#result-file").onchange = async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-  if (file.size > 300000) {
-    message(new Error("Choose an application package under 300 KB."));
-    return;
-  }
-  await importResult(await file.text());
-  event.target.value = "";
 };
 for (const kind of ["cv", "cover_letter"])
   for (const format of ["latex_pdf", "tex"]) {
@@ -522,7 +524,7 @@ try {
     !info.supported && items.some((i) => i.exact)
       ? items.some((i) => i.exact && i.ready)
         ? "Your CV is ready. Open the employer application to fill your details."
-        : "Prepare directly with ChatGPT using your saved base CV."
+        : "Prepare documents using your saved base CV and Radius ChatGPT connection."
       : info.scope || info.reason;
   if (info.lastReport) showReport(info.lastReport);
   if (

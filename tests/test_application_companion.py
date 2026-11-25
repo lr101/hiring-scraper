@@ -1,14 +1,14 @@
 """The extension catalog is stable, bounded, and independent of search location."""
 import unittest
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from hiring_scraper.app import models
+from tests import pg
 
 
 class CompanionCatalogTests(unittest.TestCase):
     def test_site_status_matches_any_company_subdomain_without_crossing_host_boundaries(self):
         from hiring_scraper.app.companion import companion_site
-        engine = create_engine('sqlite://'); models.Base.metadata.create_all(engine)
+        engine = pg.engine(self); models.Base.metadata.create_all(engine)
         with Session(engine) as session:
             company = models.Company(source='test', source_id='site', name='Employer', domain='employer.example', website_url='https://employer.example')
             feed = models.JobFeed(company=company, provider='html_jobs', feed_url='https://careers.employer.example/jobs', status='parsed')
@@ -24,7 +24,7 @@ class CompanionCatalogTests(unittest.TestCase):
 
     def test_site_status_uses_an_imported_root_feed_without_company_website_metadata(self):
         from hiring_scraper.app.companion import companion_site
-        engine = create_engine('sqlite://'); models.Base.metadata.create_all(engine)
+        engine = pg.engine(self); models.Base.metadata.create_all(engine)
         with Session(engine) as session:
             company = models.Company(source='test', source_id='legacy-site', name='Employer')
             feed = models.JobFeed(company=company, provider='html_jobs', feed_url='https://employer.example/jobs', status='parsed')
@@ -35,7 +35,7 @@ class CompanionCatalogTests(unittest.TestCase):
 
     def test_site_status_keeps_shared_ats_tenants_separate(self):
         from hiring_scraper.app.companion import companion_site
-        engine = create_engine('sqlite://'); models.Base.metadata.create_all(engine)
+        engine = pg.engine(self); models.Base.metadata.create_all(engine)
         with Session(engine) as session:
             for tenant in ['acme', 'other']:
                 company = models.Company(source='test', source_id=tenant, name=tenant)
@@ -55,7 +55,7 @@ class CompanionCatalogTests(unittest.TestCase):
 
     def test_site_status_recognizes_supported_hostname_tenants(self):
         from hiring_scraper.app.companion import companion_site
-        engine = create_engine('sqlite://'); models.Base.metadata.create_all(engine)
+        engine = pg.engine(self); models.Base.metadata.create_all(engine)
         with Session(engine) as session:
             for suffix in ['softgarden.io', 'softgarden.de', 'onlyfy.jobs', 'helixjobs.com']:
                 for tenant in ['acme', 'other']:
@@ -87,7 +87,7 @@ class CompanionCatalogTests(unittest.TestCase):
 
     def test_profile_saves_application_details_without_confusing_profile_label_with_name(self):
         from hiring_scraper.app.profiles import ProfileRequest, create_profile, update_profile
-        engine = create_engine('sqlite://'); models.Base.metadata.create_all(engine)
+        engine = pg.engine(self); models.Base.metadata.create_all(engine)
         with Session(engine) as session:
             result = create_profile(ProfileRequest(name='Developer', application_details={
                 'first_name': 'Alex', 'last_name': 'Example',
@@ -100,7 +100,7 @@ class CompanionCatalogTests(unittest.TestCase):
 
     def test_lookup_finds_jobs_after_the_catalog_limit_without_matching_other_requisitions(self):
         from hiring_scraper.app.companion import lookup_companion_jobs
-        engine = create_engine('sqlite://')
+        engine = pg.engine(self)
         models.Base.metadata.create_all(engine)
         with Session(engine) as session:
             company = models.Company(source='test', source_id='lookup', name='Employer')
@@ -119,7 +119,7 @@ class CompanionCatalogTests(unittest.TestCase):
 
     def test_server_search_finds_uncached_jobs_and_treats_wildcards_literally(self):
         from hiring_scraper.app.companion import search_companion_jobs
-        engine = create_engine('sqlite://')
+        engine = pg.engine(self)
         models.Base.metadata.create_all(engine)
         with Session(engine) as session:
             company = models.Company(source='test', source_id='search', name='Research Labs')
@@ -134,7 +134,7 @@ class CompanionCatalogTests(unittest.TestCase):
 
     def test_lookup_narrows_nonstandard_meaningful_query_keys_before_the_candidate_limit(self):
         from hiring_scraper.app.companion import lookup_companion_jobs
-        engine=create_engine('sqlite://');models.Base.metadata.create_all(engine)
+        engine=pg.engine(self);models.Base.metadata.create_all(engine)
         with Session(engine) as session:
             company=models.Company(source='test',source_id='query',name='Employer')
             feed=models.JobFeed(company=company,provider='html_jobs',feed_url='https://ats.example/',status='parsed')
@@ -147,7 +147,7 @@ class CompanionCatalogTests(unittest.TestCase):
     def test_lookup_preserves_spa_fragments_and_rejects_session_urls(self):
         from fastapi import HTTPException
         from hiring_scraper.app.companion import lookup_companion_jobs
-        engine = create_engine('sqlite://')
+        engine = pg.engine(self)
         models.Base.metadata.create_all(engine)
         with Session(engine) as session:
             company=models.Company(source='test',source_id='spa',name='Employer')
@@ -164,7 +164,7 @@ class CompanionCatalogTests(unittest.TestCase):
 
     def test_keyset_catalog_includes_local_and_remote_jobs_without_cv_or_descriptions(self):
         from hiring_scraper.app.companion import list_companion_jobs
-        engine = create_engine('sqlite://')
+        engine = pg.engine(self)
         models.Base.metadata.create_all(engine)
         with Session(engine) as session:
             company = models.Company(source='test', source_id='companion', name='Employer')

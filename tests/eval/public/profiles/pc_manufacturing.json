@@ -1,0 +1,130 @@
+{
+  "id": "pc_manufacturing",
+  "archetype": "Projektkoordinatorin im Sondermaschinenbau (deutschsprachiges Profil, Englisch B1)",
+  "location_region": "Region Stuttgart, Deutschland",
+  "desired_roles": [
+    "Projektkoordinator",
+    "Projektleiter Produktion",
+    "Technischer Projektmanager"
+  ],
+  "secondary_roles": [
+    "Arbeitsvorbereiter",
+    "Produktionsplaner",
+    "Projektassistent"
+  ],
+  "skills": [
+    "Projektkoordination",
+    "Terminplanung",
+    "MS Project",
+    "SAP PP",
+    "Lieferantenmanagement",
+    "Fertigungsplanung",
+    "Änderungsmanagement",
+    "Stücklisten",
+    "Kostenverfolgung",
+    "Lean Production",
+    "Qualitätsmanagement",
+    "Excel"
+  ],
+  "languages": [
+    "German",
+    "English"
+  ],
+  "language_levels": {
+    "German": "C2",
+    "English": "B1"
+  },
+  "experience_years": 12,
+  "work_styles": [
+    "onsite",
+    "hybrid"
+  ],
+  "employment_types": [
+    "full_time"
+  ],
+  "summary": "Wirtschaftsingenieurin mit zwölf Jahren Erfahrung in der Projektkoordination im Sondermaschinenbau. Ich steuere Aufträge von der Konstruktionsfreigabe bis zur Abnahme beim Kunden, halte Termine und Budgets nach und stimme Konstruktion, Einkauf, Montage und Qualität ab.",
+  "cv_career_facts": {
+    "experiences": [
+      {
+        "title": "Projektkoordinatorin Sondermaschinenbau",
+        "start": "2014-04",
+        "end": "2018-12",
+        "current": false,
+        "description": "Terminverfolgung für Einzelaufträge, Abstimmung zwischen Konstruktion, Einkauf und Montage, Pflege der Projektpläne in MS Project, Teilnahme an Kundenabnahmen."
+      },
+      {
+        "title": "Projektleiterin Produktionsanlauf",
+        "start": "2019-01",
+        "end": "",
+        "current": true,
+        "description": "Leitung von Anlaufprojekten für neue Fertigungslinien: Budgetverantwortung bis 1,5 Mio. Euro, Lieferantensteuerung, Änderungsmanagement mit Stücklistenpflege in SAP, wöchentliche Statusberichte an die Werksleitung."
+      }
+    ],
+    "education": [
+      {
+        "title": "B.Eng. Wirtschaftsingenieurwesen",
+        "start": "2010-10",
+        "end": "2014-03",
+        "current": false,
+        "completed": true,
+        "description": "Studium abgeschlossen mit Schwerpunkt Produktionsmanagement."
+      }
+    ]
+  },
+  "skill_evidence": {
+    "Projektkoordination": {
+      "context": "professional",
+      "note": "Zwölf Jahre Koordination von Maschinenbauprojekten mit 5 bis 25 Beteiligten."
+    },
+    "MS Project": {
+      "context": "professional",
+      "note": "Tägliche Pflege von Terminplänen und Meilensteinen."
+    },
+    "SAP PP": {
+      "context": "professional",
+      "note": "Stücklisten- und Arbeitsplanpflege, Fertigungsaufträge anlegen und verfolgen."
+    },
+    "Lieferantenmanagement": {
+      "context": "professional",
+      "note": "Terminverfolgung und Eskalation bei Zulieferern."
+    },
+    "Lean Production": {
+      "context": "professional",
+      "note": "Mitarbeit an Linienplanung und Shopfloor-Management."
+    }
+  },
+  "application_preferences": {
+    "willing_to_work_onsite": true,
+    "authorized_to_work": true,
+    "authorization_country": "Germany",
+    "sponsorship_required": false
+  },
+  "education": [
+    {
+      "level": "bachelor",
+      "field": "Wirtschaftsingenieurwesen",
+      "status": "completed",
+      "completed": true,
+      "current": false,
+      "equivalency": ""
+    }
+  ],
+  "excluded_terms": [
+    "Werkstudent",
+    "Praktikant",
+    "Ausbildung"
+  ],
+  "certifications": [],
+  "application_details": {
+    "experiences": [
+      {
+        "title": "Projektkoordinatorin Sondermaschinenbau",
+        "description": "Terminverfolgung für Einzelaufträge, Abstimmung zwischen Konstruktion, Einkauf und Montage, Pflege der Projektpläne in MS Project, Teilnahme an Kundenabnahmen."
+      },
+      {
+        "title": "Projektleiterin Produktionsanlauf",
+        "description": "Leitung von Anlaufprojekten für neue Fertigungslinien: Budgetverantwortung bis 1,5 Mio. Euro, Lieferantensteuerung, Änderungsmanagement mit Stücklistenpflege in SAP, wöchentliche Statusberichte an die Werksleitung."
+      }
+    ]
+  }
+}

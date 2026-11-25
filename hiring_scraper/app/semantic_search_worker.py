@@ -6,6 +6,7 @@ import logging
 import os
 import threading
 import time
+from typing import Literal
 from datetime import timedelta
 from pathlib import Path
 from uuid import uuid4
@@ -15,11 +16,12 @@ import onnxruntime as ort
 from fastapi import FastAPI, HTTPException
 from huggingface_hub import hf_hub_download
 from pydantic import BaseModel, Field
-from sqlalchemy import delete, exists, or_, select, update
+from sqlalchemy import delete, exists, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 from tokenizers import Tokenizer
 
-from hiring_scraper.app.database import IS_SQLITE, SessionLocal
+from hiring_scraper.app.database import SessionLocal, log_worker_failure
+from hiring_scraper.semantic_matching import MODEL_ID, MODEL_KEY, MODEL_REVISION
 from hiring_scraper.app.models import (
     Company, Job, SemanticSearchDocument, SemanticSearchIndexState,
     SemanticSearchRefresh, utcnow,
@@ -27,14 +29,16 @@ from hiring_scraper.app.models import (
 
 
 LOG = logging.getLogger(__name__)
-MODEL_ID = "intfloat/multilingual-e5-small"
-MODEL_REVISION = "ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
-MODEL_KEY = f"{MODEL_ID}@{MODEL_REVISION}"
 DIMENSIONS = 384
+INFERENCE_BATCH_SIZE = 4
 MODEL_DIR = Path(os.getenv("SEMANTIC_MODEL_DIR", "/opt/models/multilingual-e5-small"))
 INDEX_BATCH_SIZE = max(2, int(os.getenv("SEMANTIC_INDEX_BATCH_SIZE", "32")))
 INDEX_POLL_SECONDS = max(1, float(os.getenv("SEMANTIC_INDEX_POLL_SECONDS", "2")))
 QUEUE_LEASE_SECONDS = 15 * 60
+# Backfill probes this many ids per query and at most this many windows per batch.
+BACKFILL_WINDOW = max(100, int(os.getenv("SEMANTIC_BACKFILL_WINDOW", "5000")))
+BACKFILL_MAX_WINDOWS = 40
+_backfill_cursor: dict[str, int] = {"company": 0, "job": 0}
 _embedder: LocalE5 | None = None
 
 
@@ -42,12 +46,17 @@ class EmbedRequest(BaseModel):
     text: str = Field(min_length=1, max_length=1000)
 
 
+class EmbedBatchRequest(BaseModel):
+    texts: list[str] = Field(min_length=1, max_length=32)
+    kind: Literal['query', 'passage']
+
+
 class LocalE5:
     """Small CPU ONNX runtime for the pinned multilingual E5 model."""
 
     def __init__(self) -> None:
         self.tokenizer = Tokenizer.from_file(str(self._model_file("tokenizer.json")))
-        self._tokenizer_lock = threading.Lock()
+        self._inference_lock = threading.Lock()
         self.tokenizer.enable_truncation(max_length=512)
         self.tokenizer.enable_padding(pad_id=1, pad_token="<pad>")
         options = ort.SessionOptions()
@@ -71,13 +80,17 @@ class LocalE5:
         ))
 
     def encode(self, texts: list[str]) -> list[list[float]]:
-        if not texts:
-            return []
-        # Tokenizer configuration is shared, so serialize tokenization only.
-        # ONNX Runtime supports concurrent Run calls; leaving inference outside
-        # this lock lets interactive queries run alongside the backfill worker.
-        with self._tokenizer_lock:
-            encodings = self.tokenizer.encode_batch(texts, add_special_tokens=True)
+        vectors = []
+        for start in range(0, len(texts), INFERENCE_BATCH_SIZE):
+            # Attention memory grows with batch size and the square of token
+            # length. Bound native runs, including simultaneous HTTP/indexer
+            # requests, and release the lock between batches for query access.
+            with self._inference_lock:
+                vectors.extend(self._encode_batch(texts[start:start + INFERENCE_BATCH_SIZE]))
+        return vectors
+
+    def _encode_batch(self, texts: list[str]) -> list[list[float]]:
+        encodings = self.tokenizer.encode_batch(texts, add_special_tokens=True)
         width = max(len(item.ids) for item in encodings)
         token_ids = np.zeros((len(encodings), width), dtype=np.int64)
         masks = np.zeros((len(encodings), width), dtype=np.int64)
@@ -145,12 +158,25 @@ def _claim_refreshes() -> tuple[str, list[tuple[str, int]]] | None:
         return token, [(row[0], row[1]) for row in rows]
 
 
-def _unindexed_ids(session, entity_type: str, limit: int,
-                   excluded: list[int] | None = None) -> list[int]:
-    if limit <= 0:
-        return []
+def _backfill_complete(session, entity_type: str) -> bool:
+    return bool(session.scalar(select(SemanticSearchIndexState.backfill_complete).where(
+        SemanticSearchIndexState.entity_type == entity_type,
+        SemanticSearchIndexState.model_revision == MODEL_KEY,
+    )))
+
+
+def _scan_backfill(session, entity_type: str, limit: int) -> tuple[list[int], int, bool]:
+    """Find unindexed rows after the backfill cursor, one bounded id window at a time.
+
+    Returns ``(ids, next_cursor, pass_finished)``. Each query only probes
+    ``BACKFILL_WINDOW`` ids, so its cost no longer grows with the inventory.
+    Inserts and edits after migration are queued by database triggers; this scan
+    only covers rows that predate the current model revision.
+    """
     model = Company if entity_type == "company" else Job
-    statement = select(model.id).where(
+    cursor = _backfill_cursor[entity_type]
+    max_id = int(session.scalar(select(func.max(model.id))) or 0)
+    candidates = select(model.id).where(
         ~exists(select(1).where(
             SemanticSearchDocument.entity_type == entity_type,
             SemanticSearchDocument.entity_id == model.id,
@@ -161,34 +187,61 @@ def _unindexed_ids(session, entity_type: str, limit: int,
             SemanticSearchRefresh.entity_id == model.id,
         )),
     )
-    if excluded:
-        statement = statement.where(model.id.not_in(excluded))
-    return [int(value) for value in session.scalars(
-        statement.order_by(model.id).limit(limit))]
+    found: list[int] = []
+    windows = 0
+    while limit > len(found) and cursor < max_id and windows < BACKFILL_MAX_WINDOWS:
+        upper = min(cursor + BACKFILL_WINDOW, max_id)
+        batch = [int(value) for value in session.scalars(candidates.where(
+            model.id > cursor, model.id <= upper,
+        ).order_by(model.id).limit(limit - len(found)))]
+        found.extend(batch)
+        cursor = batch[-1] if len(found) >= limit else upper
+        windows += 1
+    return found, cursor, cursor >= max_id
 
 
-def _find_unindexed() -> list[tuple[str, int]]:
-    """Backfill both entity types in every batch instead of starving jobs."""
+def _find_unindexed() -> tuple[list[tuple[str, int]], dict[str, tuple[int, bool]]]:
+    """Backfill both entity types in every batch instead of starving jobs.
+
+    Entity types whose backfill is complete are skipped entirely. The returned
+    cursors are committed only after the batch has been embedded and saved.
+    """
+    found: dict[str, list[int]] = {"company": [], "job": []}
+    progress: dict[str, tuple[int, bool]] = {}
     with SessionLocal() as session:
-        company_ids = _unindexed_ids(session, "company", INDEX_BATCH_SIZE // 2)
-        job_ids = _unindexed_ids(session, "job", INDEX_BATCH_SIZE - INDEX_BATCH_SIZE // 2)
-        remaining = INDEX_BATCH_SIZE - len(company_ids) - len(job_ids)
-        while remaining:
-            progressed = False
-            order = sorted(("company", "job"), key=lambda kind: len(company_ids if kind == "company" else job_ids))
-            for entity_type in order:
-                current = company_ids if entity_type == "company" else job_ids
-                more = _unindexed_ids(session, entity_type, remaining, current)
-                if more:
-                    current.extend(more)
-                    remaining -= len(more)
-                    progressed = True
-                if not remaining:
-                    break
-            if not progressed:
+        pending = [kind for kind in ("company", "job") if not _backfill_complete(session, kind)]
+        budget = INDEX_BATCH_SIZE
+        for index, kind in enumerate(pending):
+            share = budget // (len(pending) - index)
+            ids, cursor, finished = _scan_backfill(session, kind, share)
+            found[kind], progress[kind] = ids, (cursor, finished)
+            budget -= len(ids)
+        # Give capacity unused by one type to the other in the same batch.
+        for kind in pending:
+            if budget <= 0:
                 break
-        return ([*(('company', value) for value in company_ids),
-                 *(('job', value) for value in job_ids)])
+            if progress[kind][1]:
+                continue
+            saved = _backfill_cursor[kind]
+            _backfill_cursor[kind] = progress[kind][0]
+            try:
+                ids, cursor, finished = _scan_backfill(session, kind, budget)
+            finally:
+                _backfill_cursor[kind] = saved
+            found[kind].extend(ids)
+            progress[kind] = (cursor, finished)
+            budget -= len(ids)
+    rows = [*(("company", value) for value in found["company"]),
+            *(("job", value) for value in found["job"])]
+    return rows, progress
+
+
+def _commit_backfill_progress(rows: list[tuple[str, int]], progress: dict[str, tuple[int, bool]]) -> None:
+    for kind, (cursor, finished) in progress.items():
+        _backfill_cursor[kind] = cursor
+        if finished and not any(row[0] == kind for row in rows) and not _has_pending_refreshes(kind):
+            _mark_backfill_complete(kind)
+            LOG.info("semantic %s backfill complete for %s", kind, MODEL_KEY)
 
 
 def _has_pending_refreshes(entity_type: str | None = None) -> bool:
@@ -275,6 +328,13 @@ def _save_vectors(rows: list[tuple[str, int]], token: str | None,
                 "indexed_at": statement.excluded.indexed_at,
             },
         ))
+        if live_jobs:
+            from hiring_scraper.app.models import JobAnalysisQueue
+            session.execute(
+                update(JobAnalysisQueue)
+                .where(JobAnalysisQueue.job_id.in_(live_jobs), JobAnalysisQueue.profile_set_hash.is_not(None))
+                .values(similarity=None, profile_set_hash=None)
+            )
         if token:
             for entity_type, entity_id in rows:
                 session.execute(delete(SemanticSearchRefresh).where(
@@ -287,17 +347,18 @@ def _save_vectors(rows: list[tuple[str, int]], token: str | None,
 def process_index_batch() -> bool:
     claimed = _claim_refreshes()
     token: str | None = None
+    progress: dict[str, tuple[int, bool]] = {}
     if claimed:
         token, rows = claimed
     else:
-        rows = _find_unindexed()
-        for entity_type in ("company", "job"):
-            if not any(row[0] == entity_type for row in rows) and not _has_pending_refreshes(entity_type):
-                _mark_backfill_complete(entity_type)
-    if not rows:
-        return False
+        rows, progress = _find_unindexed()
+        if not rows:
+            _commit_backfill_progress(rows, progress)
+            return any(not finished for _cursor, finished in progress.values())
     payloads = _source_payloads(rows)
     if not payloads:
+        if progress:
+            _commit_backfill_progress(rows, progress)
         if token:
             with SessionLocal.begin() as session:
                 for entity_type, entity_id in rows:
@@ -323,20 +384,19 @@ def process_index_batch() -> bool:
         raise RuntimeError("Local embedding model is not ready")
     vectors = embedder.encode([payloads[key][0] for key in work])
     _save_vectors(work, token, vectors, payloads)
+    if progress:
+        _commit_backfill_progress(rows, progress)
     LOG.info("indexed %s semantic documents", len(work))
     return True
 
 
 def _index_loop() -> None:
     while True:
-        if IS_SQLITE:
-            time.sleep(INDEX_POLL_SECONDS)
-            continue
         try:
             if not process_index_batch():
                 time.sleep(INDEX_POLL_SECONDS)
-        except Exception:
-            LOG.exception("Semantic search indexing batch failed")
+        except Exception as error:
+            log_worker_failure(LOG, "Semantic search indexing batch failed", error)
             time.sleep(INDEX_POLL_SECONDS)
 
 
@@ -375,11 +435,21 @@ def embed(request: EmbedRequest) -> dict[str, list[float]]:
     return {"embedding": vector}
 
 
+@app.post('/embed/batch')
+def embed_batch(request: EmbedBatchRequest):
+    if _embedder is None:
+        raise HTTPException(status_code=503, detail='Local embedding model is loading')
+    if any(not text.strip() or len(text) > 900 for text in request.texts):
+        raise HTTPException(status_code=422, detail='Sections must contain between 1 and 900 characters')
+    return {'model': MODEL_KEY, 'embeddings': _embedder.encode([
+        request.kind + ': ' + text.strip() for text in request.texts])}
+
+
 def main() -> None:
     logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"),
                         format="%(asctime)s %(levelname)s %(name)s %(message)s")
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=int(os.getenv("SEMANTIC_EMBEDDING_PORT", "8001")),
+    uvicorn.run(app, host=os.getenv("SEMANTIC_EMBEDDING_HOST", "127.0.0.1"), port=int(os.getenv("SEMANTIC_EMBEDDING_PORT", "8001")),
                 log_level=os.getenv("LOG_LEVEL", "info").lower())
 
 

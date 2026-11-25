@@ -20,12 +20,27 @@
           .sendMessage({ type: "radius-state", theme })
           .then((response) => {
             const form = response?.ok && response.result?.form;
-            if (!form || form.format !== "radius-form-v1") return;
-            localStorage.setItem(
-              `radius:application-form:v1:${form.job_id}:${form.profile_id}`,
-              JSON.stringify(form),
+            const match = location.pathname.match(/^\/jobs\/(\d+)\/apply\/?$/);
+            const profileId = Number(
+              new URLSearchParams(location.search).get("profile_id"),
             );
-            document.dispatchEvent(new CustomEvent("radius-form-updated"));
+            if (response?.ok && match && profileId > 0) {
+              const formKey = `radius:application-form:v1:${match[1]}:${profileId}`;
+              if (
+                form?.format === "radius-form-v1" &&
+                form.job_id === Number(match[1]) &&
+                form.profile_id === profileId
+              ) {
+                localStorage.setItem(formKey, JSON.stringify(form));
+                document.documentElement.dataset.radiusCompanionReady = "true";
+                document.dispatchEvent(
+                  new CustomEvent("radius-companion-ready"),
+                );
+              } else {
+                localStorage.removeItem(formKey);
+              }
+              document.dispatchEvent(new CustomEvent("radius-form-updated"));
+            }
           })
           .catch(() => {});
       }
@@ -60,6 +75,12 @@
   });
   window.addEventListener("storage", update);
   window.addEventListener("hashchange", update);
+  document.addEventListener("radius-delete-application", () => {
+    last = "";
+    void chrome.runtime
+      .sendMessage({ type: "radius-delete-application" })
+      .catch(() => {});
+  });
   // localStorage writes do not emit storage in their own tab; bounded polling of
   // the selected job's one key catches React draft saves without scanning storage.
   const interval = setInterval(update, 1500);

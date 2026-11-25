@@ -2,10 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import SiteHeader from './SiteHeader'
 import JobFeedCard from './JobFeedCard'
 import JourneyConnections from './JourneyConnections'
-import { applicationStatuses, saveApplication, trackJobInteraction } from './applications'
+import { applicationStatuses, fetchApplicationResults, saveApplication, trackJobInteraction } from './applications'
 import type { Application, ApplicationStatus, ApplicationSwipeAction } from './applications'
 import { getApplicationMomentum } from './applicationMomentum'
 import type { ApplicationMomentum } from './applicationMomentum'
+import { focusHeadline, focusHref, getTodaysFocus } from './todaysFocus'
+import type { TodaysFocus } from './todaysFocus'
 import type { Enrichment, ProfileMatch } from './JobEvidence'
 import type { Profile } from './profile'
 
@@ -47,8 +49,8 @@ type MatchingJob = {
 }
 type ProfiledJob = MatchingJob & { profileId: number; profileName: string }
 type SavedProfile = Profile & { id: number }
-type JobsPage = { items: Array<MatchingJob & { profile_id: number; profile_name: string }>; total: number; counts: Record<ApplicationStatus, number> }
-type ApplicationResultsPage = { jobs: ProfiledJob[]; total: number; counts: Record<ApplicationStatus, number> }
+type JobsPage = { items: Array<MatchingJob & { profile_id: number; profile_name: string }>; total: number; counts: Record<ApplicationStatus, number>; matching_pending?: boolean; analysis_backlog?: number }
+type ApplicationResultsPage = { jobs: ProfiledJob[]; total: number; counts: Record<ApplicationStatus, number>; matchingPending: boolean; analysisBacklog?: number }
 
 const MAX_CACHED_RESULT_PAGES = 32
 
@@ -82,7 +84,7 @@ async function requestApplicationPage(
     offset: String(offset),
     limit: String(PAGE_SIZE),
   })
-  const response = await fetch(`${API}/api/v1/applications?${query}`)
+  const response = await fetchApplicationResults(API, query)
   const data = await response.json() as JobsPage & { detail?: unknown }
   if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Could not load matching jobs.')
   return {
@@ -93,6 +95,8 @@ async function requestApplicationPage(
     })),
     counts: data.counts,
     total: data.total,
+    matchingPending: data.matching_pending === true,
+    analysisBacklog: typeof data.analysis_backlog === 'number' ? data.analysis_backlog : 0,
   }
 }
 
@@ -150,23 +154,29 @@ export default function ApplicationsPage() {
   const [reloadKey, setReloadKey] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [matchingPending, setMatchingPending] = useState(false)
+  const [analysisBacklog, setAnalysisBacklog] = useState(0)
   const [notice, setNotice] = useState('')
   const [noticeKind, setNoticeKind] = useState<'standard' | 'applied' | 'milestone'>('standard')
   const [momentum, setMomentum] = useState<ApplicationMomentum | null>(null)
   const momentumRef = useRef<ApplicationMomentum | null>(null)
   const [momentumRefreshKey, setMomentumRefreshKey] = useState(0)
+  const [focus, setFocus] = useState<TodaysFocus | null>(null)
+  const [focusRefreshKey, setFocusRefreshKey] = useState(0)
   const [savingKeys, setSavingKeys] = useState<Set<string>>(() => new Set())
   const savingKeysRef = useRef(new Set<string>())
   const [pendingStatuses, setPendingStatuses] = useState<Record<string, ApplicationStatus>>({})
   const activeProfileKey = activeProfileIds.join(',')
+  const focusProfileId = activeProfileIds[0] ?? profiles[0]?.id
   const allProfilesActive = profiles.length > 0 && activeProfileIds.length === profiles.length
   const hasSavingJob = savingKeys.size > 0
   const queryKey = applicationResultsKey(activeProfileKey, statuses, sortBy, offset)
   const cachedPage = pageCacheRef.current.get(queryKey)
   const currentPage = cachedPage ?? (resultQueryKey === queryKey
-    ? { jobs, counts, total: totalVisible }
+    ? { jobs, counts, total: totalVisible, matchingPending }
     : null)
   const visibleJobs = currentPage?.jobs ?? []
+  const refreshingMatches = currentPage?.matchingPending === true
   const currentCounts = currentPage?.counts ?? (countsProfileKey === activeProfileKey ? counts : null)
   const visibleCounts = currentCounts ?? counts
   const countsReady = currentCounts !== null
@@ -237,6 +247,7 @@ export default function ApplicationsPage() {
     }
     jobsRef.current = cached.jobs
     setJobs(cached.jobs)
+    setMatchingPending(cached.matchingPending)
     setCounts(cached.counts)
     setCountsProfileKey(profileKey)
     setTotalVisible(cached.total)
@@ -261,7 +272,9 @@ export default function ApplicationsPage() {
       return requestApplicationPage(profileKey, selectedStatuses, sort, selectedOffset)
     }).then(page => {
       if (generation === cacheGenerationRef.current) {
-        cacheApplicationResults(pageCacheRef.current, key, page)
+        // Pages change while matching or local analysis is still running: do not cache them.
+        if (page.matchingPending || (page.analysisBacklog ?? 0) > 0) pageCacheRef.current.clear()
+        else cacheApplicationResults(pageCacheRef.current, key, page)
       }
       return page
     }).finally(() => {
@@ -303,6 +316,7 @@ export default function ApplicationsPage() {
       jobsRef.current = []
       setJobs([])
       setCounts(Object.fromEntries(applicationStatuses.map(item => [item.value, 0])) as Record<ApplicationStatus, number>)
+      setMatchingPending(false)
       setCountsProfileKey('')
       setTotalVisible(0)
       setResultQueryKey(queryKey)
@@ -315,6 +329,7 @@ export default function ApplicationsPage() {
     if (cached) {
       jobsRef.current = cached.jobs
       setJobs(cached.jobs)
+      setMatchingPending(cached.matchingPending)
       setCounts(cached.counts)
       setCountsProfileKey(activeProfileKey)
       setTotalVisible(cached.total)
@@ -331,6 +346,8 @@ export default function ApplicationsPage() {
       if (controller.signal.aborted) return
       jobsRef.current = resultPage.jobs
       setJobs(resultPage.jobs)
+      setMatchingPending(resultPage.matchingPending)
+      setAnalysisBacklog(resultPage.analysisBacklog ?? 0)
       setCounts(resultPage.counts)
       setCountsProfileKey(activeProfileKey)
       setTotalVisible(resultPage.total)
@@ -341,6 +358,23 @@ export default function ApplicationsPage() {
 
     return () => controller.abort()
   }, [profilesReady, activeProfileKey, activeProfileIds.length, reloadKey, profiles, statuses, sortBy, offset, queryKey])
+
+  useEffect(() => {
+    if (!refreshingMatches || loading || error || hasSavingJob) return
+    const timer = window.setTimeout(() => setReloadKey(current => current + 1), 2000)
+    return () => window.clearTimeout(timer)
+  }, [refreshingMatches, loading, error, hasSavingJob, queryKey, reloadKey])
+
+  // Background match updates and new jobs can arrive after the current page loads.
+  useEffect(() => {
+    if (!profilesReady || !activeProfileKey || hasSavingJob || loading) return
+    const timer = window.setInterval(() => {
+      pageCacheRef.current.clear()
+      invalidateInFlightPageRequests()
+      setReloadKey(current => current + 1)
+    }, 30000)
+    return () => window.clearInterval(timer)
+  }, [profilesReady, activeProfileKey, hasSavingJob, loading])
 
   useEffect(() => {
     let active = true
@@ -374,6 +408,14 @@ export default function ApplicationsPage() {
     }).catch(() => { /* Momentum is optional; application tracking remains available. */ })
     return () => { active = false }
   }, [momentumRefreshKey])
+
+  useEffect(() => {
+    if (focusProfileId === undefined) return
+    let active = true
+    getTodaysFocus(API, focusProfileId).then(value => { if (active) setFocus(value) })
+      .catch(() => { if (active) setFocus(null) /* Focus is optional; the full Journey remains. */ })
+    return () => { active = false }
+  }, [focusProfileId, focusRefreshKey, momentumRefreshKey])
 
   useEffect(() => {
     if (!profilesReady) return
@@ -439,7 +481,9 @@ export default function ApplicationsPage() {
         [application.status]: cachedPage.counts[application.status] + 1,
       } : cachedPage.counts
 
-      if (!previouslySelected && nowSelected) {
+      // Any membership change shifts offsets across every page of this query.
+      // Keep the visible optimistic update in state, and fetch fresh pages on navigation.
+      if (previouslySelected !== nowSelected) {
         pageCacheRef.current.delete(cacheKey)
         continue
       }
@@ -453,6 +497,7 @@ export default function ApplicationsPage() {
       const total = cachedPage.total + (previouslySelected === nowSelected
         ? 0 : nowSelected ? 1 : -1)
       pageCacheRef.current.set(cacheKey, {
+        ...cachedPage,
         jobs: nextJobs,
         counts: nextCounts,
         total: Math.max(0, total),
@@ -519,6 +564,7 @@ export default function ApplicationsPage() {
         : `${job.title} · ${job.profileName} · ${label}`)
       setNoticeKind(applied ? 'applied' : 'standard')
       if (milestoneAction) setMomentumRefreshKey(current => current + 1)
+      else setFocusRefreshKey(current => current + 1)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not save application status.')
     } finally {
@@ -625,6 +671,27 @@ export default function ApplicationsPage() {
         </div>
       </section>}
 
+      {profilesReady && focus && focusProfileId !== undefined && <section className="journey-focus" aria-labelledby="journey-focus-heading">
+        <div className="journey-focus-heading">
+          <h2 id="journey-focus-heading">Today’s focus</h2>
+          <div className="journey-focus-dots" role="img"
+            aria-label={`${Math.min(focus.sent_today, focus.daily_target)} of ${focus.daily_target} sent today`}>
+            {Array.from({ length: focus.daily_target }, (_, index) =>
+              <span key={index} className={index < focus.sent_today ? 'is-done' : ''} />)}
+          </div>
+        </div>
+        <p className="journey-focus-headline">{focusHeadline(focus)}</p>
+        {!focus.completed && focus.items.length > 0 && <ol className="journey-focus-list">
+          {focus.items.map(item => <li key={item.job_id}>
+            <a href={focusHref(item, focusProfileId)}>
+              <span className="journey-focus-title">{item.title}</span>
+              <small>{[item.company, item.reason].filter(Boolean).join(' · ')}</small>
+            </a>
+            {item.documents_ready && <span className="journey-focus-ready">Ready</span>}
+          </li>)}
+        </ol>}
+      </section>}
+
       {profilesReady && profiles.length > 0 && momentum && <section className="journey-rewards" aria-label="Application rewards">
         <div className="journey-rewards-heading">
           <h2>Reward timeline</h2>
@@ -706,6 +773,12 @@ export default function ApplicationsPage() {
       </section>}
 
       {error && <div className="error-banner" role="alert">{error}</div>}
+      {refreshingMatches && <p className="journey-notice" role="status">
+        Finding matching roles… Your saved roles are available while matches update.
+      </p>}
+      {!refreshingMatches && analysisBacklog > 0 && <p className="journey-notice" role="status">
+        Roles in your area are read first and appear here once checked against your CV.
+      </p>}
       {notice && <p className={`journey-notice ${noticeKind === 'standard' ? '' : `is-${noticeKind}`}`} role="status">
         <span aria-hidden="true">{noticeKind === 'milestone' ? '★' : '✓'}</span> {notice}</p>}
       {profilesReady && profiles.length > 0 && <section id="journey-roles" className="journey-results" aria-labelledby="journey-results-heading">
@@ -732,7 +805,7 @@ export default function ApplicationsPage() {
                     pendingStatus={pendingStatuses[key]} onAction={onCardAction} onOpenOriginal={onOriginalPost} />
                 })}
               </div> : <div className="journey-empty"><span className="journey-empty-icon" aria-hidden="true">✦</span>
-                <h3>{statuses.length ? 'Nothing here yet' : 'Your next role is out there'}</h3>
+                <h3>{refreshingMatches ? 'Checking for matching roles' : statuses.length ? 'Nothing here yet' : 'Your next role is out there'}</h3>
                 <a className="journey-empty-link" href="/discover?view=jobs">Find a role <span aria-hidden="true">↗</span></a>
               </div>}
         <div className="journey-results-footer">

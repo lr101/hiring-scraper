@@ -6,16 +6,10 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from hiring_scraper.app.models import Company, DiscoveryJob, JobFeed
+from hiring_scraper.app.models import Company, DiscoveryJob, JobFeed, as_utc
 
 
 _PROTECTED_FEED_STATES = {"blocked", "bot_challenge", "throttled"}
-
-
-def _utc(value: datetime | None) -> datetime | None:
-    if value is None:
-        return None
-    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
 
 
 def search_scope_payload(job: DiscoveryJob) -> dict:
@@ -76,10 +70,10 @@ def scope_due_at(scope: dict, fallback: datetime | None = None) -> datetime:
     fallback = fallback or datetime.now(timezone.utc)
     raw = scope.get("scheduled_for")
     if isinstance(raw, datetime):
-        return _utc(raw) or fallback
+        return as_utc(raw) or fallback
     if isinstance(raw, str):
         try:
-            return _utc(datetime.fromisoformat(raw.replace("Z", "+00:00"))) or fallback
+            return as_utc(datetime.fromisoformat(raw.replace("Z", "+00:00"))) or fallback
         except ValueError:
             pass
     return fallback
@@ -130,10 +124,10 @@ def queue_arbeitsagentur_scope(session: Session, job: DiscoveryJob,
             feed.pending_search_scopes = [*pending, scope]
         queued += 1
 
-        lease_until = _utc(feed.lease_until)
+        lease_until = as_utc(feed.lease_until)
         if (feed.status not in _PROTECTED_FEED_STATES and not feed.attempt_count and
                 (lease_until is None or lease_until <= now)):
-            next_scan_at = _utc(feed.next_scan_at)
-            if next_scan_at is None or _utc(due_at) < next_scan_at:
+            next_scan_at = as_utc(feed.next_scan_at)
+            if next_scan_at is None or as_utc(due_at) < next_scan_at:
                 feed.next_scan_at = due_at
     return queued

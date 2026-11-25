@@ -11,9 +11,11 @@ dependencies = [
   "numpy>=2.2,<3",
   "onnxruntime>=1.22,<2",
   "pgvector>=0.4,<1",
+  "pillow>=12,<14",
   "playwright>=1.55,<2",
   "psycopg[binary]>=3.2,<4",
-  "pypdf>=6.21,<7",
+  "pypdf>=6.21,<8",
+  "pypdfium2==5.15.2",
   "sqlalchemy>=2.0,<3",
   "tokenizers>=0.21,<1",
   "uvicorn[standard]>=0.40,<1",
@@ -30,7 +32,7 @@ build-backend = "setuptools.build_meta"
 include = ["hiring_scraper*"]
 
 [tool.setuptools.package-data]
-"hiring_scraper.app" = ["*.json", "*.txt"]
+"hiring_scraper.app" = ["*.json", "*.txt", "*.sh", "prompts/*.txt"]
 hiring_scraper = ["elections/*.csv"]
 
 [tool.uv]

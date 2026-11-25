@@ -1,0 +1,145 @@
+{
+  "id": "po_fintech",
+  "archetype": "Product Owner in fintech (English-language profile, German B2)",
+  "location_region": "Hamburg, Germany",
+  "desired_roles": [
+    "Product Owner",
+    "Product Manager"
+  ],
+  "secondary_roles": [
+    "Business Analyst",
+    "Technical Product Owner",
+    "Requirements Engineer"
+  ],
+  "skills": [
+    "Product Ownership",
+    "Backlog Management",
+    "Roadmapping",
+    "User Stories",
+    "Scrum",
+    "Jira",
+    "Confluence",
+    "SQL",
+    "A/B Testing",
+    "Stakeholder Management",
+    "Payments",
+    "KYC",
+    "API Design"
+  ],
+  "languages": [
+    "English",
+    "German"
+  ],
+  "language_levels": {
+    "English": "C2",
+    "German": "B2"
+  },
+  "experience_years": 9,
+  "work_styles": [
+    "hybrid",
+    "remote"
+  ],
+  "employment_types": [
+    "full_time"
+  ],
+  "summary": "Product Owner with nine years in payments and open banking. I translate regulatory and customer needs into prioritised backlogs, work daily with engineering teams of 6-9 people and own the quarterly roadmap for a card and account-information product. Comfortable with SQL for my own analyses.",
+  "cv_career_facts": {
+    "experiences": [
+      {
+        "title": "Business Analyst, payments",
+        "start": "2017-04",
+        "end": "2019-11",
+        "current": false,
+        "description": "Wrote functional specifications for card-transaction processing, mapped settlement flows with operations and ran acceptance tests with the engineering team."
+      },
+      {
+        "title": "Product Owner, card issuing",
+        "start": "2019-12",
+        "end": "2022-06",
+        "current": false,
+        "description": "Owned the backlog for a card issuing platform, prioritised features with risk and compliance, wrote user stories and acceptance criteria, ran sprint reviews and coordinated releases across three squads."
+      },
+      {
+        "title": "Senior Product Owner, open banking",
+        "start": "2022-07",
+        "end": "",
+        "current": true,
+        "description": "Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to management."
+      }
+    ],
+    "education": [
+      {
+        "title": "B.Sc. Business Information Systems",
+        "start": "2012-10",
+        "end": "2016-03",
+        "current": false,
+        "completed": true,
+        "description": "Completed degree in business information systems with focus on databases and process modelling."
+      }
+    ]
+  },
+  "skill_evidence": {
+    "Product Ownership": {
+      "context": "professional",
+      "note": "Owned two product backlogs end to end, including prioritisation, refinement and acceptance."
+    },
+    "Roadmapping": {
+      "context": "professional",
+      "note": "Built and communicated quarterly roadmaps to management and partner banks."
+    },
+    "SQL": {
+      "context": "professional",
+      "note": "Queries transaction data for product analyses; no database administration."
+    },
+    "Payments": {
+      "context": "professional",
+      "note": "Card issuing, settlement and open-banking APIs over nine years."
+    },
+    "KYC": {
+      "context": "professional",
+      "note": "Specified onboarding and identity-verification flows together with compliance."
+    },
+    "A/B Testing": {
+      "context": "professional",
+      "note": "Designed and evaluated onboarding experiments with the analytics team."
+    }
+  },
+  "application_preferences": {
+    "willing_to_work_onsite": true,
+    "authorized_to_work": true,
+    "authorization_country": "Germany",
+    "sponsorship_required": false
+  },
+  "education": [
+    {
+      "level": "bachelor",
+      "field": "Business Information Systems",
+      "status": "completed",
+      "completed": true,
+      "current": false,
+      "equivalency": ""
+    }
+  ],
+  "excluded_terms": [
+    "Sales",
+    "Vertrieb",
+    "Praktikum"
+  ],
+  "certifications": [],
+  "application_details": {
+    "experiences": [
+      {
+        "title": "Business Analyst, payments",
+        "description": "Wrote functional specifications for card-transaction processing, mapped settlement flows with operations and ran acceptance tests with the engineering team."
+      },
+      {
+        "title": "Product Owner, card issuing",
+        "description": "Owned the backlog for a card issuing platform, prioritised features with risk and compliance, wrote user stories and acceptance criteria, ran sprint reviews and coordinated releases across three squads."
+      },
+      {
+        "title": "Senior Product Owner, open banking",
+        "description": "Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to management."
+      }
+    ]
+  }
+}

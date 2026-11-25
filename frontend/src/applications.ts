@@ -60,6 +60,15 @@ export type Application = {
   created_at: string; updated_at: string
 }
 
+/** A feed update can invalidate a rebuild; retry that read once from fresh state. */
+export async function fetchApplicationResults(base: string, query: URLSearchParams): Promise<Response> {
+  const url = `${base}/api/v1/applications?${query}`
+  const response = await fetch(url)
+  if (response.status !== 409) return response
+  await response.body?.cancel()
+  return fetch(url)
+}
+
 export async function saveApplication(
   base: string,
   profileId: number,
@@ -70,8 +79,9 @@ export async function saveApplication(
   const response = await fetch(`${base}/api/v1/profiles/${profileId}/applications/${jobId}`, {
     method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status, action }),
   })
-  const data = await response.json()
-  if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Could not save application status. Please try again.')
+  const data = await response.json().catch(() => null)
+  if (!response.ok) throw new Error(typeof data?.detail === 'string' ? data.detail : 'Could not save application status. Please try again.')
+  if (!data) throw new Error('The server returned an invalid response. Please try again.')
   return data
 }
 
@@ -84,7 +94,7 @@ export async function trackJobInteraction(
 ): Promise<Application | null> {
   let latest = current ?? null
   if (interaction === 'open_post') {
-    const response = await fetch(`${base}/api/v1/jobs/${jobId}?profile_id=${profileId}`)
+    const response = await fetch(`${base}/api/v1/jobs/${jobId}?profile_id=${profileId}&include_analysis=false`)
     const payload = await response.json()
     if (!response.ok) throw new Error(typeof payload.detail === 'string' ? payload.detail : 'Could not update application stage.')
     return payload.application ?? null

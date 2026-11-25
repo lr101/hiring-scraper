@@ -427,6 +427,43 @@ def remote_countries(job):
     return _remote_scope(job)[0]
 
 
+UNKNOWN_WORK_LOCATION = 'Work location not stated in the posting'
+
+
+def states_work_location(job):
+    """Whether the posting names any workplace: meaningful text, a country code or coordinates."""
+    if any(not _location_text_is_unspecified(value) for value, *_ in _work_location_text_evidence(job)):
+        return True
+    return any(country_code(location.country_code) or location.latitude is not None or location.longitude is not None
+               for location in job.locations or ())
+
+
+def employer_in_scope(job, *, country=None, state=None):
+    """The employer (or source feed) is in the searched country/state.
+
+    Never evidence of the workplace; it only decides whether a posting that
+    states no work location at all is worth showing as "location unknown".
+    """
+    feed_company = job.feed.company if job.feed is not None else None
+    companies = [company for company in (job.employer_company, feed_company) if company is not None]
+    if state:
+        return any(company.state == state for company in companies)
+    code = country_code(country)
+    if not code:
+        return False
+    if code == 'DE' and feed_company is not None and feed_company.source == 'default_job_feed':
+        return True
+    return any(country_code(company.country_code) == code or code == 'DE' and company.state in GERMAN_STATES
+               for company in companies)
+
+
+def unknown_location_scope(job, *, country=None, state=None):
+    """Keep a posting without any stated workplace, flagged as location unknown."""
+    if fully_remote(job) or states_work_location(job) or not employer_in_scope(job, country=country, state=state):
+        return None
+    return {'eligible': True, 'reason': None, 'unknowns': [UNKNOWN_WORK_LOCATION], 'match_kind': 'location_unknown'}
+
+
 def geographic_scope(job, latitude, longitude, radius_km, place=None, country=None, *, include_expired=False):
     country = country_code(country)
     if not include_expired and expiry(job)['expired']:
@@ -485,6 +522,8 @@ def canonical_vacancy_url(url):
 
 def vacancy_keys(job):
     keys = [('source', job.feed_id, job.external_id)]
+    if (group_id := getattr(job, 'vacancy_group_id', None)) is not None:
+        keys.append(('retained-vacancy', group_id))
     if url := canonical_vacancy_url(job.url):
         keys.append(('url', url))
     employer_id = getattr(job, 'employer_company_id', None)

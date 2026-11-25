@@ -6,7 +6,6 @@ import json
 import os
 import random
 import re
-import sqlite3
 import tempfile
 import time
 from datetime import datetime, timedelta, timezone
@@ -16,17 +15,19 @@ from threading import Lock
 from urllib.parse import urlsplit
 
 from sqlalchemy import and_, case, select, or_, update
-from sqlalchemy.exc import DBAPIError, OperationalError, TimeoutError as DatabasePoolTimeout
+from sqlalchemy.exc import DBAPIError, TimeoutError as DatabasePoolTimeout
 from sqlalchemy.orm import selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
-from hiring_scraper.app.database import SessionLocal, engine, is_transient_database_error
+from hiring_scraper.app.database import (
+    SessionLocal, is_transient_database_error, log_worker_failure, retry_transient,
+)
 from hiring_scraper.app.crawl_ranking import refresh_company_rank, next_company_due, next_feed_due
 from hiring_scraper.app.models import (Company, ConfiguredLocation, Job, JobFeed, JobLocation,
                                       ScanRun, utcnow)
 from hiring_scraper.app.applications import close_job_applications
 from hiring_scraper.app.job_search import (
-    job_search_signature, refresh_application_matches_for_jobs, replace_job_locations,
+    ProfileIndexChanged, job_search_signature, refresh_application_matches_for_jobs, replace_job_locations,
 )
 from hiring_scraper.app.feed_schedules import (
     is_synthetic_germany_scope, next_scope_due, scope_due_at,
@@ -35,6 +36,7 @@ from hiring_scraper.geography import haversine_m
 from hiring_scraper.app.employers import EmployerUpsertDeferred, upsert_job_employer
 from hiring_scraper.app.default_job_feeds import ensure_default_job_feeds
 from hiring_scraper.ats import fetch_feed, parse_feed
+from hiring_scraper.app.html_feed_rules import feed_company_address, with_company_address
 from hiring_scraper.browser import BROWSER_CLIENT_REQUEST_BUDGET
 from hiring_scraper.http import Client
 from hiring_scraper.crawl_policy import ORIGIN_PACER
@@ -51,31 +53,7 @@ CAPTURE_DIR = Path(os.getenv("SCAN_CAPTURE_DIR", "/tmp/hiring-scraper-feed-captu
 USER_AGENT = os.getenv("HIRING_USER_AGENT", "HiringScraper/0.2 (public job-feed refresh)")
 _ORIGIN_LOCK = Lock()
 _LAST_ORIGIN_REQUEST: dict[str, float] = {}
-SQLITE_BUSY_RETRIES = 4
-
-
-def _is_sqlite_busy(error: Exception) -> bool:
-    if engine.dialect.name != "sqlite":
-        return False
-    driver_error = getattr(error, "orig", error)
-    code = getattr(driver_error, "sqlite_errorcode", None)
-    if isinstance(code, int) and (code & 0xFF) in {sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED}:
-        return True
-    message = str(driver_error).casefold()
-    return "database is locked" in message or "database table is locked" in message
-
-
-def _retry_sqlite_busy(operation, *, action: str):
-    for attempt in range(SQLITE_BUSY_RETRIES):
-        try:
-            return operation()
-        except (OperationalError, sqlite3.OperationalError) as error:
-            if not _is_sqlite_busy(error) or attempt + 1 == SQLITE_BUSY_RETRIES:
-                raise
-            delay = min(2.0, 0.25 * (2 ** attempt)) + random.uniform(0, 0.15)
-            LOG.warning("SQLite is busy while %s; retrying in %.2fs (%s/%s)",
-                        action, delay, attempt + 1, SQLITE_BUSY_RETRIES)
-            time.sleep(delay)
+PROFILE_INDEX_RETRIES = 3
 
 
 def _claim_due_feed() -> tuple[int, int, int, dict | None] | None:
@@ -96,8 +74,7 @@ def _claim_due_feed() -> tuple[int, int, int, dict | None] | None:
                                JobFeed.next_scan_at,
                                case((Company.source == "default_job_feed", 0), else_=1),
                                Company.crawl_priority.desc(), JobFeed.id).limit(1))
-        if engine.dialect.name == "postgresql":
-            statement = statement.with_for_update(skip_locked=True, of=JobFeed)
+        statement = statement.with_for_update(skip_locked=True, of=JobFeed)
         feed = session.scalars(statement).first()
         if feed is None:
             return None
@@ -174,7 +151,7 @@ def _request(feed: JobFeed, search_scope: dict | None = None,
         return _request_arbeitsagentur(feed, search_scope, run_id=run_id)
     max_requests = (BROWSER_CLIENT_REQUEST_BUDGET if feed.provider == "browser_html" else
                     10 if feed.provider == "lever" else 8)
-    client = Client(CAPTURE_DIR, timeout=20, delay=REQUEST_DELAY_SECONDS, origin_pacer=ORIGIN_PACER,
+    client = Client(CAPTURE_DIR, persist_captures=False, timeout=20, delay=REQUEST_DELAY_SECONDS, origin_pacer=ORIGIN_PACER,
                     max_requests=max_requests, user_agent=USER_AGENT)
     headers = {}
     # A validator for offset zero cannot establish that later offsets are stable.
@@ -527,9 +504,8 @@ def _lock_feed_result(session, feed_id: int) -> JobFeed | None:
     company_id = session.scalar(select(JobFeed.company_id).where(JobFeed.id == feed_id))
     if company_id is None:
         return None
-    if session.get_bind().dialect.name == 'postgresql':
-        session.scalar(select(Company.id).where(Company.id == company_id).with_for_update())
-    # SQLite also needs a real write before the ownership/revision read.
+    session.scalar(select(Company.id).where(Company.id == company_id).with_for_update())
+    # Then lock the feed row itself (a no-op UPDATE) before reading ownership/revision.
     session.execute(update(JobFeed).where(JobFeed.id == feed_id).values(
         source_revision=JobFeed.source_revision).execution_options(synchronize_session=False))
     return session.get(JobFeed, feed_id, populate_existing=True)
@@ -639,7 +615,10 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             _set_failure(feed, run, "schema_error", metadata, str(error))
             return
 
-        incoming = parsed.get("jobs", [])
+        # Two readings of one posting share an id; merge them rather than let
+        # the later row overwrite the earlier one during the upsert below.
+        from hiring_scraper.postings import merge_duplicate_postings
+        incoming = merge_duplicate_postings(parsed.get("jobs", []))
         if feed.provider == 'telekom':
             from hiring_scraper.discovery import _employer_matches
             seed = {'name':feed.company.name, 'website':feed.company.website_url}
@@ -658,9 +637,14 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             _requeue_search_scope(feed, run, _backoff(1, incomplete=True))
         current = {job.external_id: job for job in session.scalars(
             select(Job).where(Job.feed_id == feed.id).options(selectinload(Job.locations))).all()}
+        # Employer/new-row upserts can flush before the entire feed is staged.
+        # Reserve the full existing source/owner union in ascending order first.
+        from hiring_scraper.app.models import reserve_job_source_rows
+        reserve_job_source_rows(session, [job.id for job in current.values()])
         seen = set()
-        touched_job_ids: set[int] = set()
-        closed_job_ids: set[int] = set()
+        touched_jobs: set[Job] = set()
+        closed_jobs: set[Job] = set()
+        company_address = feed_company_address(session, feed, incoming)
         for data in incoming:
             if (feed.provider == "rss" and not data.get("locations")
                     and feed.company.location_label):
@@ -685,7 +669,6 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
                 job = Job(feed_id=feed.id, external_id=external_id, title=data["title"], url=data["url"],
                           first_seen_at=now, last_seen_at=now)
                 session.add(job)
-                session.flush()
                 current[external_id] = job
                 old_locations = []
             else:
@@ -708,6 +691,7 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             employer = upsert_job_employer(session, feed, data, now)
             if employer is not None:
                 job.employer_company_id = employer.id
+            data = with_company_address(data, job, company_address, employer, feed)
             refresh_enrichment(job)
             job.last_seen_at = now
             job.is_active = True
@@ -715,7 +699,7 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             job.closed_at = None
             replace_job_locations(job, _location_rows(data, old_locations))
             if created or job_search_signature(job) != before_signature:
-                touched_job_ids.add(job.id)
+                touched_jobs.add(job)
 
         if complete:
             for external_id, job in current.items():
@@ -727,8 +711,8 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
                 if job.is_active:
                     job.is_active = False
                     job.closed_at = now
-                    closed_job_ids.add(job.id)
-                    touched_job_ids.add(job.id)
+                    closed_jobs.add(job)
+                    touched_jobs.add(job)
 
         feed.job_count = len(incoming)
         feed.status = (("parsed" if incoming else "complete_empty") if complete else
@@ -738,7 +722,12 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             (metadata.get("pagination") or {}).get("error") or
             "Feed returned a partial page. No jobs were closed.")
         feed.attempt_count = 0
+        # Flush all changed jobs together. A per-new-job flush here could
+        # invalidate a profile for an earlier job before later changed jobs in
+        # this feed have acquired their source locks.
         session.flush()
+        touched_job_ids = {job.id for job in touched_jobs if job.id is not None}
+        closed_job_ids = {job.id for job in closed_jobs if job.id is not None}
         refresh_company_rank(session, feed.company, now,
                              {'complete': True, 'status': 'complete_empty'} if complete and not incoming else None)
         due = (next_feed_due(feed.company, feed, now) if successful else
@@ -758,6 +747,7 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
         run.http_status = status
         run.item_count = len(incoming)
         run.error = feed.last_error
+        session.flush()
         if touched_job_ids:
             session.flush()
             refresh_application_matches_for_jobs(
@@ -798,8 +788,41 @@ def _record_scan_failure(feed_id: int, run_id: int, source_revision: int,
                     failed_feed.next_scan_at = retry_at if failed_feed.enabled else None
 
 
+def _defer_match_index_scan(feed_id: int, run_id: int, source_revision: int,
+                            metadata: dict) -> None:
+    """Requeue a healthy response when match publication remains contended."""
+    now = utcnow()
+    retry_at = now + timedelta(seconds=random.randint(15, 45))
+    with SessionLocal.begin() as session:
+        feed = _lock_feed_result(session, feed_id)
+        run = _current_feed_run(session, feed_id, run_id)
+        if feed is None or run is None:
+            return
+        if feed.source_revision != source_revision:
+            newer_run = session.scalar(select(ScanRun.id).where(
+                ScanRun.feed_id == feed.id, ScanRun.id != run.id,
+                ScanRun.status == "running").limit(1))
+            if newer_run is None:
+                feed.lease_until = None
+            run.finished_at = now
+            run.status = "stale_source"
+            run.http_status = metadata.get("status")
+            run.error = "Feed source changed during this scan; the old response was discarded."
+            return
+        _requeue_search_scope(feed, run, retry_at)
+        feed.lease_until = None
+        feed.next_scan_at = (next_scope_due(feed.pending_search_scopes, now)
+                             if feed.provider == "arbeitsagentur" and feed.enabled else
+                             retry_at if feed.enabled else None)
+        feed.attempt_count = max(0, feed.attempt_count - 1)
+        run.finished_at = now
+        run.status = "retry_pending"
+        run.http_status = metadata.get("status")
+        run.error = "Match indexing changed repeatedly; this healthy feed will be fetched again."
+
+
 def scan_once() -> bool:
-    claimed = _retry_sqlite_busy(_claim_due_feed, action="claiming a due feed")
+    claimed = retry_transient(_claim_due_feed, action="claiming a due feed")
     if claimed is None:
         return False
     feed_id, run_id, source_revision, search_scope = claimed
@@ -811,16 +834,17 @@ def scan_once() -> bool:
     if feed is None:
         return True
     if feed.source_revision != source_revision:
-        _retry_sqlite_busy(
+        retry_transient(
             lambda: _persist_result(feed_id, run_id, {"state": "stale_source"}, b"", source_revision),
             action=f"discarding stale scan result for feed {feed_id}",
         )
         return True
     try:
         metadata, body = _request(feed, search_scope, run_id=run_id)
-        _retry_sqlite_busy(
+        retry_transient(
             lambda: _persist_result(feed_id, run_id, metadata, body, source_revision),
             action=f"saving scan result for feed {feed_id}",
+            attempts=PROFILE_INDEX_RETRIES, retry_on=(ProfileIndexChanged,),
         )
         LOG.info("feed scan id=%s provider=%s state=%s jobs=%s", feed_id, feed.provider,
                  metadata.get("state"), metadata.get("status"))
@@ -829,15 +853,25 @@ def scan_once() -> bool:
             # The rolled-back persistence transaction must not label a healthy
             # source failed. The outer loop backs off; the lease allows recovery.
             raise
+        if isinstance(error, ProfileIndexChanged):
+            # Keep a successful upstream response from being recorded as a
+            # source failure. Finalize the attempt and schedule a fresh fetch.
+            LOG.warning("Feed %s response remained blocked by matching contention after %s attempts",
+                        feed_id, PROFILE_INDEX_RETRIES)
+            retry_transient(
+                lambda: _defer_match_index_scan(feed_id, run_id, source_revision, metadata),
+                action=f"deferring match-contended feed {feed_id}",
+            )
+            return True
         LOG.exception("feed scan failed id=%s", feed_id)
         try:
-            _retry_sqlite_busy(
-                lambda: _record_scan_failure(feed_id, run_id, source_revision, error),
+            retry_transient(
+                lambda failure=error: _record_scan_failure(feed_id, run_id, source_revision, failure),
                 action=f"recording scan failure for feed {feed_id}",
             )
         except Exception:
-            # The lease expires if SQLite remains unavailable. Keep the worker
-            # alive so this transient lock cannot take down the preview stack.
+            # The lease expires if the database stays unavailable. Keep the
+            # worker alive so a transient outage cannot take it down.
             LOG.exception("Could not record scan failure for feed %s; its lease will expire", feed_id)
     return True
 
@@ -859,7 +893,7 @@ def main() -> None:
                 raise
             # Session contexts rolled back and released row locks; work remains
             # recoverable through its expiring lease if failure recording failed.
-            LOG.warning('Feed database cycle failed; backing off before retry', exc_info=True)
+            log_worker_failure(LOG, 'Feed database cycle failed; backing off before retry', error)
             worked = False
         if not worked:
             time.sleep(POLL_SECONDS)

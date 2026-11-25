@@ -1,7 +1,20 @@
 // Non-sensitive form identity shared by confirmation and the final injected fill.
 (() => {
   if (globalThis.applicationPageContext) return;
+  const sanitizeURL = (value) => {
+    try {
+      const url = new URL(value, location.href);
+      url.username = "";
+      url.password = "";
+      url.search = "";
+      url.hash = "";
+      return url.href;
+    } catch {
+      return "";
+    }
+  };
   globalThis.applicationPageContext = {
+    sanitizeURL,
     identity: () =>
       JSON.stringify({
         title: document.title.slice(0, 300),
@@ -19,7 +32,7 @@
         forms: [...document.forms]
           .slice(0, 10)
           .map((form) => [
-            form.action,
+            sanitizeURL(form.action),
             [...form.querySelectorAll("input,textarea,select")]
               .slice(0, 100)
               .map((el) => [el.tagName, el.type, el.name, el.id]),

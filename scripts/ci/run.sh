@@ -70,7 +70,16 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 "${compose[@]}" config --quiet
-"${compose[@]}" build --pull quality app db 2>&1 | tee "$results_dir/$project-build.log"
+if [[ "${HIRING_CI_PREBUILT:-0}" == "1" ]]; then
+    # Missing images fail here; never silently build a different image for smoke.
+    docker tag hiring-scraper-checks:ci "$HIRING_QUALITY_IMAGE"
+    docker tag hiring-scraper:ci "$HIRING_APP_IMAGE"
+    docker tag hiring-scraper-postgis-pgvector:ci "$HIRING_DB_IMAGE"
+else
+    "${compose[@]}" build --pull quality app db 2>&1 | tee "$results_dir/$project-build.log"
+fi
+# Quality checks include every PostgreSQL test, against the database image built above.
+"${compose[@]}" up --detach --wait --wait-timeout "$wait_timeout" db
 "${compose[@]}" run --rm --no-deps quality 2>&1 | tee "$results_dir/$project-checks.log"
 if [[ "${HIRING_CI_LOAD_CHROMIUM_PROFILE:-}" == "1" ]]; then
     printf '%s\n' 'Loading Chromium AppArmor profile'
@@ -80,6 +89,8 @@ if [[ "${HIRING_CI_LOAD_CHROMIUM_PROFILE:-}" == "1" ]]; then
 fi
 printf '%s\n' 'Running Chromium sandbox smoke check'
 timeout 90s "${compose[@]}" run --rm --no-deps browser-sandbox-smoke 2>&1 | tee "$results_dir/$project-browser-sandbox.log"
+printf '%s\n' 'Checking native Codex private-volume restart without a login or network'
+timeout 60s "${compose[@]}" run --rm --no-deps codex-state-smoke 2>&1 | tee "$results_dir/$project-codex-state.log"
 # The CI override disables live crawl workers while keeping the production app image.
 printf '%s\n' 'Starting app and waiting for health check'
 "${compose[@]}" up --detach --wait --wait-timeout "$wait_timeout" app

@@ -13,8 +13,9 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
-from hiring_scraper.app.database import IS_SQLITE, SessionLocal, engine, initialize_sqlite_schema
-from hiring_scraper.app.models import Base, Company, Job, JobFeed, LocationCache
+from hiring_scraper.app import source_changes
+from hiring_scraper.app.database import SessionLocal
+from hiring_scraper.app.models import Company, Job, JobFeed, LocationCache, as_utc, reserve_job_source_rows
 from hiring_scraper.app.job_search import (
     job_search_signature, refresh_application_matches_for_jobs, replace_job_locations,
 )
@@ -40,12 +41,6 @@ def _datetime(value: str | None) -> datetime | None:
         return None
     parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
-
-
-def _as_utc(value: datetime | None) -> datetime | None:
-    if value is None:
-        return None
-    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
 
 
 def _job_locations(job: dict) -> list[dict]:
@@ -75,8 +70,6 @@ def _job_locations(job: dict) -> list[dict]:
 
 
 def import_fixture(company_path: Path, career_path: Path) -> dict[str, int]:
-    if IS_SQLITE:
-        initialize_sqlite_schema(engine)
     with company_path.open(newline="", encoding="utf-8") as file:
         candidates = list(csv.DictReader(file))
     enrichment = json.loads(career_path.read_text(encoding="utf-8"))
@@ -135,8 +128,8 @@ def import_fixture(company_path: Path, career_path: Path) -> dict[str, int]:
                         max(scheduled_now, observed_at + timedelta(days=DISCOVERY_INTERVAL_DAYS))
                         if extra else scheduled_now)
                 snapshot_is_newer = (checked_at is not None and
-                                     (_as_utc(company.last_checked_at) is None or
-                                      _as_utc(company.last_checked_at) <= checked_at))
+                                     (as_utc(company.last_checked_at) is None or
+                                      as_utc(company.last_checked_at) <= checked_at))
                 for key, value in fields.items():
                     if key in {"domain", "domain_match_method", "domain_evidence_url"} and company.domain_match_method == "manual":
                         continue
@@ -147,6 +140,11 @@ def import_fixture(company_path: Path, career_path: Path) -> dict[str, int]:
                     setattr(company, key, value)
             by_source_id[source_id] = company
         session.flush()
+        seeded_company_ids = [company.id for company in by_source_id.values()]
+        # Lock existing job rows (id order) before any queue row, as the match worker does.
+        reserve_job_source_rows(session, session.scalars(select(Job.id).join(JobFeed, Job.feed_id == JobFeed.id)
+                                                         .where(JobFeed.company_id.in_(seeded_company_ids))).all())
+        written_feed_ids: set[int] = set()
 
         feeds = {(feed.company_id, feed.provider, feed.feed_url): feed
                  for feed in session.scalars(select(JobFeed)).all()}
@@ -167,8 +165,8 @@ def import_fixture(company_path: Path, career_path: Path) -> dict[str, int]:
                     session.add(feed)
                     feeds[key] = feed
                 else:
-                    if (_as_utc(feed.last_checked_at) is not None and
-                            _as_utc(feed.last_checked_at) > feed_observed_at):
+                    if (as_utc(feed.last_checked_at) is not None and
+                            as_utc(feed.last_checked_at) > feed_observed_at):
                         continue
                     feed.tenant = feed_data.get("tenant")
                     feed.board_url = feed_data.get("board_url")
@@ -178,14 +176,15 @@ def import_fixture(company_path: Path, career_path: Path) -> dict[str, int]:
                     if feed.next_scan_at is None:
                         feed.next_scan_at = datetime.now(timezone.utc)
                 session.flush()
+                written_feed_ids.add(feed.id)
                 jobs = {(job.feed_id, job.external_id): job for job in session.scalars(
                     select(Job).where(Job.feed_id == feed.id).options(selectinload(Job.locations))).all()}
                 jobs_observed_at = feed_observed_at
                 for job_data in feed_data.get("jobs", []):
                     external_id = str(job_data["id"])
                     job = jobs.get((feed.id, external_id))
-                    if (job is not None and _as_utc(job.last_seen_at) is not None and
-                            _as_utc(job.last_seen_at) > feed_observed_at):
+                    if (job is not None and as_utc(job.last_seen_at) is not None and
+                            as_utc(job.last_seen_at) > feed_observed_at):
                         continue
                     created = job is None
                     if created:
@@ -219,6 +218,9 @@ def import_fixture(company_path: Path, career_path: Path) -> dict[str, int]:
         if session.scalar(select(LocationCache).where(LocationCache.query_key == "karlsruhe")) is None:
             session.add(LocationCache(query_key="karlsruhe", results=[KARLSRUHE], cached_at=observed_at))
         session.flush()
+        # Declare after the source writes, so queue rows are locked after job rows.
+        source_changes.companies_changed(session, seeded_company_ids)
+        source_changes.feeds_changed(session, written_feed_ids)
         if touched_job_ids:
             refresh_application_matches_for_jobs(session, touched_job_ids)
         company_count = session.scalar(select(func.count()).select_from(Company))
@@ -235,8 +237,6 @@ def main() -> None:
                         help="skip the import when the database already contains companies")
     args = parser.parse_args()
     if args.if_empty:
-        if IS_SQLITE:
-            initialize_sqlite_schema(engine)
         with SessionLocal() as session:
             existing_companies = session.scalar(select(func.count()).select_from(Company)) or 0
         if existing_companies:

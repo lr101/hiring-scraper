@@ -1,0 +1,10 @@
+{
+  "id": "job_0011",
+  "lang": "de",
+  "title": "Softwareentwickler (m/w/d) Fertigungs-IT",
+  "company": "Hersteller von Fertigungsanlagen",
+  "location_text": "Reutlingen",
+  "work_arrangement": "hybrid",
+  "description": "Wir entwickeln Software für die Steuerung und Planung unserer Fertigungsanlagen.\n\nIhre Aufgaben\n- Entwicklung von Python- und C#-Services für die Fertigungsdatenerfassung\n- Anbindung an SAP PP über Schnittstellen und Stücklistenimport\n- Mitarbeit in agilen Teams; Projektplanung im Team mit MS Project und Jira\n- Dokumentation und Tests\n\nIhr Profil\n- Abgeschlossenes Informatikstudium\n- Erfahrung in Python und C#\n- Verständnis von Schnittstellen und Datenmodellen",
+  "description_kind": "summary"
+}

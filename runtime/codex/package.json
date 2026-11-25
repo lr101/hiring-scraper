@@ -1,0 +1,9 @@
+{
+  "name": "radius-codex-runtime",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@openai/codex": "0.163.0"
+  }
+}

@@ -1,4 +1,4 @@
-"""Location primitives for bounded German company-discovery experiments."""
+"""Location primitives for bounded German company discovery."""
 import math
 import re
 import unicodedata

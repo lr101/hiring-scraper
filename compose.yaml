@@ -1,3 +1,57 @@
+x-runtime: &runtime
+  image: ${HIRING_APP_IMAGE:-ghcr.io/lr101/hiring-scraper/hiring-scraper:latest}
+  volumes:
+    - ${HIRING_DOTENV_FILE:-./.env}:/run/app-bootstrap.env:ro
+    - radius_codex:/var/lib/radius/codex
+  environment: &runtime_env
+    NOMINATIM_USER_AGENT: ${NOMINATIM_USER_AGENT:-HiringScraper/0.2}
+    HIRING_USER_AGENT: ${HIRING_USER_AGENT:-HiringScraper/0.2 (public job discovery)}
+    FEED_SCAN_INTERVAL_HOURS: ${FEED_SCAN_INTERVAL_HOURS:-6}
+    SCAN_POLL_SECONDS: ${SCAN_POLL_SECONDS:-3}
+    SEARCH_SNAPSHOT_POLL_SECONDS: ${SEARCH_SNAPSHOT_POLL_SECONDS:-1}
+    SEARCH_SNAPSHOT_PREWARM_SECONDS: ${SEARCH_SNAPSHOT_PREWARM_SECONDS:-60}
+    APPLICATION_WEEKLY_GOAL: ${APPLICATION_WEEKLY_GOAL:-10}
+    APPLICATION_AI_MODEL: ${APPLICATION_AI_MODEL:-}
+    RADIUS_APPLICATION_AI_CONCURRENCY: ${RADIUS_APPLICATION_AI_CONCURRENCY:-25}
+    RADIUS_CODEX_STATE_DIR: /var/lib/radius/codex
+    DB_POOL_SIZE: ${DB_POOL_SIZE:-}
+    DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-}
+    DB_POOL_TIMEOUT_SECONDS: ${DB_POOL_TIMEOUT_SECONDS:-10}
+    DB_CONNECT_TIMEOUT_SECONDS: ${DB_CONNECT_TIMEOUT_SECONDS:-5}
+    DB_LOCK_TIMEOUT_MS: ${DB_LOCK_TIMEOUT_MS:-5000}
+    DB_STATEMENT_TIMEOUT_MS: ${DB_STATEMENT_TIMEOUT_MS:-120000}
+    DB_IDLE_TRANSACTION_TIMEOUT_MS: ${DB_IDLE_TRANSACTION_TIMEOUT_MS:-120000}
+    SEMANTIC_EMBEDDING_THREADS: ${SEMANTIC_EMBEDDING_THREADS:-2}
+    SEMANTIC_INDEX_BATCH_SIZE: ${SEMANTIC_INDEX_BATCH_SIZE:-32}
+    SEMANTIC_INDEX_POLL_SECONDS: ${SEMANTIC_INDEX_POLL_SECONDS:-2}
+    RADIUS_ANALYSIS_MAX_AGE_DAYS: ${RADIUS_ANALYSIS_MAX_AGE_DAYS:-14}
+    RADIUS_ANALYSIS_MIN_SIMILARITY: ${RADIUS_ANALYSIS_MIN_SIMILARITY:-0.80}
+    CRAWL_DELAY_SECONDS: ${CRAWL_DELAY_SECONDS:-1}
+    CAREER_DISCOVERY_INTERVAL_DAYS: ${CAREER_DISCOVERY_INTERVAL_DAYS:-30}
+    CAREER_DISCOVERY_POLL_SECONDS: ${CAREER_DISCOVERY_POLL_SECONDS:-3}
+    CAREER_DISCOVERY_BATCH_DELAY_SECONDS: ${CAREER_DISCOVERY_BATCH_DELAY_SECONDS:-1}
+    CAREER_DISCOVERY_DELAY_SECONDS: ${CAREER_DISCOVERY_DELAY_SECONDS:-1}
+    CAREER_DISCOVERY_WORKERS: ${CAREER_DISCOVERY_WORKERS:-8}
+    CAREER_DISCOVERY_MAX_PAGES: ${CAREER_DISCOVERY_MAX_PAGES:-12}
+    CAREER_DISCOVERY_MAX_DEPTH: ${CAREER_DISCOVERY_MAX_DEPTH:-3}
+    CAREER_DISCOVERY_MAX_REQUESTS: ${CAREER_DISCOVERY_MAX_REQUESTS:-48}
+    TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+    BRAVE_SEARCH_API_KEY: ${BRAVE_SEARCH_API_KEY:-}
+    HOMEPAGE_DISCOVERY_MAX_COMPANIES: ${HOMEPAGE_DISCOVERY_MAX_COMPANIES:-100}
+    HOMEPAGE_DISCOVERY_MAX_SEARCHES: ${HOMEPAGE_DISCOVERY_MAX_SEARCHES:-50}
+    HOMEPAGE_DISCOVERY_MAX_REQUESTS: ${HOMEPAGE_DISCOVERY_MAX_REQUESTS:-180}
+    RUN_BACKGROUND_WORKERS: ${RUN_BACKGROUND_WORKERS:-true}
+  depends_on:
+    migrate:
+      condition: service_completed_successfully
+  restart: unless-stopped
+  init: true
+  # The custom profiles allow Chromium's user-namespace sandbox while
+  # retaining Docker's seccomp allowlist for all other syscalls.
+  security_opt:
+    - apparmor=${HIRING_APPARMOR_PROFILE:-unconfined}
+    - seccomp=${PWD}/docker/chromium-seccomp.json
+
 services:
   db:
     image: ${HIRING_DB_IMAGE:-ghcr.io/lr101/hiring-scraper/hiring-scraper:db-latest}
@@ -15,54 +69,23 @@ services:
       retries: 20
       start_period: 10s
 
-  app:
+  migrate:
     image: ${HIRING_APP_IMAGE:-ghcr.io/lr101/hiring-scraper/hiring-scraper:latest}
-    volumes:
-      - ${HIRING_DOTENV_FILE:-./.env}:/run/app-bootstrap.env:ro
-    ports:
-      - "${APP_BIND:-0.0.0.0}:${APP_PORT:-8080}:8000"
+    command: ["--migrate"]
     environment:
-      NOMINATIM_USER_AGENT: ${NOMINATIM_USER_AGENT:-HiringScraper/0.2}
-      HIRING_USER_AGENT: ${HIRING_USER_AGENT:-HiringScraper/0.2 (public job discovery)}
-      FEED_SCAN_INTERVAL_HOURS: ${FEED_SCAN_INTERVAL_HOURS:-6}
-      SCAN_POLL_SECONDS: ${SCAN_POLL_SECONDS:-3}
-      SEARCH_SNAPSHOT_POLL_SECONDS: ${SEARCH_SNAPSHOT_POLL_SECONDS:-1}
-      SEARCH_SNAPSHOT_PREWARM_SECONDS: ${SEARCH_SNAPSHOT_PREWARM_SECONDS:-60}
-      APPLICATION_WEEKLY_GOAL: ${APPLICATION_WEEKLY_GOAL:-10}
-      DB_POOL_SIZE: ${DB_POOL_SIZE:-}
-      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-}
-      DB_POOL_TIMEOUT_SECONDS: ${DB_POOL_TIMEOUT_SECONDS:-10}
-      DB_CONNECT_TIMEOUT_SECONDS: ${DB_CONNECT_TIMEOUT_SECONDS:-5}
-      DB_LOCK_TIMEOUT_MS: ${DB_LOCK_TIMEOUT_MS:-5000}
-      DB_STATEMENT_TIMEOUT_MS: ${DB_STATEMENT_TIMEOUT_MS:-120000}
-      DB_IDLE_TRANSACTION_TIMEOUT_MS: ${DB_IDLE_TRANSACTION_TIMEOUT_MS:-120000}
-      SEMANTIC_EMBEDDING_THREADS: ${SEMANTIC_EMBEDDING_THREADS:-2}
-      SEMANTIC_INDEX_BATCH_SIZE: ${SEMANTIC_INDEX_BATCH_SIZE:-32}
-      SEMANTIC_INDEX_POLL_SECONDS: ${SEMANTIC_INDEX_POLL_SECONDS:-2}
-      CRAWL_DELAY_SECONDS: ${CRAWL_DELAY_SECONDS:-1}
-      CAREER_DISCOVERY_INTERVAL_DAYS: ${CAREER_DISCOVERY_INTERVAL_DAYS:-30}
-      CAREER_DISCOVERY_POLL_SECONDS: ${CAREER_DISCOVERY_POLL_SECONDS:-3}
-      CAREER_DISCOVERY_BATCH_DELAY_SECONDS: ${CAREER_DISCOVERY_BATCH_DELAY_SECONDS:-1}
-      CAREER_DISCOVERY_DELAY_SECONDS: ${CAREER_DISCOVERY_DELAY_SECONDS:-1}
-      CAREER_DISCOVERY_WORKERS: ${CAREER_DISCOVERY_WORKERS:-8}
-      CAREER_DISCOVERY_MAX_PAGES: ${CAREER_DISCOVERY_MAX_PAGES:-12}
-      CAREER_DISCOVERY_MAX_DEPTH: ${CAREER_DISCOVERY_MAX_DEPTH:-3}
-      CAREER_DISCOVERY_MAX_REQUESTS: ${CAREER_DISCOVERY_MAX_REQUESTS:-48}
-      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
-      BRAVE_SEARCH_API_KEY: ${BRAVE_SEARCH_API_KEY:-}
-      HOMEPAGE_DISCOVERY_MAX_COMPANIES: ${HOMEPAGE_DISCOVERY_MAX_COMPANIES:-100}
-      HOMEPAGE_DISCOVERY_MAX_SEARCHES: ${HOMEPAGE_DISCOVERY_MAX_SEARCHES:-50}
-      HOMEPAGE_DISCOVERY_MAX_REQUESTS: ${HOMEPAGE_DISCOVERY_MAX_REQUESTS:-180}
-      RUN_BACKGROUND_WORKERS: ${RUN_BACKGROUND_WORKERS:-true}
+      RADIUS_CODEX_STATE_DIR: /var/lib/radius/codex
+    volumes:
+      - radius_codex:/var/lib/radius/codex
+      - ${HIRING_DOTENV_FILE:-./.env}:/run/app-bootstrap.env:ro
     depends_on:
       db:
         condition: service_healthy
-    restart: unless-stopped
-    # The custom profiles allow Chromium's user-namespace sandbox while
-    # retaining Docker's seccomp allowlist for all other syscalls.
-    security_opt:
-      - apparmor=${HIRING_APPARMOR_PROFILE:-unconfined}
-      - seccomp=${PWD}/docker/chromium-seccomp.json
+
+  app:
+    <<: *runtime
+    command: ["--api"]
+    ports:
+      - "${APP_BIND:-0.0.0.0}:${APP_PORT:-8080}:8000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=2).read()"]
       interval: 10s
@@ -70,5 +93,145 @@ services:
       retries: 5
       start_period: 20s
 
+  worker:
+    <<: *runtime
+    command: ["--worker", "worker"]
+    restart: on-failure
+
+  discovery-worker:
+    <<: *runtime
+    command: ["--worker", "discovery_worker"]
+    restart: on-failure
+
+  search-snapshot-worker:
+    <<: *runtime
+    command: ["--worker", "search_snapshot_worker"]
+    restart: on-failure
+
+  profile-match-worker:
+    <<: *runtime
+    command: ["--worker", "profile_match_worker"]
+    restart: on-failure
+
+  job-analysis-worker:
+    <<: *runtime
+    # Matching uses the model chosen in Settings: GPT-6 Luna through the shared ChatGPT
+    # login (default; needs no local model containers), or the local llm/llm-reranker,
+    # which start only with COMPOSE_PROFILES=local-models.
+    volumes:
+      - ${HIRING_DOTENV_FILE:-./.env}:/run/app-bootstrap.env:ro
+      - radius_codex:/var/lib/radius/codex
+    environment:
+      <<: *runtime_env
+      SEMANTIC_EMBEDDING_URL: http://semantic-search-worker:8001/embed
+      JOB_ANALYSIS_LLM_URL: http://llm:8080
+      JOB_ANALYSIS_RERANK_URL: http://llm-reranker:8080
+      # Laptop GPU (Settings): parallel model calls plus an evidence thread need a few
+      # more short database sessions than the default pool.
+      DB_POOL_SIZE: ${JOB_ANALYSIS_DB_POOL_SIZE:-8}
+      JOB_ANALYSIS_MAX_PARALLEL: ${JOB_ANALYSIS_MAX_PARALLEL:-4}
+    command: ["--worker", "job_analysis_worker"]
+    restart: on-failure
+
+  # Local models for job analysis (see docs/local-models.md). Optional: they start
+  # only with COMPOSE_PROFILES=local-models (Settings -> Matching model "Local
+  # models"). CPU-only; together they stay within about 6 GB RAM. The worker
+  # calls them one at a time, so
+  # they share the same cores without competing. Weights download once, from a
+  # pinned Hugging Face revision, into the llm_models volume.
+  llm:
+    profiles: ["local-models"]
+    image: ${LLM_SERVER_IMAGE:-ghcr.io/ggml-org/llama.cpp:server-b12098@sha256:ba68b6996ba6d27a49a9864452194128e118a1fcb96dd663f223a13e0a2857a8}
+    command:
+      - --host
+      - '0.0.0.0'
+      - --port
+      - '8080'
+      - --model
+      - '/models/Qwen3.5-4B-Q4_K_M.gguf'
+      - --model-url
+      - 'https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/e87f176479d0855a907a41277aca2f8ee7a09523/Qwen3.5-4B-Q4_K_M.gguf'
+      - --alias
+      - 'unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf'
+      - --threads
+      - '${LLM_THREADS:-4}'
+      - --ctx-size
+      - '8192'
+      - --parallel
+      - '1'
+      - --chat-template-kwargs
+      - '{"enable_thinking":false}'
+      - --no-webui
+    volumes:
+      - llm_models:/models
+    # The server parses untrusted posting text: no extra kernel capabilities.
+    init: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+    cpu_shares: 256
+    mem_limit: ${LLM_MEMORY_LIMIT:-4608m}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15m
+
+  llm-reranker:
+    profiles: ["local-models"]
+    image: ${LLM_SERVER_IMAGE:-ghcr.io/ggml-org/llama.cpp:server-b12098@sha256:ba68b6996ba6d27a49a9864452194128e118a1fcb96dd663f223a13e0a2857a8}
+    command:
+      - --host
+      - '0.0.0.0'
+      - --port
+      - '8080'
+      - --model
+      - '/models/qwen3-reranker-0.6b-q8_0.gguf'
+      - --model-url
+      - 'https://huggingface.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF/resolve/a02f48bb4f057028298c21fa033da2b30d7742d5/qwen3-reranker-0.6b-q8_0.gguf'
+      - --alias
+      - 'ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf'
+      - --reranking
+      - --threads
+      - '${LLM_THREADS:-4}'
+      - --ctx-size
+      - '8192'
+      - --batch-size
+      - '2048'
+      - --ubatch-size
+      - '2048'
+      - --no-webui
+    volumes:
+      - llm_models:/models
+    # The server parses untrusted posting text: no extra kernel capabilities.
+    init: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+    cpu_shares: 256
+    mem_limit: ${LLM_RERANKER_MEMORY_LIMIT:-1536m}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10m
+
+  semantic-search-worker:
+    <<: *runtime
+    environment:
+      <<: *runtime_env
+      SEMANTIC_EMBEDDING_HOST: 0.0.0.0
+    command: ["--worker", "semantic_search_worker"]
+    restart: on-failure
+
+  application-preparation-worker:
+    <<: *runtime
+    command: ["--worker", "application_preparation_worker"]
+    restart: on-failure
+
 volumes:
   hiring_db:
+  radius_codex:
+  llm_models:

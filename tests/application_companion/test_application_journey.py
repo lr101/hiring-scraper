@@ -1,4 +1,4 @@
-import json,time
+import time
 from playwright.sync_api import expect
 from .test_extension import ExtensionHarness
 
@@ -34,13 +34,22 @@ class JourneyBrowserTests(ExtensionHarness):
     def link_current_page(self, popup):
         popup.get_by_text('Link this page to a job', exact=True).click()
         popup.locator('#job-query').fill('Research project manager')
-        popup.locator('#job-search-results [data-job-id="1574"]').get_by_role('button', name='Use on this page', exact=True).click()
+        job = popup.locator('#job-search-results [data-job-id="1574"]')
+        use = job.get_by_role('button', name='Use on this page', exact=True)
+        if use.count():
+            use.click()
+        else:
+            job.get_by_role('button', name='Link this page', exact=True).click()
+            expect(
+                popup.get_by_role('button', name='I reviewed these documents', exact=True)
+            ).to_be_visible()
+            self.fill(popup)
 
     def test_discovered_job_is_grey_and_offers_direct_preparation(self):
         self.seed();self.page.goto(LISTING);self.badge(LISTING,'•');popup=self.popup()
         expect(popup.locator('#job-entries')).to_contain_text('Research project manager')
         expect(popup.locator('#job-entries .job-entry')).to_have_class(__import__('re').compile('.*discovered.*'))
-        expect(popup.get_by_role('button',name='Prepare with ChatGPT',exact=True)).to_be_enabled()
+        expect(popup.get_by_role('button',name='Prepare documents',exact=True)).to_be_enabled()
 
     def test_prepared_badge_is_exact_and_apply_new_tab_keeps_the_job_package(self):
         self.seed(True);self.page.goto(LISTING);self.badge(LISTING,'1');popup=self.popup()
@@ -160,16 +169,24 @@ class JourneyBrowserTests(ExtensionHarness):
         with self.context.expect_page() as event:self.page.get_by_role('link',name='Apply now').click()
         popup.close();self.page=event.value;self.page.wait_for_url(ATS)
         popup=self.popup()
+        # Confirm the exact package before introducing the navigation race. A
+        # navigation during review correctly invalidates that confirmation.
+        self.review_prepared_documents(popup)
+        fill = popup.locator('#fill')
+        expect(fill).to_be_enabled()
         self.worker.evaluate('''()=>{
           const original=chrome.scripting.executeScript.bind(chrome.scripting);
+          globalThis.navigationRaceIntercepted = 0;
           chrome.scripting.executeScript=async details=>{
-            if(details.func?.toString().includes('applicationCompanion.inspect'))
-              // Popup refreshes may inspect before the fill message. Toggle so
-              // every intercepted inspection really changes the requisition.
+            if(details.func?.toString().includes('applicationCompanion.inspect')) {
+              globalThis.navigationRaceIntercepted++;
               await original({target:details.target,func:()=>history.replaceState({},'',location.href.replace(/1574|2000/,id=>id==='1574'?'2000':'1574'))});
+            }
             return original(details);
           };
         }''')
-        self.fill(popup)
+        fill.click()
+        expect(popup.locator('#status')).not_to_have_text('Filling known details…')
+        self.assertGreater(self.worker.evaluate('globalThis.navigationRaceIntercepted'), 0)
         expect(self.page.locator('#first')).to_have_value('')
         expect(self.page.locator('#letter')).to_have_value('')
