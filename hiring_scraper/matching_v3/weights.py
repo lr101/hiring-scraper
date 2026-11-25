@@ -9,7 +9,7 @@ chosen by the target acceptance gates on DEV. HELDOUT is never used for fitting.
 """
 from __future__ import annotations
 
-VERSION = 'v3-evidence-2'
+VERSION = 'v3-evidence-3'
 
 # Share of the raw 0-100 score per component; missing components (for example a
 # posting without listed duties) are renormalised away.

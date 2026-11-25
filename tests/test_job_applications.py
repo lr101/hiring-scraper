@@ -30,8 +30,10 @@ class JobApplicationTests(unittest.TestCase):
         self.other = profiles.create_profile(profiles.ProfileRequest(name='Designer'), self.session)
         company = models.Company(source='test', source_id='employer', name='Employer')
         feed = models.JobFeed(company=company, provider='html_jobs', feed_url='https://example.test/jobs', status='parsed')
+        # A short duty line: title-only postings are unscorable and never reach Journey.
         self.jobs = [models.Job(feed=feed, external_id=str(index), title=f'Role {index}',
-                               url=f'https://example.test/jobs/{index}', is_remote=True)
+                               url=f'https://example.test/jobs/{index}', is_remote=True,
+                               description='Build team services.')
                      for index in range(8)]
         self.session.add(company)
         self.session.flush()

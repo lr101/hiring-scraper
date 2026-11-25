@@ -59,6 +59,19 @@ class SupportTransformTests(unittest.TestCase):
 
 
 class ScoringTests(unittest.TestCase):
+    def test_posting_with_nothing_to_compare_gets_no_score(self):
+        """A title-only or badly parsed posting must not rank from its title alone."""
+        empty = {**ANALYSIS, 'duties': [], 'requirements': []}
+        strong_title = evidence(role=0.99, domain=0.99)
+        result = match_job_v3(JOB, PROFILE, analysis=empty, evidence={**strong_title, 'items': []})
+        self.assertTrue(result['unscorable'])
+        self.assertFalse(result['pending'])
+        self.assertEqual(result['score'], 0)
+        self.assertEqual(result['label'], 'Not enough text to score')
+        self.assertIn('no duties or requirements', result['unknowns'][0])
+        # A posting with real items is scored as before.
+        self.assertNotIn('unscorable', match_job_v3(JOB, PROFILE, analysis=ANALYSIS, evidence=strong_title))
+
     def test_unrelated_shared_word_no_longer_produces_a_strong_match(self):
         # The screenshot case: "Schulungen" appears in both texts, in different fields.
         result = match_job_v3(JOB, PROFILE, analysis=ANALYSIS, evidence=evidence())

@@ -27,7 +27,7 @@ type JobCardData = {
   first_seen_at?: string | null
   application?: Application | null
   enrichment?: Pick<Enrichment, 'languages' | 'experience_years'>
-  profile_match?: Pick<ProfileMatch, 'matched_skills' | 'score' | 'fit_tier' | 'refreshing' | 'pending'>
+  profile_match?: Pick<ProfileMatch, 'matched_skills' | 'score' | 'fit_tier' | 'refreshing' | 'pending' | 'unscorable'>
 }
 
 function formatDate(value?: string | null) {
@@ -74,6 +74,7 @@ function JobFeedCard({
   ).join(' · ')
   const matchRefreshing = job.profile_match?.refreshing === true
   const matchPending = job.profile_match?.pending === true
+  const matchUnscorable = job.profile_match?.unscorable === true
   const matchTier = (matchRefreshing ? undefined : job.profile_match?.fit_tier) ?? (job.profile_match && job.profile_match.score < 30
     ? 'unlikely' : job.profile_match && job.profile_match.score >= 65 ? 'recommended' : 'possible')
   const lastUpdated = updatedAt ?? job.application?.updated_at ?? job.last_seen_at ?? job.first_seen_at
@@ -91,7 +92,8 @@ function JobFeedCard({
       <div className="application-card-state">
         <ApplicationStateBadge application={application} fallbackStatus={profileId ? 'new' : undefined} />
         {job.profile_match && matchPending && <span className="application-match-refresh-tag">Analysing job…</span>}
-        {job.profile_match && !matchPending && <span className={`application-card-match-score match-${matchTier}`}
+        {job.profile_match && matchUnscorable && <span className="application-match-refresh-tag">Not scored · too little text</span>}
+        {job.profile_match && !matchPending && !matchUnscorable && <span className={`application-card-match-score match-${matchTier}`}
           aria-label={`${job.profile_match.score} out of 100 fit index${matchTier === 'recommended' ? ', strong' : matchTier === 'unlikely' ? ', low' : ', possible'}`}>
           {job.profile_match.score}/100 fit
         </span>}

@@ -140,7 +140,7 @@ class ProfileIntegrationTests(unittest.TestCase):
             company = models.Company(source='test', source_id='journey-perf', name='Example')
             feed = models.JobFeed(company=company, provider='html_jobs', feed_url='https://example.org/jobs', status='parsed')
             job = models.Job(feed=feed, external_id='1', title='Python developer',
-                url='https://example.org/jobs/1', description='Python development.', is_remote=True)
+                url='https://example.org/jobs/1', description='Python development.\nBuild Python services for customers.', is_remote=True)
             session.add(company); session.commit()
             page = pg.list_applications(self.engine, profile_ids=str(saved['id']), statuses='new', sort='match', offset=0, limit=40, session=session)
             self.assertEqual(len(page['items']), 1)

@@ -31,6 +31,8 @@ export type ProfileMatch = {
   truncated?: boolean
   fit_tier?: 'recommended' | 'possible' | 'unlikely'; requirement_gaps?: string[]; refreshing?: boolean
   pending?: boolean; job_context?: { occupation: string; industry: string }
+  /** No duties or requirements to compare (title-only or badly parsed posting): not scored, not in Journey. */
+  unscorable?: boolean
   score: number; eligible: boolean; uncertain: boolean; label: string
   custom_skill_evidence?: { name: string; evidence: string; source: string }[]
   local_context?: {
@@ -130,6 +132,10 @@ export default function JobEvidence({ enrichment, match, embedded = false }: {
           <p>Job <q>{row.job_quote}</q></p>
           {row.profile_quote && <p>Saved evidence <q>{row.profile_quote}</q></p>}
         </div>)}
+    </> : match?.unscorable ? <>
+      <h2>Not enough text to score</h2>
+      <p className="muted">The posting lists no duties or requirements to compare with your CV, so it gets no
+        score and stays out of Journey. Open the original post to judge it yourself.</p>
     </> : match ? <>
       {!embedded && match.job_context && (match.job_context.occupation || match.job_context.industry) && <p className="eyebrow">
         {[match.job_context.occupation, match.job_context.industry].filter(Boolean).join(' · ')}</p>}
