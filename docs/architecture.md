@@ -58,6 +58,9 @@ flowchart LR
     `discovery.py`, `pages.py`, `geography.py`.
   - Job extraction: `ats.py` (Greenhouse, Lever, Personio, Ashby, Recruitee,
     SmartRecruiters, RSS/Atom), `html_jobs.py`, `regional.py` (BA Jobsuche).
+    `description.py` turns every source's description into structured plain text
+    (headings, paragraphs, `- ` bullets) and the job page's display blocks;
+    `postings.py` merges rows that share a posting id before the workers save them.
   - Matching: `job_analysis.py` (posting lines, LLM prompt and grammar, grounding of quotes),
     `matching_v3/` (CV evidence units, reranker evidence, additive scorer and calibration),
     `gates/` (eligibility: language, work permit, on-site, excluded titles, credentials),
