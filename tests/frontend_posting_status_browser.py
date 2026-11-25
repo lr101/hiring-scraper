@@ -65,7 +65,7 @@ with sync_playwright() as pw:
             expect(page.get_by_role('link', name=closed_title, exact=True)).to_be_visible()
             page.get_by_role('link', name=closed_title, exact=True).click()
             expect(page.get_by_role('heading', name=closed_title, exact=True)).to_be_visible()
-            expect(page.locator('.metadata-grid').get_by_text('Closed', exact=True)).to_have_count(2)
+            expect(page.locator('.job-page-closed')).to_contain_text('This posting closed on')
             assert not errors, errors
             screenshot = Path('/tmp') / f'posting-status-detail-{width}.png'
             page.screenshot(path=str(screenshot), full_page=True, animations='disabled')

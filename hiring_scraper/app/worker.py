@@ -614,7 +614,10 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             _set_failure(feed, run, "schema_error", metadata, str(error))
             return
 
-        incoming = parsed.get("jobs", [])
+        # Two readings of one posting share an id; merge them rather than let
+        # the later row overwrite the earlier one during the upsert below.
+        from hiring_scraper.postings import merge_duplicate_postings
+        incoming = merge_duplicate_postings(parsed.get("jobs", []))
         if feed.provider == 'telekom':
             from hiring_scraper.discovery import _employer_matches
             seed = {'name':feed.company.name, 'website':feed.company.website_url}

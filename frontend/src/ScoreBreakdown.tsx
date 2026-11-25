@@ -78,14 +78,20 @@ function PointsTable({ rows, scale }: { rows: ScoreContribution[]; scale: number
   </table>
 }
 
+/** Items the CV shows, out of all items: the same numbers wherever they appear. */
+function checklistCount(items: ChecklistItem[], total?: number | null, supported?: number | null) {
+  // Long postings are stored with a shortened item list; the counts come from the full score.
+  const complete = total == null || total <= items.length
+  return complete
+    ? { complete, shown: items.filter(item => item.strength !== 'none').length, count: items.length }
+    : { complete, shown: supported ?? 0, count: total }
+}
+
 function Checklist({ title, items, total, supported }: {
   title: string; items: ChecklistItem[]; total?: number | null; supported?: number | null
 }) {
   if (!items.length) return null
-  // Long postings are stored with a shortened item list; the counts come from the full score.
-  const complete = total == null || total <= items.length
-  const shown = complete ? items.filter(item => item.strength !== 'none').length : supported ?? 0
-  const count = complete ? items.length : total
+  const { complete, shown, count } = checklistCount(items, total, supported)
   const first = items.slice(0, 6)
   const rest = items.slice(6)
   const renderItem = (item: ChecklistItem, index: number) => <li key={`${item.text}:${index}`} className={`fit-item fit-item-${item.strength}`}>
@@ -117,7 +123,45 @@ function requirementItems(match: ProfileMatch, modality: 'must' | 'nice'): Check
     .map(row => ({ text: row.job_quote || row.requirement, strength: row.strength!, quote: row.evidence_quote, source: row.evidence_source }))
 }
 
-export default function ScoreBreakdown({ match }: { match: ProfileMatch }) {
+/** The posting's duties and requirements, each marked against the CV. */
+export function FitChecklists({ match }: { match: ProfileMatch }) {
+  const parts = (match.explanation ?? []).filter(isComponent)
+  const part = (signal: string) => parts.find(row => row.signal === signal)
+  const duties = dutyItems(match)
+  const must = requirementItems(match, 'must')
+  const nice = requirementItems(match, 'nice')
+  if (!duties.length && !must.length && !nice.length && !match.soft_requirements?.length) return null
+  return <div className="fit-checklists">
+    <Checklist title="Duties" items={duties} total={part('duties')?.total} supported={part('duties')?.supported} />
+    <Checklist title="Must-haves" items={must} total={part('must')?.total} supported={part('must')?.supported} />
+    <Checklist title="Nice-to-haves" items={nice} total={part('nice')?.total} supported={part('nice')?.supported} />
+    {!!match.soft_requirements?.length && <section className="fit-checklist fit-checklist-soft" aria-label="Personal qualities">
+      <h4>Personal qualities <span>not scored</span></h4>
+      <ul>{match.soft_requirements.map((row, index) => <li key={`${row.text}:${index}`} className="fit-item">
+        <p>{row.text}</p>
+      </li>)}</ul>
+      <p className="fit-checklist-note">A CV cannot prove these. Show them with an example in your cover letter.</p>
+    </section>}
+  </div>
+}
+
+/** Supported and total items per scored part, for a one-line summary. */
+export function fitCounts(match: ProfileMatch) {
+  const parts = (match.explanation ?? []).filter(isComponent)
+  const groups: [string, ChecklistItem[]][] = [
+    ['duties', dutyItems(match)], ['must', requirementItems(match, 'must')], ['nice', requirementItems(match, 'nice')],
+  ]
+  return groups.flatMap(([signal, items]) => {
+    const part = parts.find(row => row.signal === signal)
+    if (items.length) {
+      const { shown, count } = checklistCount(items, part?.total, part?.supported)
+      return [{ signal, label: COMPONENT_LABELS[signal], supported: shown, total: count }]
+    }
+    return part?.total ? [{ signal, label: COMPONENT_LABELS[signal], supported: part.supported ?? 0, total: part.total }] : []
+  })
+}
+
+export default function ScoreBreakdown({ match, checklists = true }: { match: ProfileMatch; checklists?: boolean }) {
   const ledger = match.explanation ?? []
   const parts = ledger.filter(isComponent)
   const part = (signal: string) => parts.find(row => row.signal === signal)
@@ -160,7 +204,7 @@ export default function ScoreBreakdown({ match }: { match: ProfileMatch }) {
         <small>Calibrated so 80+ means strong overlap and under 30 means little. Not a prediction of hiring success.</small>
       </p>}
     </>}
-    {(duties.length > 0 || must.length > 0 || nice.length > 0 || !!match.soft_requirements?.length) && <div className="fit-checklists">
+    {checklists && (duties.length > 0 || must.length > 0 || nice.length > 0 || !!match.soft_requirements?.length) && <div className="fit-checklists">
       <Checklist title="Duties" items={duties} total={part('duties')?.total} supported={part('duties')?.supported} />
       <Checklist title="Must-haves" items={must} total={part('must')?.total} supported={part('must')?.supported} />
       <Checklist title="Nice-to-haves" items={nice} total={part('nice')?.total} supported={part('nice')?.supported} />

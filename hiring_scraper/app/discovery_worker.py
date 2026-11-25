@@ -309,7 +309,8 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool,
     seen_job_ids: set[int] = set()
     touched_job_ids: set[int] = set()
     closed_job_ids: set[int] = set()
-    for data in rows:
+    from hiring_scraper.postings import merge_duplicate_postings
+    for data in merge_duplicate_postings(rows):
         external_id, title, url = data.get("id"), data.get("title"), data.get("url")
         if external_id in (None, "") or not title or not url:
             continue

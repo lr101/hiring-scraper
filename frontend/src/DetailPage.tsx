@@ -1,13 +1,11 @@
+import JobPage, { type Job } from './JobPage'
 import { useEffect, useState, type FormEvent } from 'react'
 import SiteHeader from './SiteHeader'
-import JobEvidence, { JobPostingAnalysis, languageRequirementLabel } from './JobEvidence'
 import ApplicationSwipeCard, { ApplicationStateBadge } from './ApplicationSwipeCard'
-import type { AnalysisState, Enrichment, PostingAnalysis, ProfileMatch } from './JobEvidence'
-import { applicationStatuses, applicationStatusLabel, nextApplicationStages, saveApplication, trackJobInteraction } from './applications'
-import type { Application, ApplicationStatus, ApplicationSwipeAction } from './applications'
+import { applicationStatusLabel, saveApplication, trackJobInteraction } from './applications'
+import type { Application, ApplicationSwipeAction } from './applications'
 import JobOverviewTags from './JobOverviewTags'
-import type { CityElectionResult, Profile } from './profile'
-import { applicationStartLink } from './applicationDocuments'
+import type { Profile } from './profile'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 const apiUrl = (path: string) => `${API_BASE_URL}${path}`
@@ -20,29 +18,6 @@ type Company = {
   latitude: number | null; longitude: number | null; location_precision: string | null
   location_label: string | null; source_url: string | null; active_job_count: number
   feeds: Feed[]; jobs: Job[]
-}
-type JobLocation = { label: string; precision: string | null; city_election_result?: CityElectionResult | null }
-type Job = {
-  id: number; title: string; url: string; company_id: number; company_name: string; company_name_is_employer?: boolean
-  employer_company_id?: number | null
-  company_domain: string | null; company_website: string | null; company_source_url: string | null
-  provider: string; board_url: string | null; location_text: string | null
-  locations: JobLocation[]; is_remote: boolean; work_arrangement: string | null
-  employment_type: string | null; schedule: string | null; department: string | null
-  last_seen_at: string; valid_through?: string | null; expired?: boolean; remote_country_codes?: string[]
-  seniority: string | null; date_posted: string | null; first_seen_at: string
-  salary: string | null; description: string | null; is_active: boolean
-  closed_at?: string | null
-  enrichment: Enrichment; profile_match?: ProfileMatch
-  analysis_state?: AnalysisState; analysis?: PostingAnalysis | null; analysis_refreshing?: boolean
-  application?: Application | null
-  raw_metadata: Record<string, unknown>
-}
-
-function formatDate(value: string | null) {
-  if (!value) return 'Not listed'
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' }).format(date)
 }
 
 function ExternalLink({ href, children, onClick }: { href: string; children: React.ReactNode; onClick?: () => void }) {
@@ -320,159 +295,9 @@ function CompanyPage({ company, profileId, onApplicationSaved }: {
   </>
 }
 
-function JobPage({ job, profileId, onApplicationSaved }: {
-  job: Job
-  profileId: number | null
-  onApplicationSaved: (application: Application) => void
-}) {
-  const [trackingError, setTrackingError] = useState('')
-  const arrangement = job.work_arrangement || (job.is_remote ? 'remote' : 'not specified')
-  const electionResults = [...new Map(job.locations
-    .map(location => location.city_election_result)
-    .filter((result): result is CityElectionResult => result != null && result.postal_ballots_included)
-    .map(result => [result.municipality_code, result])).values()]
-  const locationText = job.location_text || job.locations.map(item => item.label).join(' · ')
-  const voteLeaderSummary = electionResults.map(result =>
-    `${displayLeadingParty(result.leading_party)} - ${result.leading_party_vote_share_percent.toFixed(1)}% (${result.municipality.split(',', 1)[0].trim()})`,
-  ).join('; ')
-  const linkCompany = !job.company_name_is_employer || job.employer_company_id != null
-  const languageRequirements = job.enrichment.languages.map(row =>
-    `${row.value}${languageRequirementLabel(row)}`,
-  ).join(' · ')
-  const employerType = typeof job.raw_metadata.employer_type === 'string' &&
-    job.raw_metadata.employer_type !== 'unverified_employer'
-    ? job.raw_metadata.employer_type === 'agency' ? 'Staffing / recruitment agency'
-      : job.raw_metadata.employer_type.replaceAll('_', ' ')
-    : null
-  const providerLabels: Record<string, string> = {
-    greenhouse: 'Company hiring page', lever: 'Company hiring page', personio: 'Company hiring page', ashby: 'Company hiring page',
-    schema_org: 'Company job page', html_jobs: 'Company job page', arbeitsagentur: 'Bundesagentur für Arbeit job listing',
-  }
-  const precisionLabels: Record<string, string> = {
-    point: 'Map point', feature_center: 'Area center', city_centroid: 'City center',
-    address: 'Street address', place_point: 'Place marker',
-  }
-  async function markOriginalPostOpened() {
-    if (profileId === null) return
-    setTrackingError('')
-    try {
-      const application = await trackJobInteraction(API_BASE_URL, profileId, job.id, job.application, 'open_post')
-      if (application) onApplicationSaved(application)
-    } catch {
-      setTrackingError('Could not update this role’s stage. You can try again below.')
-    }
-  }
-  return <>
-    <section className="detail-hero">
-      <p className="eyebrow">Job posting · {providerLabels[job.provider] || 'Company job page'}</p>
-      <h1>{job.title}</h1>
-      <p className="intro-copy">{linkCompany ? <a href={`/companies/${job.company_id}${profileId !== null ? `?profile_id=${profileId}` : ''}`}>{job.company_name}</a> : job.company_name}{job.company_domain ? ` · ${job.company_domain}` : ''}</p>
-      <div className="detail-links">
-        <a className="primary-button" href={applicationStartLink(job.id, profileId)}>Start application →</a>
-        <a className="page-link" href={`${applicationStartLink(job.id, profileId)}${profileId ? '&' : '?'}customize=1`}>Choose language and instructions first</a>
-        <ExternalLink href={job.url} onClick={() => { void markOriginalPostOpened() }}>Original job post</ExternalLink>
-        {job.company_website && <ExternalLink href={job.company_website}>Company website</ExternalLink>}
-        {job.company_source_url && <ExternalLink href={job.company_source_url}>Company listing</ExternalLink>}
-      </div>
-    </section>
-    {trackingError && <p className="tracking-error-note" role="status">{trackingError}</p>}
-    <section className="detail-panel job-detail-panel">
-        <p className="eyebrow">Job details</p>
-      <div className="metadata-grid">
-        <Meta label="Posting status" value={job.is_active ? 'Open' : 'Closed'} />
-        {!job.is_active && <Meta label="Closed" value={job.closed_at ? formatDate(job.closed_at) : 'Date unknown'} />}
-        <Meta label="Work location" value={locationText} />
-        <Meta label="Vote leader" value={voteLeaderSummary} wide />
-        <Meta label="Work style" value={arrangement} />
-        <Meta label="Employment type" value={job.employment_type} />
-        <Meta label="Hours" value={job.schedule} />
-        <Meta label="Team" value={job.department} />
-        <Meta label="Experience level" value={job.seniority} />
-        <Meta label="Minimum experience" value={job.enrichment.experience_years ? `${job.enrichment.experience_years.value} years` : null} />
-        <Meta label="Language requirements" value={languageRequirements} />
-        <Meta label="Posted" value={job.date_posted ? formatDate(job.date_posted) : null} />
-        <Meta label="Last seen" value={formatDate(job.last_seen_at)} />
-        <Meta label="Source deadline" value={job.valid_through ? `${formatDate(job.valid_through)}${job.expired ? ' · Expired' : ''}` : null} />
-        <Meta label="Remote country eligibility" value={job.remote_country_codes?.length ? job.remote_country_codes.join(', ') : null} />
-        <Meta label="Employer type" value={employerType} />
-        <Meta label="First seen" value={formatDate(job.first_seen_at)} />
-        <Meta label="Salary" value={job.salary} />
-        <Meta label="Location detail" value={[...new Set(job.locations.map(item => item.precision).filter(Boolean))].map(value => precisionLabels[value || ''] || value).join(' · ')} />
-      </div>
-      <JobPostingAnalysis state={job.analysis_state} analysis={job.analysis} refreshing={job.analysis_refreshing} />
-      {job.description && <section className="job-description"><h2>Role description</h2><p>{job.description}</p></section>}
-    </section>
-    {job.enrichment && <JobEvidence enrichment={job.enrichment} match={job.profile_match} />}
-    <ApplicationStageActions jobId={job.id} profileId={profileId}
-      application={job.application} onSaved={onApplicationSaved} />
-  </>
-}
-
-function ApplicationStageActions({ jobId, profileId, application, onSaved }: {
-  jobId: number; profileId: number | null; application?: Application | null
-  onSaved: (application: Application) => void
-}) {
-  const [savingStatus, setSavingStatus] = useState<ApplicationStatus | null>(null)
-  const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
-  const currentStatus = application?.status ?? 'new'
-  const options = nextApplicationStages[currentStatus]
-  const previousStatus = application?.previous_status && application.previous_status !== currentStatus
-    ? application.previous_status : null
-  const previousStatusLabel = previousStatus
-    ? applicationStatuses.find(item => item.value === previousStatus)?.label : null
-
-  async function choose(status: ApplicationStatus, undo = false) {
-    if (profileId === null || savingStatus !== null) return
-    setSavingStatus(status); setError(''); setNotice('')
-    try {
-      const saved = await saveApplication(API_BASE_URL, profileId, jobId, status)
-      onSaved(saved)
-      const label = applicationStatuses.find(item => item.value === status)?.label
-      setNotice(undo ? `Undid the last change · back to ${label}.` : `Moved to ${label}.`)
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Could not update this application stage.')
-    } finally { setSavingStatus(null) }
-  }
-
-  return <ApplicationSwipeCard as="section" className="application-stage-actions" application={application}
-    disabled={profileId === null || savingStatus !== null}
-    onAction={action => { void choose(action.status, action.kind === 'undo') }}>
-    {profileId === null ? <>
-      <div><p className="eyebrow">Your application</p><h2>Track this role with a profile</h2></div>
-      <a className="page-link" href="/profile">Create a profile →</a>
-    </> : <>
-      <div className="application-stage-heading"><p className="eyebrow">Your application · current stage</p>
-        <h2>{applicationStatuses.find(item => item.value === currentStatus)?.label ?? 'New'}</h2></div>
-      {options.length > 0 && <div className="application-stage-buttons" role="group" aria-label="Next application stage">
-        {options.map(status => <button key={status} type="button" className={`application-stage-button stage-${status}`}
-          disabled={savingStatus !== null} onClick={() => void choose(status)}>
-          {savingStatus === status ? 'Saving…' : applicationStatuses.find(item => item.value === status)?.label}
-        </button>)}
-      </div>}
-      {previousStatus && <footer className="application-stage-footer">
-        <button type="button" data-swipe-undo className="application-undo-button" disabled={savingStatus !== null}
-          onClick={() => void choose(previousStatus, true)}>
-          {savingStatus === previousStatus ? 'Undoing…' : `↶ Undo to ${previousStatusLabel}`}
-        </button>
-        <span className="application-undo-hint">Swipe this control to undo</span>
-      </footer>}
-      {!options.length && !previousStatus && <p className="application-stage-complete">This application is at its final stage.</p>}
-      {notice && <p className="application-save-state" role="status">{notice}</p>}
-      {error && <p className="application-error" role="alert">{error}</p>}
-    </>}
-  </ApplicationSwipeCard>
-}
-
-
 function Meta({ label, value, wide = false }: { label: string; value?: string | null; wide?: boolean }) {
   const displayValue = value?.trim()
   if (!displayValue || /^(?:not listed|not found|not provided|not specified|unknown|n\/a|none)$/i.test(displayValue)) return null
   return <div className={`meta-item${wide ? ' meta-item-wide' : ''}`}><span>{label}</span><strong>{displayValue}</strong></div>
 
-}
-
-function displayLeadingParty(party: string) {
-  return party.split(' / ').map(name => name === 'GRÜNE' ? 'Grüne'
-    : name === 'FREIE WÄHLER' ? 'Freie Wähler' : name).join(' / ')
 }
