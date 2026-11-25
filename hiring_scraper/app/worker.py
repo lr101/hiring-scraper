@@ -36,6 +36,7 @@ from hiring_scraper.geography import haversine_m
 from hiring_scraper.app.employers import EmployerUpsertDeferred, upsert_job_employer
 from hiring_scraper.app.default_job_feeds import ensure_default_job_feeds
 from hiring_scraper.ats import fetch_feed, parse_feed
+from hiring_scraper.app.html_feed_rules import feed_company_address, with_company_address
 from hiring_scraper.browser import BROWSER_CLIENT_REQUEST_BUDGET
 from hiring_scraper.http import Client
 from hiring_scraper.crawl_policy import ORIGIN_PACER
@@ -643,6 +644,7 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
         seen = set()
         touched_jobs: set[Job] = set()
         closed_jobs: set[Job] = set()
+        company_address = feed_company_address(session, feed, incoming)
         for data in incoming:
             if (feed.provider == "rss" and not data.get("locations")
                     and feed.company.location_label):
@@ -689,6 +691,7 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             employer = upsert_job_employer(session, feed, data, now)
             if employer is not None:
                 job.employer_company_id = employer.id
+            data = with_company_address(data, job, company_address, employer, feed)
             refresh_enrichment(job)
             job.last_seen_at = now
             job.is_active = True

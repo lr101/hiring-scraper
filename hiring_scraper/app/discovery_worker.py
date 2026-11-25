@@ -310,7 +310,10 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool,
     touched_job_ids: set[int] = set()
     closed_job_ids: set[int] = set()
     from hiring_scraper.postings import merge_duplicate_postings
-    for data in merge_duplicate_postings(rows):
+    from hiring_scraper.app.html_feed_rules import feed_company_address, with_company_address
+    rows = merge_duplicate_postings(rows)
+    company_address = feed_company_address(session, feed, rows)
+    for data in rows:
         external_id, title, url = data.get("id"), data.get("title"), data.get("url")
         if external_id in (None, "") or not title or not url:
             continue
@@ -341,6 +344,7 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool,
         employer = upsert_job_employer(session, feed, data, now)
         if employer is not None:
             job.employer_company_id = employer.id
+        data = with_company_address(data, job, company_address, employer, feed)
         refresh_enrichment(job)
         job.last_seen_at = now
         job.is_active = True
