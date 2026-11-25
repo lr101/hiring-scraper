@@ -135,9 +135,10 @@ a { color: inherit; }
 .application-finish-card { padding: 30px; border: 1px solid var(--finish-line); border-radius: 12px; background: var(--finish-paper); }
 .application-finish-card h2:where(:not(.doc-page *)) { margin: 0 0 12px; font-size: 25px; line-height: 1.2; letter-spacing: -.6px; }
 .application-finish-card > p:not([role]) { max-width: 650px; color: var(--finish-muted); font-size: 14px; line-height: 1.7; }
-.application-finish-card button { min-height: 44px; padding: 11px 16px; border: 1px solid var(--finish-line); border-radius: 7px; background: var(--finish-paper); color: var(--finish-ink); font-size: 13px; font-weight: 600; }
+/* The document sheet styles its own small tools; keep page-sized buttons out of it. */
+.application-finish-card button:where(:not(.doc-editor-stage *)) { min-height: 44px; padding: 11px 16px; border: 1px solid var(--finish-line); border-radius: 7px; background: var(--finish-paper); color: var(--finish-ink); font-size: 13px; font-weight: 600; }
 .application-finish-card .primary-button, .detail-links .primary-button { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 12px 18px; border: 1px solid #354e41; border-radius: 7px; background: #354e41; color: white; font-size: 13px; font-weight: 600; text-decoration: none; }
-.application-finish-card button:disabled { opacity: .55; cursor: wait; }
+.application-finish-card button:where(:not(.doc-editor-stage *)):disabled { opacity: .55; cursor: wait; }
 .application-finish-card label { display: flex; flex-direction: column; gap: 8px; margin: 18px 0; font-size: 12px; font-weight: 600; }
 .application-finish-card :is(textarea,select) { width: 100%; min-width: 0; min-height: 44px; padding: 12px; border: 1px solid var(--finish-line); border-radius: 6px; background: var(--finish-paper); color: var(--finish-ink); font: 400 15px/1.6 'Avenir Next','Segoe UI',sans-serif; resize: vertical; }
 .application-finish-card summary { cursor: pointer; font-size: 12px; padding: 10px 0; }

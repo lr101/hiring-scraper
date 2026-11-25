@@ -292,6 +292,17 @@ def base_cv_document(cv: ProfileCV | None, language: str) -> tuple[dict | None, 
     return None, 'imported', [f'Attach the {"English" if language == "en" else "German"} base CV first.']
 
 
+def posting_targets(session, job_id) -> dict | None:
+    """The matcher's duties and requirements for the posting, when its analysis is usable."""
+    from hiring_scraper.app.match_documents import USABLE_ANALYSIS_STATUSES
+    from hiring_scraper.app.models import JobAnalysis
+
+    analysis = session.get(JobAnalysis, job_id)
+    if analysis is None or analysis.status not in USABLE_ANALYSIS_STATUSES or not isinstance(analysis.payload, dict):
+        return None
+    return {key: analysis.payload.get(key) or [] for key in ('duties', 'requirements')}
+
+
 def snapshot_inputs(session, profile_id, job_id, language, mode='full') -> tuple[dict, int]:
     """Read the preparation inputs without locks; returns ``(input fields, profile source_version)``."""
     profile = session.get(UserProfile, profile_id)
@@ -312,6 +323,7 @@ def snapshot_inputs(session, profile_id, job_id, language, mode='full') -> tuple
         'job': {'title': job.title, 'company_name': company, 'location': job.location_text or '',
                 'url': job.url, 'description': job.description or ''},
         'language': language, 'mode': mode, 'today': date.today(),
+        'targets': posting_targets(session, job_id),
     }, profile.source_version
 
 

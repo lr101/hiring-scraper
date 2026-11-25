@@ -1,48 +1,79 @@
-Task: tailor the CV to the posting's core duties while preserving verified employers, titles,
-dates, and section order. Keep the CV concise so it fits within two A4 pages.
+Task: tailor the CV to this posting so a recruiter scanning it sees the posting's core duties and
+key terms, backed by the applicant's verified evidence. Preserve verified employers, titles, dates
+and section order. The applicant reviews every changed unit next to its source before sending.
+
+How your answer is used
+- The application builds the CV from the base CV and your slots: it keeps the base layout and
+  sections, swaps in your wording, renders the PDF and shows each changed unit as an "AI change"
+  that the applicant accepts, edits or restores.
+- Checks that reject the whole draft: a number not in the unit's cited sources, a citation of
+  another entry's evidence, a scope qualifier not in the cited evidence (see Truthfulness), first
+  person in the profile, a headline over FORMAT.headline.max_chars, or a CV longer than two pages.
+- Checks shown to the applicant as review notes: tools or terms not found in the cited evidence or
+  profile skills, a rewrite that drops a detail of its base bullet, four-word phrases repeated
+  between bullets of one entry, an opening verb starting more than two bullets, profile sentences
+  over 28 words, and gaps you report.
+
+Targets
+- TARGETS lists the posting's duties and requirements, quoted from JOB by the matcher (`need`:
+  must or nice). When TARGETS has no items, derive them from JOB.
+- Each target's key terms are what this CV should show where the evidence supports them: use the
+  posting's own words (e.g. "Prozessoptimierung", "Lean", "Power BI") instead of near synonyms, so
+  the applicant's verified work reads in the posting's language.
 
 Format
 - FORMAT describes the base CV's headline and profile. Keep that format and change only the
   wording: the same structure, separator, number of parts, sentence count and similar length.
 
 Headline
-- When FORMAT.headline has `segments`, return exactly that many parts in `headline.segments`
-  (the application joins them with the base separator). Keep each part a short noun phrase of
-  similar length to the base part, naming a verified functional pillar, ordered by fit for the
-  posting's core duties.
-- Otherwise write one line no longer than FORMAT.headline.max_chars characters naming 2–3 verified
-  functional pillars ordered by fit for the posting's core duties.
-- Use the posting's role-family phrasing where it accurately describes verified work, without
-  presenting an unheld job title or promoting a single study project into a headline specialty.
-- Cite each pillar's supporting evidence ids.
+- Return: when FORMAT.headline has `segments`, exactly that many parts in `headline.segments`;
+  otherwise one line no longer than FORMAT.headline.max_chars. Cite the supporting evidence ids.
+- Write: short noun phrases naming 2–3 verified functional pillars, ordered by fit for the
+  posting's core duties, in the posting's role-family wording where it accurately describes
+  verified work. No unheld job title; no single study project promoted to a specialty.
+- Used: the parts are joined with the base separator and replace the base headline.
 
 Profile
-- Fill `profile.first`, `profile.second`, `profile.third` and `profile.fourth` in order with exactly
-  FORMAT.profile.sentences sentences (set the unused ones to null), totaling about
-  FORMAT.profile.words words. The application keeps the base paragraph layout.
-- Position the candidate for this role: lead with a verified professional identity, connect to
-  the strongest relevant work evidence, and add distinct technical or analytical strengths.
-  Synthesize rather than repeating bullet wording.
-- Use subject-less CV style: no explicit first person ("I"/"ich") and no third-person pronouns or
-  role subjects ("she"/"he"/"Die Ingenieurin"). Start with a noun-led opening (e.g. "Ingenieurin
-  für … mit Erfahrung in …" or a noun-led English opening) followed by fluent subject-less CV
-  prose.
-- Cite each sentence's own `sources` from one entry plus general/skill evidence. Identify study
-  projects explicitly as study context; a company in a project label is a topic unless evidence
-  states an employer or client relationship. Leave language levels to their section and motivation
-  to the letter.
+- Return: `profile.first` … `profile.fourth` in order, exactly FORMAT.profile.sentences sentences
+  (unused ones null), about FORMAT.profile.words words in total, each with its own `sources` from
+  one entry plus general/skill evidence.
+- Write: lead with a verified professional identity, connect to the strongest evidence for the
+  posting's must-have targets using their key terms, and add distinct technical or analytical
+  strengths. Synthesize rather than repeat bullet wording. Subject-less CV style: no "I"/"ich",
+  no "she"/"he"/"Die Ingenieurin"; open noun-led (e.g. "Ingenieurin für … mit Erfahrung in …").
+  Study projects are study context; a company in a project label is a topic unless evidence states
+  an employer or client relationship. Leave language levels to their section and motivation to the
+  letter.
+- Used: the sentences fill the base profile's paragraphs in order.
 
-Entries (keep/rewrite slots)
-- In ENTRIES, each base bullet has a `bullet_id`, `source`, and original text. Within each entry,
-  return all `bullet_id`s in `order` with the clearest evidence for the posting's core duties
-  first.
-- Assign `relevance` to every bullet. Mark only the 2–4 strongest core-duty bullets across the CV
-  as `high` and rewrite them (`text` + exact `source`) to frame verified work for the posting.
-  Mark adjacent or already well-phrased bullets `medium` and unrelated ones `low` (return only
-  `relevance`; the application keeps them verbatim).
-- Rewrite from that single base bullet at its exact scope, preserving actors, tools, results, and
-  substantive details. Keep rewrites at most as long as the source, vary opening verbs, and omit
-  any existing `lead_in` prefix from `text` (the application preserves it).
+Entries (one slot per base bullet)
+- Input: ENTRIES gives each base bullet's `bullet_id`, `source` and text, grouped by entry.
+- Return for every bullet: `relevance` (high, medium, low for the posting's targets), and per entry
+  the `order` of all `bullet_id`s with the strongest evidence for the core duties first.
+- Rewrite (return `text`, `source`, `support`, `keywords`) every high or medium bullet. Keep
+  (return only `relevance`) low bullets, and a relevant bullet only when it already names its
+  target's key terms in the posting's wording. Each rewrite must add at least one of: a posting key
+  term for work the bullet shows, the result framed for the target duty, or a verified detail
+  from `support`. Swapping synonyms alone is not a rewrite.
+- `source` is the bullet's own base source and stays its main fact. `support` may add ids of
+  this entry's intro, profile skill evidence (`skill:*`), career evidence (`evidence:*`) or
+  certifications, only when that evidence describes work in this same role or employer. Add a
+  support fact as its own clause or second sentence ("…; dazu …", "…, including …"), never as a
+  cause or result of the bullet's fact. Never merge two base bullets or move facts between
+  entries.
+- Preserve the base bullet's actors, tools, numbers, results and substantive details. A rewrite may
+  be up to about one and a half times the base length; stay within two pages. Vary opening verbs
+  and omit any existing `lead_in` prefix from `text` (the application keeps it).
+- `keywords`: the posting terms (as written in JOB or TARGETS) that your rewrite contains verbatim.
+- Used: kept bullets stay verbatim; rewrites replace their base bullet and cite `source` plus
+  `support`. The application verifies each keyword appears in the text.
 
 Skills
-- Return each skills section's existing `unit_ids` ordered by relevance; keep every item.
+- Return each skills section's existing `unit_ids` ordered by relevance to the targets; keep
+  every item. Used: the items are reordered only.
+
+Gaps
+- Return in `gaps` each must-have (and notable nice-to-have) key term from TARGETS that no
+  evidence supports, as a short term with its `need`. Never write unsupported terms into the CV.
+- Used: each gap becomes a review note asking the applicant to add it only if it is true; gaps
+  the CV already shows are dropped.

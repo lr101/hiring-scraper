@@ -200,10 +200,6 @@
     padding: 10px 6px 14px;
   }
 
-  /* Popovers open from the unit's start; keep them inside a phone screen. */
-  .doc-editor-stage .doc-editor-finding-popover {
-    width: 60vw;
-  }
 }
 
 /* ---------- Page Guides Overlay ---------- */
@@ -360,12 +356,29 @@
   transition: opacity 100ms ease, background 100ms ease;
 }
 
-.doc-editor-unit:hover .doc-editor-unit-action,
-.doc-editor-unit:focus-within .doc-editor-unit-action,
-.doc-editor-unit--hidden .doc-editor-unit-action,
+.doc-editor-unit--active > .doc-editor-unit-tools .doc-editor-unit-action,
+.doc-editor-unit:focus-within > .doc-editor-unit-tools .doc-editor-unit-action,
+.doc-editor-unit--hidden > .doc-editor-unit-tools .doc-editor-unit-action,
 .doc-editor-unit-action:focus-visible {
   opacity: 1;
   pointer-events: auto;
+}
+
+/* Touch screens keep :hover on the last tapped element, so tools follow focus there. */
+@media (hover: hover) {
+  .doc-editor-unit:hover > .doc-editor-unit-tools .doc-editor-unit-action {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* On touch screens the scaled-up badge would cover the line above and catch taps meant for
+   the text; the underline marks the unit and the badge appears once the unit is tapped. */
+@media (hover: none) {
+  .doc-editor-unit:not(.doc-editor-unit--active):not(:focus-within) > .doc-editor-unit-tools .doc-editor-finding-badge {
+    visibility: hidden;
+    pointer-events: none;
+  }
 }
 
 .doc-editor-unit-action:hover {
@@ -699,4 +712,93 @@
 .doc-editor-doc-findings > summary {
   cursor: pointer;
   color: #46574c;
+}
+
+.doc-editor-finding-claim {
+  margin: 0 0 3px;
+  color: #46574c;
+  font-style: italic;
+}
+
+/* Phone: findings and AI prompts open as a bottom sheet outside the scaled page. */
+.doc-editor-popover-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  box-sizing: border-box;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+  border-top: 1px solid #d4dcd2;
+  border-radius: 14px 14px 0 0;
+  background: #ffffff;
+  color: #29343c;
+  box-shadow: 0 -8px 28px rgb(20 30 24 / 22%);
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.doc-editor-popover-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.doc-editor-popover-sheet button {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid #cbd5ca;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #29343c;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.doc-editor-popover-sheet .doc-editor-primary-action {
+  border-color: #354e41;
+  background: #354e41;
+  color: #ffffff;
+}
+
+.doc-editor-popover-sheet button:disabled {
+  opacity: 0.5;
+}
+
+.doc-editor-popover-sheet .doc-editor-finding-item {
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+
+.doc-editor-popover-sheet .doc-editor-finding-code {
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.doc-editor-popover-sheet .doc-editor-doc-finding-severity {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.doc-editor-popover-sheet .doc-editor-finding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.doc-editor-popover-sheet textarea {
+  font-size: 16px;
+}
+
+.doc-editor-doc-finding-severity {
+  text-transform: none;
 }

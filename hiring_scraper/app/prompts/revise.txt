@@ -7,4 +7,6 @@ Task: rewrite one unit of the applicant's document following their instruction.
 - Keep every fact supported by the EVIDENCE block and cite the ids you rely on in `sources`.
   If the instruction asks for a fact the evidence does not contain, keep to the evidence and
   write the closest truthful version.
+- TARGETS lists the posting's duties and requirements. Where the evidence supports it, use their
+  key terms in the posting's own wording.
 - Return the new text for this unit only, as a single paragraph without line breaks.

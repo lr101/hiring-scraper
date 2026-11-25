@@ -39,7 +39,7 @@ from hiring_scraper.documents.schema import (
 )
 from hiring_scraper.documents.text import unit_full_text
 
-PIPELINE_VERSION = 'application-documents-v2.15'
+PIPELINE_VERSION = 'application-documents-v2.16'
 SLEEP = time.sleep
 PROMPTS = Path(__file__).with_name('prompts')
 DocumentKind = Literal['cv', 'letter']
@@ -79,6 +79,9 @@ class PreparationInput:
     mode: Literal['full', 'fast'] = 'full'
     today: date = field(default_factory=date.today)
     prompts_dir: Path | None = None
+    # The matcher's duties and requirements of the posting (JobAnalysis payload). Optional and
+    # outside the input digest: a later analysis refresh does not mark documents stale.
+    targets: dict | None = None
 
 
 @dataclass
@@ -103,11 +106,17 @@ class _SourcedText(_Text):
 
 
 class _KeepBullet(_Response):
-    relevance: Literal['medium', 'low']
+    relevance: Literal['high', 'medium', 'low']
 
 
 class _RewriteBullet(_Text):
-    relevance: Literal['high']
+    relevance: Literal['high', 'medium']
+    keywords: list[str] = Field(default_factory=list)
+
+
+class _Gap(_Response):
+    term: str
+    need: Literal['must', 'nice']
 
 
 class _Skills(_Response):
@@ -118,6 +127,7 @@ class _Skills(_Response):
 class _CvSlots(_Response):
     headline: _SourcedText
     skills: list[_Skills]
+    gaps: list[_Gap] = Field(default_factory=list)
 
 
 class _Paragraph(_SourcedText):
@@ -313,6 +323,28 @@ def _voice(inp: PreparationInput) -> dict:
     return voice
 
 
+_MAX_TARGETS = 25
+
+
+def posting_targets(inp: PreparationInput) -> dict:
+    """The posting's duties and requirements as the matcher extracted them (quoted from JOB)."""
+    raw = inp.targets if isinstance(inp.targets, dict) else {}
+    duties = [' '.join(str(item.get('text') if isinstance(item, dict) else item).split())
+              for item in raw.get('duties') or []]
+    requirements = []
+    for item in raw.get('requirements') or []:
+        if isinstance(item, dict) and str(item.get('text') or '').strip():
+            requirements.append({
+                'text': ' '.join(str(item['text']).split()),
+                'need': 'nice' if item.get('need') == 'nice' else 'must',
+                'kind': str(item.get('kind') or 'other'),
+            })
+    duties = [text for text in duties if text][:_MAX_TARGETS]
+    if not duties and not requirements:
+        return {'source': 'none: derive the core duties and requirements from JOB yourself'}
+    return {'source': 'matcher', 'duties': duties, 'requirements': requirements[:_MAX_TARGETS]}
+
+
 def _prompt(stage: str, inp: PreparationInput, evidence: dict, **blocks) -> str:
     language = {'en': 'English', 'de': 'German'}[inp.language]
     job = {key: inp.job.get(key) or '' for key in ('title', 'company_name', 'location', 'description')}
@@ -341,13 +373,31 @@ def _backoff(seconds: float, cancelled: Callable[[], bool]) -> None:
         remaining -= interval
 
 
+def _all_required(schema):
+    """Ask the model for every property: strict structured output requires it, while
+    validation still tolerates an omitted optional list (its default)."""
+    if isinstance(schema, dict):
+        for value in schema.values():
+            _all_required(value)
+        properties = schema.get('properties')
+        if isinstance(properties, dict):
+            schema['required'] = list(properties)
+            for value in properties.values():
+                if isinstance(value, dict):
+                    value.pop('default', None)
+    elif isinstance(schema, list):
+        for value in schema:
+            _all_required(value)
+    return schema
+
+
 def _generate(
     generate: Generate, prompt: str, response: type[_Response], accept: Callable,
     stats: dict, cancelled: Callable[[], bool],
     *,
     return_best: bool = False,
 ):
-    schema = response.model_json_schema()
+    schema = _all_required(response.model_json_schema())
     retry_prompt = prompt
     feedback: list[str] = []
     failures: list[dict] = []
@@ -477,6 +527,10 @@ def _cv_contract(base: CvDocument, evidence: dict[str, str] | None = None) -> tu
     profile_sources.update(source for source in evidence if source.startswith('skill:'))
     general_sources = profile_sources.intersection(evidence)
     profile_scopes = [general_sources] if general_sources else []
+    # Profile facts a bullet may cite next to its own base bullet (the prompt limits them to
+    # facts about the same role; grounding checks the result).
+    bullet_support = sorted(source for source in evidence if source.startswith(('skill:', 'evidence:'))
+                            or source == 'profile:certifications')
     entries_prompt: list[dict] = []
     entry_fields: dict[str, tuple] = {}
     slot_map: dict[str, dict[str, tuple[str, Unit]]] = {}
@@ -505,15 +559,18 @@ def _cv_contract(base: CvDocument, evidence: dict[str, str] | None = None) -> tu
             prompt_bullets = []
             bullet_fields: dict[str, tuple] = {}
             entry_slots: dict[str, tuple[str, Unit]] = {}
+            support = tuple(sorted(intros)) + tuple(bullet_support)
             for bullet_index, (source, unit) in enumerate(bank, 1):
                 entry_slots[unit.id] = (source, unit)
                 item = {'bullet_id': unit.id, 'source': source, 'text': unit.text}
                 if unit.lead_in.strip():
                     item['lead_in'] = unit.lead_in.strip()
                 prompt_bullets.append(item)
+                rewrite_fields: dict = {'source': (Literal[source], ...)}
+                if support:
+                    rewrite_fields['support'] = (list[Literal[support]], Field(default_factory=list))
                 rewrite_model = create_model(
-                    f'CvRewrite{entry_index}Bullet{bullet_index}', __base__=_RewriteBullet,
-                    source=(Literal[source], ...),
+                    f'CvRewrite{entry_index}Bullet{bullet_index}', __base__=_RewriteBullet, **rewrite_fields,
                 )
                 bullet_fields[f'b{bullet_index}'] = (
                     Union[_KeepBullet, rewrite_model], Field(alias=unit.id),
@@ -704,7 +761,7 @@ def _cv_from_slots(
                 for bullet_id in ordered_ids:
                     base_source, base_unit = entry_slots[bullet_id]
                     choice = bullet_choices[bullet_id]
-                    if choice['relevance'] != 'high':
+                    if 'text' not in choice:  # kept verbatim, whatever its relevance
                         built_units.append(base_unit.model_copy(update={
                             'origin': 'source',
                             'sources': [base_source],
@@ -714,11 +771,14 @@ def _cv_from_slots(
                     lead_in = base_unit.lead_in
                     if lead_in and text.casefold().startswith(lead_in.casefold()):
                         text = text[len(lead_in):].lstrip(' -–—') or text
+                    changed = text != base_unit.text
                     built_units.append(Unit(
                         id=base_unit.id, text=text, lead_in=lead_in,
-                        origin='source' if text == base_unit.text else 'ai',
-                        original_text=base_unit.text if text != base_unit.text else None,
-                        role=base_unit.role, hidden=False, sources=[choice['source']],
+                        origin='ai' if changed else 'source',
+                        original_text=base_unit.text if changed else None,
+                        role=base_unit.role, hidden=False,
+                        sources=list(dict.fromkeys([choice['source'], *(choice.get('support') or [])]))
+                        if changed else [base_source],
                     ))
                 entry.units = [
                     *built_units,
@@ -733,6 +793,7 @@ def _cv_from_slots(
             section.units = [by_id[key] for key in order if key in by_id]
     issues.extend(_check_cv_coverage(doc, base))
     doc = CvDocument.model_validate(doc.model_dump())
+    findings.extend(_gap_findings(reply['gaps'], doc))
     issues.extend(issue for issue in _cv_prose_issues(doc) if issue.code in _BLOCKING_PROSE_CODES)
     if issues:
         codes = tuple(dict.fromkeys(issue.code for issue in issues))
@@ -741,6 +802,41 @@ def _cv_from_slots(
             message, code=codes[0], codes=codes, candidate=(doc, findings), issues=tuple(issues),
         )
     return doc, findings
+
+
+def _visible_text(doc: Document) -> str:
+    return '\n'.join(unit_full_text(unit) for unit in walk_units(doc) if not unit.hidden).casefold()
+
+
+def _gap_findings(gaps: list[dict], doc: CvDocument) -> list[Finding]:
+    """Posting terms the model found no evidence for, unless the CV already shows them."""
+    text = _visible_text(doc)
+    findings, seen = [], set()
+    for gap in gaps:
+        term = ' '.join(str(gap.get('term') or '').split())[:120]
+        if not term or term.casefold() in seen or term.casefold() in text:
+            continue
+        seen.add(term.casefold())
+        need = 'a must-have' if gap.get('need') == 'must' else 'a nice-to-have'
+        findings.append(_finding(
+            'cv', 'review_coverage',
+            f'The posting lists “{term}” as {need}, but your CV and profile show no evidence of it.',
+            suggestion='Add it only if it is true: mention it in a bullet, and add it to your profile '
+                       'so future applications can use it.',
+        ))
+    return findings
+
+
+def keyword_coverage(output: dict, doc: CvDocument) -> dict:
+    """Posting terms the model says it used, split by whether the CV text really contains them."""
+    used: list[str] = []
+    for entry in (output.get('entries') or {}).values():
+        for choice in (entry.get('bullets') or {}).values():
+            used.extend(str(term) for term in choice.get('keywords') or [] if str(term).strip())
+    text = _visible_text(doc)
+    terms = list(dict.fromkeys(' '.join(term.split()) for term in used))
+    return {'used': [term for term in terms if term.casefold() in text],
+            'claimed_missing': [term for term in terms if term.casefold() not in text]}
 
 
 def _new_cv(base: CvDocument) -> CvDocument:
@@ -998,6 +1094,13 @@ def _salutation(inp: PreparationInput, company: str, proposed_name: str) -> str:
     return f'Dear {short + " " if short else ""}Hiring Team,'
 
 
+def _quoted(text: str, tokens: tuple[str, ...]) -> str:
+    """The original wording of a matched word sequence, for quoting it back to the applicant."""
+    pattern = r'[\W_]+'.join(re.escape(token) for token in tokens)
+    match = re.search(pattern, text, flags=re.IGNORECASE)
+    return match[0] if match else ' '.join(tokens)
+
+
 def _letter_prose_issues(
     letter: LetterDocument, cv: CvDocument, base: CvDocument, company: str,
 ) -> list[_ProseIssue]:
@@ -1060,11 +1163,12 @@ def _letter_prose_issues(
         current = editorial.sentence_phrases(unit.text)
         current_motifs = editorial.letter_content_trigrams(unit.text, ignore_phrases)
         if current & phrases:
+            repeated = _quoted(unit.text, min(current & phrases))
             issues.append(_ProseIssue(
                 'letter_repeated_phrase',
                 f'{label} repeats a phrase of four or more words from an earlier paragraph; rephrase it.',
                 'review_style',
-                f'{label} repeats a phrase of four or more words from an earlier paragraph.',
+                f'{label} repeats “{repeated}” from an earlier paragraph; say it once.',
                 unit_id=unit.id,
             ))
         elif current_motifs & motifs:
@@ -1117,12 +1221,13 @@ def _letter_prose_issues(
             ))
         for group in groups:
             first_seen.setdefault(group, idx)
-        if editorial.prose_ngrams(unit.text, ignore_phrases=ignore_phrases) & copied:
+        if overlap := editorial.prose_ngrams(unit.text, ignore_phrases=ignore_phrases) & copied:
             issues.append(_ProseIssue(
                 'letter_cv_ngram_overlap',
                 f'{label} repeats phrasing from the CV. Rewrite {label} in fresh prose so no sequence of eight consecutive words matches the CV.',
                 'review_style',
-                f'{label} closely repeats wording from the CV.',
+                f'{label} copies “{_quoted(unit.text, min(overlap))}” word for word from the CV; '
+                'the letter reads better when it tells the story behind the bullet.',
                 unit_id=unit.id,
             ))
         if letter.language == 'en' and editorial.has_en_contraction(unit.text):
@@ -1653,7 +1758,8 @@ def prepare_documents(
         entries, cv_response, slot_map = _cv_contract(base, evidence)
         skills = [{'section_id': s.id, 'title': s.title, 'units': [u.model_dump() for u in s.units]}
                   for s in base.sections if s.kind == 'skills']
-        prompt = _prompt('cv', inp, evidence, format=cv_format(base), entries=entries, skills=skills)
+        prompt = _prompt('cv', inp, evidence, targets=posting_targets(inp), format=cv_format(base),
+                         entries=entries, skills=skills)
         last_render = None
 
         def accept_cv(output: dict):
@@ -1661,6 +1767,7 @@ def prepare_documents(
             doc, findings = accept_grounded(
                 lambda reply: _cv_from_slots(reply, cv_response, slot_map, base), output,
             )
+            stats['keywords'] = keyword_coverage(output, doc)
             telemetry, render_findings = _render('cv', doc, render)
             last_render = (doc, telemetry, render_findings)
             if any(finding.code == 'extra_page' for finding in render_findings):
@@ -1840,7 +1947,7 @@ def revise_unit(
     base = CvDocument.model_validate(inp.base_cv)
     evidence = build_evidence(base, inp.profile)
     context = next(item for item in _units(doc) if item['id'] == unit_id)
-    prompt = _prompt('revise', inp, evidence, unit=context, instruction=instruction)
+    prompt = _prompt('revise', inp, evidence, targets=posting_targets(inp), unit=context, instruction=instruction)
 
     def accept(output: dict) -> Unit:
         reply = _SourcedText.model_validate(output)
