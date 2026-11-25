@@ -164,9 +164,9 @@ function FitConcerns({ items }: { items: Concern[] }) {
   </div>
 }
 
-function Fact({ label, children }: { label: string; children: ReactNode }) {
+function Fact({ label, children, wide = false }: { label: string; children: ReactNode; wide?: boolean }) {
   if (children === null || children === undefined || children === '') return null
-  return <div className="job-fact"><dt>{label}</dt><dd>{children}</dd></div>
+  return <div className={`job-fact${wide ? ' job-fact-wide' : ''}`}><dt>{label}</dt><dd>{children}</dd></div>
 }
 
 function KeyFacts({ job }: { job: Job }) {
@@ -184,7 +184,7 @@ function KeyFacts({ job }: { job: Job }) {
   const locations = job.locations.length ? job.locations.map(item => item.label) : job.location_text ? [job.location_text] : []
   const deadline = job.valid_through ? `${formatDate(job.valid_through)}${job.expired ? ' · passed' : ''}` : ''
   return <dl className="job-facts">
-    <Fact label="Location">{locations.length ? locations.join(' · ') : null}</Fact>
+    <Fact label="Location" wide={locations.join(' · ').length > 24}>{locations.length ? locations.join(' · ') : null}</Fact>
     <Fact label="Work style">{workStyle(job)}</Fact>
     <Fact label="Salary">{job.salary?.trim()}</Fact>
     <Fact label="Employment">{employment}</Fact>
