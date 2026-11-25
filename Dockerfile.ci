@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:0.13.1@sha256:4a1f3666816dafadd20ceb71eac9a7d56d7ef30279f7d64048519ab901ada336 AS uv
+FROM ghcr.io/astral-sh/uv:0.13.10@sha256:a3ea1357342c1a4bf9a0c53a3deb1b55379aefa037338d8113d5771efa01774f AS uv
 FROM node:24-bookworm-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20 AS node
 FROM rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 AS actionlint
 
@@ -9,7 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends libstdc++6 libatomic1 shellcheck libreoffice-writer fonts-liberation poppler-utils texlive-luatex texlive-latex-recommended \
+RUN apt-get update && apt-get install -y --no-install-recommends libstdc++6 libatomic1 shellcheck libreoffice-writer fonts-liberation poppler-utils texlive-luatex texlive-xetex texlive-fonts-recommended texlive-latex-recommended \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=uv /uv /uvx /bin/
 COPY --from=node /usr/local/bin/node /usr/local/bin/node

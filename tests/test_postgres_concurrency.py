@@ -12,42 +12,40 @@ from sqlalchemy.exc import OperationalError, TimeoutError as DatabasePoolTimeout
 from sqlalchemy.orm import sessionmaker
 from psycopg.errors import LockNotAvailable
 
-from hiring_scraper.app import api, database, default_job_feeds, discovery_worker, enrichment, job_search
-from hiring_scraper.app import worker
+from hiring_scraper.app import search_snapshots
+from hiring_scraper.app import api, database, default_job_feeds, discovery_worker, enrichment, job_search, profiles
+from hiring_scraper.app import source_changes, worker
+from hiring_scraper.app.models import reserve_job_source_rows
+from tests import pg
+from tests.model_outputs import analyse_all
 from hiring_scraper.app.models import (
-    Base, Company, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobApplication, JobFeed,
-    JobSearchRefresh, ProfileJobMatch, ScanRun, SemanticSearchIndexState, UserProfile, utcnow,
+    Company, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobApplication, JobFeed, JobLocation,
+    JobSearchRefresh, ProfileJobMatch, ScanRun,
+    SemanticSearchIndexState, UserProfile, utcnow,
 )
 
 
-@unittest.skipUnless(os.getenv('TEST_POSTGRES_URL'), 'requires disposable TEST_POSTGRES_URL')
+def _row_lock(statement):
+    """Whether SQL takes a row lock that excludes edits (publishers hold profiles FOR SHARE)."""
+    normalized = statement.upper()
+    return any(clause in normalized for clause in ('FOR UPDATE', 'FOR NO KEY UPDATE', 'FOR SHARE'))
+
+
 class PostgresConcurrencyTests(unittest.TestCase):
     def setUp(self):
-        self.schema = 'review_' + uuid4().hex
-        self.admin = create_engine(os.environ['TEST_POSTGRES_URL'])
-        with self.admin.begin() as connection:
-            connection.execute(text(f'CREATE SCHEMA {self.schema}'))
-        self.engine = create_engine(os.environ['TEST_POSTGRES_URL'], pool_size=8, max_overflow=0,
-            connect_args={'options': f'-c search_path={self.schema},public -c lock_timeout=1000 -c statement_timeout=5000'})
-        # These tests exercise scheduling, not vector search; pgvector is optional here.
-        Base.metadata.create_all(self.engine, tables=[table for table in Base.metadata.sorted_tables
-                                                     if table.name != 'semantic_search_documents'])
+        # The shared, fully migrated test database (triggers, generated columns),
+        # emptied first; short lock waits make lock-order mistakes fail fast.
+        self.engine = pg.engine(self, pool_size=8, max_overflow=0, connect_args={
+            'options': '-c lock_timeout=1000 -c statement_timeout=5000'})
         self.factory = sessionmaker(self.engine, autoflush=False, expire_on_commit=False)
         self.patches = [patch.object(module, 'SessionLocal', self.factory)
-                        for module in (worker, api, default_job_feeds, discovery_worker, enrichment)]
-        self.patches += [patch.object(worker, 'engine', self.engine),
-                         patch.object(discovery_worker, 'engine', self.engine),
-                         patch.object(default_job_feeds, 'IS_SQLITE', False)]
+                        for module in (worker, search_snapshots, default_job_feeds, discovery_worker, enrichment)]
         for item in self.patches:
             item.start()
 
     def tearDown(self):
         for item in reversed(self.patches):
             item.stop()
-        self.engine.dispose()
-        with self.admin.begin() as connection:
-            connection.execute(text(f'DROP SCHEMA {self.schema} CASCADE'))
-        self.admin.dispose()
 
     def seed_feed(self):
         with self.factory.begin() as session:
@@ -61,35 +59,720 @@ class PostgresConcurrencyTests(unittest.TestCase):
             session.flush()
             return company.id, feed.id, run.id
 
+    def test_preparation_api_enqueues_for_worker_and_prunes_finished_result(self):
+        import json
+
+        from hiring_scraper.app import application_documents_v2 as documents, codex_runtime
+        from hiring_scraper.app import application_preparation_queue as queue
+        from hiring_scraper.app.models import ApplicationPreparationTask
+
+        _, feed_id, _ = self.seed_feed()
+        with self.factory.begin() as session:
+            profile = UserProfile(name='Preparation queue')
+            job = Job(feed_id=feed_id, external_id='preparation', title='Engineer',
+                      url='https://example.test/preparation')
+            session.add_all((profile, job))
+            session.flush()
+            profile_id, job_id = profile.id, job.id
+
+        request = documents.PrepareRequest(job_id=job_id)
+        with self.factory() as session, (
+            patch.object(queue, 'SessionLocal', self.factory)
+        ), patch.object(codex_runtime, 'status', return_value={'enabled': True}), (
+            patch.object(documents, 'snapshot_inputs', return_value=({}, 1))
+        ), patch.object(codex_runtime, 'selected_model', return_value=None):
+            queued = json.loads(documents.start_preparation(profile_id, request, session).body)['task']
+            self.assertEqual(queued['state'], 'running')
+            self.assertNotIn('checkpoints', queued)
+
+            def run(owner, payload, progress):
+                self.assertEqual((owner, payload['job_id']), (profile_id, job_id))
+                progress('drafting')
+                progress.checkpoint('draft', {'title': 'Saved work'})
+                return {'package': 'generated'}
+
+            self.assertTrue(queue.process_once(run))
+            finished = json.loads(documents.preparation_task(profile_id, job_id, session=session).body)['task']
+            self.assertEqual(finished['id'], queued['id'])
+            self.assertEqual(finished['result'], {'package': 'generated'})
+            session.rollback()
+            with self.factory.begin() as writer:
+                task = writer.get(ApplicationPreparationTask, (profile_id, job_id))
+                task.updated_at = utcnow() - queue.RETENTION - timedelta(seconds=1)
+            queue.prune_finished()
+            self.assertIsNone(json.loads(documents.preparation_task(profile_id, job_id, session=session).body)['task'])
+
+
+    def test_job_edit_uses_fk_compatible_lock_during_profile_index_publication(self):
+        self.assert_job_writer_compatible_with_profile_index('edit')
+
+
+    def test_salary_edit_locks_job_before_profile_during_application_tracking(self):
+        self.assert_salary_edit_lock_order('application')
+
+    def test_feed_change_new_job_change_reserves_later_job_before_profiles(self):
+        _, feed_id, run_id = self.seed_feed()
+        with self.factory.begin() as session:
+            profile = UserProfile(name='Multi-flush lock test', preferences={})
+            session.add(profile)
+            session.flush()
+            profile_id = profile.id
+            job_a = Job(feed_id=feed_id, external_id='multi-a', title='Engineer', salary='90000 USD',
+                        description='Build software.', url='https://example.test/multi/a', is_active=True)
+            job_b = Job(feed_id=feed_id, external_id='multi-b', title='Engineer', salary='100000 USD',
+                        description='Maintain software.', url='https://example.test/multi/b', is_active=True)
+            session.add_all([job_a, job_b])
+            session.flush()
+            job_a_id, job_b_id = job_a.id, job_b.id
+
+        application_at_profile = threading.Event()
+        release_application_profile = threading.Event()
+        worker_waiting_for_job_b = threading.Event()
+        worker_updated_profile = threading.Event()
+        application_done = threading.Event()
+        worker_done = threading.Event()
+        errors = []
+
+        def parameter_values(parameters):
+            return set(parameters.values()) if isinstance(parameters, dict) else set(parameters or ())
+
+        def before_cursor(_connection, _cursor, statement, parameters, _context, _many):
+            normalized = ' '.join(statement.upper().split())
+            thread_name = threading.current_thread().name
+            if (thread_name == 'feed-worker' and 'FROM JOBS' in normalized and
+                    ('FOR NO KEY UPDATE' in normalized or 'FOR UPDATE' in normalized) and
+                    job_b_id in parameter_values(parameters)):
+                worker_waiting_for_job_b.set()
+            if (thread_name == 'application-save' and 'FROM USER_PROFILES' in normalized and
+                    _row_lock(normalized)):
+                application_at_profile.set()
+                if not release_application_profile.wait(5):
+                    raise TimeoutError('Application tracking did not reach its profile lock')
+
+        def after_cursor(_connection, _cursor, statement, _parameters, _context, _many):
+            normalized = ' '.join(statement.upper().split())
+            if (threading.current_thread().name == 'feed-worker' and
+                    normalized.startswith('UPDATE USER_PROFILES')):
+                worker_updated_profile.set()
+
+        def save_application():
+            try:
+                with self.factory() as session:
+                    api.set_job_application(profile_id, job_b_id,
+                                            api.ApplicationRequest(status='new'), session)
+            except Exception as error:
+                errors.append(error)
+            finally:
+                application_done.set()
+
+        def persist_feed():
+            try:
+                with patch.object(worker, 'refresh_application_matches_for_jobs',
+                              lambda session, ids, **_kwargs: source_changes.jobs_changed(session, ids)):
+                    worker._persist_result(feed_id, run_id, {
+                        'state': 'ok', 'status': 200,
+                        'parsed_feed': {'complete': False, 'jobs': [
+                            {'id': 'multi-a', 'title': 'Engineer', 'url': 'https://example.test/multi/a',
+                             'description': 'Build software.', 'salary': '95000 USD'},
+                            {'id': 'multi-x', 'title': 'Analyst', 'url': 'https://example.test/multi/x',
+                             'description': 'Analyze systems.', 'salary': '80000 USD'},
+                            {'id': 'multi-b', 'title': 'Engineer', 'url': 'https://example.test/multi/b',
+                             'description': 'Maintain software.', 'salary': '110000 USD'},
+                        ]},
+                    }, b'', 1)
+            except Exception as error:
+                errors.append(error)
+            finally:
+                worker_done.set()
+
+        application_thread = threading.Thread(target=save_application, name='application-save', daemon=True)
+        worker_thread = threading.Thread(target=persist_feed, name='feed-worker', daemon=True)
+        event.listen(self.engine, 'before_cursor_execute', before_cursor)
+        event.listen(self.engine, 'after_cursor_execute', after_cursor)
+        try:
+            application_thread.start()
+            self.assertTrue(application_at_profile.wait(3),
+                            'Application tracking did not lock the later job before its profile')
+            worker_thread.start()
+            # On the safe path, the feed writer locks both existing changed jobs
+            # before any profile invalidation; it waits on B while the application
+            # owns B. The old per-new-job flush updates the profile after A first.
+            self.assertTrue(worker_waiting_for_job_b.wait(3),
+                            'Feed persistence did not reserve the later changed job')
+            self.assertFalse(worker_updated_profile.is_set(),
+                             'Feed persistence invalidated a profile before locking every changed job')
+            release_application_profile.set()
+            application_thread.join(8)
+            worker_thread.join(8)
+            self.assertFalse(application_thread.is_alive(), 'Application tracking did not finish')
+            self.assertFalse(worker_thread.is_alive(), 'Feed persistence did not finish')
+            self.assertEqual(errors, [])
+            self.assertFalse(worker_updated_profile.is_set(),
+                             'Source ingestion requeues jobs instead of writing profile rows')
+            with self.factory() as session:
+                self.assertEqual(session.get(Job, job_a_id).salary, '95000 USD')
+                self.assertEqual(session.get(Job, job_b_id).salary, '110000 USD')
+                self.assertIsNotNone(session.scalar(select(Job.id).where(
+                    Job.feed_id == feed_id, Job.external_id == 'multi-x')))
+        finally:
+            release_application_profile.set()
+            if application_thread.is_alive():
+                application_thread.join(8)
+            if worker_thread.is_alive():
+                worker_thread.join(8)
+            event.remove(self.engine, 'before_cursor_execute', before_cursor)
+            event.remove(self.engine, 'after_cursor_execute', after_cursor)
+
+    def test_discovery_change_new_job_change_reserves_later_job_before_profiles(self):
+        company_id, feed_id, _ = self.seed_feed()
+        with self.factory.begin() as session:
+            profile = UserProfile(name='Discovery batch lock test', preferences={})
+            job_a = Job(feed_id=feed_id, external_id='discovery-a', title='Engineer',
+                        description='Build software.', url='https://example.test/discovery/a', is_active=True)
+            job_b = Job(feed_id=feed_id, external_id='discovery-b', title='Engineer',
+                        description='Maintain software.', url='https://example.test/discovery/b', is_active=True)
+            discovery_run = DiscoveryRun(company_id=company_id, status='running')
+            session.add_all([profile, job_a, job_b, discovery_run])
+            session.flush()
+            profile_id, job_a_id, job_b_id, discovery_run_id = (
+                profile.id, job_a.id, job_b.id, discovery_run.id)
+
+        application_at_profile = threading.Event()
+        release_application_profile = threading.Event()
+        discovery_waiting_for_job_b = threading.Event()
+        discovery_attempted_profile_reservation = threading.Event()
+        application_done = threading.Event()
+        discovery_done = threading.Event()
+        errors = []
+
+        def parameter_values(parameters):
+            return set(parameters.values()) if isinstance(parameters, dict) else set(parameters or ())
+
+        def before_cursor(_connection, _cursor, statement, parameters, _context, _many):
+            normalized = ' '.join(statement.upper().split())
+            thread_name = threading.current_thread().name
+            if (thread_name == 'discovery-writer' and 'FROM JOBS' in normalized and
+                    ('FOR NO KEY UPDATE' in normalized or 'FOR UPDATE' in normalized) and
+                    job_b_id in parameter_values(parameters)):
+                discovery_waiting_for_job_b.set()
+            if (thread_name == 'discovery-writer' and 'FROM USER_PROFILES' in normalized and
+                    _row_lock(normalized)):
+                discovery_attempted_profile_reservation.set()
+            if (thread_name == 'application-save' and 'FROM USER_PROFILES' in normalized and
+                    _row_lock(normalized)):
+                application_at_profile.set()
+                if not release_application_profile.wait(5):
+                    raise TimeoutError('Application tracking did not reach its profile lock')
+
+        def save_application():
+            try:
+                with self.factory() as session:
+                    api.set_job_application(profile_id, job_b_id,
+                                            api.ApplicationRequest(status='new'), session)
+            except Exception as error:
+                errors.append(error)
+            finally:
+                application_done.set()
+
+        def persist_discovery():
+            try:
+                result = {'status': 'career_content_found', 'pages': [], 'boards': [{
+                    'provider': 'rss', 'feed_url': 'https://example.test/jobs.xml',
+                    'board_url': 'https://example.test/jobs.xml', 'feed_state': 'parsed',
+                    'complete': False, 'jobs': [
+                        {'id': 'discovery-a', 'title': 'Engineer', 'url': 'https://example.test/discovery/a',
+                         'description': 'Build cloud software.'},
+                        {'id': 'discovery-x', 'title': 'Analyst', 'url': 'https://example.test/discovery/x',
+                         'description': 'Analyze business systems.'},
+                        {'id': 'discovery-b', 'title': 'Engineer', 'url': 'https://example.test/discovery/b',
+                         'description': 'Maintain data software.'},
+                    ],
+                }]}
+                with patch.object(discovery_worker, 'refresh_application_matches_for_jobs',
+                                  lambda *args, **kwargs: None):
+                    discovery_worker._persist_discovery(company_id, discovery_run_id, result)
+            except Exception as error:
+                errors.append(error)
+            finally:
+                discovery_done.set()
+
+        application_thread = threading.Thread(target=save_application, name='application-save', daemon=True)
+        discovery_thread = threading.Thread(target=persist_discovery, name='discovery-writer', daemon=True)
+        event.listen(self.engine, 'before_cursor_execute', before_cursor)
+        try:
+            application_thread.start()
+            self.assertTrue(application_at_profile.wait(3),
+                            'Application tracking did not lock the later job before its profile')
+            discovery_thread.start()
+            self.assertTrue(discovery_waiting_for_job_b.wait(3),
+                            'Discovery did not reserve the later existing job before profile rows')
+            self.assertFalse(discovery_attempted_profile_reservation.is_set(),
+                             'Discovery reserved profiles before all changed jobs were locked')
+            release_application_profile.set()
+            application_thread.join(8)
+            discovery_thread.join(8)
+            self.assertFalse(application_thread.is_alive(), 'Application tracking did not finish')
+            self.assertFalse(discovery_thread.is_alive(), 'Discovery persistence did not finish')
+            self.assertEqual(errors, [])
+            self.assertFalse(discovery_attempted_profile_reservation.is_set(),
+                             'Discovery ingestion must not lock profile rows')
+            with self.factory() as session:
+                self.assertEqual(session.get(Job, job_a_id).description, 'Build cloud software.')
+                self.assertEqual(session.get(Job, job_b_id).description, 'Maintain data software.')
+                self.assertIsNotNone(session.scalar(select(Job.id).where(
+                    Job.feed_id == feed_id, Job.external_id == 'discovery-x')))
+        finally:
+            release_application_profile.set()
+            if application_thread.is_alive():
+                application_thread.join(8)
+            if discovery_thread.is_alive():
+                discovery_thread.join(8)
+            event.remove(self.engine, 'before_cursor_execute', before_cursor)
+
+    def test_job_and_location_changes_requeue_one_job_without_profile_row_writes(self):
+        """Source edits queue the job without touching profiles."""
+        from hiring_scraper.app.models import MatchDirtyJob
+
+        _, feed_id, _ = self.seed_feed()
+        with self.factory.begin() as session:
+            profiles = [UserProfile(name=f'Lock order profile {index}', preferences={},
+                                    match_index_version=f'v{index}') for index in range(3)]
+            job = Job(feed_id=feed_id, external_id='profile-lock-order', title='Engineer',
+                      url='https://example.test/profile-lock-order', salary='90000 USD', is_active=True)
+            session.add_all([*profiles, job])
+            session.flush()
+            job_id = job.id
+            session.add(JobLocation(job_id=job_id, label='Berlin', country_code='DE'))
+        with self.factory.begin() as session:
+            session.execute(text('DELETE FROM match_dirty_jobs'))
+
+        def assert_job_requeued_without_profile_locks(mutate):
+            statements = []
+
+            def record(_connection, _cursor, statement, _parameters, _context, _many):
+                normalized = ' '.join(statement.upper().split())
+                if 'USER_PROFILES' in normalized and (
+                        'FOR UPDATE' in normalized or 'FOR NO KEY UPDATE' in normalized
+                        or normalized.startswith('UPDATE USER_PROFILES')):
+                    statements.append(normalized)
+
+            event.listen(self.engine, 'before_cursor_execute', record)
+            try:
+                with self.factory.begin() as session:
+                    mutate(session)
+            finally:
+                event.remove(self.engine, 'before_cursor_execute', record)
+            self.assertEqual(statements, [], 'Source ingestion must not lock or write profile rows')
+            with self.factory.begin() as session:
+                self.assertEqual(session.scalars(select(MatchDirtyJob.job_id)).all(), [job_id])
+                versions = session.scalars(select(UserProfile.match_index_version)
+                                           .order_by(UserProfile.id)).all()
+                self.assertEqual(versions, ['v0', 'v1', 'v2'], 'One job edit must not force a full rebuild')
+                session.execute(text('DELETE FROM match_dirty_jobs'))
+
+        def change_job(session):
+            reserve_job_source_rows(session, [job_id])
+            session.get(Job, job_id).salary = '100000 USD'
+            source_changes.jobs_changed(session, [job_id])
+
+        def change_location(session):
+            reserve_job_source_rows(session, [job_id])
+            location = session.scalar(select(JobLocation).where(JobLocation.job_id == job_id))
+            location.label = 'Hamburg'
+            source_changes.jobs_changed(session, [job_id])
+
+        assert_job_requeued_without_profile_locks(change_job)
+        assert_job_requeued_without_profile_locks(change_location)
+
+    def test_profile_publication_lock_does_not_block_foreign_key_inserts(self):
+        """A publisher holding a profile must not stall unrelated rows that reference it."""
+        _, feed_id, _ = self.seed_feed()
+        with self.factory.begin() as session:
+            profile = UserProfile(name='Publisher', preferences={})
+            jobs = [Job(feed_id=feed_id, external_id=f'fk-lock-{index}', title='Engineer',
+                        url=f'https://example.test/fk-lock/{index}', is_active=True) for index in range(2)]
+            session.add_all([profile, *jobs])
+            session.flush()
+            profile_id, job_ids = profile.id, [job.id for job in jobs]
+        from hiring_scraper.app.models import hold_profiles
+        for job_id, exclusive in zip(job_ids, (False, True)):
+            with self.factory() as publisher:
+                self.assertEqual(list(hold_profiles(publisher, [profile_id], exclusive=exclusive)), [profile_id])
+                with self.factory.begin() as writer:
+                    writer.add(JobApplication(profile_id=profile_id, job_id=job_id, status='new'))
+                publisher.rollback()
+        with self.factory() as session:
+            self.assertEqual(len(session.scalars(select(JobApplication.id).where(
+                JobApplication.profile_id == profile_id)).all()), 2)
+
+    def test_profile_publications_verify_versions_instead_of_queueing_behind_edits(self):
+        from hiring_scraper.app.models import ProfileIndexChanged, hold_profiles, profile_source_versions
+        with self.factory.begin() as session:
+            profile = UserProfile(name='Versioned', preferences={'skills': ['Python']})
+            session.add(profile)
+            session.flush()
+            profile_id = profile.id
+        with self.factory() as session:
+            expected = profile_source_versions(session, [profile_id])
+        # Shared holds let several publishers proceed together.
+        with self.factory() as first, self.factory() as second:
+            self.assertEqual(hold_profiles(first, expected, wait=False), expected)
+            self.assertEqual(hold_profiles(second, expected, wait=False), expected)
+            first.rollback()
+            second.rollback()
+        # An in-flight edit defers a worker publication immediately.
+        with self.factory() as editor:
+            editor.get(UserProfile, profile_id).preferences = {'skills': ['Go']}
+            source_changes.profile_changed(editor, profile_id)
+            with self.factory() as publisher, self.assertRaises(ProfileIndexChanged):
+                hold_profiles(publisher, expected, wait=False)
+            editor.commit()
+        # Once committed, the computed version is stale and publication is refused.
+        with self.factory() as publisher:
+            with self.assertRaisesRegex(ProfileIndexChanged, 'changed during matching'):
+                hold_profiles(publisher, expected)
+            self.assertEqual(profile_source_versions(publisher, [profile_id])[profile_id],
+                             expected[profile_id] + 1)
+
+    def test_source_change_reserves_every_job_updated_in_the_flush_without_profiles(self):
+        _, feed_id, _ = self.seed_feed()
+        with self.factory.begin() as session:
+            profile = UserProfile(name='Bookkeeping lock profile', preferences={})
+            job_a = Job(feed_id=feed_id, external_id='source-change-a', title='Engineer',
+                        url='https://example.test/source-change/a', salary='90000 USD', is_active=True)
+            job_b = Job(feed_id=feed_id, external_id='source-change-b', title='Engineer',
+                        url='https://example.test/source-change/b', salary='100000 USD', is_active=True)
+            session.add_all([profile, job_a, job_b])
+            session.flush()
+            job_a_id, job_b_id = job_a.id, job_b.id
+
+        statements = []
+        def record(_connection, _cursor, statement, parameters, _context, _many):
+            normalized = ' '.join(statement.upper().split())
+            if (('FROM JOBS' in normalized and
+                 ('FOR NO KEY UPDATE' in normalized or 'FOR UPDATE' in normalized)) or
+                    ('FROM USER_PROFILES' in normalized and _row_lock(normalized))):
+                values = set(parameters.values()) if isinstance(parameters, dict) else set(parameters or ())
+                statements.append((normalized, values))
+
+        event.listen(self.engine, 'before_cursor_execute', record)
+        try:
+            with self.factory.begin() as session:
+                # A writer locks every job it will write, bookkeeping included, in id order.
+                reserve_job_source_rows(session, [job_a_id, job_b_id])
+                session.get(Job, job_a_id).salary = '110000 USD'
+                session.get(Job, job_b_id).last_seen_at = utcnow()
+                source_changes.jobs_changed(session, [job_a_id])
+        finally:
+            event.remove(self.engine, 'before_cursor_execute', record)
+
+        job_reservations = [(index, values) for index, (statement, values) in enumerate(statements)
+                            if 'FROM JOBS' in statement]
+        profile_reservations = [index for index, (statement, _values) in enumerate(statements)
+                                if 'FROM USER_PROFILES' in statement]
+        self.assertTrue(job_reservations, f'No job source lock was taken: {statements}')
+        self.assertEqual(profile_reservations, [], f'Source edits must not lock profiles: {statements}')
+        _first_job_lock, locked_ids = job_reservations[0]
+        self.assertIn(job_a_id, locked_ids)
+        self.assertIn(job_b_id, locked_ids,
+                      'Bookkeeping-only Job UPDATEs must be locked together with source changes')
+
+    def test_complete_discovery_reserves_inactive_job_rows_without_profile_lock(self):
+        company_id, feed_id, _ = self.seed_feed()
+        with self.factory.begin() as session:
+            profile = UserProfile(name='Inactive discovery lock profile', preferences={})
+            job_a = Job(feed_id=feed_id, external_id='complete-a', title='Engineer',
+                        description='Build software.', url='https://example.test/complete/a', is_active=True)
+            job_b = Job(feed_id=feed_id, external_id='complete-b', title='Engineer',
+                        description='Maintain software.', url='https://example.test/complete/b', is_active=False)
+            job_c = Job(feed_id=feed_id, external_id='complete-c', title='Analyst',
+                        description='Analyze systems.', url='https://example.test/complete/c', is_active=False)
+            discovery_run = DiscoveryRun(company_id=company_id, status='running')
+            session.add_all([profile, job_a, job_b, job_c, discovery_run])
+            session.flush()
+            job_ids = {job_a.id, job_b.id, job_c.id}
+            discovery_run_id = discovery_run.id
+
+        locks_before_profile = []
+        def record(_connection, _cursor, statement, parameters, _context, _many):
+            normalized = ' '.join(statement.upper().split())
+            if ('FROM JOBS' in normalized and
+                    ('FOR NO KEY UPDATE' in normalized or 'FOR UPDATE' in normalized)):
+                values = set(parameters.values()) if isinstance(parameters, dict) else set(parameters or ())
+                locks_before_profile.append(('job', values))
+            if 'FROM USER_PROFILES' in normalized and _row_lock(normalized):
+                locks_before_profile.append(('profiles', set()))
+
+        result = {'status': 'career_content_found', 'pages': [], 'boards': [{
+            'provider': 'rss', 'feed_url': 'https://example.test/jobs.xml',
+            'board_url': 'https://example.test/jobs.xml', 'feed_state': 'parsed', 'complete': True,
+            'jobs': [
+                {'id': 'complete-a', 'title': 'Engineer', 'url': 'https://example.test/complete/a',
+                 'description': 'Build cloud software.'},
+                {'id': 'complete-new', 'title': 'Analyst', 'url': 'https://example.test/complete/new',
+                 'description': 'Analyze business systems.'},
+                {'id': 'complete-b', 'title': 'Engineer', 'url': 'https://example.test/complete/b',
+                 'description': 'Maintain cloud software.'},
+            ],
+        }]}
+        event.listen(self.engine, 'before_cursor_execute', record)
+        try:
+            with patch.object(discovery_worker, 'refresh_application_matches_for_jobs',
+                              lambda *args, **kwargs: None):
+                discovery_worker._persist_discovery(company_id, discovery_run_id, result)
+        finally:
+            event.remove(self.engine, 'before_cursor_execute', record)
+
+        self.assertNotIn('profiles', [kind for kind, _values in locks_before_profile],
+                         'Discovery ingestion must not lock profile rows')
+        first_job_lock = next(values for kind, values in locks_before_profile if kind == 'job')
+        self.assertTrue(job_ids.issubset(first_job_lock),
+                        'Complete boards update/reactivate inactive jobs, so they must all be reserved first')
+        with self.factory() as session:
+            self.assertTrue(session.scalar(select(Job).where(Job.external_id == 'complete-b')).is_active)
+            job_c = session.scalar(select(Job).where(Job.external_id == 'complete-c'))
+            self.assertEqual(job_c.missing_complete_scans, 1)
+
+    def assert_salary_edit_lock_order(self, competitor_kind):
+        _, feed_id, _ = self.seed_feed()
+        with self.factory.begin() as session:
+            profile = UserProfile(name='Salary lock test', preferences={
+                'desired_roles': ['Software developer'],
+                'skills': ['Python', 'SQL'],
+                'summary': 'I build and maintain software services.',
+                'matching_defaults': {'min_match_score': 30},
+            })
+            session.add(profile)
+            session.flush()
+            profile_id = profile.id
+
+        with self.factory.begin() as session:
+            job = Job(feed_id=feed_id, external_id=f'salary-lock-{competitor_kind}',
+                      title='Engineer', salary='100000 USD',
+                      description='Build and maintain reliable software services.',
+                      url=f'https://example.test/salary-lock-{competitor_kind}', is_active=True)
+            session.add(job)
+            session.flush()
+            job_id = job.id
+
+        competitor_at_profile = threading.Event()
+        release_competitor = threading.Event()
+        editor_requested_job = threading.Event()
+        editor_updated_profile = threading.Event()
+        errors = []
+
+        def before_cursor(_connection, _cursor, statement, _parameters, _context, _many):
+            normalized = ' '.join(statement.upper().split())
+            thread_name = threading.current_thread().name
+            if (thread_name == 'salary-editor' and 'FROM JOBS' in normalized and
+                    ('FOR NO KEY UPDATE' in normalized or 'FOR UPDATE' in normalized)):
+                editor_requested_job.set()
+            if thread_name == 'salary-editor' and normalized.startswith('UPDATE USER_PROFILES'):
+                editor_updated_profile.set()
+            if ('FROM USER_PROFILES' in normalized and _row_lock(normalized) and
+                    competitor_kind == 'application' and thread_name == 'application-save'):
+                competitor_at_profile.set()
+                if not release_competitor.wait(5):
+                    raise TimeoutError('Competing writer was not released')
+
+        def after_cursor(_connection, _cursor, statement, _parameters, _context, _many):
+            pass
+
+        def run_competitor():
+            try:
+                with self.factory() as session:
+                    session.execute(text("SET lock_timeout = '8s'"))
+                    api.set_job_application(profile_id, job_id,
+                                            api.ApplicationRequest(status='new'), session)
+            except Exception as error:
+                errors.append(error)
+
+        def edit_salary():
+            try:
+                with self.factory() as session:
+                    session.execute(text("SET lock_timeout = '8s'"))
+                    reserve_job_source_rows(session, [job_id])
+                    job = session.get(Job, job_id)
+                    job.salary = '120000 USD'
+                    source_changes.jobs_changed(session, [job_id])
+                    session.commit()
+            except Exception as error:
+                errors.append(error)
+
+        competitor_name = 'application-save'
+        competitor = threading.Thread(target=run_competitor, name=competitor_name, daemon=True)
+        editor = threading.Thread(target=edit_salary, name='salary-editor', daemon=True)
+        event.listen(self.engine, 'before_cursor_execute', before_cursor)
+        event.listen(self.engine, 'after_cursor_execute', after_cursor)
+        try:
+            competitor.start()
+            self.assertTrue(competitor_at_profile.wait(3),
+                            'Competing writer did not hold the job before requesting the profile')
+            editor.start()
+            self.assertTrue(editor_requested_job.wait(3),
+                            'Salary editor did not request the job lock before profile invalidation')
+            self.assertFalse(editor_updated_profile.wait(.2),
+                             'Salary editor updated the profile before obtaining the job lock')
+            release_competitor.set()
+            competitor.join(8)
+            editor.join(8)
+            self.assertFalse(competitor.is_alive(), 'Competing writer did not finish')
+            self.assertFalse(editor.is_alive(), 'Salary editor did not finish')
+            self.assertEqual(errors, [])
+            with self.factory() as session:
+                self.assertEqual(session.get(Job, job_id).salary, '120000 USD')
+        finally:
+            release_competitor.set()
+            if competitor.is_alive():
+                competitor.join(8)
+            if editor.is_alive():
+                editor.join(8)
+            event.remove(self.engine, 'before_cursor_execute', before_cursor)
+            event.remove(self.engine, 'after_cursor_execute', after_cursor)
+
+    def assert_job_writer_compatible_with_profile_index(self, writer_kind):
+        _, feed_id, _ = self.seed_feed()
+        with self.factory.begin() as session:
+            profile = UserProfile(name='Index lock test', preferences={
+                'desired_roles': ['Software developer'],
+                'skills': ['Python', 'SQL'],
+                'summary': 'I build and maintain software services.',
+                'matching_defaults': {'min_match_score': 30},
+            }, match_index_version=None)
+            session.add(profile)
+            session.flush()
+            profile_id = profile.id
+
+        with self.factory.begin() as session:
+            job = Job(feed_id=feed_id, external_id=f'lock-{writer_kind}', title='Engineer',
+                      description='Your tasks:\nBuild and maintain reliable software services.\n',
+                      url=f'https://example.test/lock-{writer_kind}', is_active=True)
+            session.add(job)
+            session.flush()
+            job_id = job.id
+
+        index_holds_profile = threading.Event()
+        continue_index = threading.Event()
+        writer_holds_job = threading.Event()
+        writer_waits_for_profile = threading.Event()
+        index_inserts_matches = threading.Event()
+        errors = []
+        index_results = []
+        writer_results = []
+
+        def after_cursor(_connection, _cursor, statement, _parameters, _context, _many):
+            normalized = ' '.join(statement.upper().split())
+            thread_name = threading.current_thread().name
+            if (thread_name == 'profile-index-rebuild' and 'FROM USER_PROFILES' in normalized and
+                    _row_lock(normalized)):
+                index_holds_profile.set()
+                if not continue_index.wait(5):
+                    raise TimeoutError('Index publisher was not released')
+            if (thread_name in {'job-editor', 'semantic-publisher'} and 'FROM JOBS' in normalized and
+                    ('FOR UPDATE' in normalized or 'FOR NO KEY UPDATE' in normalized)):
+                pass
+
+        def before_cursor(_connection, _cursor, statement, _parameters, _context, _many):
+            normalized = ' '.join(statement.upper().split())
+            thread_name = threading.current_thread().name
+            if (thread_name in {'job-editor', 'semantic-publisher'} and 'FROM JOBS' in normalized and
+                    ('FOR UPDATE' in normalized or 'FOR NO KEY UPDATE' in normalized)):
+                writer_holds_job.set()
+            if thread_name == 'profile-index-rebuild' and 'INSERT INTO PROFILE_JOB_MATCHES' in normalized:
+                index_inserts_matches.set()
+            if (thread_name == 'job-editor' and (
+                    normalized.startswith('UPDATE USER_PROFILES') or
+                    ('FROM USER_PROFILES' in normalized and _row_lock(normalized)))):
+                writer_waits_for_profile.set()
+            if (thread_name == 'semantic-publisher' and 'FROM USER_PROFILES' in normalized and
+                    _row_lock(normalized)):
+                writer_waits_for_profile.set()
+
+        def rebuild_index():
+            try:
+                with patch.object(job_search, 'SessionLocal', self.factory), \
+                        patch.object(job_search, 'match_job', return_value={
+                            'eligible': True, 'score': 70, 'fit_tier': 'recommended', 'uncertain': False}), \
+                        patch.object(job_search, 'application_match_allowed', return_value=False):
+                    index_results.append(job_search.refresh_profile_match_indexes_once())
+            except Exception as error:
+                errors.append(error)
+
+        def edit_job():
+            try:
+                with self.factory() as session:
+                    reserve_job_source_rows(session, [job_id])
+                    job = session.get(Job, job_id)
+                    job.description = 'Your tasks:\nDesign and validate electronic hardware.\n'
+                    source_changes.jobs_changed(session, [job_id])
+                    session.commit()
+                writer_results.append(True)
+            except Exception as error:
+                errors.append(error)
+
+        writer_thread = threading.Thread(target=edit_job, name='job-editor', daemon=True)
+        index_thread = threading.Thread(target=rebuild_index, name='profile-index-rebuild', daemon=True)
+        event.listen(self.engine, 'after_cursor_execute', after_cursor)
+        event.listen(self.engine, 'before_cursor_execute', before_cursor)
+        try:
+            index_thread.start()
+            self.assertTrue(index_holds_profile.wait(3), 'Index rebuild did not lock the profile before publishing')
+            writer_thread.start()
+            self.assertTrue(writer_holds_job.wait(3), 'Job writer did not lock its source row')
+            self.assertFalse(writer_waits_for_profile.is_set(), 'Job writer must reserve the job before profiles')
+            continue_index.set()
+            self.assertTrue(index_inserts_matches.wait(3), 'Full index did not publish the job match')
+            index_thread.join(6)
+            writer_thread.join(6)
+            self.assertFalse(index_thread.is_alive(), 'Profile index rebuild did not finish')
+            self.assertFalse(writer_thread.is_alive(), 'Job writer did not finish')
+            self.assertEqual(errors, [])
+            self.assertEqual(index_results, [True])
+            self.assertEqual(writer_results, [True])
+            with self.factory() as session:
+                self.assertIsNotNone(session.get(ProfileJobMatch, (profile_id, job_id)))
+        finally:
+            continue_index.set()
+            if index_thread.is_alive():
+                index_thread.join(6)
+            if writer_thread.is_alive():
+                writer_thread.join(6)
+            event.remove(self.engine, 'after_cursor_execute', after_cursor)
+            event.remove(self.engine, 'before_cursor_execute', before_cursor)
+
     def test_journey_reads_while_background_matching_is_pending(self):
         _, feed_id, _ = self.seed_feed()
         with self.factory.begin() as session:
             profile = UserProfile(name='Journey refresh', preferences={'matching_defaults': {'min_match_score': 0}})
             job = Job(feed_id=feed_id, external_id='journey', title='Engineer',
-                      url='https://example.test/journey', is_remote=True)
+                      url='https://example.test/journey', is_remote=True,
+                      description='Build backend services for customers.')
             session.add_all([profile, job])
             session.flush()
+            source_changes.jobs_changed(session, [job.id])
             profile_id, job_id = profile.id, job.id
-        with patch.object(api, 'IS_SQLITE', False):
-            with self.factory() as session:
-                pending = api.list_applications(profile_ids=str(profile_id), statuses='all', session=session)
-            self.assertTrue(pending['matching_pending'])
-            self.assertEqual(pending['items'], [])
-            # Another replica's worker owns the backfill; this replica must
-            # return without blocking or touching the profile's index.
-            with self.factory() as owner, patch.object(job_search, 'SessionLocal', self.factory):
-                owner.execute(text('SELECT pg_advisory_xact_lock(85793011, 4)'))
-                self.assertFalse(job_search.refresh_profile_match_indexes_once())
-            with self.factory() as feed_initializer, patch.object(job_search, 'SessionLocal', self.factory):
-                # Feed bootstrap has a separate lock and must not prevent
-                # matching work (or be blocked by a long matching scan).
-                feed_initializer.execute(text('SELECT pg_advisory_xact_lock(85793011, 3)'))
-                self.assertTrue(job_search.refresh_profile_match_indexes_once())
-                self.assertFalse(job_search.refresh_profile_match_indexes_once())
-            with self.factory() as session:
-                ready = api.list_applications(profile_ids=str(profile_id), statuses='all', session=session)
-            self.assertFalse(ready['matching_pending'])
-            self.assertEqual([item['id'] for item in ready['items']], [job_id])
+        with self.factory() as session:
+            pending = api.list_applications(profile_ids=str(profile_id), statuses='all', session=session)
+        self.assertTrue(pending['matching_pending'])
+        self.assertEqual(pending['items'], [])
+        # The local models analyse the posting first (stand-ins in tests).
+        analyse_all(self.engine, drain_rematch=False)
+        # Another replica's worker owns the backfill; this replica must
+        # return without blocking or touching the profile's index.
+        with self.factory() as owner, patch.object(job_search, 'SessionLocal', self.factory):
+            owner.execute(text('SELECT pg_advisory_xact_lock(85793011, 4)'))
+            self.assertFalse(job_search.refresh_profile_match_indexes_once())
+        with self.factory() as feed_initializer, patch.object(job_search, 'SessionLocal', self.factory):
+            # Feed bootstrap has a separate lock and must not prevent
+            # matching work (or be blocked by a long matching scan).
+            feed_initializer.execute(text('SELECT pg_advisory_xact_lock(85793011, 3)'))
+            self.assertTrue(job_search.refresh_profile_match_indexes_once())
+            self.assertFalse(job_search.refresh_profile_match_indexes_once())
+            self.assertTrue(job_search.refresh_dirty_job_matches_once())
+        with self.factory() as session:
+            ready = api.list_applications(profile_ids=str(profile_id), statuses='all', session=session)
+        self.assertFalse(ready['matching_pending'])
+        self.assertEqual([item['id'] for item in ready['items']], [job_id])
 
     def test_disjoint_source_flushes_do_not_share_a_lock_until_commit(self):
         company_id, _, _ = self.seed_feed()
@@ -100,15 +783,15 @@ class PostgresConcurrencyTests(unittest.TestCase):
             other_id = other.id
         with self.factory() as first, self.factory() as second:
             first.get(Company, company_id).name = 'First write'
-            first.flush()
+            source_changes.companies_changed(first, [company_id])
             second.get(Company, other_id).name = 'Second write'
-            second.flush()
+            source_changes.companies_changed(second, [other_id])
             second.commit()
             with self.factory() as observer:
-                before_first_commit = api._search_generation(observer)
+                before_first_commit = search_snapshots.search_generation(observer)
             first.commit()
             with self.factory() as observer:
-                self.assertGreater(api._search_generation(observer), before_first_commit)
+                self.assertGreater(search_snapshots.search_generation(observer), before_first_commit)
 
     def test_feed_finalization_waits_for_company_without_holding_feed(self):
         self.assert_company_first(lambda feed_id, run_id: worker._persist_result(
@@ -323,7 +1006,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
                 event.listen(self.engine, 'before_cursor_execute', pause)
                 def finish():
                     try:
-                        api._finish_search_snapshot_refresh(key, 'old', requested, retry=retry)
+                        search_snapshots._finish_search_snapshot_refresh(key, 'old', requested, retry=retry)
                     except Exception as error:
                         errors.append(error)
                 thread = threading.Thread(target=finish, name='snapshot-finisher')
@@ -430,7 +1113,8 @@ class PostgresConcurrencyTests(unittest.TestCase):
 
         def observe_retirement_lock(_conn, _cursor, statement, *_args):
             if (threading.current_thread().name == 'feed-retirement' and
-                    'FROM user_profiles' in statement and 'FOR UPDATE' in statement):
+                    (('FROM user_profiles' in statement and _row_lock(statement)) or
+                     ('FROM jobs' in statement and 'FOR NO KEY UPDATE' in statement))):
                 retirement_waiting_for_profile.set()
 
         event.listen(self.engine, 'after_cursor_execute', pause_index_before_publish)
@@ -465,7 +1149,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
             self.assertTrue(index_at_publish.wait(3), 'index rebuild did not reach its publish check')
             retirement_thread.start()
             progressed = (retirement_waiting_for_profile.wait(3) or retirement_done.wait(0.1))
-            self.assertTrue(progressed, 'feed retirement neither blocked on nor finished its profile update')
+            self.assertTrue(progressed, 'feed retirement neither reserved its source nor finished')
         finally:
             release_index.set()
             index_thread.join(6)
@@ -477,6 +1161,8 @@ class PostgresConcurrencyTests(unittest.TestCase):
         self.assertFalse(index_thread.is_alive())
         self.assertFalse(retirement_thread.is_alive())
         self.assertEqual(errors, [])
+        with patch.object(job_search, 'SessionLocal', self.factory):
+            self.assertTrue(job_search.refresh_dirty_job_matches_once())
         with self.factory() as session:
             self.assertFalse(session.get(Job, job_id).is_active)
             self.assertIsNone(session.get(ProfileJobMatch, (profile_id, job_id)))
@@ -485,7 +1171,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
             self.assertEqual(application.status, 'closed')
             self.assertEqual(application.previous_status, 'new')
 
-    def test_inventory_writer_cannot_commit_between_index_check_and_publish(self):
+    def test_same_job_writer_cannot_commit_between_index_check_and_publish(self):
         with self.factory.begin() as session:
             profile = UserProfile(name='Developer', preferences={})
             company = Company(source='test', source_id='generation-guard', name='Employer')
@@ -515,8 +1201,11 @@ class PostgresConcurrencyTests(unittest.TestCase):
                         raise AssertionError('index publication was not released')
 
         def observe_inventory_writer(_conn, _cursor, statement, *_args):
-            if (threading.current_thread().name == 'inventory-writer' and
-                    'pg_advisory_xact_lock(85793011, 2)' in statement):
+            normalized = ' '.join(statement.upper().split())
+            if (threading.current_thread().name == 'inventory-writer' and (
+                    'PG_ADVISORY_XACT_LOCK(85793011, 2)' in normalized or
+                    ('FROM JOBS' in normalized and 'FOR NO KEY UPDATE' in normalized) or
+                    ('FROM USER_PROFILES' in normalized and _row_lock(normalized)))):
                 writer_waiting_for_guard.set()
 
         event.listen(self.engine, 'after_cursor_execute', pause_index)
@@ -536,8 +1225,10 @@ class PostgresConcurrencyTests(unittest.TestCase):
         def update_inventory():
             try:
                 with self.factory.begin() as session:
+                    reserve_job_source_rows(session, [job_id])
                     job = session.get(Job, job_id)
                     job.description = 'Updated inventory while the index was publishing'
+                    source_changes.jobs_changed(session, [job_id])
             except Exception as error:
                 errors.append(error)
             finally:
@@ -550,7 +1241,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
             self.assertTrue(index_at_final_check.wait(3), 'index rebuild did not reach its final check')
             writer_thread.start()
             self.assertTrue(writer_waiting_for_guard.wait(3),
-                            'inventory writer did not request the shared generation guard')
+                            'inventory writer did not reserve its source row')
             self.assertFalse(writer_done.wait(0.2),
                              'inventory generation committed before index publication completed')
         finally:
@@ -568,7 +1259,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
             self.assertEqual(session.get(Job, job_id).description,
                              'Updated inventory while the index was publishing')
 
-    def test_detail_enrichment_and_feed_retirement_use_compatible_job_profile_locks(self):
+    def test_detail_enrichment_and_feed_retirement_serialize_on_job_rows(self):
         with self.factory.begin() as session:
             company = Company(source='managed_feed', source_id='enrichment-lock-order', name='Employer')
             session.add(company)
@@ -585,7 +1276,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
             enrichment.refresh_enrichment(job)
             feed_id, job_id = feed.id, job.id
 
-        enrichment_at_profile_lock = threading.Event()
+        enrichment_holds_job = threading.Event()
         release_enrichment = threading.Event()
         retirement_at_job_lock = threading.Event()
         retirement_done = threading.Event()
@@ -599,15 +1290,22 @@ class PostgresConcurrencyTests(unittest.TestCase):
             if threading.current_thread().name == 'detail-enrichment':
                 if 'FROM USER_PROFILES' in normalized:
                     lock_order.append('profiles')
-                    enrichment_at_profile_lock.set()
-                    if not release_enrichment.wait(6):
-                        raise AssertionError('detail enrichment did not resume')
                 elif 'FROM JOBS' in normalized:
                     lock_order.append('jobs')
-            elif threading.current_thread().name == 'feed-retirement' and 'FROM JOBS' in normalized:
+                    if not enrichment_holds_job.is_set():
+                        # Pause while holding the job row; retirement must queue behind it.
+                        enrichment_holds_job.set()
+                        if not release_enrichment.wait(6):
+                            raise AssertionError('detail enrichment did not resume')
+
+        def observe_retirement(_conn, _cursor, statement, *_args):
+            normalized = ' '.join(statement.upper().split())
+            if (threading.current_thread().name == 'feed-retirement' and 'FROM JOBS' in normalized
+                    and 'FOR NO KEY UPDATE' in normalized):
                 retirement_at_job_lock.set()
 
-        event.listen(self.engine, 'before_cursor_execute', coordinate)
+        event.listen(self.engine, 'after_cursor_execute', coordinate)
+        event.listen(self.engine, 'before_cursor_execute', observe_retirement)
 
         class OfflineClient:
             def get(self, _url):
@@ -634,8 +1332,8 @@ class PostgresConcurrencyTests(unittest.TestCase):
         retirement_thread = threading.Thread(target=retire_feed, name='feed-retirement')
         try:
             enrichment_thread.start()
-            self.assertTrue(enrichment_at_profile_lock.wait(3),
-                            'detail enrichment did not begin its match profile lock')
+            self.assertTrue(enrichment_holds_job.wait(3),
+                            'detail enrichment did not lock its job row')
             retirement_thread.start()
             # Retirement must wait for the enrichment job lock before it can
             # refresh profiles. Reversing that order reintroduces the deadlock.
@@ -650,12 +1348,13 @@ class PostgresConcurrencyTests(unittest.TestCase):
             enrichment_thread.join(8)
             if retirement_thread.ident is not None:
                 retirement_thread.join(8)
-            event.remove(self.engine, 'before_cursor_execute', coordinate)
+            event.remove(self.engine, 'after_cursor_execute', coordinate)
+            event.remove(self.engine, 'before_cursor_execute', observe_retirement)
 
         self.assertFalse(enrichment_thread.is_alive())
         self.assertFalse(retirement_thread.is_alive())
         self.assertEqual(errors, [])
-        self.assertLess(lock_order.index('jobs'), lock_order.index('profiles'))
+        self.assertNotIn('profiles', lock_order, 'Enrichment ingestion must not lock profile rows')
         with self.factory() as session:
             self.assertFalse(session.get(Job, job_id).is_active)
 
@@ -693,12 +1392,14 @@ class PostgresConcurrencyTests(unittest.TestCase):
                     raise AssertionError('detail request did not resume')
                 return {'state': 'network_error'}, b''
 
-        def pause_worker_match(*args):
+        original_refresh = worker.refresh_application_matches_for_jobs
+        def pause_worker_match(*args, **kwargs):
+            original_refresh(*args, **kwargs)
             if threading.current_thread().name == 'feed-worker':
                 worker_matching.set()
                 if not release_worker_matching.wait(6):
                     raise AssertionError('feed match computation did not resume')
-            return {'eligible': False}
+            return {'eligible': False, 'score': 0}
 
         def observe_detail_lock(_conn, _cursor, statement, *_args):
             normalized = ' '.join(statement.upper().split())
@@ -732,7 +1433,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
         try:
             detail_thread.start()
             self.assertTrue(detail_fetch_started.wait(3), 'detail enrichment did not fetch its candidate')
-            with patch.object(job_search, 'match_job', side_effect=pause_worker_match):
+            with patch.object(worker, 'refresh_application_matches_for_jobs', side_effect=pause_worker_match):
                 worker_thread.start()
                 self.assertTrue(worker_matching.wait(3), 'feed worker did not begin match refresh')
                 release_detail_fetch.set()
@@ -756,7 +1457,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
             self.assertEqual(session.get(Job, job_id).description,
                              'New verified description from the feed')
 
-    def test_enrichment_backfill_updates_job_rows_before_locking_profiles(self):
+    def test_enrichment_backfill_queues_without_locking_profiles(self):
         with self.factory.begin() as session:
             company = Company(source='managed_feed', source_id='enrichment-cache-lock-order', name='Employer')
             feed = JobFeed(company=company, provider='rss', feed_url='https://example.test/jobs.xml',
@@ -766,13 +1467,18 @@ class PostgresConcurrencyTests(unittest.TestCase):
             session.add(Job(feed_id=feed.id, external_id='role', title='Developer',
                             url='https://example.test/jobs/role', is_active=True))
 
+        from hiring_scraper.app.models import MatchDirtyJob
+        with self.factory.begin() as session:
+            session.query(MatchDirtyJob).delete()
+
         lock_order = []
 
         def record(_conn, _cursor, statement, *_args):
             normalized = ' '.join(statement.upper().split())
-            if normalized.startswith('UPDATE JOBS'):
+            if (normalized.startswith('UPDATE JOBS') or ('FROM JOBS' in normalized and
+                    ('FOR NO KEY UPDATE' in normalized or 'FOR UPDATE' in normalized))):
                 lock_order.append('jobs')
-            elif 'FROM USER_PROFILES' in normalized and 'FOR UPDATE' in normalized:
+            elif 'FROM USER_PROFILES' in normalized and _row_lock(normalized):
                 lock_order.append('profiles')
 
         event.listen(self.engine, 'before_cursor_execute', record)
@@ -781,9 +1487,12 @@ class PostgresConcurrencyTests(unittest.TestCase):
         finally:
             event.remove(self.engine, 'before_cursor_execute', record)
 
-        self.assertLess(lock_order.index('jobs'), lock_order.index('profiles'))
+        self.assertIn('jobs', lock_order)
+        self.assertNotIn('profiles', lock_order)
+        with self.factory() as session:
+            self.assertTrue(session.scalars(select(MatchDirtyJob)).all())
 
-    def test_job_application_uses_no_key_lock_while_index_publication_holds_profile(self):
+    def test_application_tracking_waits_for_identity_publication_before_row_locks(self):
         with self.factory.begin() as session:
             profile = UserProfile(name='Developer', preferences={})
             company = Company(source='managed_feed', source_id='application-index-lock', name='Employer')
@@ -798,21 +1507,24 @@ class PostgresConcurrencyTests(unittest.TestCase):
         index_at_publish = threading.Event()
         release_index = threading.Event()
         application_waiting_for_profile = threading.Event()
+        application_attempts_row_lock = threading.Event()
         application_done = threading.Event()
         errors = []
 
         def pause_index(_conn, _cursor, statement, *_args):
             normalized = ' '.join(statement.upper().split())
             if (threading.current_thread().name == 'profile-index-rebuild' and
-                    'FROM USER_PROFILES' in normalized and 'FOR UPDATE' in normalized):
+                    'FROM USER_PROFILES' in normalized and _row_lock(normalized)):
                 index_at_publish.set()
                 if not release_index.wait(5):
                     raise AssertionError('index publication was not released')
 
         def observe_application(_conn, _cursor, statement, *_args):
-            if (threading.current_thread().name == 'application-save' and
-                    'FROM USER_PROFILES' in statement.upper() and 'FOR UPDATE' in statement.upper()):
-                application_waiting_for_profile.set()
+            if threading.current_thread().name == 'application-save':
+                if 'pg_advisory_xact_lock(85793011, 6)' in statement:
+                    application_waiting_for_profile.set()
+                if 'FOR UPDATE' in statement.upper() or 'FOR NO KEY UPDATE' in statement.upper():
+                    application_attempts_row_lock.set()
 
         event.listen(self.engine, 'after_cursor_execute', pause_index)
         event.listen(self.engine, 'before_cursor_execute', observe_application)
@@ -846,7 +1558,9 @@ class PostgresConcurrencyTests(unittest.TestCase):
             self.assertTrue(index_at_publish.wait(3), 'profile index did not reach publication')
             application_thread.start()
             progressed = (application_waiting_for_profile.wait(3) or application_done.wait(0.1))
-            self.assertTrue(progressed, 'application save did not wait for its profile publication lock')
+            self.assertTrue(progressed, 'application save did not wait for identity publication')
+            self.assertFalse(application_attempts_row_lock.is_set(),
+                             'Application save reserved rows before acquiring its identity guard')
             self.assertFalse(application_done.wait(0.2),
                              'application save bypassed the profile lock held by index publication')
         finally:
@@ -882,19 +1596,21 @@ class PostgresConcurrencyTests(unittest.TestCase):
         continue_matching = threading.Event()
         errors = []
 
-        def slow_match(*_args):
+        def slow_match(*_args, **_kwargs):
             matching_started.set()
             if not continue_matching.wait(6):
                 raise AssertionError('cached match computation did not resume')
-            return {'eligible': False}
+            return {'eligible': False, 'score': 0}
 
         def backfill():
             try:
-                enrichment.backfill(1, fetch_details=False)
+                job_search.refresh_dirty_job_matches_once()
             except Exception as error:
                 errors.append(error)
 
-        with patch.object(job_search, 'match_job', side_effect=slow_match):
+        enrichment.backfill(1, fetch_details=False)
+        with patch.object(job_search, 'SessionLocal', self.factory), \
+                patch.object(job_search, 'match_job', side_effect=slow_match):
             thread = threading.Thread(target=backfill, name='cached-enrichment')
             thread.start()
             try:
@@ -913,9 +1629,8 @@ class PostgresConcurrencyTests(unittest.TestCase):
         with self.factory.begin() as session:
             for kind in ('company', 'job'):
                 session.add(SemanticSearchIndexState(entity_type=kind,
-                    model_revision=api._SEMANTIC_MODEL_KEY, backfill_complete=True))
-        single = create_engine(os.environ['TEST_POSTGRES_URL'], pool_size=1, max_overflow=0,
-            pool_timeout=.1, connect_args={'options': f'-c search_path={self.schema},public'})
+                    model_revision=api.SEMANTIC_MODEL_KEY, backfill_complete=True))
+        single = create_engine(pg.url(), pool_size=1, max_overflow=0, pool_timeout=.1)
         class EmbeddingReached(Exception):
             pass
         def embedding(_query):
@@ -925,7 +1640,6 @@ class PostgresConcurrencyTests(unittest.TestCase):
         try:
             for kind in ('company', 'job'):
                 with self.subTest(kind=kind), self.factory.class_(single) as session, \
-                        patch.object(api, 'IS_SQLITE', False), \
                         patch.object(api, '_query_embedding', side_effect=embedding):
                     with self.assertRaises(EmbeddingReached):
                         if kind == 'company':
@@ -974,3 +1688,257 @@ class PostgresConcurrencyTests(unittest.TestCase):
                 self.assertEqual(recovered.scalar(text('SELECT 1')), 1)
         finally:
             bounded.dispose()
+
+    def seed_match_page(self):
+        _, feed_id, run_id = self.seed_feed()
+        with self.factory.begin() as session:
+            profile = UserProfile(name='Page profile', preferences={})
+            jobs = [Job(feed_id=feed_id, external_id=f'page-{i}', title='Developer',
+                        url=f'https://example.test/page-{i}', is_remote=True) for i in range(4)]
+            session.add_all([profile, *jobs]); session.flush()
+            # Ingestion declares new postings, which queues them for matching.
+            source_changes.jobs_changed(session, [job.id for job in jobs])
+            return feed_id, run_id, profile.id, [job.id for job in jobs]
+
+    def test_identity_union_does_not_block_unrelated_source_commit(self):
+        from hiring_scraper.app.application_deduplication import index_vacancy_identities
+        feed_id, run_id, _, job_ids = self.seed_match_page()
+        with self.factory() as identity_writer:
+            index_vacancy_identities(identity_writer, job_ids)
+            with self.factory() as observer:
+                previous_generation = search_snapshots.search_generation(observer)
+            # Keep actual identity writes uncommitted, as during deduplication
+            # and search-copy materialization. An unrelated source can commit.
+            worker._persist_result(feed_id, run_id, {
+                'state': 'ok', 'status': 200, 'parsed_feed': {'complete': False, 'jobs': [{
+                    'id': 'independent-new', 'title': 'Developer',
+                    'url': 'https://example.test/independent-new',
+                    'description': 'New independently ingested source',
+                }]}}, b'', 1)
+            with self.factory() as observer:
+                self.assertGreater(search_snapshots.search_generation(observer), previous_generation)
+                self.assertIsNotNone(observer.scalar(select(Job.id).where(
+                    Job.feed_id == feed_id, Job.external_id == 'independent-new')))
+
+    def test_explicit_full_index_publication_does_not_hold_source_commit_fence(self):
+        from hiring_scraper.app.models import MatchDirtyJob
+        feed_id, _, profile_id, _ = self.seed_match_page()
+        inserted = []
+        def ingest_during_publication(_connection, _cursor, statement, *_args):
+            if inserted or not statement.upper().startswith('INSERT INTO PROFILE_JOB_MATCHES'):
+                return
+            with self.factory.begin() as source:
+                job = Job(feed_id=feed_id, external_id='after-index-check', title='Developer',
+                          url='https://example.test/after-index-check', is_remote=True)
+                source.add(job)
+                source.flush()
+                source_changes.jobs_changed(source, [job.id])
+                inserted.append(job.id)
+        event.listen(self.engine, 'before_cursor_execute', ingest_during_publication)
+        try:
+            with self.factory.begin() as session:
+                self.assertTrue(job_search.ensure_profile_match_indexes(
+                    session, [session.get(UserProfile, profile_id)]))
+        finally:
+            event.remove(self.engine, 'before_cursor_execute', ingest_during_publication)
+        self.assertEqual(len(inserted), 1)
+        with self.factory() as session:
+            self.assertIsNotNone(session.get(MatchDirtyJob, inserted[0]))
+            self.assertFalse(job_search.profile_match_index_stale(session.get(UserProfile, profile_id)))
+        with patch.object(job_search, 'SessionLocal', self.factory):
+            self.assertTrue(job_search.refresh_dirty_job_matches_once())
+        with self.factory() as session:
+            self.assertIsNotNone(session.get(ProfileJobMatch, (profile_id, inserted[0])))
+
+    def test_dirty_identity_work_without_profiles_is_retained_when_union_is_busy(self):
+        from hiring_scraper.app.models import MatchDirtyJob
+        self.seed_match_page()
+        with self.factory.begin() as session:
+            session.query(UserProfile).delete()
+        with self.factory() as owner, patch.object(job_search, 'SessionLocal', self.factory):
+            owner.execute(text('SELECT pg_advisory_xact_lock(85793011, 6)'))
+            with self.assertRaises(job_search.ProfileIndexChanged):
+                job_search.refresh_dirty_job_matches_once()
+            with self.factory() as session:
+                self.assertEqual(len(session.scalars(select(MatchDirtyJob)).all()), 4)
+        with patch.object(job_search, 'SessionLocal', self.factory):
+            self.assertTrue(job_search.refresh_dirty_job_matches_once())
+        with self.factory() as session:
+            self.assertEqual(session.scalars(select(MatchDirtyJob)).all(), [])
+
+    def test_busy_identity_union_defers_pages_without_row_locks_or_acknowledgements(self):
+        from hiring_scraper.app.models import MatchDirtyJob, ProfileMatchProgress
+        _, _, profile_id, job_ids = self.seed_match_page()
+        with self.factory() as session:
+            api.set_job_application(profile_id, job_ids[0], api.ApplicationRequest(status='interview'), session)
+        with patch.object(job_search, 'SessionLocal', self.factory), \
+                patch.object(job_search, '_MATCH_WORK_PAGE_SIZE', 2):
+            self.assertTrue(job_search.refresh_profile_match_indexes_once())
+            with self.factory() as session:
+                checkpoint = session.get(ProfileMatchProgress, profile_id).cursor
+                revisions = dict(session.execute(select(MatchDirtyJob.job_id, MatchDirtyJob.revision)).all())
+                scores = session.execute(select(ProfileJobMatch.profile_id, ProfileJobMatch.job_id,
+                    ProfileJobMatch.match_score)).all()
+            checked = []
+            def check_unlocked_rows(_connection, _cursor, statement, *_args):
+                if 'pg_try_advisory_xact_lock(85793011, 6)' not in statement:
+                    return
+                with self.factory.begin() as editor:
+                    self.assertEqual(editor.scalar(select(Job.id).where(Job.id == job_ids[0])
+                        .with_for_update(nowait=True)), job_ids[0])
+                    self.assertEqual(editor.scalar(select(UserProfile.id).where(UserProfile.id == profile_id)
+                        .with_for_update(nowait=True)), profile_id)
+                checked.append(True)
+            event.listen(self.engine, 'after_cursor_execute', check_unlocked_rows)
+            try:
+                with self.factory() as owner:
+                    owner.execute(text('SELECT pg_advisory_xact_lock(85793011, 6)'))
+                    for refresh in (job_search.refresh_dirty_job_matches_once,
+                                    job_search.refresh_profile_match_indexes_once):
+                        with self.subTest(worker=refresh.__name__):
+                            with self.assertRaises(job_search.ProfileIndexChanged):
+                                refresh()
+                            with self.factory() as session:
+                                self.assertEqual(dict(session.execute(select(MatchDirtyJob.job_id,
+                                    MatchDirtyJob.revision)).all()), revisions)
+                                self.assertEqual(session.get(ProfileMatchProgress, profile_id).cursor, checkpoint)
+                                self.assertEqual(session.execute(select(ProfileJobMatch.profile_id,
+                                    ProfileJobMatch.job_id, ProfileJobMatch.match_score)).all(), scores)
+                                self.assertIsNone(session.get(UserProfile, profile_id).match_index_version)
+            finally:
+                event.remove(self.engine, 'after_cursor_execute', check_unlocked_rows)
+            self.assertEqual(checked, [True, True])
+            self.assertTrue(job_search.refresh_profile_match_indexes_once())
+            self.assertTrue(job_search.refresh_dirty_job_matches_once())
+            with self.factory() as session:
+                remaining = dict(session.execute(select(MatchDirtyJob.job_id, MatchDirtyJob.revision)).all())
+                self.assertEqual(len(remaining), 2)
+                self.assertTrue(remaining.items() <= revisions.items())
+            self.assertTrue(job_search.refresh_dirty_job_matches_once())
+        with self.factory() as session:
+            self.assertEqual(session.scalars(select(MatchDirtyJob)).all(), [])
+            self.assertIsNone(session.get(ProfileMatchProgress, profile_id))
+            self.assertFalse(job_search.profile_match_index_stale(session.get(UserProfile, profile_id)))
+            self.assertEqual(session.scalar(select(JobApplication.status).where(
+                JobApplication.profile_id == profile_id, JobApplication.job_id == job_ids[0])), 'interview')
+
+    def test_concurrent_identity_unions_retain_one_group(self):
+        from hiring_scraper.app.application_deduplication import index_vacancy_identities
+        from hiring_scraper.app.models import JobVacancyGroup, JobVacancyIdentity
+        _, _, _, job_ids = self.seed_match_page()
+        with self.factory.begin() as session:
+            session.get(Job, job_ids[1]).url = session.get(Job, job_ids[0]).url
+        waiting = threading.Event()
+        completed = threading.Event()
+        errors = []
+        def observe_guard(_connection, _cursor, statement, *_args):
+            if (threading.current_thread().name == 'identity-union' and
+                    'pg_advisory_xact_lock' in statement):
+                waiting.set()
+        def union_copy():
+            try:
+                with self.factory.begin() as session:
+                    index_vacancy_identities(session, [job_ids[1]])
+            except Exception as error:
+                errors.append(error)
+            finally:
+                completed.set()
+        writer = threading.Thread(target=union_copy, name='identity-union', daemon=True)
+        event.listen(self.engine, 'before_cursor_execute', observe_guard)
+        try:
+            with self.factory() as owner:
+                index_vacancy_identities(owner, [job_ids[0]])
+                writer.start()
+                self.assertTrue(waiting.wait(3), 'Concurrent identity union did not reach its guard')
+                self.assertFalse(completed.wait(.2), 'Concurrent union bypassed its owner')
+                owner.commit()
+            writer.join(5)
+            self.assertFalse(writer.is_alive())
+            self.assertEqual(errors, [])
+            with self.factory() as session:
+                self.assertEqual(set(session.scalars(select(JobVacancyGroup.vacancy_group_id).where(
+                    JobVacancyGroup.job_id.in_(job_ids[:2])))), {job_ids[0]})
+                self.assertEqual(set(session.scalars(select(JobVacancyIdentity.vacancy_group_id))), {job_ids[0]})
+        finally:
+            writer.join(5)
+            event.remove(self.engine, 'before_cursor_execute', observe_guard)
+
+    def test_ingestion_queues_matching_and_worker_computes_without_profile_locks(self):
+        feed_id, run_id, profile_id, job_ids = self.seed_match_page()
+        with patch.object(job_search, 'match_job', side_effect=AssertionError('Matching during ingestion')):
+            worker._persist_result(feed_id, run_id, {
+                'state': 'ok', 'status': 200, 'parsed_feed': {'complete': False, 'jobs': [{
+                    'id': 'page-0', 'title': 'Developer', 'url': 'https://example.test/page-0',
+                    'description': 'Updated source',
+                }]}}, b'', 1)
+        checked = []
+        def match_without_locks(*_args, **_kwargs):
+            with self.factory.begin() as editor:
+                self.assertIsNotNone(editor.scalar(select(UserProfile).where(
+                    UserProfile.id == profile_id).with_for_update(nowait=True)))
+            checked.append(True)
+            return {'eligible': True, 'score': 65, 'fit_tier': 'possible'}
+        with patch.object(job_search, 'SessionLocal', self.factory), \
+                patch.object(job_search, 'match_job', side_effect=match_without_locks):
+            self.assertTrue(job_search.refresh_dirty_job_matches_once())
+        self.assertEqual(len(checked), 4)
+        with self.factory() as session:
+            self.assertEqual(session.get(ProfileJobMatch, (profile_id, job_ids[0])).match_score, 65)
+
+    def test_bounded_backfill_commits_with_unrelated_continuous_ingestion(self):
+        from hiring_scraper.app.models import ProfileMatchProgress
+        feed_id, _, profile_id, job_ids = self.seed_match_page()
+        def match_during_ingestion(*_args, **_kwargs):
+            with self.factory.begin() as writer:
+                reserve_job_source_rows(writer, [job_ids[-1]])
+                job = writer.get(Job, job_ids[-1])
+                job.description = (job.description or '') + 'source update'
+                writer.get(JobFeed, feed_id).last_checked_at = utcnow()
+                source_changes.jobs_changed(writer, [job_ids[-1]])
+            return {'eligible': True, 'score': 65, 'fit_tier': 'possible'}
+        with patch.object(job_search, 'SessionLocal', self.factory), \
+                patch.object(job_search, '_MATCH_WORK_PAGE_SIZE', 2), \
+                patch.object(job_search, 'match_job', side_effect=match_during_ingestion):
+            self.assertTrue(job_search.refresh_profile_match_indexes_once())
+        with self.factory() as session:
+            self.assertEqual(session.get(ProfileMatchProgress, profile_id).cursor, job_ids[1])
+            self.assertIsNone(session.get(UserProfile, profile_id).match_index_version)
+            self.assertEqual(len(session.scalars(select(ProfileJobMatch)).all()), 2)
+        with patch.object(job_search, 'SessionLocal', self.factory):
+            self.assertTrue(job_search.refresh_profile_match_indexes_once())
+        with self.factory() as session:
+            self.assertFalse(job_search.profile_match_index_stale(session.get(UserProfile, profile_id)))
+            self.assertEqual(len(session.scalars(select(ProfileJobMatch)).all()), 4)
+
+    def test_dirty_worker_retains_source_and_profile_races_for_retry(self):
+        from hiring_scraper.app.models import MatchDirtyJob
+        _, _, profile_id, job_ids = self.seed_match_page()
+        for kind in ['source', 'profile']:
+            changed = False
+            def stale_match(*_args, **_kwargs):
+                nonlocal changed
+                if not changed:
+                    changed = True
+                    with self.factory.begin() as editor:
+                        if kind == 'source':
+                            reserve_job_source_rows(editor, [job_ids[0]])
+                            editor.get(Job, job_ids[0]).description = 'Concurrent source replacement'
+                            source_changes.jobs_changed(editor, [job_ids[0]])
+                        else:
+                            editor.get(UserProfile, profile_id).preferences = {'skills': ['Python']}
+                            source_changes.profile_changed(editor, profile_id)
+                return {'eligible': True, 'score': 99, 'fit_tier': 'recommended'}
+            with patch.object(job_search, 'SessionLocal', self.factory), \
+                    patch.object(job_search, 'match_job', side_effect=stale_match):
+                with self.assertRaises(job_search.ProfileIndexChanged):
+                    job_search.refresh_dirty_job_matches_once()
+            with self.factory() as session:
+                self.assertIsNotNone(session.get(MatchDirtyJob, job_ids[0]))
+                self.assertEqual(session.scalars(select(ProfileJobMatch)).all(), [])
+        with patch.object(job_search, 'SessionLocal', self.factory), \
+                patch.object(job_search, 'match_job', return_value={
+                    'eligible': True, 'score': 42, 'fit_tier': 'possible'}):
+            self.assertTrue(job_search.refresh_dirty_job_matches_once())
+        with self.factory() as session:
+            self.assertEqual(session.get(ProfileJobMatch, (profile_id, job_ids[0])).match_score, 42)
+            self.assertEqual(session.scalars(select(MatchDirtyJob)).all(), [])

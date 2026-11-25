@@ -3,17 +3,18 @@ import unittest
 from datetime import timedelta, timezone
 from unittest.mock import patch
 
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import discovery_worker, worker
 from hiring_scraper.app.applications import close_job_applications
 from hiring_scraper.app.models import Base, Company, Job, JobApplication, JobFeed, ScanRun, UserProfile, utcnow
+from tests import pg
 
 
 class JobClosureTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         Base.metadata.create_all(self.engine)
         self.factory = sessionmaker(bind=self.engine, autoflush=False, expire_on_commit=False)
         self.addCleanup(self.engine.dispose)

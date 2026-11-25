@@ -1,18 +1,27 @@
-"""Relational model shared by SQLite development and PostgreSQL/PostGIS."""
+"""Relational model for PostgreSQL/PostGIS (schema changes ship as Alembic migrations)."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
 
 from sqlalchemy import (
-    Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer, LargeBinary,
-    JSON, String, Text, UniqueConstraint, delete, event, false, insert, inspect, select, text,
+    BigInteger, Boolean, CheckConstraint, DateTime, Float, ForeignKey, ForeignKeyConstraint, Index, Integer,
+    LargeBinary,
+    JSON, String, Text, UniqueConstraint, false, select, text,
 )
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
 from pgvector.sqlalchemy import Vector
 
 
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def as_utc(value: datetime | None) -> datetime | None:
+    """Normalize timestamps to UTC, treating naive values as UTC."""
+    if value is None:
+        return None
+    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
 
 
 class Base(DeclarativeBase):
@@ -115,7 +124,6 @@ class DiscoveryJob(Base):
             "search_scope",
             unique=True,
             postgresql_where=text("search_scope = 'country' AND stage IN ('company_homepage_discovery', 'career_page_discovery') AND status IN ('scheduled', 'queued', 'running')"),
-            sqlite_where=text("search_scope = 'country' AND stage IN ('company_homepage_discovery', 'career_page_discovery') AND status IN ('scheduled', 'queued', 'running')"),
         ),
     )
 
@@ -217,8 +225,23 @@ class Job(Base):
     __table_args__ = (
         UniqueConstraint("feed_id", "external_id", name="uq_job_feed_external_id"),
         Index("ix_jobs_remote_active", "is_remote", "is_active"),
-        Index("ix_jobs_active_id", "id", postgresql_where=text("is_active"),
-              sqlite_where=text("is_active = 1")),
+        Index("ix_jobs_active_id", "id", postgresql_where=text("is_active")),
+        Index("ix_jobs_germany_candidate", "is_active", "id", postgresql_where=text("germany_candidate IS TRUE")),
+        Index(
+            "ix_jobs_location_states",
+            "location_states",
+            postgresql_using="gin",
+            postgresql_with={"fastupdate": "off"},
+        ),
+        Index("ix_jobs_location_scope_version", "location_scope_version", "id"),
+        Index(
+            "ix_jobs_remote_candidate_active",
+            "id",
+            postgresql_where=text(
+                "is_active IS TRUE AND (work_arrangement = 'remote' "
+                "OR (is_remote IS TRUE AND work_arrangement IS NULL))"
+            ),
+        ),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -230,6 +253,9 @@ class Job(Base):
     url: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     location_text: Mapped[str | None] = mapped_column(Text)
+    germany_candidate: Mapped[bool | None] = mapped_column(Boolean, nullable=True, deferred=True)
+    location_states: Mapped[list[str] | None] = mapped_column(ARRAY(Text), nullable=True, deferred=True)
+    location_scope_version: Mapped[str | None] = mapped_column(String(40), nullable=True, deferred=True)
     is_remote: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     work_arrangement: Mapped[str | None] = mapped_column(String(40))
     employment_type: Mapped[str | None] = mapped_column(String(120))
@@ -261,6 +287,7 @@ class Job(Base):
         return self.vacancy_group.vacancy_group_id if self.vacancy_group is not None else None
 
 
+
 class JobLocation(Base):
     __tablename__ = "job_locations"
     __table_args__ = (
@@ -277,6 +304,15 @@ class JobLocation(Base):
     country_code: Mapped[str | None] = mapped_column(String(2))
 
     job: Mapped[Job] = relationship(back_populates="locations")
+
+
+class JobLocationScopeDirty(Base):
+    __tablename__ = "job_location_scope_dirty"
+
+    # Independent marks let concurrent writers commit without contending for
+    # the same row. There is no FK, so marking never locks the parent job.
+    job_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    change_xid: Mapped[str] = mapped_column(Text, primary_key=True)
 
 
 class LocationCache(Base):
@@ -296,30 +332,56 @@ class UserProfile(Base):
     preferences: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     low_afd_vote_share_weight: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default=text("0"))
     match_index_version: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    # Bumped by every declared input change (source_changes); publishers compare it.
+    source_version: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0, server_default=text("0"))
+    # Set when a presentation-only edit (threshold, unknown policy) arrives while the
+    # index is still backfilling; the worker re-evaluates New rows when it completes.
+    presentation_refresh_pending: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("false"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
     applications: Mapped[list[JobApplication]] = relationship(back_populates="profile", cascade="all, delete-orphan")
     deduplication_archive: Mapped[list[JobApplicationDeduplicationArchive]] = relationship(
         back_populates='profile', cascade='all, delete-orphan')
-    cv: Mapped[ProfileCV | None] = relationship(back_populates="profile", cascade="all, delete-orphan", uselist=False)
+    cv: Mapped[ProfileCV | None] = relationship(
+        back_populates="profile", cascade="all, delete-orphan", uselist=False, lazy="selectin")
     photo: Mapped[ProfilePhoto | None] = relationship(back_populates="profile", cascade="all, delete-orphan", uselist=False)
 
     @property
     def matching_preferences(self) -> dict:
         """Only matching inputs affect derived scores and their index version.
 
-        Application prose, translations and contact details are deliberately
-        excluded: editing them must not rescan the entire job inventory.
+        Career narratives contribute content signals. Drafting instructions,
+        translations and contact details do not rescan the job inventory.
         """
         matching_fields = {
             'skills', 'desired_roles', 'secondary_roles', 'work_styles',
             'employment_types', 'seniority_levels', 'experience_years',
             'languages', 'language_levels', 'excluded_terms', 'skill_evidence',
-            'search_area', 'education', 'certifications', 'matching_defaults',
+            'search_area', 'education', 'certifications', 'matching_defaults', 'duty_evidence',
         }
         preferences = {key: value for key, value in (self.preferences or {}).items()
                        if key in matching_fields}
+        from hiring_scraper.app.tex_cv import cv_language_fallback, cv_career_fallback
+        cv_facts = cv_career_fallback(self.cv)
+        if cv_facts:
+            preferences['cv_career_facts'] = cv_facts
+        levels = dict(preferences.get('language_levels') or {})
+        cv_levels = cv_language_fallback(self.cv, levels)
+        if cv_levels:
+            preferences['language_levels'] = {**levels, **cv_levels}
+        logistics = ((self.preferences or {}).get('application_details') or {}).get('preferences') or {}
+        allowed_logistics = ('authorization_country', 'authorized_to_work', 'sponsorship_required',
+                             'willing_to_relocate', 'willing_to_work_onsite')
+        relevant_logistics = {key: logistics[key] for key in allowed_logistics
+                              if key in logistics and logistics[key] not in ('', None)}
+        if relevant_logistics:
+            preferences['application_preferences'] = relevant_logistics
+        from hiring_scraper.matching import profile_content_sources
+        sources = profile_content_sources(self.preferences or {})
+        if sources:
+            preferences['content_sources'] = sources
         defaults = dict(preferences.get("matching_defaults") or {})
         defaults["low_afd_vote_share_weight"] = self.low_afd_vote_share_weight
         preferences["matching_defaults"] = defaults
@@ -447,6 +509,100 @@ class ProfileJobMatch(Base):
     match_score: Mapped[int] = mapped_column(Integer, nullable=False)
     match_tier: Mapped[str] = mapped_column(String(24), nullable=False)
     match_uncertain: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    explanation: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    score_version: Mapped[str | None] = mapped_column(String(80), nullable=True)
+
+
+class JobAnalysis(Base):
+    """Local-LLM duties/requirements of one posting; rebuildable from the job source."""
+    __tablename__ = 'job_analyses'
+
+    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True)
+    version: Mapped[str] = mapped_column(String(200), nullable=False)
+    source_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    # Identity of this output (version + payload); pair evidence is valid only for the same value.
+    result_hash: Mapped[str] = mapped_column(String(64), nullable=False, default='')
+    status: Mapped[str] = mapped_column(String(16), nullable=False, index=True)  # ok | stale | failed
+    payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    error: Mapped[str | None] = mapped_column(String(300))
+    analysed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ProfileEvidenceUnits(Base):
+    """Citable CV lines of one profile with their local E5 vectors."""
+    __tablename__ = 'profile_evidence_units'
+
+    profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
+    version: Mapped[str] = mapped_column(String(200), nullable=False)
+    source_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    vectors: Mapped[bytes] = mapped_column(LargeBinary, nullable=False, default=b'')
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class MatchEvidence(Base):
+    """Reranker-checked duty/requirement evidence for one profile/job pair."""
+    __tablename__ = 'match_evidence'
+
+    profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True, index=True)
+    version: Mapped[str] = mapped_column(String(200), nullable=False)
+    # Inputs that produced this row (JobAnalysis.result_hash and the CV units hash); either
+    # changing makes it stale (still shown until replaced).
+    analysis_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    units_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    computed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class JobAnalysisQueue(Base):
+    """Jobs waiting for (re)analysis by the local LLM; drained by the job analysis worker."""
+    __tablename__ = 'job_analysis_queue'
+    __table_args__ = (
+        Index('ix_job_analysis_queue_priority', 'similarity', 'job_id',
+              postgresql_where=text('priority IS TRUE')),
+        Index('ix_job_analysis_queue_scored', 'profile_set_hash', 'similarity', 'job_id',
+              postgresql_where=text('similarity IS NOT NULL')),
+        Index('ix_job_analysis_queue_prerank', 'profile_set_hash', 'job_id'),
+    )
+
+    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True)
+    queued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+    retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    priority: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
+    similarity: Mapped[float | None] = mapped_column(Float, nullable=True)
+    profile_set_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+
+class MatchEvidenceQueue(Base):
+    """Profile/job pairs whose reranker evidence must be (re)computed."""
+    __tablename__ = 'match_evidence_queue'
+
+    profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True, index=True)
+    queued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+    retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class MatchDirtyJob(Base):
+    """Coalesced transactional invalidations; revision makes acknowledgements safe."""
+    __tablename__ = "match_dirty_jobs"
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), primary_key=True)
+    revision: Mapped[str] = mapped_column(String(32), nullable=False)
+    queued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+
+
+class ProfileMatchProgress(Base):
+    """Restartable high-water scan; one committed inventory page per worker step."""
+    __tablename__ = "profile_match_progress"
+    profile_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.id", ondelete="CASCADE"), primary_key=True)
+    version: Mapped[str] = mapped_column(String(40), nullable=False)
+    cursor: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    high_water: Mapped[int] = mapped_column(Integer, nullable=False)
+    advanced_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
 
 class JobSearchState(Base):
@@ -546,63 +702,88 @@ class JobSearchResult(Base):
     remote_sort: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
 
-_SEARCH_FIELDS = {
-    Company: {"name", "domain", "state", "country_code", "category", "source"},
-    JobFeed: {"company_id", "provider", "tenant", "source_revision"},
-    Job: {"feed_id", "external_id", "employer_company_id", "title", "url", "description",
-          "location_text", "is_remote", "work_arrangement", "employment_type", "schedule",
-          "department", "seniority", "date_posted", "salary", "raw_metadata", "enrichment",
-          "first_seen_at", "is_active"},
-    JobLocation: {"job_id", "label", "latitude", "longitude", "country_code"},
-}
-
-
-def _search_data_changed(session: Session) -> bool:
-    for item in (*session.new, *session.deleted):
-        if type(item) in _SEARCH_FIELDS:
-            return True
-    for item in session.dirty:
-        fields = _SEARCH_FIELDS.get(type(item))
-        if fields is None:
-            continue
-        state = inspect(item)
-        if type(item) is Job and state.attrs.locations.history.has_changes():
-            return True
-        if not session.is_modified(item, include_collections=False):
-            continue
-        if any(state.attrs[name].history.has_changes() for name in fields):
-            return True
-    return False
-
-
-@event.listens_for(Session, "before_flush")
-def _invalidate_job_search_snapshots(session: Session, _flush_context, _instances) -> None:
-    """Remember invalidation without taking a global lock during source work."""
-    if _search_data_changed(session):
-        session.info["job_search_generation_dirty"] = True
-
-
-@event.listens_for(Session, "before_commit")
-def _commit_job_search_generation(session: Session) -> None:
-    # Finish domain writes first. Holding the shared marker during a feed/job
-    # flush inverted its order with Company/Profile locks in other transactions.
-    session.flush()
-    if not session.info.get("job_search_generation_dirty"):
+def _lock_job_source_rows(connection, job_ids) -> None:
+    ordered_ids = sorted({int(job_id) for job_id in job_ids if job_id is not None})
+    if not ordered_ids:
         return
-    connection = session.connection()
-    if connection.dialect.name == "postgresql":
-        # Serialize sequence allocation with commit, including an empty table.
-        # Otherwise a lower sequence ID committing later can miss invalidation.
-        connection.execute(text("SELECT pg_advisory_xact_lock(85793011, 2)"))
-    connection.execute(insert(JobSearchState).values())
-    generation = connection.execute(select(JobSearchState.id).order_by(JobSearchState.id.desc()).limit(1)).scalar_one()
-    connection.execute(delete(JobSearchState).where(JobSearchState.id < generation))
+    # NO KEY UPDATE serializes source writers and application tracking while
+    # remaining compatible with the FK KEY SHARE locks used by match indexes.
+    for start in range(0, len(ordered_ids), 500):
+        connection.execute(select(Job.id).where(Job.id.in_(ordered_ids[start:start + 500]))
+                            .order_by(Job.id).with_for_update(key_share=True)).all()
 
 
-@event.listens_for(Session, "after_commit")
-@event.listens_for(Session, "after_rollback")
-def _reset_job_search_generation_flag(session: Session) -> None:
-    session.info.pop("job_search_generation_dirty", None)
+class ProfileIndexChanged(RuntimeError):
+    """A publication's profile inputs changed, or are being edited; retry later."""
+
+
+def hold_profiles(session: Session, profiles, *, wait: bool = True, exclusive: bool = False) -> dict[int, int]:
+    """Hold profiles against input edits until commit; return ``{id: source_version}``.
+
+    Editors bump ``source_version`` (see ``source_changes``), which locks the row
+    only for their own short transaction. Publishers compute without profile
+    locks, then call this after computing and before their derived writes, the
+    same profile -> derived order editors use, so the two cannot deadlock.
+
+    ``profiles`` is an iterable of ids, or ``{id: expected_version}`` captured
+    when computation started: any difference (or a deleted profile) raises
+    ``ProfileIndexChanged``. ``FOR SHARE`` lets publishers run side by side;
+    ``exclusive`` (``FOR NO KEY UPDATE``) is for one that also writes the
+    profile row. With ``wait=False`` an in-flight edit defers the publication
+    instead of queueing behind it. Both modes let foreign-key inserts through.
+    """
+    expected = profiles if isinstance(profiles, dict) else None
+    ids = sorted({int(profile_id) for profile_id in profiles})
+    if not ids:
+        return {}
+    statement = (select(UserProfile.id, UserProfile.source_version).where(UserProfile.id.in_(ids))
+                 .order_by(UserProfile.id)
+                 .with_for_update(read=not exclusive, key_share=exclusive, nowait=not wait))
+    if wait:
+        versions = dict(session.execute(statement).all())
+    else:
+        from sqlalchemy.exc import OperationalError
+        try:
+            with session.begin_nested():
+                versions = dict(session.execute(statement).all())
+        except OperationalError as error:
+            raise ProfileIndexChanged('Profile is being edited; publication deferred') from error
+    if expected is not None and any(versions.get(profile_id) != version
+                                    for profile_id, version in expected.items()):
+        raise ProfileIndexChanged('Profile changed during matching')
+    return versions
+
+
+def hold_profile_rows(session: Session, profile_ids) -> None:
+    """``FOR SHARE`` on profile rows without reading versions.
+
+    For publishers that need no version check, including historical migrations
+    that run before ``source_version`` exists.
+    """
+    ids = sorted({int(profile_id) for profile_id in profile_ids})
+    if ids:
+        session.execute(select(UserProfile.id).where(UserProfile.id.in_(ids)).order_by(UserProfile.id)
+                        .with_for_update(read=True)).all()
+
+
+def profile_source_versions(session: Session, profile_ids) -> dict[int, int]:
+    """Read committed versions directly, bypassing the ORM identity map."""
+    ids = sorted({int(profile_id) for profile_id in profile_ids})
+    if not ids:
+        return {}
+    return dict(session.connection().execute(select(UserProfile.id, UserProfile.source_version)
+                                             .where(UserProfile.id.in_(ids))).all())
+
+
+def reserve_job_source_rows(session: Session, job_ids) -> None:
+    """Reserve a known batch of job rows, in id order, before multi-flush ingestion.
+
+    Source writers lock only job rows. Derived per-profile data is refreshed
+    through the ``match_dirty_jobs`` queue, so ingestion never waits on, or
+    holds, profile rows.
+    """
+    ids = sorted({int(job_id) for job_id in job_ids if job_id is not None})
+    _lock_job_source_rows(session.connection(), ids)
 
 
 class ScanRun(Base):
@@ -617,3 +798,97 @@ class ScanRun(Base):
     http_status: Mapped[int | None] = mapped_column(Integer)
     item_count: Mapped[int | None] = mapped_column(Integer)
     error: Mapped[str | None] = mapped_column(Text)
+
+
+class ApplicationPreparationTask(Base):
+    __tablename__ = 'application_document_preparation_tasks'
+
+    profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True)
+    record: Mapped[dict] = mapped_column(JSON, nullable=False)
+    state: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    lease_token: Mapped[str | None] = mapped_column(String(32))
+    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class ApplicationDocument(Base):
+    """One saved version of a structured CV or letter for a (profile, job)."""
+    __tablename__ = 'application_documents'
+    __table_args__ = (
+        CheckConstraint("kind IN ('cv', 'letter')", name='ck_application_documents_kind'),
+        CheckConstraint('version > 0', name='ck_application_documents_version'),
+        # Latest-version lookups read the PK backwards; this covers per-profile cleanup.
+        Index('ix_application_documents_job', 'job_id'),
+    )
+
+    profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(16), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer, primary_key=True)
+    revision: Mapped[str] = mapped_column(String(32), nullable=False,
+                                           server_default=text("replace(gen_random_uuid()::text, '-', '')"))
+    language: Mapped[str] = mapped_column(String(8), nullable=False)
+    body: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    findings: Mapped[list] = mapped_column(JSONB, nullable=False, default=list, server_default=text("'[]'::jsonb"))
+    origin: Mapped[str] = mapped_column(String(16), nullable=False)
+    stale_inputs: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
+    input_digest: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class ApplicationDocumentRender(Base):
+    """A verified PDF of one document version; removed with the version it renders."""
+    __tablename__ = 'application_document_renders'
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ['profile_id', 'job_id', 'kind', 'version'],
+            ['application_documents.profile_id', 'application_documents.job_id',
+             'application_documents.kind', 'application_documents.version'],
+            ondelete='CASCADE', name='fk_application_document_renders_document'),
+    )
+
+    profile_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    job_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    kind: Mapped[str] = mapped_column(String(16), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer, primary_key=True)
+    template: Mapped[str] = mapped_column(String(40), primary_key=True)
+    pdf: Mapped[bytes] = mapped_column(LargeBinary, nullable=False, deferred=True)
+    pages: Mapped[int] = mapped_column(Integer, nullable=False)
+    checks: Mapped[list] = mapped_column(JSONB, nullable=False, default=list, server_default=text("'[]'::jsonb"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class ApplicationRenderTask(Base):
+    """Render lane: PDF exports queue here so they never wait behind model inference.
+
+    ``available_at`` is the next time the row may be claimed: the retry time
+    while queued, the lease expiry while running, NULL once failed.
+    """
+    __tablename__ = 'application_render_tasks'
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ['profile_id', 'job_id', 'kind', 'version'],
+            ['application_documents.profile_id', 'application_documents.job_id',
+             'application_documents.kind', 'application_documents.version'],
+            ondelete='CASCADE', name='fk_application_render_tasks_document'),
+        Index('ix_application_render_tasks_available_at', 'available_at'),
+    )
+
+    profile_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    job_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    kind: Mapped[str] = mapped_column(String(16), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer, primary_key=True)
+    template: Mapped[str] = mapped_column(String(40), primary_key=True)
+    state: Mapped[str] = mapped_column(String(16), nullable=False)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default=text('0'))
+    available_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    lease_token: Mapped[str | None] = mapped_column(String(32))
+    error_code: Mapped[str | None] = mapped_column(String(64))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+# Write paths declare their changes through source_changes; importing it installs
+# the detector that reports undeclared changes for every Session.
+from hiring_scraper.app import source_changes  # noqa: E402,F401

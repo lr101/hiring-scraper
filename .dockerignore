@@ -9,7 +9,6 @@ frontend/node_modules
 runtime/**/node_modules
 frontend/dist
 data
-reports
 hiring.db
 *.sqlite3
 .env*

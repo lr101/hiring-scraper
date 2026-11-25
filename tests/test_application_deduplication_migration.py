@@ -2,15 +2,16 @@
 import importlib
 import importlib.util
 import unittest
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
-from sqlalchemy import create_engine, event, func, select, text
+from sqlalchemy import event, func, select, text
 from sqlalchemy.orm import Session
 
 from hiring_scraper.app import application_deduplication, job_search, models, profiles
-from hiring_scraper.app.database import initialize_sqlite_schema
+from tests import pg
 
 
 MIGRATION = 'hiring_scraper.app.migrations.versions.0033_application_deduplication'
@@ -19,7 +20,7 @@ ARCHIVE = 'job_application_deduplication_archive'
 
 class ApplicationDeduplicationMigrationTests(unittest.TestCase):
     def make_engine(self):
-        return create_engine('sqlite://')
+        return pg.isolated_engine(self)
 
     def setUp(self):
         self.engine = self.make_engine()
@@ -37,10 +38,12 @@ class ApplicationDeduplicationMigrationTests(unittest.TestCase):
             session.flush()
             self.profile_id, self.other_id = profile.id, other.id
             self.job_ids = [job.id for job in jobs]
+            decision_time = datetime(2026, 1, 1, tzinfo=timezone.utc)
             rows = [models.JobApplication(profile_id=profile.id, job_id=jobs[0].id,
-                        status='open', previous_status='new'),
+                        status='open', previous_status='new', updated_at=decision_time),
                     models.JobApplication(profile_id=profile.id, job_id=jobs[1].id,
-                        status='interview', previous_status='waiting_for_reply'),
+                        status='interview', previous_status='waiting_for_reply',
+                        updated_at=decision_time + timedelta(seconds=1)),
                     models.JobApplication(profile_id=profile.id, job_id=jobs[2].id,
                         status='new', auto_created=True),
                     models.JobApplication(profile_id=profile.id, job_id=jobs[3].id, status='new'),
@@ -115,23 +118,6 @@ class ApplicationDeduplicationMigrationTests(unittest.TestCase):
                 for row in session.scalars(select(models.JobApplication))}
         self.assertEqual(states, self.saved_states)
 
-    def test_sqlite_startup_cleans_existing_rows_only_once(self):
-        initialize_sqlite_schema(self.engine)
-        self.assert_cleaned(momentum_events=3)  # Existing SQLite startup backfills legacy interview events.
-        initialize_sqlite_schema(self.engine)
-        self.assert_cleaned(momentum_events=3)
-
-    def test_sqlite_startup_adds_identity_schema_to_an_existing_database(self):
-        self.remove_vacancy_identity_schema()
-        initialize_sqlite_schema(self.engine)
-        with self.engine.connect() as connection:
-            columns = {column['name'] for column in connection.dialect.get_columns(connection, 'jobs')}
-            tables = set(connection.dialect.get_table_names(connection))
-        self.assertNotIn('vacancy_group_id', columns)
-        self.assertIn('job_vacancy_identities', tables)
-        self.assertIn('job_vacancy_groups', tables)
-        self.assert_cleaned(momentum_events=3)
-
     def test_alembic_upgrade_adds_identity_schema_before_cleanup(self):
         self.remove_vacancy_identity_schema()
         self.migration('upgrade')
@@ -142,27 +128,6 @@ class ApplicationDeduplicationMigrationTests(unittest.TestCase):
         self.assertIn('job_vacancy_identities', tables)
         self.assertIn('job_vacancy_groups', tables)
         self.assert_cleaned()
-
-    def test_sqlite_schema_creation_does_not_skip_data_cleanup(self):
-        models.Base.metadata.create_all(self.engine)
-        initialize_sqlite_schema(self.engine)
-        self.assert_cleaned(momentum_events=3)
-
-    def test_failed_cleanup_rolls_back_and_startup_retries(self):
-        original = application_deduplication.consolidate_application_duplicates
-
-        def interrupted(session, **kwargs):
-            original(session, **kwargs)
-            raise RuntimeError('Interrupted cleanup')
-
-        with patch.object(application_deduplication, 'consolidate_application_duplicates', side_effect=interrupted):
-            with self.assertRaisesRegex(RuntimeError, 'Interrupted cleanup'):
-                initialize_sqlite_schema(self.engine)
-        with Session(self.engine) as session:
-            self.assertEqual(session.scalar(select(func.count()).select_from(models.JobApplication)), 5)
-            self.assertIsNone(session.get(models.AppDataMigration, application_deduplication.MIGRATION_KEY))
-        initialize_sqlite_schema(self.engine)
-        self.assert_cleaned(momentum_events=3)
 
     def test_downgrade_does_not_overwrite_later_saved_decisions(self):
         self.migration('upgrade')

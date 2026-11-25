@@ -12,7 +12,7 @@ from threading import Lock
 import hashlib
 import json
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
 import time
 
@@ -30,6 +30,10 @@ SOURCE_FIELDS = ('title','url','description','raw_metadata','seniority','employm
 
 def job_input(job: Job) -> dict:
     source = {field: getattr(job, field) for field in SOURCE_FIELDS}
+    # The database's historical False default is not evidence of an onsite
+    # requirement. Preserve unknown workplace scope for matching and AI inputs.
+    if source['is_remote'] is False and not source.get('work_arrangement'):
+        source['is_remote'] = None
     source["locations"] = [{"label": row.label, "country_code": row.country_code}
                             for row in job.locations]
     return source
@@ -149,7 +153,7 @@ def backfill(limit: int = 200, *, fetch_details: bool = False, client=None) -> d
         session.commit()
     if not candidates:
         return counts
-    client = client or Client(Path('/tmp/hiring-scraper-enrichment'), timeout=12, delay=1,
+    client = client or Client(Path('/tmp/hiring-scraper-enrichment'), persist_captures=False, timeout=12, delay=1,
                               max_requests=limit*8, origin_pacer=ORIGIN_PACER,
                               user_agent=os.getenv("HIRING_USER_AGENT", "HiringScraper/0.3 (public job-detail enrichment)"))
     for job_id in candidates:

@@ -1,0 +1,34 @@
+lang	kind	without	with
+en	language	Terraform proficiency is required.	Terraform proficiency as well as fluency in German is required.
+en	permit	Kubernetes experience is required.	Kubernetes experience in addition to a valid German work permit is required.
+en	language	SQL proficiency is required.	SQL proficiency and English C1 are required.
+en	language	You maintain PostgreSQL schemas.	You maintain PostgreSQL schemas (English B2 is helpful).
+en	permit	Design monitoring dashboards in Grafana.	Design monitoring dashboards in Grafana (a German work permit is required).
+en	language	Python experience is mandatory.	Python experience in addition to French B2 is mandatory.
+en	permit	Docker experience is required.	Docker experience as well as existing German work authorization is required.
+en	language	You must have advanced Kubernetes experience.	You must speak fluent German and have advanced Kubernetes experience.
+en	permit	You must have SQL experience.	You must have SQL experience and a valid German work permit.
+en	language	Develop data pipelines with Python.	Develop data pipelines with Python; English B2 is required.
+en	language	Maintain the Terraform modules.	Maintain the Terraform modules (fluent Spanish is helpful).
+en	permit	Coordinate Jira backlog reviews.	Coordinate Jira backlog reviews; existing authorization to work in Germany is required.
+en	language	Experience with Agile is required.	Experience with Agile (French C1 is nice to have) is required.
+en	permit	PostgreSQL proficiency is required.	PostgreSQL proficiency (a valid German work permit is helpful) is required.
+en	language	Monitor Kubernetes deployments.	Monitor Kubernetes deployments and speak fluent English.
+en	permit	Write Python tests.	Write Python tests (a work permit for Germany is advantageous).
+de	language	Kubernetes-Erfahrung ist erforderlich.	Kubernetes-Erfahrung sowie fließendes Deutsch ist erforderlich.
+de	permit	Fundierte SQL-Kenntnisse sind erforderlich.	Fundierte SQL-Kenntnisse und eine gültige Arbeitserlaubnis für Deutschland sind erforderlich.
+de	language	Erfahrung mit Python ist erforderlich.	Erfahrung mit Python (Englisch C1 ist wünschenswert) ist erforderlich.
+de	permit	Grafana-Kenntnisse sind erforderlich.	Grafana-Kenntnisse (eine gültige Arbeitserlaubnis ist von Vorteil) sind erforderlich.
+de	permit	Fundierte Kubernetes-Erfahrung erforderlich.	Fundierte Kubernetes-Erfahrung und eine gültige Arbeitserlaubnis für Deutschland erforderlich.
+de	language	Du musst SQL-Abfragen erstellen.	Du musst fließendes Deutsch sprechen und SQL-Abfragen erstellen.
+de	language	Du betreust unsere PostgreSQL-Datenbanken.	Du betreust unsere PostgreSQL-Datenbanken (gute Deutschkenntnisse sind von Vorteil).
+de	permit	Erfahrung mit Docker ist erforderlich.	Erfahrung mit Docker sowie eine gültige deutsche Arbeitserlaubnis ist erforderlich.
+de	language	Python-Kenntnisse sind erforderlich.	Python-Kenntnisse und Englisch B2 sind erforderlich.
+de	permit	Erstelle Dashboards mit Grafana.	Erstelle Dashboards mit Grafana (eine deutsche Arbeitserlaubnis ist erforderlich).
+de	language	Pflege die Jira-Backlogs.	Pflege die Jira-Backlogs; Französisch C1 ist wünschenswert.
+de	language	SQL-Erfahrung ist verpflichtend.	SQL-Erfahrung sowie sehr gute Englischkenntnisse ist verpflichtend.
+de	permit	PostgreSQL-Erfahrung ist erforderlich.	PostgreSQL-Erfahrung ist erforderlich; ein gültiger Aufenthaltstitel für Deutschland ist erforderlich.
+de	language	Koordiniere die Sprintplanung.	Koordiniere die Sprintplanung (verhandlungssicheres Deutsch ist von Vorteil).
+de	permit	Kenntnisse in Terraform.	Kenntnisse in Terraform (Arbeitserlaubnis für Deutschland von Vorteil).
+de	language	Erfahrung mit Docker ist Voraussetzung.	Erfahrung mit Docker sowie Spanisch B2 ist Voraussetzung.
+en	permit	SQL proficiency is required.	SQL proficiency (English B2 is helpful) (a valid German work permit is helpful) is required.

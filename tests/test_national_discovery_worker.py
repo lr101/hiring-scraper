@@ -2,13 +2,13 @@ import json
 import tempfile
 import unittest
 from datetime import timedelta
-from pathlib import Path
 from urllib.parse import parse_qs
 from unittest.mock import patch
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 from hiring_scraper.app import discovery_worker as worker
 from hiring_scraper.app.models import Base, Company, DiscoveryJob, DiscoveryJobCompany, utcnow
+from tests import pg
 
 class Response:
     def __init__(self,payload): self.payload=payload
@@ -19,10 +19,10 @@ class Response:
 class NationalDiscoveryWorkerTests(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory()
-        self.engine=create_engine(f'sqlite:///{Path(self.tmp.name)/"national.db"}')
+        self.engine=pg.engine(self)
         Base.metadata.create_all(self.engine)
         self.factory=sessionmaker(bind=self.engine,autoflush=False,expire_on_commit=False)
-        self.patches=[patch.object(worker,'engine',self.engine),patch.object(worker,'SessionLocal',self.factory),
+        self.patches=[patch.object(worker,'SessionLocal',self.factory),
                       patch('hiring_scraper.location_discovery._wait_for_overpass_slot'),
                       patch('hiring_scraper.location_discovery.fetch_wikidata_entities',return_value={})]
         for p in self.patches: p.start()
@@ -79,7 +79,6 @@ class NationalDiscoveryWorkerTests(unittest.TestCase):
                 return Response({'elements':[{'bounds':{'minlat':48,'minlon':8,'maxlat':48.5,'maxlon':8.5},'tags':{'name':state}}]})
             state=next(name for name in GERMAN_STATES if f'name"="{name}"' in query)
             completed.append(state)
-            from urllib.parse import urlsplit
             return Response({'elements':[{'type':'node','id':len(completed),'lat':48.25,'lon':8.25,
                 'tags':{'name':state+' Employer','office':'company','employees':'300',
                         'website':f'https://state{len(completed)}-employer-test.de'}}]})

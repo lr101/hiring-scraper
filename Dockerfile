@@ -13,10 +13,9 @@ COPY extensions/application-companion /extensions/application-companion
 COPY frontend/package.json frontend/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 COPY frontend/ ./
-COPY hiring_scraper/app/latex_template.json /hiring_scraper/app/latex_template.json
 RUN npm run build
 
-FROM ghcr.io/astral-sh/uv:0.13.1@sha256:4a1f3666816dafadd20ceb71eac9a7d56d7ef30279f7d64048519ab901ada336 AS uv
+FROM ghcr.io/astral-sh/uv:0.13.10@sha256:a3ea1357342c1a4bf9a0c53a3deb1b55379aefa037338d8113d5771efa01774f AS uv
 
 # Keep Python within the wheel support of the locked onnxruntime dependency.
 FROM python:3.14-slim-bookworm@sha256:48b13b003dda20b16f9442b8475aa05fe21bf6579a8c881db92ffb4d8fd20f83
@@ -28,7 +27,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     SEMANTIC_MODEL_DIR=/opt/models/multilingual-e5-small \
     HF_HUB_DISABLE_TELEMETRY=1
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends libreoffice-writer fonts-liberation texlive-luatex texlive-latex-recommended \
+# Playwright ships its own Node runtime, which links against libatomic.
+RUN apt-get update && apt-get install -y --no-install-recommends libatomic1 fonts-liberation fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=uv /uv /uvx /bin/
 COPY --from=codex-build /codex-runtime /opt/radius-codex

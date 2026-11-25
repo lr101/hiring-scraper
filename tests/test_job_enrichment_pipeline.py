@@ -1,18 +1,19 @@
 import json
 import unittest
 from unittest.mock import patch
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import select
+from sqlalchemy.orm import sessionmaker
 from hiring_scraper.app import enrichment
 from hiring_scraper.app.discovery_worker import _upsert_jobs
 from hiring_scraper.app.models import Base, Company, Job, JobFeed, utcnow
 from hiring_scraper.ats import parse_feed
 from hiring_scraper.html_jobs import extract_html_jobs
+from tests import pg
 
 
 class JobEnrichmentPipelineTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         Base.metadata.create_all(self.engine)
         self.factory = sessionmaker(bind=self.engine, expire_on_commit=False)
         with self.factory.begin() as session:
@@ -162,7 +163,6 @@ class JobEnrichmentPipelineTests(unittest.TestCase):
             self.assertEqual({row['name'] for row in updated['skills']}, {'Python', 'Ruby'})
 
     def test_v13_cache_without_deferred_evidence_is_recomputed_and_marks_unknown(self):
-        from hiring_scraper.matching import match_job
         clause = ('Mindestens eine dieser Skriptsprachen '
                   '(bash, Python, Perl oder Ruby) beherrschst Du aus dem FF')
         self.upsert({'id': 'linux', 'title': 'Administrator',
@@ -178,8 +178,3 @@ class JobEnrichmentPipelineTests(unittest.TestCase):
             self.assertEqual(updated['requirements'], [])
             self.assertEqual(updated['source_hash'], cached['source_hash'])
             self.assertEqual(len(updated.get('deferred_requirements', [])), 1)
-            result = match_job({'title': job.title, 'description': job.description},
-                               {'skills': ['Linux']}, enrichment=updated)
-            self.assertTrue(result['uncertain'])
-            self.assertIn(clause, result['unknowns'][0])
-            self.assertEqual(result['requirement_gaps'], [])

@@ -70,6 +70,14 @@ export async function readPackage(input) {
     if (typeof data[key] !== "string" || data[key].length > 100000)
       throw new Error(`Invalid ${key} in package.`);
   }
+  if (
+    /\\(?:[A-Za-z]+|[^A-Za-z0-9])|```(?:latex|tex)\b|\$\$[\s\S]*?\$\$|\$[A-Za-z][^$\n]*\$/i.test(
+      data.cover_letter,
+    )
+  )
+    throw new Error(
+      "The cover letter contains LaTeX. Ask for readable text without LaTeX and import it again.",
+    );
   if (typeof data.cv !== "string" && !Array.isArray(data.cv))
     throw new Error("The package must contain CV text or template edits.");
   if (Array.isArray(data.cv)) {
@@ -213,25 +221,4 @@ export function connectSources(
   }
   next.source_notes = notes.join("\n");
   return validateProfile(next);
-}
-
-export function bulletPrompt(profile) {
-  const data = validateProfile(profile);
-  return (
-    'Tailor ONLY the work-experience bullet points for this application. Keep every experience_id exactly as supplied. Do not change company, title, location or dates and do not invent achievements. Return the usual radius-application-v1 package (preserve the job_id, profile_id and cv_updated_at from the application-preparation prompt) with this optional field: "experience_bullets": [{"experience_id":"...","bullets":["..."]}]. Return plain bullet text without bullet markers. Each job below has original_description as source material. If there is no evidence for an achievement, omit it.\n\nStructured experience facts:\n' +
-    JSON.stringify(
-      data.experiences.map((e) => ({
-        experience_id: e.id,
-        company: e.company,
-        title: e.title,
-        location: e.location,
-        start: e.start,
-        end: e.end,
-        current: e.current,
-        original_description: e.description,
-      })),
-      null,
-      2,
-    )
-  );
 }

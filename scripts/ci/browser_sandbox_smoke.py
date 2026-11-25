@@ -63,3 +63,21 @@ with sync_playwright() as playwright:
         print(f"Sandboxed Chromium launched as UID {os.geteuid()} ({browser.version})")
     finally:
         browser.close()
+
+
+from hiring_scraper.app.application_pdf import export_verified, render_document
+
+pdf = render_document('letter', {
+    'language': 'en',
+    'sender': {'name': 'Alex Example', 'lines': ['alex@example.test']},
+    'recipient_lines': ['Fictional Workshop'],
+    'place_date': 'Example Town, 12 May 2026',
+    'subject': {'id': 'u-subject', 'text': 'Workshop application'},
+    'salutation': {'id': 'u-salutation', 'text': 'Dear team,'},
+    'paragraphs': [{'id': 'u-first', 'text': 'I design public workshops.'}],
+    'closing': {'id': 'u-closing', 'text': 'Kind regards,'},
+    'signature': 'Alex Example',
+})
+if not pdf.pdf.startswith(b'%PDF') or not export_verified(pdf.checks):
+    raise RuntimeError('Sandboxed Chromium failed production PDF verification')
+print('Sandboxed production PDF renderer passed verification')

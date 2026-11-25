@@ -67,11 +67,19 @@ def normalize_job(row: dict, observed_at: str | None = None) -> dict:
     normalized_name = re.sub(r'\s+', ' ', unicodedata.normalize('NFKC', company).casefold())
     company_id = 'hash:' + employer_hash if employer_hash else 'name:' + hashlib.sha256(normalized_name.encode()).hexdigest()
     locations = []
-    raw_locations = row.get('stellenlokationen') or row.get('arbeitsorte') or row.get('arbeitsort') or []
-    if isinstance(raw_locations, dict):
-        raw_locations = [raw_locations]
-    if not isinstance(raw_locations, list):
-        raw_locations = []
+    # Detail and search captures name places differently; use the first one
+    # that actually names a town, so a country-only detail entry cannot hide
+    # the town the search result gave.
+    candidates = []
+    for key in ('stellenlokationen', 'arbeitsorte', 'arbeitsort'):
+        value = row.get(key)
+        value = [value] if isinstance(value, dict) else value if isinstance(value, list) else []
+        if value:
+            candidates.append(value)
+    def names_town(entries):
+        return any(isinstance(item, dict) and _text((item.get('adresse') if isinstance(item.get('adresse'), dict) else item).get('ort'))
+                   for item in entries)
+    raw_locations = next((entries for entries in candidates if names_town(entries)), candidates[0] if candidates else [])
     for location in raw_locations:
         if not isinstance(location, dict):
             continue
@@ -84,7 +92,11 @@ def normalize_job(row: dict, observed_at: str | None = None) -> dict:
         label = ', '.join(x for x in [_text(address.get('ort')), _text(address.get('plz'))] if x)
         country = _country(address.get('land'))
         if not label:
-            label = _text(address.get('land')) or 'Location unspecified'
+            # No town: the state or district still places the job for search.
+            region = _text(address.get('region')) or _text(address.get('bundesland'))
+            land = _text(address.get('land'))
+            land = land.title() if land.isupper() else land
+            label = ', '.join(x for x in (region, land) if x) or 'Location unspecified'
         locations.append({'label': label, 'latitude': latitude, 'longitude': longitude,
                           'precision': 'source_coordinates' if latitude is not None else None, 'country_code': country})
     possible = row.get('homeofficemoeglich') is True

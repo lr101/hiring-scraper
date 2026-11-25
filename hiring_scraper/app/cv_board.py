@@ -8,7 +8,8 @@ import json
 from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from hiring_scraper.app.database import SessionLocal, engine, initialize_sqlite_schema
+from hiring_scraper.app import source_changes
+from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.models import UserProfile, utcnow
 from hiring_scraper.app.profiles import ProfileRequest
 from hiring_scraper.app.regional import import_snapshot
@@ -39,6 +40,8 @@ def import_board(session, profile_path, regional_snapshot, employer_snapshot=Non
     profile.match_index_version = None
     session.flush()
     clear_profile_match_scores(session, profile.id)
+    # Drops a stale profile vector and assessments, so they are rebuilt for the new content.
+    source_changes.profile_changed(session, profile.id)
     result = {'profile_id': profile.id, 'regional': import_snapshot(session, regional_snapshot)}
     if employer_snapshot is not None:
         result['employers'] = import_employer_snapshot(session, employer_snapshot)
@@ -54,6 +57,8 @@ def import_employer_snapshot(session, snapshot_path):
     observed = _datetime(snapshot.get('observed_at')) or utcnow()
     count = 0
     touched_job_ids: set[int] = set()
+    written_companies: set[int] = set()
+    written_feeds: set[int] = set()
     for row in snapshot['companies']:
         source = row.get('source', 'employer_supplement')
         company = session.scalar(select(Company).where(Company.source == source, Company.source_id == row['source_id']))
@@ -69,12 +74,14 @@ def import_employer_snapshot(session, snapshot_path):
                     continue
                 setattr(company, key, row[key])
         company.career_status = row.get('career_status', 'jobs_feed_found')
+        written_companies.add(company.id)
         for feed_row in row.get('feeds', []):
             feed = session.scalar(select(JobFeed).where(JobFeed.company_id == company.id, JobFeed.provider == feed_row['provider'], JobFeed.feed_url == feed_row['feed_url']))
             if feed is None:
                 feed = JobFeed(company_id=company.id, provider=feed_row['provider'], feed_url=feed_row['feed_url'], status=feed_row.get('status', 'parsed'))
                 session.add(feed)
                 session.flush()
+            written_feeds.add(feed.id)
             feed.board_url = feed_row.get('board_url')
             feed.status = feed_row.get('status', 'parsed')
             feed.next_scan_at = None
@@ -105,6 +112,8 @@ def import_employer_snapshot(session, snapshot_path):
                 count += 1
             feed.job_count = len(feed_row.get('jobs', []))
     session.flush()
+    source_changes.companies_changed(session, written_companies)
+    source_changes.feeds_changed(session, written_feeds)
     if touched_job_ids:
         refresh_application_matches_for_jobs(session, touched_job_ids)
     return {'jobs_imported': count}
@@ -116,7 +125,6 @@ def main():
     parser.add_argument('--regional-data', required=True, type=Path)
     parser.add_argument('--employer-data', type=Path)
     args = parser.parse_args()
-    initialize_sqlite_schema(engine)
     with SessionLocal.begin() as session:
         result = import_board(session, args.profile, args.regional_data, args.employer_data)
     print(json.dumps(result, ensure_ascii=False))

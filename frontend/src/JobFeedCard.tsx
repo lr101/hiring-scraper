@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import ApplicationSwipeCard, { ApplicationStateBadge } from './ApplicationSwipeCard'
 import JobOverviewTags from './JobOverviewTags'
-import { applicationStartLink } from './applicationHandoff'
+import { applicationStartLink } from './applicationDocuments'
 import { applicationStatuses, nextApplicationStages } from './applications'
 import type { Application, ApplicationSwipeAction, ApplicationStatus } from './applications'
 import { languageRequirementLabel } from './JobEvidence'
@@ -27,7 +27,7 @@ type JobCardData = {
   first_seen_at?: string | null
   application?: Application | null
   enrichment?: Pick<Enrichment, 'languages' | 'experience_years'>
-  profile_match?: Pick<ProfileMatch, 'matched_skills' | 'score' | 'fit_tier'>
+  profile_match?: Pick<ProfileMatch, 'matched_skills' | 'score' | 'fit_tier' | 'refreshing' | 'pending' | 'unscorable'>
 }
 
 function formatDate(value?: string | null) {
@@ -72,7 +72,10 @@ function JobFeedCard({
   const languageRequirements = job.enrichment?.languages.map(language =>
     `${language.value}${languageRequirementLabel(language)}`,
   ).join(' · ')
-  const matchTier = job.profile_match?.fit_tier ?? (job.profile_match && job.profile_match.score < 30
+  const matchRefreshing = job.profile_match?.refreshing === true
+  const matchPending = job.profile_match?.pending === true
+  const matchUnscorable = job.profile_match?.unscorable === true
+  const matchTier = (matchRefreshing ? undefined : job.profile_match?.fit_tier) ?? (job.profile_match && job.profile_match.score < 30
     ? 'unlikely' : job.profile_match && job.profile_match.score >= 65 ? 'recommended' : 'possible')
   const lastUpdated = updatedAt ?? job.application?.updated_at ?? job.last_seen_at ?? job.first_seen_at
 
@@ -88,20 +91,23 @@ function JobFeedCard({
       </div>
       <div className="application-card-state">
         <ApplicationStateBadge application={application} fallbackStatus={profileId ? 'new' : undefined} />
-        {job.profile_match && <span className={`application-card-match-score match-${matchTier}`}
-          aria-label={`${job.profile_match.score} percent match${matchTier === 'recommended' ? ', strong' : matchTier === 'unlikely' ? ', low' : ', possible'}`}>
-          {job.profile_match.score}% match
+        {job.profile_match && matchPending && <span className="application-match-refresh-tag">Analysing job…</span>}
+        {job.profile_match && matchUnscorable && <span className="application-match-refresh-tag">Not scored · too little text</span>}
+        {job.profile_match && !matchPending && !matchUnscorable && <span className={`application-card-match-score match-${matchTier}`}
+          aria-label={`${job.profile_match.score} out of 100 fit index${matchTier === 'recommended' ? ', strong' : matchTier === 'unlikely' ? ', low' : ', possible'}`}>
+          {job.profile_match.score}/100 fit
         </span>}
+        {job.profile_match && matchRefreshing && <span className="application-match-refresh-tag">Updating match…</span>}
         {profileName && <span className="application-card-profile-name">{profileName}</span>}
       </div>
     </header>
     <div className="application-job-facts">
-      <span><small>Work location</small>{job.location_text || 'Location not listed'}</span>
+      <span><small>Work location</small>{job.location_text || 'Unknown (not stated)'}</span>
       <span><small>Last updated</small>{formatDate(lastUpdated)}</span>
     </div>
     <JobOverviewTags job={job} />
     {showStartApplication && <a className="job-prepare-link" href={applicationStartLink(job.id, profileId)}>Start application <span aria-hidden="true">↗</span></a>}
-    {profileId !== undefined && <p className="application-matching-skills"><strong>Matching skills:</strong> {matchingSkills.length ? matchingSkills.join(' · ') : 'None identified yet'}</p>}
+    {profileId !== undefined && <p className="application-matching-skills"><strong>Matching requirements:</strong> {matchingSkills.length ? matchingSkills.join(' · ') : matchPending ? 'Analysing…' : matchRefreshing ? 'Updating…' : 'None shown in your CV yet'}</p>}
     {languageRequirements && <p className="application-language-requirements"><strong>Language requirements:</strong> {languageRequirements}</p>}
     {nextMoves.length > 0 && profileId !== undefined && <div className="application-quick-moves" aria-label="Move this application to its next state">
       <span className="application-quick-moves-label">Next move</span>

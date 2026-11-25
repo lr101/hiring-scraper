@@ -1,0 +1,4296 @@
+{
+ "job_0001": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Führung eines Teams von acht Prozessmanagern"
+    },
+    {
+     "line": 4,
+     "text": "Verantwortung für Prozesslandschaft und Verbesserungsprogramm"
+    },
+    {
+     "line": 5,
+     "text": "Berichte an den Vorstand"
+    }
+   ],
+   "industry": "Manufacturing",
+   "lines": [
+    "Job title: Leiter Prozessmanagement (m/w/d)",
+    "Sie bauen das zentrale Prozessmanagement für drei Werke auf.",
+    "Ihre Aufgaben",
+    "Führung eines Teams von acht Prozessmanagern",
+    "Verantwortung für Prozesslandschaft und Verbesserungsprogramm",
+    "Berichte an den Vorstand",
+    "Ihr Profil",
+    "Mindestens zehn Jahre Erfahrung im Prozessmanagement, davon fünf in Führung",
+    "Six-Sigma-Black-Belt",
+    "Sehr gute Deutsch- und Englischkenntnisse"
+   ],
+   "occupation": "Process Management",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "Mindestens zehn Jahre Erfahrung im Prozessmanagement, davon fünf in Führung"
+    },
+    {
+     "kind": "certification",
+     "line": 8,
+     "need": "must",
+     "text": "Six-Sigma-Black-Belt"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "must",
+     "text": "Sehr gute Deutsch- und Englischkenntnisse"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "e211e22370760403e59568e7907c6ef1503e9be49d32ac4a2fbc0dbfbaf42d00",
+  "source_hash": "ba37ec8e2ec4e43c2aea15d6800bd7fe72ef9707e740aef4b00d9aa13df99b96",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0002": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Run content analysis and design learning objectives"
+    },
+    {
+     "line": 4,
+     "text": "Develop e-learning modules and assessments"
+    },
+    {
+     "line": 5,
+     "text": "Review learner data and improve courses"
+    }
+   ],
+   "industry": "Education",
+   "lines": [
+    "Job title: Instructional Designer (f/m/d)",
+    "Join our design team to create courses for enterprise customers.",
+    "What you'll do",
+    "Run content analysis and design learning objectives",
+    "Develop e-learning modules and assessments",
+    "Review learner data and improve courses",
+    "What you bring",
+    "Master's degree in education or a related field, or 5+ years in instructional design",
+    "Experience with Articulate Storyline or similar tools",
+    "Strong written English"
+   ],
+   "occupation": "Instructional Designer",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 7,
+     "need": "must",
+     "text": "Master's degree in education or a related field, or 5+ years in instructional design"
+    },
+    {
+     "kind": "experience",
+     "line": 8,
+     "need": "must",
+     "text": "Experience with Articulate Storyline or similar tools"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "must",
+     "text": "Strong written English"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "26699d7c15af47a3a6bbdd11d93a718486aed6ed5c629d7f895167d3bf0b3bbb",
+  "source_hash": "9313b38d94a894e66fb35dd1598fb3358b4830997ce5641950fce9af0feb4c91",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0003": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 1,
+     "text": "Lead the delivery of our leadership academy for 1,200 managers."
+    },
+    {
+     "line": 3,
+     "text": "Own the annual curriculum and budget of the academy"
+    },
+    {
+     "line": 4,
+     "text": "Manage three trainers and a pool of external facilitators"
+    },
+    {
+     "line": 5,
+     "text": "Evaluate programmes and present results to HR leadership"
+    }
+   ],
+   "industry": "Education",
+   "lines": [
+    "Job title: Training Manager – Leadership Programmes (f/m/d)",
+    "Lead the delivery of our leadership academy for 1,200 managers.",
+    "What you'll do",
+    "Own the annual curriculum and budget of the academy",
+    "Manage three trainers and a pool of external facilitators",
+    "Evaluate programmes and present results to HR leadership",
+    "What you bring",
+    "7+ years in L&D, including leadership development",
+    "Experience managing trainers or vendors",
+    "Excellent English",
+    "German B2 is preferred because some cohorts are German-speaking"
+   ],
+   "occupation": "Training Manager",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "7+ years in L&D, including leadership development"
+    },
+    {
+     "kind": "experience",
+     "line": 8,
+     "need": "must",
+     "text": "Experience managing trainers or vendors"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "must",
+     "text": "Excellent English"
+    },
+    {
+     "kind": "language",
+     "line": 10,
+     "need": "nice",
+     "text": "German B2 is preferred because some cohorts are German-speaking"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "d60c6fee3170a102421e558808c9c31a00b9cf71d69ba0b387fa3c79b8b86d46",
+  "source_hash": "3e8d1e5be2f68991cad167484cb94b3a8ca27d66829d52fa8d3b5627ecd48ecb",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0004": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 2,
+     "text": "As Senior Product Manager you take over a product line with three partner banks live and five more onboarding."
+    },
+    {
+     "line": 4,
+     "text": "Drive the roadmap for our account-information and payment-initiation APIs"
+    },
+    {
+     "line": 5,
+     "text": "Run discovery with partner banks and fintech developers"
+    },
+    {
+     "line": 6,
+     "text": "synthesise findings into priorities"
+    },
+    {
+     "line": 7,
+     "text": "Work with engineering leads on scope, sequencing and release decisions"
+    },
+    {
+     "line": 8,
+     "text": "Mentor two junior product managers and report adoption metrics to the leadership team"
+    }
+   ],
+   "industry": "Financial Services",
+   "lines": [
+    "Job title: Senior Product Manager – Open Banking APIs",
+    "We build API products that regulated banks expose to third-party providers.",
+    "As Senior Product Manager you take over a product line with three partner banks live and five more onboarding.",
+    "What you'll do",
+    "Drive the roadmap for our account-information and payment-initiation APIs",
+    "Run discovery with partner banks and fintech developers",
+    "synthesise findings into priorities",
+    "Work with engineering leads on scope, sequencing and release decisions",
+    "Mentor two junior product managers and report adoption metrics to the leadership team",
+    "What you bring",
+    "6+ years in product management or product ownership, at least 3 in payments or open banking",
+    "Strong understanding of REST APIs, PSD2 and strong customer authentication",
+    "Evidence-based prioritisation",
+    "comfortable with SQL and product analytics",
+    "Excellent English"
+   ],
+   "occupation": "Senior Product Manager",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 10,
+     "need": "must",
+     "text": "6+ years in product management or product ownership, at least 3 in payments or open banking"
+    },
+    {
+     "kind": "knowledge",
+     "line": 11,
+     "need": "must",
+     "text": "Strong understanding of REST APIs, PSD2 and strong customer authentication"
+    },
+    {
+     "kind": "skill",
+     "line": 12,
+     "need": "must",
+     "text": "Evidence-based prioritisation"
+    },
+    {
+     "kind": "skill",
+     "line": 13,
+     "need": "must",
+     "text": "comfortable with SQL and product analytics"
+    },
+    {
+     "kind": "language",
+     "line": 14,
+     "need": "must",
+     "text": "Excellent English"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "ff141378a0a95847d2c2c0d2ea42d37268ee575dc39cb2ad499c4360cc3a870e",
+  "source_hash": "8d4bb37842204d6c2bf15a97c4c719b16340209f88dcd3eb489b02659073f2bb",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0005": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Build prototypes with 3D printing, Arduino and Raspberry Pi"
+    },
+    {
+     "line": 4,
+     "text": "Support tests and write short reports"
+    }
+   ],
+   "industry": "Engineering",
+   "lines": [
+    "Job title: Prototype Engineer, Smart Devices (m/f/d)",
+    "Join our lab to turn ideas into working models.",
+    "What you'll do",
+    "Build prototypes with 3D printing, Arduino and Raspberry Pi",
+    "Support tests and write short reports",
+    "What you bring",
+    "Degree in engineering or mechatronics, 1-2 years of experience",
+    "Existing right to work in Germany is required",
+    "unfortunately we cannot offer visa sponsorship",
+    "Good English"
+   ],
+   "occupation": "Prototype Engineer",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 6,
+     "need": "must",
+     "text": "Degree in engineering or mechatronics, 1-2 years of experience"
+    },
+    {
+     "kind": "authorization",
+     "line": 7,
+     "need": "must",
+     "text": "Existing right to work in Germany is required"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "nice",
+     "text": "Good English"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "d7d4e5a2017294f9ad87e4c29355fbc4ae2ef1b287c6764918bebe2774914481",
+  "source_hash": "2123da6932db0f3a597f90b87839f617327e9d6e7bc490fdbd644da9553e5f0f",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0006": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Gesamtverantwortung für Wareneingang, Lagerung, Kommissionierung und Versand"
+    },
+    {
+     "line": 4,
+     "text": "Führung der Teamleiter, Personal- und Budgetplanung"
+    },
+    {
+     "line": 5,
+     "text": "Weiterentwicklung der Lagerprozesse und Kennzahlen"
+    },
+    {
+     "line": 6,
+     "text": "Zusammenarbeit mit Einkauf, Vertrieb und Spedition"
+    }
+   ],
+   "industry": "Logistics",
+   "lines": [
+    "Job title: Lagerleiter (m/w/d)",
+    "Sie übernehmen die Verantwortung für unser Zentrallager mit 55 Mitarbeitenden.",
+    "Ihre Aufgaben",
+    "Gesamtverantwortung für Wareneingang, Lagerung, Kommissionierung und Versand",
+    "Führung der Teamleiter, Personal- und Budgetplanung",
+    "Weiterentwicklung der Lagerprozesse und Kennzahlen",
+    "Zusammenarbeit mit Einkauf, Vertrieb und Spedition",
+    "Ihr Profil",
+    "Mehrjährige Erfahrung in der Lagerleitung oder als Teamleiter mit Entwicklungsperspektive",
+    "Kenntnisse in SAP und Kennzahlen",
+    "Weiterbildung zum Logistikmeister oder Betriebswirt wünschenswert"
+   ],
+   "occupation": "Warehouse Manager",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 8,
+     "need": "must",
+     "text": "Mehrjährige Erfahrung in der Lagerleitung oder als Teamleiter mit Entwicklungsperspektive"
+    },
+    {
+     "kind": "knowledge",
+     "line": 9,
+     "need": "must",
+     "text": "Kenntnisse in SAP und Kennzahlen"
+    },
+    {
+     "kind": "education",
+     "line": 10,
+     "need": "nice",
+     "text": "Weiterbildung zum Logistikmeister oder Betriebswirt wünschenswert"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "a3d8f95071b0c305f78b2652f68d4df379dede725af9f54c2b9dbd79edb681d5",
+  "source_hash": "92a72a66063ed21281a750d3d4350f5bb14df8a1f50cd939cfb5a10f27255153",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0008": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 4,
+     "text": "Erstellung von Arbeitsplänen und Stücklisten in SAP"
+    },
+    {
+     "line": 5,
+     "text": "Kapazitäts- und Terminplanung der Fertigungsaufträge"
+    },
+    {
+     "line": 6,
+     "text": "Abstimmung mit Einkauf, Konstruktion und Werkstatt"
+    },
+    {
+     "line": 7,
+     "text": "Auswertung von Durchlaufzeiten und Vorschläge zur Verbesserung"
+    }
+   ],
+   "industry": "Manufacturing",
+   "lines": [
+    "Job title: Arbeitsvorbereiter / Produktionsplaner (m/w/d)",
+    "In unserer Fertigung planen wir Aufträge für Dreh-, Fräs- und Schweißbaugruppen.",
+    "Zur Verstärkung suchen wir eine Arbeitsvorbereitung.",
+    "Ihre Aufgaben",
+    "Erstellung von Arbeitsplänen und Stücklisten in SAP",
+    "Kapazitäts- und Terminplanung der Fertigungsaufträge",
+    "Abstimmung mit Einkauf, Konstruktion und Werkstatt",
+    "Auswertung von Durchlaufzeiten und Vorschläge zur Verbesserung",
+    "Ihr Profil",
+    "Ausbildung zum Industriemechaniker oder Techniker, alternativ Studium",
+    "Erfahrung in der Arbeitsvorbereitung oder Produktionsplanung",
+    "SAP PP und Excel",
+    "Genaue, strukturierte Arbeitsweise"
+   ],
+   "occupation": "Production Planning",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 9,
+     "need": "must",
+     "text": "Ausbildung zum Industriemechaniker oder Techniker, alternativ Studium"
+    },
+    {
+     "kind": "experience",
+     "line": 10,
+     "need": "must",
+     "text": "Erfahrung in der Arbeitsvorbereitung oder Produktionsplanung"
+    },
+    {
+     "kind": "knowledge",
+     "line": 11,
+     "need": "must",
+     "text": "SAP PP und Excel"
+    },
+    {
+     "kind": "knowledge",
+     "line": 12,
+     "need": "must",
+     "text": "Genaue, strukturierte Arbeitsweise"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "21abf009633cf6343eb54356450475935d735fb14aa13a6e06fff7da3b3f91fb",
+  "source_hash": "53cb01c70f60772696c42652b97d247ae67b091285fb154434b46a03c55e57a9",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0009": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 1,
+     "text": "Pick, pack and ship orders in our fulfilment centre."
+    },
+    {
+     "line": 3,
+     "text": "Pick and pack customer orders"
+    },
+    {
+     "line": 4,
+     "text": "Scan goods at inbound and outbound"
+    },
+    {
+     "line": 5,
+     "text": "Keep your area safe and tidy"
+    }
+   ],
+   "industry": "Logistics",
+   "lines": [
+    "Job title: Warehouse Associate (m/f/d)",
+    "Pick, pack and ship orders in our fulfilment centre.",
+    "What you'll do",
+    "Pick and pack customer orders",
+    "Scan goods at inbound and outbound",
+    "Keep your area safe and tidy",
+    "What you bring",
+    "Reliability and attention to detail",
+    "Willingness to work shifts",
+    "Basic English"
+   ],
+   "occupation": "Warehouse Associate",
+   "requirements": [
+    {
+     "kind": "other",
+     "line": 7,
+     "need": "nice",
+     "text": "Reliability and attention to detail"
+    },
+    {
+     "kind": "other",
+     "line": 8,
+     "need": "nice",
+     "text": "Willingness to work shifts"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "nice",
+     "text": "Basic English"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "9a4d12a878e5c90eeb170c2562459978c447a3efdaa1dd588b3250c85b40d16e",
+  "source_hash": "8c05b99024c5ee8ce6ece32f972912a20b6e6e91256eff5071675a18181a8f4d",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0010": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Steuerung von Maschinenprojekten von der Bestellung bis zur Abnahme"
+    },
+    {
+     "line": 4,
+     "text": "Abstimmung von Konstruktion, Einkauf, Montage und Service"
+    }
+   ],
+   "industry": "Machinery Manufacturing",
+   "lines": [
+    "Job title: Projektmanager Maschinenbau (m/w/d)",
+    "Wir fertigen Verpackungsmaschinen und suchen einen Projektmanager für Kundenprojekte.",
+    "Ihre Aufgaben",
+    "Steuerung von Maschinenprojekten von der Bestellung bis zur Abnahme",
+    "Abstimmung von Konstruktion, Einkauf, Montage und Service",
+    "Ihr Profil",
+    "Erfahrung in der Projektleitung oder Projektkoordination im Maschinenbau, bei der Sie Termine, Kosten und Qualität mehrerer paralleler Aufträge im Blick behalten, Lieferanten und interne Abteilungen koordinieren, Änderungen an Stücklisten und Konstruktionsständen nachverfolgen, Statusberichte für die Geschäftsleitung erstellen und Kundenabnahmen vorbereiten, idealerweise mit SAP und MS Project",
+    "Studium oder Technikerabschluss",
+    "Englischkenntnisse für Zulieferer"
+   ],
+   "occupation": "Project Manager",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 6,
+     "need": "must",
+     "text": "Erfahrung in der Projektleitung oder Projektkoordination im Maschinenbau, bei der Sie Termine, Kosten und Qualität mehrerer paralleler Aufträge im Blick behalten, Lieferanten und interne Abteilungen koordinieren, Änderungen an Stücklisten und Konstruktionsständen nachverfolgen, Statusberichte"
+    },
+    {
+     "kind": "experience",
+     "line": 6,
+     "need": "must",
+     "text": "Geschäftsleitung erstellen und Kundenabnahmen vorbereiten, idealerweise mit SAP und MS Project"
+    },
+    {
+     "kind": "education",
+     "line": 7,
+     "need": "must",
+     "text": "Studium oder Technikerabschluss"
+    },
+    {
+     "kind": "language",
+     "line": 8,
+     "need": "must",
+     "text": "Englischkenntnisse für Zulieferer"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "c2d3af932bfdb96c36560d3830c3c323c129e40a4912749164e12048788662c1",
+  "source_hash": "7c9afeffc1541cd31d8a433fca58b4a356b32c7cdf22e324185727b2997e2116",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0011": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Entwicklung von Python- und C#-Services für die Fertigungsdatenerfassung"
+    },
+    {
+     "line": 4,
+     "text": "Anbindung an SAP PP über Schnittstellen und Stücklistenimport"
+    },
+    {
+     "line": 5,
+     "text": "Mitarbeit in agilen Teams"
+    },
+    {
+     "line": 6,
+     "text": "Projektplanung im Team mit MS Project und Jira"
+    },
+    {
+     "line": 7,
+     "text": "Dokumentation und Tests"
+    }
+   ],
+   "industry": "Manufacturing IT",
+   "lines": [
+    "Job title: Softwareentwickler (m/w/d) Fertigungs-IT",
+    "Wir entwickeln Software für die Steuerung und Planung unserer Fertigungsanlagen.",
+    "Ihre Aufgaben",
+    "Entwicklung von Python- und C#-Services für die Fertigungsdatenerfassung",
+    "Anbindung an SAP PP über Schnittstellen und Stücklistenimport",
+    "Mitarbeit in agilen Teams",
+    "Projektplanung im Team mit MS Project und Jira",
+    "Dokumentation und Tests",
+    "Ihr Profil",
+    "Abgeschlossenes Informatikstudium",
+    "Erfahrung in Python und C",
+    "Verständnis von Schnittstellen und Datenmodellen"
+   ],
+   "occupation": "Software Development",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 9,
+     "need": "must",
+     "text": "Abgeschlossenes Informatikstudium"
+    },
+    {
+     "kind": "experience",
+     "line": 10,
+     "need": "must",
+     "text": "Erfahrung in Python und C"
+    },
+    {
+     "kind": "knowledge",
+     "line": 11,
+     "need": "must",
+     "text": "Verständnis von Schnittstellen und Datenmodellen"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "aa39a71ff05e44e4b41f2bb92dfcaed382c77eeb9a8404d4b8365b91e905facc",
+  "source_hash": "99982bd7d9b84254ebbe5c8488915b970febf52a26555b7de4412dda9ba6c549",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0012": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Annahme und Bearbeitung von Support-Tickets"
+    },
+    {
+     "line": 4,
+     "text": "Einrichtung von Arbeitsplätzen und Benutzerkonten"
+    },
+    {
+     "line": 5,
+     "text": "Prozessdokumentation in der Wissensdatenbank, einfache Excel-Auswertungen und SQL-Abfragen für Ticketstatistiken"
+    }
+   ],
+   "industry": "IT Services",
+   "lines": [
+    "Job title: IT-Support Mitarbeiter (m/w/d)",
+    "Wir betreuen die IT-Arbeitsplätze unserer Kunden und suchen Verstärkung im Support.",
+    "Ihre Aufgaben",
+    "Annahme und Bearbeitung von Support-Tickets",
+    "Einrichtung von Arbeitsplätzen und Benutzerkonten",
+    "Prozessdokumentation in der Wissensdatenbank, einfache Excel-Auswertungen und SQL-Abfragen für Ticketstatistiken",
+    "Ihr Profil",
+    "Ausbildung in der IT oder vergleichbare",
+    "Erfahrung",
+    "Windows und Microsoft 365",
+    "Freundlicher Umgang mit Kunden"
+   ],
+   "occupation": "IT Support",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 7,
+     "need": "must",
+     "text": "Ausbildung in der IT oder vergleichbare"
+    },
+    {
+     "kind": "experience",
+     "line": 8,
+     "need": "must",
+     "text": "Erfahrung"
+    },
+    {
+     "kind": "knowledge",
+     "line": 9,
+     "need": "must",
+     "text": "Windows und Microsoft 365"
+    },
+    {
+     "kind": "other",
+     "line": 10,
+     "need": "nice",
+     "text": "Freundlicher Umgang mit Kunden"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "c9fe5f65af714c02eaf6e6339e069c0216421c23fd4e253368ec9b57db00ba11",
+  "source_hash": "a058173c64917413f7039e113a89330a2d7903c466f13171dbb42c0a6951b98c",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0013": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Own the backlog and roadmap for payments and liquidity features"
+    },
+    {
+     "line": 4,
+     "text": "Run refinement and acceptance with a team of eight"
+    }
+   ],
+   "industry": "Financial Services",
+   "lines": [
+    "Job title: Product Owner Treasury Platform (f/m/d)",
+    "Join the team building a treasury management platform used by corporates across Europe.",
+    "What you'll do",
+    "Own the backlog and roadmap for payments and liquidity features",
+    "Run refinement and acceptance with a team of eight",
+    "What you bring",
+    "Several years of experience as a Product Owner, Product Manager or Business Analyst working with development teams in an agile setting, including the preparation and prioritisation of backlogs, the writing of user stories and acceptance criteria, the coordination of stakeholders from finance, compliance and operations, the planning of releases with engineering leads, and the evaluation of product metrics together wit",
+    "Good English",
+    "German is a plus"
+   ],
+   "occupation": "Product Owner Treasury Platform",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 6,
+     "need": "must",
+     "text": "Several years of experience as a Product Owner, Product Manager or Business Analyst working with development teams in an agile setting, including the preparation and prioritisation of backlogs, the writing of user stories and acceptance criteria, the coordination of stakeholders from finance, compli"
+    },
+    {
+     "kind": "language",
+     "line": 7,
+     "need": "must",
+     "text": "Good English"
+    },
+    {
+     "kind": "language",
+     "line": 8,
+     "need": "nice",
+     "text": "German is a plus"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "a62b96d7ac771f8c8a14c40e29078e0049d35aa712847a84fc5b4333569a1b91",
+  "source_hash": "11d41be3e911c7f221c062104f9993a8ebbad62bf492e869a425fd25580dc377",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0014": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Backlog der API-Plattform pflegen und mit Entwicklung und Fachbereich priorisieren"
+    },
+    {
+     "line": 4,
+     "text": "Technische Anforderungen von Partnerunternehmen aufnehmen und als Stories beschreiben"
+    },
+    {
+     "line": 5,
+     "text": "Dokumentation und Versionierung der Schnittstellen verantworten"
+    },
+    {
+     "line": 6,
+     "text": "Releases mit dem Betriebsteam abstimmen"
+    }
+   ],
+   "industry": "Insurance Technology",
+   "lines": [
+    "Job title: Technical Product Owner Schnittstellen (m/w/d)",
+    "Wir entwickeln Plattformen für Versicherungsunternehmen und suchen einen Technical Product Owner für unsere Schnittstellen-Produkte (REST, Events).",
+    "Ihre Aufgaben",
+    "Backlog der API-Plattform pflegen und mit Entwicklung und Fachbereich priorisieren",
+    "Technische Anforderungen von Partnerunternehmen aufnehmen und als Stories beschreiben",
+    "Dokumentation und Versionierung der Schnittstellen verantworten",
+    "Releases mit dem Betriebsteam abstimmen",
+    "Ihr Profil",
+    "Zwei bis fünf Jahre Erfahrung als Product Owner oder Requirements Engineer",
+    "Verständnis von REST-APIs und Datenmodellen, SQL-Kenntnisse",
+    "Erfahrung mit Scrum und Jira",
+    "Gute Deutschkenntnisse und Englisch für die Dokumentation"
+   ],
+   "occupation": "Technical Product Owner",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 8,
+     "need": "must",
+     "text": "Zwei bis fünf Jahre Erfahrung als Product Owner oder Requirements Engineer"
+    },
+    {
+     "kind": "knowledge",
+     "line": 9,
+     "need": "must",
+     "text": "Verständnis von REST-APIs und Datenmodellen, SQL-Kenntnisse"
+    },
+    {
+     "kind": "experience",
+     "line": 10,
+     "need": "must",
+     "text": "Erfahrung mit Scrum und Jira"
+    },
+    {
+     "kind": "language",
+     "line": 11,
+     "need": "must",
+     "text": "Gute Deutschkenntnisse und Englisch für die Dokumentation"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "776eae8e69553c303aa0fddbd013506a9565b16b46daf849c9a2a4a068cc08ec",
+  "source_hash": "25722a571be7ba306e4c2d78ccefa5b432cd657a76cf4cf8cf86c1209b458a93",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0015": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 1,
+     "text": "Drive improvement projects in our two Hamburg warehouses."
+    },
+    {
+     "line": 3,
+     "text": "Map warehouse processes and measure cycle times"
+    },
+    {
+     "line": 4,
+     "text": "Lead Lean workshops with shift leaders"
+    },
+    {
+     "line": 5,
+     "text": "Implement layout and flow changes and track KPIs"
+    }
+   ],
+   "industry": "Logistics",
+   "lines": [
+    "Job title: Lean Manager – Warehouse Operations (f/m/d)",
+    "Drive improvement projects in our two Hamburg warehouses.",
+    "What you'll do",
+    "Map warehouse processes and measure cycle times",
+    "Lead Lean workshops with shift leaders",
+    "Implement layout and flow changes and track KPIs",
+    "What you bring",
+    "3+ years in Lean, continuous improvement or industrial engineering",
+    "Experience in warehouse or logistics operations",
+    "Strong analytical skills (Excel, SQL)",
+    "Good English"
+   ],
+   "occupation": "Lean Manager",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "3+ years in Lean, continuous improvement or industrial engineering"
+    },
+    {
+     "kind": "experience",
+     "line": 8,
+     "need": "must",
+     "text": "Experience in warehouse or logistics operations"
+    },
+    {
+     "kind": "skill",
+     "line": 9,
+     "need": "must",
+     "text": "Strong analytical skills (Excel, SQL)"
+    },
+    {
+     "kind": "language",
+     "line": 10,
+     "need": "must",
+     "text": "Good English"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "45af2053101c29e5f21dd2c07680f32304529c80558a4752be834e043c618679",
+  "source_hash": "e42d593eb0c0d9f2de8e7c8b6008fbfe9b6b24558cf69382e7619677b0897b15",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0016": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Wareneingang, Einlagerung, Kommissionierung und Versand"
+    },
+    {
+     "line": 4,
+     "text": "Bestandskontrollen und Inventur"
+    },
+    {
+     "line": 5,
+     "text": "Bedienung von Flurförderzeugen"
+    }
+   ],
+   "industry": "Logistics and Warehousing",
+   "lines": [
+    "Job title: Fachkraft für Lagerlogistik (m/w/d)",
+    "Zur Verstärkung unseres Lagerteams suchen wir eine Fachkraft für Lagerlogistik.",
+    "Ihre Aufgaben",
+    "Wareneingang, Einlagerung, Kommissionierung und Versand",
+    "Bestandskontrollen und Inventur",
+    "Bedienung von Flurförderzeugen",
+    "Ihr Profil",
+    "Abgeschlossene Ausbildung zur Fachkraft für Lagerlogistik",
+    "Staplerschein",
+    "Bereitschaft zur Schichtarbeit"
+   ],
+   "occupation": "Warehouse Logistics Specialist",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 7,
+     "need": "must",
+     "text": "Abgeschlossene Ausbildung zur Fachkraft für Lagerlogistik"
+    },
+    {
+     "kind": "authorization",
+     "line": 8,
+     "need": "must",
+     "text": "Staplerschein"
+    },
+    {
+     "kind": "other",
+     "line": 9,
+     "need": "must",
+     "text": "Bereitschaft zur Schichtarbeit"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "abb05019dcc41e5debd681c5dd5af10d87b60a333b5b284a19ef8bc7cdf6d09a",
+  "source_hash": "67432692316469eb3a780c6bf4407c0b94f3a504b5b7cb583e3baaedf04676ae",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0017": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Durchführung von Einarbeitungstrainings für Kleingruppen"
+    },
+    {
+     "line": 4,
+     "text": "Coaching am Arbeitsplatz und Feedbackgespräche"
+    },
+    {
+     "line": 5,
+     "text": "Erfolgsmessung der Einarbeitung"
+    }
+   ],
+   "industry": "Customer Service",
+   "lines": [
+    "Job title: Trainer Onboarding (m/w/d)",
+    "Sie begleiten neue Mitarbeitende im Kundenservice durch die Einarbeitung.",
+    "Ihre Aufgaben",
+    "Durchführung von Einarbeitungstrainings für Kleingruppen",
+    "Coaching am Arbeitsplatz und Feedbackgespräche",
+    "Erfolgsmessung der Einarbeitung",
+    "Ihr Profil",
+    "Erfahrung als Trainer oder Teamleiter im Kundenservice",
+    "Gute Deutschkenntnisse in Wort und Schrift",
+    "Wir arbeiten ausschließlich vor Ort",
+    "eine Präsenzpflicht von fünf Tagen pro Woche am Standort ist Bestandteil der Stelle, Homeoffice ist nicht möglich"
+   ],
+   "occupation": "Trainer",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "Erfahrung als Trainer oder Teamleiter im Kundenservice"
+    },
+    {
+     "kind": "knowledge",
+     "line": 8,
+     "need": "must",
+     "text": "Gute Deutschkenntnisse in Wort und Schrift"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "78e5715527c4fd0ba045c2aab66228fa965b56e697734e8cdd83408cb5d79823",
+  "source_hash": "3ed1d9fd41a8075f18e9661f4022d44ef628041cfdea53de41252a23e6ce2aee",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0019": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 4,
+     "text": "Verteilung der Aufträge und Führung von 12 Mitarbeitenden in der Schicht"
+    },
+    {
+     "line": 5,
+     "text": "Abstimmung mit Disposition und Spedition"
+    },
+    {
+     "line": 6,
+     "text": "Einhaltung der Sicherheits- und Qualitätsvorgaben"
+    },
+    {
+     "line": 7,
+     "text": "Einarbeitung neuer Kolleginnen und Kollegen"
+    }
+   ],
+   "industry": "Logistics",
+   "lines": [
+    "Job title: Schichtleiter Lager (m/w/d) Dreischicht",
+    "Im Dreischichtbetrieb liefern wir Waren an den Einzelhandel.",
+    "Wir suchen einen Schichtleiter.",
+    "Ihre Aufgaben",
+    "Verteilung der Aufträge und Führung von 12 Mitarbeitenden in der Schicht",
+    "Abstimmung mit Disposition und Spedition",
+    "Einhaltung der Sicherheits- und Qualitätsvorgaben",
+    "Einarbeitung neuer Kolleginnen und Kollegen",
+    "Ihr Profil",
+    "Berufsausbildung im Lager- oder Logistikbereich",
+    "Erfahrung in der Kommissionierung und im Versand",
+    "Bereitschaft zur Schichtarbeit",
+    "Flurförderzeugschein"
+   ],
+   "occupation": "Warehouse Manager",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 9,
+     "need": "must",
+     "text": "Berufsausbildung im Lager- oder Logistikbereich"
+    },
+    {
+     "kind": "experience",
+     "line": 10,
+     "need": "must",
+     "text": "Erfahrung in der Kommissionierung und im Versand"
+    },
+    {
+     "kind": "authorization",
+     "line": 11,
+     "need": "must",
+     "text": "Bereitschaft zur Schichtarbeit"
+    },
+    {
+     "kind": "authorization",
+     "line": 12,
+     "need": "must",
+     "text": "Flurförderzeugschein"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "126ab6aa725ba2db4ce87adb8b1c806897aae8d798862152b7c02b54a1936023",
+  "source_hash": "c62af4260b67557b0acf887ad03ed50051467552de461df0aa6c7711ca6daa7b",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0020": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 1,
+     "text": "Ensure the quality of purchased parts."
+    },
+    {
+     "line": 3,
+     "text": "Audit suppliers and manage corrective actions"
+    },
+    {
+     "line": 4,
+     "text": "Support first-article inspections and PPAP"
+    },
+    {
+     "line": 5,
+     "text": "Track supplier KPIs"
+    }
+   ],
+   "industry": "Manufacturing",
+   "lines": [
+    "Job title: Supplier Quality Engineer (f/m/d)",
+    "Ensure the quality of purchased parts.",
+    "What you'll do",
+    "Audit suppliers and manage corrective actions",
+    "Support first-article inspections and PPAP",
+    "Track supplier KPIs",
+    "What you bring",
+    "Degree in engineering",
+    "3+ years in supplier quality or manufacturing quality",
+    "Knowledge of IATF 16949",
+    "good English"
+   ],
+   "occupation": "Supplier Quality Engineer",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 7,
+     "need": "must",
+     "text": "Degree in engineering"
+    },
+    {
+     "kind": "experience",
+     "line": 8,
+     "need": "must",
+     "text": "3+ years in supplier quality or manufacturing quality"
+    },
+    {
+     "kind": "knowledge",
+     "line": 9,
+     "need": "must",
+     "text": "Knowledge of IATF 16949"
+    },
+    {
+     "kind": "language",
+     "line": 10,
+     "need": "must",
+     "text": "good English"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "31d4c2083b30a17900e1828492b30adc8b16803a51e7c9d1a95030b45ac8f6f1",
+  "source_hash": "e9b35c7534757918192cf1856239e82e91084182c57ba1f3cc84953579b999de",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0021": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 1,
+     "text": "Support our hardware team with circuits and enclosure design."
+    },
+    {
+     "line": 3,
+     "text": "Design simple circuits and PCB layouts with KiCad"
+    },
+    {
+     "line": 4,
+     "text": "Build and test prototype assemblies"
+    },
+    {
+     "line": 5,
+     "text": "Support certification tests"
+    }
+   ],
+   "industry": "Engineering",
+   "lines": [
+    "Job title: Junior Hardware Engineer (f/m/d)",
+    "Support our hardware team with circuits and enclosure design.",
+    "What you'll do",
+    "Design simple circuits and PCB layouts with KiCad",
+    "Build and test prototype assemblies",
+    "Support certification tests",
+    "What you bring",
+    "3+ years of experience, or 1 year of experience plus a bachelor's degree in engineering",
+    "KiCad or similar EDA tool",
+    "Good English"
+   ],
+   "occupation": "Hardware Engineer",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "3+ years of experience, or 1 year of experience plus a bachelor's degree in engineering"
+    },
+    {
+     "kind": "knowledge",
+     "line": 8,
+     "need": "must",
+     "text": "KiCad or similar EDA tool"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "must",
+     "text": "Good English"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "86ff216a589e8a9140a73f005d666e79e7f1cfd2eac4f1718f3b8b1c177fc890",
+  "source_hash": "ef73f29bbe9d0b84c36faf8cd27d98b09244470d7c9daeb3d043106c6b638840",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0024": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 1,
+     "text": "Lead customer projects for packaging lines."
+    },
+    {
+     "line": 3,
+     "text": "Manage technical and commercial project delivery"
+    },
+    {
+     "line": 4,
+     "text": "Coordinate design, procurement, assembly and commissioning"
+    },
+    {
+     "line": 5,
+     "text": "Maintain risk and cost tracking and report to the sales director"
+    }
+   ],
+   "industry": "Packaging Machinery",
+   "lines": [
+    "Job title: Technical Project Manager – Packaging Machinery (f/m/d)",
+    "Lead customer projects for packaging lines.",
+    "What you'll do",
+    "Manage technical and commercial project delivery",
+    "Coordinate design, procurement, assembly and commissioning",
+    "Maintain risk and cost tracking and report to the sales director",
+    "What you bring",
+    "5+ years in project management in machine building",
+    "Degree in engineering or industrial engineering",
+    "Good English for supplier communication"
+   ],
+   "occupation": "Technical Project Manager",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "5+ years in project management in machine building"
+    },
+    {
+     "kind": "education",
+     "line": 8,
+     "need": "must",
+     "text": "Degree in engineering or industrial engineering"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "must",
+     "text": "Good English for supplier communication"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "9d93b0263a46182c4a641b0a6a3a60821582d0a6f2a1ff284f88a64e7237fbfc",
+  "source_hash": "80c9a21db9d00ba5c65ddaccb440909e41db55dc59b41bed4e7b42e371518659",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0026": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 1,
+     "text": "Sie unterstützen das Personalteam im operativen Tagesgeschäft."
+    },
+    {
+     "line": 3,
+     "text": "Pflege der Personalakten und Vertragsunterlagen"
+    },
+    {
+     "line": 4,
+     "text": "Unterstützung bei Einstellungen, Einarbeitung und Austritten"
+    },
+    {
+     "line": 5,
+     "text": "Ansprechpartner für Fragen zu Arbeitszeit und Urlaub"
+    }
+   ],
+   "industry": "Human Resources",
+   "lines": [
+    "Job title: HR-Sachbearbeiter (m/w/d)",
+    "Sie unterstützen das Personalteam im operativen Tagesgeschäft.",
+    "Ihre Aufgaben",
+    "Pflege der Personalakten und Vertragsunterlagen",
+    "Unterstützung bei Einstellungen, Einarbeitung und Austritten",
+    "Ansprechpartner für Fragen zu Arbeitszeit und Urlaub",
+    "Ihr Profil",
+    "Kaufmännische Ausbildung",
+    "Erfahrung im Personalwesen",
+    "Gute Deutschkenntnisse"
+   ],
+   "occupation": "HR Specialist",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 7,
+     "need": "must",
+     "text": "Kaufmännische Ausbildung"
+    },
+    {
+     "kind": "experience",
+     "line": 8,
+     "need": "must",
+     "text": "Erfahrung im Personalwesen"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "must",
+     "text": "Gute Deutschkenntnisse"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "2edf583e92529bda0e5c2a6d74426ef8d943df83fd8ec214cf1577aa512c6159",
+  "source_hash": "96754dd2df8f55650a82ca51ea913f5b8ffe1a151bf1811f8a1e6cbf33359e40",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0028": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Verantwortung für Backlog und Roadmap der App-Funktionen rund um Zahlungen"
+    },
+    {
+     "line": 4,
+     "text": "Priorisierung gemeinsam mit Design, Entwicklung und Compliance"
+    },
+    {
+     "line": 5,
+     "text": "Auswertung von Nutzungsdaten und Kundenfeedback"
+    }
+   ],
+   "industry": "Banking",
+   "lines": [
+    "Job title: Product Owner Banking-App (m/w/d)",
+    "Für unsere Banking-App suchen wir einen Product Owner.",
+    "Ihre Aufgaben",
+    "Verantwortung für Backlog und Roadmap der App-Funktionen rund um Zahlungen",
+    "Priorisierung gemeinsam mit Design, Entwicklung und Compliance",
+    "Auswertung von Nutzungsdaten und Kundenfeedback",
+    "Ihr Profil",
+    "Drei Jahre Erfahrung als Product Owner im Banking oder in Zahlungsprodukten",
+    "Scrum und Jira",
+    "Deutsch B2 und gutes Englisch"
+   ],
+   "occupation": "Product Owner Banking",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "Drei Jahre Erfahrung als Product Owner im Banking oder in Zahlungsprodukten"
+    },
+    {
+     "kind": "knowledge",
+     "line": 8,
+     "need": "must",
+     "text": "Scrum und Jira"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "must",
+     "text": "Deutsch B2 und gutes Englisch"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "b2c443614187c12a6a76b062b5642f0078f972b220be06e2e443ceef4a8fd9d7",
+  "source_hash": "34e0564dd67a9cb9da127823ff793d977b28d00f0c211f7769bcba417d189cbc",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0031": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Koordination von Neuprodukt-Anläufen zwischen Entwicklung, Einkauf und Produktion"
+    },
+    {
+     "line": 4,
+     "text": "Pflege von Terminplänen und Maßnahmenlisten"
+    },
+    {
+     "line": 5,
+     "text": "Teilnahme an Lieferantengesprächen"
+    }
+   ],
+   "industry": "Manufacturing",
+   "lines": [
+    "Job title: Projektkoordinator Fertigung (m/w/d)",
+    "Zur Verstärkung unseres Teams in der Fertigung suchen wir einen Projektkoordinator für Neuprodukteinführungen.",
+    "Ihre Aufgaben",
+    "Koordination von Neuprodukt-Anläufen zwischen Entwicklung, Einkauf und Produktion",
+    "Pflege von Terminplänen und Maßnahmenlisten",
+    "Teilnahme an Lieferantengesprächen",
+    "Ihr Profil",
+    "Abgeschlossenes Studium im Ingenieurwesen oder eine Techniker-Weiterbildung mit mindestens fünf Jahren Berufserfahrung",
+    "Erfahrung mit SAP",
+    "Englisch auf Grundniveau reicht aus"
+   ],
+   "occupation": "Project Coordinator Manufacturing",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 7,
+     "need": "must",
+     "text": "Abgeschlossenes Studium im Ingenieurwesen oder eine Techniker-Weiterbildung mit mindestens fünf Jahren Berufserfahrung"
+    },
+    {
+     "kind": "knowledge",
+     "line": 8,
+     "need": "must",
+     "text": "Erfahrung mit SAP"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "nice",
+     "text": "Englisch auf Grundniveau reicht aus"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "2216f97d10e18e1ae8690d6dbfe7a9610d99bd1d5ac5bd06596ce498aa3b12a6",
+  "source_hash": "e9f0e771faa051e846084ce4ac5cd605ab5f0599e158e619ec915eed319305b0",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0032": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Source and interview candidates"
+    },
+    {
+     "line": 4,
+     "text": "Advise hiring managers on the process"
+    },
+    {
+     "line": 5,
+     "text": "Maintain the applicant tracking system"
+    }
+   ],
+   "industry": "Technology",
+   "lines": [
+    "Job title: Recruiter (f/m/d)",
+    "Find and hire engineers and product people.",
+    "What you'll do",
+    "Source and interview candidates",
+    "Advise hiring managers on the process",
+    "Maintain the applicant tracking system",
+    "What you bring",
+    "2+ years as a tech recruiter",
+    "Excellent communication skills",
+    "Good English",
+    "German is a plus"
+   ],
+   "occupation": "Recruiter",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "2+ years as a tech recruiter"
+    },
+    {
+     "kind": "skill",
+     "line": 8,
+     "need": "must",
+     "text": "Excellent communication skills"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "must",
+     "text": "Good English"
+    },
+    {
+     "kind": "language",
+     "line": 10,
+     "need": "nice",
+     "text": "German is a plus"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "650317caeaf2e4aabcbe74e4d63c897bca2ae2f6edcb45291101badd18fc6c2a",
+  "source_hash": "44fb713ef35307f20d284b3ab02868fe3c5328a14ee304c108e1b776f6301e4a",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0033": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 4,
+     "text": "Analyse von Bearbeitungszeiten, Rückfragen und Wiederholungskontakten"
+    },
+    {
+     "line": 5,
+     "text": "Aufbau von Reports und Dashboards in Power BI"
+    },
+    {
+     "line": 6,
+     "text": "Ableitung und Nachverfolgung von Prozessverbesserungen mit den Teamleitungen"
+    },
+    {
+     "line": 7,
+     "text": "Unterstützung bei der Personalbedarfsplanung"
+    }
+   ],
+   "industry": "Customer Service",
+   "lines": [
+    "Job title: Operations Analyst Kundenservice (m/w/d)",
+    "Unser Kundenservice bearbeitet monatlich 400.000 Anfragen.",
+    "Wir suchen einen Operations Analyst, der Abläufe und Kennzahlen verbessert.",
+    "Ihre Aufgaben",
+    "Analyse von Bearbeitungszeiten, Rückfragen und Wiederholungskontakten",
+    "Aufbau von Reports und Dashboards in Power BI",
+    "Ableitung und Nachverfolgung von Prozessverbesserungen mit den Teamleitungen",
+    "Unterstützung bei der Personalbedarfsplanung",
+    "Ihr Profil",
+    "Studium Wirtschaftsinformatik, BWL oder vergleichbar",
+    "Zwei bis vier Jahre Erfahrung in Analyse oder Operations",
+    "SQL, Excel, Power BI",
+    "Gutes Deutsch und Englisch"
+   ],
+   "occupation": "Operations Analyst",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 9,
+     "need": "must",
+     "text": "Studium Wirtschaftsinformatik, BWL oder vergleichbar"
+    },
+    {
+     "kind": "experience",
+     "line": 10,
+     "need": "must",
+     "text": "Zwei bis vier Jahre Erfahrung in Analyse oder Operations"
+    },
+    {
+     "kind": "skill",
+     "line": 11,
+     "need": "must",
+     "text": "SQL, Excel, Power BI"
+    },
+    {
+     "kind": "language",
+     "line": 12,
+     "need": "must",
+     "text": "Gutes Deutsch und Englisch"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "d0452f0576efb3aedee521e9bd4adcd3fa8e99da6e369cd261ad7ab26d9605c0",
+  "source_hash": "47857ea1beafa7a9f9f6a259b7e4773de88c76758a06c3b53692e030e1b8fba4",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0035": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Turn concepts into functional prototypes using 3D printing, CNC parts and simple electronics"
+    },
+    {
+     "line": 4,
+     "text": "Design housings and brackets in CAD"
+    },
+    {
+     "line": 5,
+     "text": "Run test series and write short test reports"
+    },
+    {
+     "line": 6,
+     "text": "Work with designers and firmware engineers on iterations"
+    }
+   ],
+   "industry": "Smart Home Devices",
+   "lines": [
+    "Job title: Prototyping Engineer (m/f/d)",
+    "We develop connected devices for smart homes and need a hands-on engineer for our prototyping lab.",
+    "What you'll do",
+    "Turn concepts into functional prototypes using 3D printing, CNC parts and simple electronics",
+    "Design housings and brackets in CAD",
+    "Run test series and write short test reports",
+    "Work with designers and firmware engineers on iterations",
+    "What you bring",
+    "Bachelor's degree in mechatronics, mechanical or electrical engineering",
+    "1-3 years of prototyping experience, student projects count",
+    "Experience with Autodesk Inventor, SolidWorks or similar",
+    "Basic Arduino or Raspberry Pi skills",
+    "English is the team language, German is a plus"
+   ],
+   "occupation": "Prototyping Engineer",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 8,
+     "need": "must",
+     "text": "Bachelor's degree in mechatronics, mechanical or electrical engineering"
+    },
+    {
+     "kind": "experience",
+     "line": 9,
+     "need": "must",
+     "text": "1-3 years of prototyping experience, student projects count"
+    },
+    {
+     "kind": "knowledge",
+     "line": 10,
+     "need": "must",
+     "text": "Experience with Autodesk Inventor, SolidWorks or similar"
+    },
+    {
+     "kind": "knowledge",
+     "line": 11,
+     "need": "must",
+     "text": "Basic Arduino or Raspberry Pi skills"
+    },
+    {
+     "kind": "language",
+     "line": 12,
+     "need": "must",
+     "text": "English is the team language, German is a plus"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "5d288c527a6efaf780e998d43bd2bb4e7ffcf20ef7295cf64d29572f96775a8e",
+  "source_hash": "e7ef30eee709700587c4fc28f1b1cdf4a36fcb6730b378281fa27b9edef670a8",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0036": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Lead a team of 10 project managers and coordinators"
+    },
+    {
+     "line": 4,
+     "text": "Define the project management methodology and governance"
+    },
+    {
+     "line": 5,
+     "text": "Report portfolio status and risks to the executive board"
+    }
+   ],
+   "industry": "Heavy Machinery",
+   "lines": [
+    "Job title: Head of Project Management Office – Heavy Machinery (f/m/d)",
+    "We are looking for a Head of PMO to lead the project management organisation of our machinery division.",
+    "What you'll do",
+    "Lead a team of 10 project managers and coordinators",
+    "Define the project management methodology and governance",
+    "Report portfolio status and risks to the executive board",
+    "What you bring",
+    "15+ years in project management in machine or plant building, 5+ in leadership",
+    "Strong portfolio and resource-management skills",
+    "Fluent English"
+   ],
+   "occupation": "Project Management Office",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "15+ years in project management in machine or plant building, 5+ in leadership"
+    },
+    {
+     "kind": "skill",
+     "line": 8,
+     "need": "must",
+     "text": "Strong portfolio and resource-management skills"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "must",
+     "text": "Fluent English"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "5f925b18ce8de26d8011be61aa314c860f3ac90c655a08d95c4d36873ba223a7",
+  "source_hash": "87169b52eedcf15f732379285e4909301461b48599f1836db82d80fe4889d74b",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0039": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 1,
+     "text": "Train our sales teams on product knowledge and discovery techniques."
+    },
+    {
+     "line": 3,
+     "text": "Design onboarding bootcamps for new account executives"
+    },
+    {
+     "line": 4,
+     "text": "Deliver live workshops and coach reps on calls"
+    },
+    {
+     "line": 5,
+     "text": "Measure ramp-up time and win-rate improvement"
+    }
+   ],
+   "industry": "Sales",
+   "lines": [
+    "Job title: Sales Enablement Trainer (f/m/d)",
+    "Train our sales teams on product knowledge and discovery techniques.",
+    "What you'll do",
+    "Design onboarding bootcamps for new account executives",
+    "Deliver live workshops and coach reps on calls",
+    "Measure ramp-up time and win-rate improvement",
+    "What you bring",
+    "3+ years in sales training or enablement",
+    "Strong facilitation skills",
+    "Excellent English"
+   ],
+   "occupation": "Sales Enablement Trainer",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "3+ years in sales training or enablement"
+    },
+    {
+     "kind": "skill",
+     "line": 8,
+     "need": "must",
+     "text": "Strong facilitation skills"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "must",
+     "text": "Excellent English"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "2f6828f5c00ca274b983b8890af20f0549a7af6fbc5157e610dba39ab9fa86db",
+  "source_hash": "7e80518c2f7dcbd01322a1f7c24ff479ec9aaa972ccfba6397ecc40c45fb08b8",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0043": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 1,
+     "text": "Drive talent development for our headquarters."
+    },
+    {
+     "line": 3,
+     "text": "Design talent programmes and manage the learning budget"
+    },
+    {
+     "line": 4,
+     "text": "Facilitate calibration sessions and development workshops"
+    },
+    {
+     "line": 5,
+     "text": "Partner with HR business partners"
+    }
+   ],
+   "industry": "Human Resources",
+   "lines": [
+    "Job title: Talent Development Manager (f/m/d)",
+    "Drive talent development for our headquarters.",
+    "What you'll do",
+    "Design talent programmes and manage the learning budget",
+    "Facilitate calibration sessions and development workshops",
+    "Partner with HR business partners",
+    "What you bring",
+    "5+ years in talent or leadership development",
+    "Strong facilitation experience",
+    "Presence at our headquarters is mandatory",
+    "the team works on-site and does not offer remote working"
+   ],
+   "occupation": "Talent Development Manager",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "5+ years in talent or leadership development"
+    },
+    {
+     "kind": "experience",
+     "line": 8,
+     "need": "must",
+     "text": "Strong facilitation experience"
+    },
+    {
+     "kind": "authorization",
+     "line": 9,
+     "need": "must",
+     "text": "Presence at our headquarters is mandatory"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "8a43c959bf84d153cca4b921eb054dc0214bd3c2c5bee4a808373f634665625d",
+  "source_hash": "7966deb61010c18cdcf82b3dd94cd6bf68f8f2f588d6baac1ac50bf19a54610f",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0045": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Analyse von Fertigungsprozessen und Ableitung von Maßnahmen"
+    },
+    {
+     "line": 4,
+     "text": "Moderation von Shopfloor-Workshops"
+    },
+    {
+     "line": 5,
+     "text": "Pflege von Kennzahlen zu Ausschuss und Durchlaufzeit"
+    }
+   ],
+   "industry": "Manufacturing",
+   "lines": [
+    "Job title: Prozessoptimierer Fertigung (m/w/d)",
+    "In unserer Fertigung optimieren wir kontinuierlich Abläufe und Taktzeiten.",
+    "Ihre Aufgaben",
+    "Analyse von Fertigungsprozessen und Ableitung von Maßnahmen",
+    "Moderation von Shopfloor-Workshops",
+    "Pflege von Kennzahlen zu Ausschuss und Durchlaufzeit",
+    "Ihr Profil",
+    "Abgeschlossenes Studium im Ingenieurwesen oder Techniker mit drei Jahren Berufserfahrung in der Fertigung",
+    "Kenntnisse in Lean oder Six Sigma",
+    "Excel, idealerweise Power BI"
+   ],
+   "occupation": "Process Optimizer Manufacturing",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 7,
+     "need": "must",
+     "text": "Abgeschlossenes Studium im Ingenieurwesen oder Techniker mit drei Jahren Berufserfahrung in der Fertigung"
+    },
+    {
+     "kind": "knowledge",
+     "line": 8,
+     "need": "must",
+     "text": "Kenntnisse in Lean oder Six Sigma"
+    },
+    {
+     "kind": "knowledge",
+     "line": 9,
+     "need": "nice",
+     "text": "Excel, idealerweise Power BI"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "9b4c624b3f42d8f735cb3b92b1964a7673e0deda0f9fec269f6a7891e8bb4424",
+  "source_hash": "d60d70b652ba604d99afb275fc79cf3755ac2357f4dbfe5db43561bb403d8ccd",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0046": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 4,
+     "text": "Roadmap und Backlog der Plattform verantworten"
+    },
+    {
+     "line": 5,
+     "text": "Nutzerinterviews mit Vertriebsteams führen"
+    },
+    {
+     "line": 6,
+     "text": "Mit Entwicklung und Design Releases planen"
+    }
+   ],
+   "industry": "Software Development",
+   "lines": [
+    "Job title: Product Manager Sales Enablement Plattform (m/w/d)",
+    "Wir entwickeln eine Plattform, mit der Vertriebsteams Angebote und Inhalte verwalten.",
+    "Gesucht wird ein Product Manager für das Produktteam.",
+    "Ihre Aufgaben",
+    "Roadmap und Backlog der Plattform verantworten",
+    "Nutzerinterviews mit Vertriebsteams führen",
+    "Mit Entwicklung und Design Releases planen",
+    "Ihr Profil",
+    "Erfahrung im Produktmanagement von B2B-Software",
+    "Scrum, Jira, Datenanalyse",
+    "Gutes Deutsch und Englisch"
+   ],
+   "occupation": "Product Manager Sales Enablement",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 8,
+     "need": "must",
+     "text": "Erfahrung im Produktmanagement von B2B-Software"
+    },
+    {
+     "kind": "skill",
+     "line": 9,
+     "need": "must",
+     "text": "Scrum, Jira, Datenanalyse"
+    },
+    {
+     "kind": "language",
+     "line": 10,
+     "need": "must",
+     "text": "Gutes Deutsch und Englisch"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "47fb44cb99ad5e60f37607d303707e8ec50a1cec8b477272ada4a81f06ba9bd1",
+  "source_hash": "bec2ab9d543a284d39363e56b9aca835b2f0d16818e30abbb3c2a2c4b4d3aadd",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0049": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 5,
+     "text": "Lead 15 colleagues, plan shifts and allocate tasks"
+    },
+    {
+     "line": 6,
+     "text": "Ensure safety and quality standards"
+    },
+    {
+     "line": 7,
+     "text": "Report KPIs on service levels and error rates"
+    }
+   ],
+   "industry": "Consumer Goods",
+   "lines": [
+    "Job title: Warehouse Team Leader (f/m/d)",
+    "Lead a shift team in a consumer-goods warehouse.",
+    "German is the team language",
+    "English at A2 level is enough for system screens.",
+    "What you'll do",
+    "Lead 15 colleagues, plan shifts and allocate tasks",
+    "Ensure safety and quality standards",
+    "Report KPIs on service levels and error rates",
+    "What you bring",
+    "3+ years in warehouse operations including team lead experience",
+    "SAP EWM or a similar WMS",
+    "Forklift licence"
+   ],
+   "occupation": "Warehouse Team Leader",
+   "requirements": [
+    {
+     "kind": "language",
+     "line": 2,
+     "need": "nice",
+     "text": "German is the team language"
+    },
+    {
+     "kind": "language",
+     "line": 3,
+     "need": "nice",
+     "text": "English at A2 level is enough for system screens"
+    },
+    {
+     "kind": "experience",
+     "line": 9,
+     "need": "must",
+     "text": "3+ years in warehouse operations including team lead experience"
+    },
+    {
+     "kind": "knowledge",
+     "line": 10,
+     "need": "must",
+     "text": "SAP EWM or a similar WMS"
+    },
+    {
+     "kind": "authorization",
+     "line": 11,
+     "need": "must",
+     "text": "Forklift licence"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "5561a26e71ae1fde367e78081d43dc6339004e1d9c36cda1ee1cd8875b5c9923",
+  "source_hash": "91190b36975a76f59db74c44f409d3885ec3b629a9e7f5834c8fbe3a11640325",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0050": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Leitung von Anlaufprojekten mit Budgets bis 2 Mio."
+    },
+    {
+     "line": 5,
+     "text": "Steuerung von Lieferanten und Anlagenbauern, Terminverfolgung"
+    },
+    {
+     "line": 6,
+     "text": "Änderungsmanagement mit Konstruktion und Qualität"
+    },
+    {
+     "line": 7,
+     "text": "Statusberichte an Werksleitung und Konzern"
+    }
+   ],
+   "industry": "Manufacturing",
+   "lines": [
+    "Job title: Projektleiter Produktionsanlauf (m/w/d)",
+    "Für den Anlauf neuer Fertigungslinien an unserem Standort suchen wir einen Projektleiter, der Planung, Beschaffung und Inbetriebnahme koordiniert.",
+    "Ihre Aufgaben",
+    "Leitung von Anlaufprojekten mit Budgets bis 2 Mio.",
+    "Euro",
+    "Steuerung von Lieferanten und Anlagenbauern, Terminverfolgung",
+    "Änderungsmanagement mit Konstruktion und Qualität",
+    "Statusberichte an Werksleitung und Konzern",
+    "Ihr Profil",
+    "Abgeschlossenes Studium im Ingenieurwesen oder Wirtschaftsingenieurwesen",
+    "Mehrjährige Erfahrung im Produktionsanlauf oder in der Projektleitung in der Fertigung",
+    "Kenntnisse in SAP und Lean Production",
+    "Gute Englischkenntnisse für die Abstimmung mit dem Konzern"
+   ],
+   "occupation": "Project Manager",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 9,
+     "need": "must",
+     "text": "Abgeschlossenes Studium im Ingenieurwesen oder Wirtschaftsingenieurwesen"
+    },
+    {
+     "kind": "experience",
+     "line": 10,
+     "need": "must",
+     "text": "Mehrjährige Erfahrung im Produktionsanlauf oder in der Projektleitung in der Fertigung"
+    },
+    {
+     "kind": "knowledge",
+     "line": 11,
+     "need": "must",
+     "text": "Kenntnisse in SAP und Lean Production"
+    },
+    {
+     "kind": "language",
+     "line": 12,
+     "need": "must",
+     "text": "Gute Englischkenntnisse für die Abstimmung mit dem Konzern"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "a543c34ff1a7eb40c4ca594bf7bf0e3e8b43ce363b0e5de2a6100f20e0c3059a",
+  "source_hash": "59dd80086e62131613f97550af7034429871cb0e6f1bdab33249001e1503488d",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0051": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Aufbau und Test von Funktionsmustern"
+    },
+    {
+     "line": 4,
+     "text": "Konstruktion von Gehäusen und Halterungen in CAD"
+    },
+    {
+     "line": 5,
+     "text": "Durchführung von Test- und Messreihen, Dokumentation der Ergebnisse"
+    },
+    {
+     "line": 6,
+     "text": "Abstimmung mit Elektronik- und Softwareentwicklung"
+    }
+   ],
+   "industry": "Engineering",
+   "lines": [
+    "Job title: Entwicklungsingenieur Prototypenbau (m/w/d)",
+    "Wir entwickeln Sensoren für die Industrie und suchen einen Entwicklungsingenieur für unseren Prototypenbau.",
+    "Ihre Aufgaben",
+    "Aufbau und Test von Funktionsmustern",
+    "Konstruktion von Gehäusen und Halterungen in CAD",
+    "Durchführung von Test- und Messreihen, Dokumentation der Ergebnisse",
+    "Abstimmung mit Elektronik- und Softwareentwicklung",
+    "Ihr Profil",
+    "Studium Mechatronik, Maschinenbau oder Elektrotechnik",
+    "Erste Berufserfahrung im Prototypenbau",
+    "Sicheres Deutsch auf mindestens B2-Niveau, da Teamsprache und Dokumentation Deutsch sind",
+    "Kenntnisse in Inventor oder SolidWorks"
+   ],
+   "occupation": "Prototype Development Engineer",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 8,
+     "need": "must",
+     "text": "Studium Mechatronik, Maschinenbau oder Elektrotechnik"
+    },
+    {
+     "kind": "experience",
+     "line": 9,
+     "need": "must",
+     "text": "Erste Berufserfahrung im Prototypenbau"
+    },
+    {
+     "kind": "language",
+     "line": 10,
+     "need": "must",
+     "text": "Sicheres Deutsch auf mindestens B2-Niveau, da Teamsprache und Dokumentation Deutsch sind"
+    },
+    {
+     "kind": "knowledge",
+     "line": 11,
+     "need": "must",
+     "text": "Kenntnisse in Inventor oder SolidWorks"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "e6145a978d6e5e0c362bc658951eff2ed10643240a4e81b50899e8f7ccfd6fab",
+  "source_hash": "35d7a32b8f04285c025e1cbe8170b409c258a7a3320c6a2d793fde4787571bc4",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0052": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Build quick functional models of automation components"
+    },
+    {
+     "line": 4,
+     "text": "Use 3D printing, Arduino and Raspberry Pi to simulate concepts"
+    },
+    {
+     "line": 5,
+     "text": "Present prototypes at customer workshops and collect feedback"
+    }
+   ],
+   "industry": "Technology",
+   "lines": [
+    "Job title: Innovation Engineer – Rapid Prototyping (f/m/d)",
+    "Our innovation lab tests new product ideas with customers within weeks.",
+    "What you'll do",
+    "Build quick functional models of automation components",
+    "Use 3D printing, Arduino and Raspberry Pi to simulate concepts",
+    "Present prototypes at customer workshops and collect feedback",
+    "What you bring",
+    "Degree in mechatronics, engineering or a related field",
+    "1-2 years of experience in prototyping or R&D",
+    "Applicants must already hold a valid work permit for Germany",
+    "we cannot sponsor visas or relocation",
+    "Good English"
+   ],
+   "occupation": "Innovation Engineer",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 7,
+     "need": "must",
+     "text": "Degree in mechatronics, engineering or a related field"
+    },
+    {
+     "kind": "experience",
+     "line": 8,
+     "need": "must",
+     "text": "1-2 years of experience in prototyping or R&D"
+    },
+    {
+     "kind": "authorization",
+     "line": 9,
+     "need": "must",
+     "text": "Applicants must already hold a valid work permit for Germany"
+    },
+    {
+     "kind": "language",
+     "line": 11,
+     "need": "nice",
+     "text": "Good English"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "7dabce70f13a626af3e96d195e18fb185fbef282f2a48bd2a13bbd7001a5d728",
+  "source_hash": "af4f55f9337e312a7d095795b1274abf3b900e67eb7e7f7e3bf777a8a400c482",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0055": {
+  "payload": {
+   "dropped": 1,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Unterstützung bei Konzeptstudien und Mustern"
+    },
+    {
+     "line": 4,
+     "text": "Aufbau von Prüfständen und Messungen"
+    },
+    {
+     "line": 5,
+     "text": "Erstellung von Zeichnungen und Berichten"
+    }
+   ],
+   "industry": "Engineering",
+   "lines": [
+    "Job title: Junior Entwicklungsingenieur Mechatronik (m/w/d)",
+    "Für unsere Vorentwicklung suchen wir einen Nachwuchsingenieur.",
+    "Ihre Aufgaben",
+    "Unterstützung bei Konzeptstudien und Mustern",
+    "Aufbau von Prüfständen und Messungen",
+    "Erstellung von Zeichnungen und Berichten",
+    "Ihr Profil",
+    "Bachelor oder Master Mechatronik",
+    "Ein bis zwei Jahre",
+    "Erfahrung",
+    "Eine gültige Arbeitserlaubnis für Deutschland ist Voraussetzung",
+    "wir bieten kein Visa-Sponsoring an",
+    "Deutsch- und Englischkenntnisse"
+   ],
+   "occupation": "Junior Development Engineer Mechatronics",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 7,
+     "need": "must",
+     "text": "Bachelor oder Master Mechatronik"
+    },
+    {
+     "kind": "authorization",
+     "line": 10,
+     "need": "must",
+     "text": "Eine gültige Arbeitserlaubnis für Deutschland ist Voraussetzung"
+    },
+    {
+     "kind": "language",
+     "line": 12,
+     "need": "nice",
+     "text": "Deutsch- und Englischkenntnisse"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "21be752f70edcb2f6f9eefc483b012396e9f4166fb10995cc86ac71598867396",
+  "source_hash": "2d74423c7bee124c22828fc7fed1cf81343c164ec20204c738fe45daac5a39d3",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0064": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 1,
+     "text": "Lernen Sie unsere Logistikprozesse kennen."
+    },
+    {
+     "line": 3,
+     "text": "Unterstützung bei Auswertungen zur Termintreue"
+    },
+    {
+     "line": 4,
+     "text": "Mitarbeit in Projekten zur Lagerorganisation"
+    },
+    {
+     "line": 5,
+     "text": "Erstellung von Präsentationen"
+    }
+   ],
+   "industry": "Logistics",
+   "lines": [
+    "Job title: Praktikum Logistikmanagement (m/w/d)",
+    "Lernen Sie unsere Logistikprozesse kennen.",
+    "Ihre Aufgaben",
+    "Unterstützung bei Auswertungen zur Termintreue",
+    "Mitarbeit in Projekten zur Lagerorganisation",
+    "Erstellung von Präsentationen",
+    "Ihr Profil",
+    "Eingeschrieben in einem Studiengang mit Logistikbezug",
+    "Sicherer Umgang mit Excel"
+   ],
+   "occupation": "Logistics Management",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 7,
+     "need": "must",
+     "text": "Eingeschrieben in einem Studiengang mit Logistikbezug"
+    },
+    {
+     "kind": "knowledge",
+     "line": 8,
+     "need": "must",
+     "text": "Sicherer Umgang mit Excel"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "42f79ed9d24f5fd7d132a3d68e9cbf17969bfcdd9803676793255d7d57b06a84",
+  "source_hash": "794c92651312d8c3b1214a2c79382bcf4a328b30986704b47fc33e1b0e35e4ea",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0065": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 1,
+     "text": "Build the first working models of our next wearable."
+    },
+    {
+     "line": 3,
+     "text": "Assemble electronic and mechanical prototypes"
+    },
+    {
+     "line": 4,
+     "text": "Create 3D-printed enclosures and test fits"
+    },
+    {
+     "line": 5,
+     "text": "Run test series and log results with Python scripts"
+    }
+   ],
+   "industry": "Wearables",
+   "lines": [
+    "Job title: Hardware Prototyping Engineer – Wearables (m/f/d)",
+    "Build the first working models of our next wearable.",
+    "What you'll do",
+    "Assemble electronic and mechanical prototypes",
+    "Create 3D-printed enclosures and test fits",
+    "Run test series and log results with Python scripts",
+    "What you bring",
+    "Bachelor's degree in mechatronics, electrical or mechanical engineering",
+    "1-3 years of prototyping or lab experience",
+    "We support work-permit and relocation applications for non-EU candidates",
+    "Working language is English"
+   ],
+   "occupation": "Hardware Prototyping Engineer",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 7,
+     "need": "must",
+     "text": "Bachelor's degree in mechatronics, electrical or mechanical engineering"
+    },
+    {
+     "kind": "experience",
+     "line": 8,
+     "need": "must",
+     "text": "1-3 years of prototyping or lab experience"
+    },
+    {
+     "kind": "language",
+     "line": 10,
+     "need": "must",
+     "text": "English"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "c097f29a78f4559637af5949abff6161d61da1149c56df41f4d4f473be8e09b8",
+  "source_hash": "5d9280ff9bef4d6d33ce890130e72ed4b9fc606e688fc9c84bf1b70ddd06975c",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0066": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 1,
+     "text": "Deliver management workshops for German-speaking clients."
+    },
+    {
+     "line": 3,
+     "text": "Facilitate workshops on feedback, delegation and change"
+    },
+    {
+     "line": 4,
+     "text": "Prepare materials and follow-up tasks"
+    }
+   ],
+   "industry": "Education",
+   "lines": [
+    "Job title: Business Trainer – German-language Workshops (f/m/d)",
+    "Deliver management workshops for German-speaking clients.",
+    "What you'll do",
+    "Facilitate workshops on feedback, delegation and change",
+    "Prepare materials and follow-up tasks",
+    "What you bring",
+    "3+ years as trainer or facilitator",
+    "German at C1 level or higher is required, since all workshops and materials are in German",
+    "Good English"
+   ],
+   "occupation": "Business Trainer",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 6,
+     "need": "must",
+     "text": "3+ years as trainer or facilitator"
+    },
+    {
+     "kind": "language",
+     "line": 7,
+     "need": "must",
+     "text": "German at C1 level or higher"
+    },
+    {
+     "kind": "language",
+     "line": 8,
+     "need": "nice",
+     "text": "Good English"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "e76e389336cdea7c8af0d084f220ca2d067616a74536ec157dd7816071abe506",
+  "source_hash": "ecdea15b0c02d27cdf9e6a455e8719585cd3a7c0a7007d1a4754546d5359e8f9",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0069": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Führung eines Teams von 20 Mitarbeitenden in Früh- und Spätschicht"
+    },
+    {
+     "line": 4,
+     "text": "Schichtplanung und Personaleinsatz"
+    },
+    {
+     "line": 5,
+     "text": "Sicherstellung der Termintreue im Versand und der Qualität im Wareneingang"
+    },
+    {
+     "line": 6,
+     "text": "Durchführung von Arbeitssicherheitsunterweisungen"
+    },
+    {
+     "line": 7,
+     "text": "Pflege der Lagerdaten in SAP EWM"
+    }
+   ],
+   "industry": "Distribution Center",
+   "lines": [
+    "Job title: Teamleiter Logistik (m/w/d)",
+    "Für unser Distributionszentrum suchen wir einen Teamleiter für Wareneingang und Versand.",
+    "Ihre Aufgaben",
+    "Führung eines Teams von 20 Mitarbeitenden in Früh- und Spätschicht",
+    "Schichtplanung und Personaleinsatz",
+    "Sicherstellung der Termintreue im Versand und der Qualität im Wareneingang",
+    "Durchführung von Arbeitssicherheitsunterweisungen",
+    "Pflege der Lagerdaten in SAP EWM",
+    "Ihr Profil",
+    "Ausbildung zur Fachkraft für Lagerlogistik oder vergleichbar",
+    "Mehrjährige Erfahrung in der Lagerlogistik, erste Führungserfahrung",
+    "Staplerschein",
+    "Gutes Deutsch in Wort und Schrift"
+   ],
+   "occupation": "Team Leader Logistics",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 9,
+     "need": "must",
+     "text": "Ausbildung zur Fachkraft für Lagerlogistik oder vergleichbar"
+    },
+    {
+     "kind": "experience",
+     "line": 10,
+     "need": "must",
+     "text": "Mehrjährige Erfahrung in der Lagerlogistik, erste Führungserfahrung"
+    },
+    {
+     "kind": "authorization",
+     "line": 11,
+     "need": "must",
+     "text": "Staplerschein"
+    },
+    {
+     "kind": "language",
+     "line": 12,
+     "need": "must",
+     "text": "Gutes Deutsch in Wort und Schrift"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "1c4f547c8ec3a4beee3621769366c8c4ba780de33a5f5f8d4e946178dd7d1632",
+  "source_hash": "dcb94faf31579f3c83f3c0ab627bab83b5d947ccd7a67e3278971ed757931986",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0071": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 1,
+     "text": "Sie bearbeiten die Kreditorenbuchhaltung unseres Unternehmens."
+    },
+    {
+     "line": 3,
+     "text": "Prüfung und Verbuchung von Eingangsrechnungen"
+    },
+    {
+     "line": 4,
+     "text": "Zahlungsläufe und Abstimmung von Lieferantenkonten"
+    },
+    {
+     "line": 5,
+     "text": "Unterstützung beim Monatsabschluss"
+    }
+   ],
+   "industry": "Accounting",
+   "lines": [
+    "Job title: Buchhalter (m/w/d) Kreditoren",
+    "Sie bearbeiten die Kreditorenbuchhaltung unseres Unternehmens.",
+    "Ihre Aufgaben",
+    "Prüfung und Verbuchung von Eingangsrechnungen",
+    "Zahlungsläufe und Abstimmung von Lieferantenkonten",
+    "Unterstützung beim Monatsabschluss",
+    "Ihr Profil",
+    "Ausbildung als Steuerfachangestellter oder Bilanzbuchhalter",
+    "Sicherer Umgang mit DATEV oder SAP FI",
+    "Genauigkeit"
+   ],
+   "occupation": "Accountant",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 7,
+     "need": "must",
+     "text": "Ausbildung als Steuerfachangestellter oder Bilanzbuchhalter"
+    },
+    {
+     "kind": "knowledge",
+     "line": 8,
+     "need": "must",
+     "text": "Sicherer Umgang mit DATEV oder SAP FI"
+    },
+    {
+     "kind": "knowledge",
+     "line": 9,
+     "need": "must",
+     "text": "Genauigkeit"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "1f59572ce5677aecc144dc6d7c6a220dffea9d8e059f5cddea4ef256b10a0e27",
+  "source_hash": "5a72464f450870f0f9c66dcd3f808e96f5dfa665a053f4ec3abfbc9e3b4d071f",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0076": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Kundenberatung und Verkauf in der Abteilung"
+    },
+    {
+     "line": 4,
+     "text": "Wareneingang, Regalpflege und Preisauszeichnung"
+    },
+    {
+     "line": 5,
+     "text": "Unterstützung bei der Inventur, gelegentlich Staplerbedienung"
+    }
+   ],
+   "industry": "retail",
+   "lines": [
+    "Job title: Fachverkäufer Baumarkt (m/w/d)",
+    "Beraten Sie Kundinnen und Kunden in unserem Markt.",
+    "Ihre Aufgaben",
+    "Kundenberatung und Verkauf in der Abteilung",
+    "Wareneingang, Regalpflege und Preisauszeichnung",
+    "Unterstützung bei der Inventur, gelegentlich Staplerbedienung",
+    "Ihr Profil",
+    "Freude am Verkauf und Kundenkontakt",
+    "Handwerkliches Interesse",
+    "Flexibilität bei Arbeitszeiten"
+   ],
+   "occupation": "retail sales",
+   "requirements": [
+    {
+     "kind": "other",
+     "line": 7,
+     "need": "nice",
+     "text": "Freude am Verkauf und Kundenkontakt"
+    },
+    {
+     "kind": "other",
+     "line": 8,
+     "need": "nice",
+     "text": "Handwerkliches Interesse"
+    },
+    {
+     "kind": "other",
+     "line": 9,
+     "need": "nice",
+     "text": "Flexibilität bei Arbeitszeiten"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "cc71bfe64c991a3e3cbea12f20d14c2b2d58d8f358343433fd6861dc95f2fde2",
+  "source_hash": "31576e3234f802c82f6030938dd55b3c903e45fe5e82d024eae1b7f122cf7d18",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0078": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Bedarfsanalysen mit Fachbereichen und Führungskräften"
+    },
+    {
+     "line": 4,
+     "text": "Konzeption und Durchführung von Workshops und Trainings"
+    },
+    {
+     "line": 5,
+     "text": "Steuerung externer Trainer und Evaluation der Maßnahmen"
+    },
+    {
+     "line": 6,
+     "text": "Pflege des Lernmanagementsystems"
+    }
+   ],
+   "industry": "Human Resources",
+   "lines": [
+    "Job title: Referent Personalentwicklung (m/w/d)",
+    "Für unser HR-Team suchen wir einen Referenten Personalentwicklung für den Aufbau unserer Führungskräfteprogramme.",
+    "Ihre Aufgaben",
+    "Bedarfsanalysen mit Fachbereichen und Führungskräften",
+    "Konzeption und Durchführung von Workshops und Trainings",
+    "Steuerung externer Trainer und Evaluation der Maßnahmen",
+    "Pflege des Lernmanagementsystems",
+    "Ihr Profil",
+    "Studium der Pädagogik, Psychologie oder Betriebswirtschaft",
+    "Mehrjährige Erfahrung in der Personalentwicklung",
+    "Moderationserfahrung",
+    "Sehr gute Deutschkenntnisse, mindestens Niveau C1, da Trainings und Dokumente ausschließlich auf Deutsch stattfinden"
+   ],
+   "occupation": "HR Specialist",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 8,
+     "need": "must",
+     "text": "Studium der Pädagogik, Psychologie oder Betriebswirtschaft"
+    },
+    {
+     "kind": "experience",
+     "line": 9,
+     "need": "must",
+     "text": "Mehrjährige Erfahrung in der Personalentwicklung"
+    },
+    {
+     "kind": "experience",
+     "line": 10,
+     "need": "must",
+     "text": "Moderationserfahrung"
+    },
+    {
+     "kind": "language",
+     "line": 11,
+     "need": "must",
+     "text": "Sehr gute Deutschkenntnisse, mindestens Niveau C1, da Trainings und Dokumente ausschließlich auf Deutsch stattfinden"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "d8c68b03faab0a95c85f50a40fd18e91279ee309b82305a13919af1025e94cf2",
+  "source_hash": "b3de438ad3e5e34be9a238dafe512bfef3fe4f3e8b8cb0149f96019d19ef94a0",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0086": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Grund- und Behandlungspflege nach dem Pflegeprozess"
+    },
+    {
+     "line": 4,
+     "text": "Dokumentation der Pflege in der Pflegesoftware"
+    },
+    {
+     "line": 5,
+     "text": "Anleitung von Auszubildenden und Einarbeitung neuer Kolleginnen und Kollegen, Teilnahme an internen Schulungen"
+    },
+    {
+     "line": 6,
+     "text": "Zusammenarbeit mit Ärzten und Angehörigen"
+    }
+   ],
+   "industry": "Healthcare",
+   "lines": [
+    "Job title: Pflegefachkraft (m/w/d) Seniorenzentrum",
+    "Wir betreuen 90 Bewohnerinnen und Bewohner und suchen examinierte Pflegefachkräfte.",
+    "Ihre Aufgaben",
+    "Grund- und Behandlungspflege nach dem Pflegeprozess",
+    "Dokumentation der Pflege in der Pflegesoftware",
+    "Anleitung von Auszubildenden und Einarbeitung neuer Kolleginnen und Kollegen, Teilnahme an internen Schulungen",
+    "Zusammenarbeit mit Ärzten und Angehörigen",
+    "Ihr Profil",
+    "Abgeschlossene Ausbildung als Pflegefachfrau/-mann",
+    "Zuverlässigkeit und Empathie",
+    "Bereitschaft zum Schichtdienst"
+   ],
+   "occupation": "Nursing",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 8,
+     "need": "must",
+     "text": "Abgeschlossene Ausbildung als Pflegefachfrau/-mann"
+    },
+    {
+     "kind": "other",
+     "line": 9,
+     "need": "must",
+     "text": "Zuverlässigkeit und Empathie"
+    },
+    {
+     "kind": "other",
+     "line": 10,
+     "need": "must",
+     "text": "Bereitschaft zum Schichtdienst"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "0911eb2c4a950aadcd6eabb7473d7ab8122746b2af4b0c19fac030bb9dca5707",
+  "source_hash": "eded442fa80cefb059f526f5c40cbde87fa03e0d020962cf66827142b20642cb",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0088": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Map end-to-end processes in BPMN and measure cycle times"
+    },
+    {
+     "line": 4,
+     "text": "Find root causes with SQL and Power BI"
+    },
+    {
+     "line": 5,
+     "text": "Facilitate Lean workshops and track measures"
+    }
+   ],
+   "industry": "Consulting",
+   "lines": [
+    "Job title: Process Excellence Analyst (f/m/d)",
+    "Improve how our operations teams work.",
+    "What you'll do",
+    "Map end-to-end processes in BPMN and measure cycle times",
+    "Find root causes with SQL and Power BI",
+    "Facilitate Lean workshops and track measures",
+    "What you bring",
+    "2+ years in process analysis, operations or consulting",
+    "Lean or Six Sigma training",
+    "Good English",
+    "the team language is English and B2 is enough"
+   ],
+   "occupation": "Process Excellence Analyst",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "2+ years in process analysis, operations or consulting"
+    },
+    {
+     "kind": "knowledge",
+     "line": 8,
+     "need": "must",
+     "text": "Lean or Six Sigma training"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "must",
+     "text": "Good English"
+    },
+    {
+     "kind": "language",
+     "line": 10,
+     "need": "nice",
+     "text": "the team language is English and B2 is enough"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "ef0f70f9d77b61d8479f2d96191bc804a6e479caade81ce3da44c72dfbded7de",
+  "source_hash": "0b0c8635819fd17c9ab1408f671aab8f6bf1c749e09b3c4eff3da86a45bf51f5",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0094": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 1,
+     "text": "Build and run training for our customers."
+    },
+    {
+     "line": 3,
+     "text": "Create learning materials, webinars and certification paths"
+    },
+    {
+     "line": 4,
+     "text": "Run live training sessions for customer teams"
+    },
+    {
+     "line": 5,
+     "text": "Measure learner satisfaction and adoption"
+    }
+   ],
+   "industry": "Education",
+   "lines": [
+    "Job title: Customer Education Specialist (f/m/d)",
+    "Build and run training for our customers.",
+    "What you'll do",
+    "Create learning materials, webinars and certification paths",
+    "Run live training sessions for customer teams",
+    "Measure learner satisfaction and adoption",
+    "What you bring",
+    "3+ years in training or customer education",
+    "Authoring tools and LMS knowledge - You will work from our Cologne office five days a week",
+    "remote work is not available for this role"
+   ],
+   "occupation": "Customer Education Specialist",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "3+ years in training or customer education"
+    },
+    {
+     "kind": "knowledge",
+     "line": 8,
+     "need": "must",
+     "text": "Authoring tools and LMS knowledge"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "40646af992e9591c14cc764b337825c0c7060534edf047f4859fdecfe2b672da",
+  "source_hash": "cbdddb03803655efa86e16ceb489764331c5f6809d400e1ffa46bdcb6a57814f",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0097": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Roadmap und Priorisierung unserer Schnittstellen-Produkte"
+    },
+    {
+     "line": 4,
+     "text": "Gespräche mit Partnerbanken und Entwicklern"
+    },
+    {
+     "line": 5,
+     "text": "Zusammenarbeit mit der Engineering-Leitung bei Releases"
+    }
+   ],
+   "industry": "Banking",
+   "lines": [
+    "Job title: Produktmanager Open Banking (m/w/d)",
+    "Wir bauen API-Produkte für Banken und suchen einen Produktmanager.",
+    "Ihre Aufgaben",
+    "Roadmap und Priorisierung unserer Schnittstellen-Produkte",
+    "Gespräche mit Partnerbanken und Entwicklern",
+    "Zusammenarbeit mit der Engineering-Leitung bei Releases",
+    "Ihr Profil",
+    "Mehrjährige Erfahrung im Produktmanagement oder als Product Owner",
+    "Verständnis von PSD2 und REST-APIs",
+    "Sehr gute Deutschkenntnisse und Englisch"
+   ],
+   "occupation": "Product Manager",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "Mehrjährige Erfahrung im Produktmanagement oder als Product Owner"
+    },
+    {
+     "kind": "knowledge",
+     "line": 8,
+     "need": "must",
+     "text": "Verständnis von PSD2 und REST-APIs"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "must",
+     "text": "Sehr gute Deutschkenntnisse und Englisch"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "c8b1b361711b9982720d9fe138d431ac9fa4c78525b469c91119f944e71ceb83",
+  "source_hash": "ab5a5920e0e82a8fdffa7297cfb94ef02a972861bed939370601353d896d2e7e",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0100": {
+  "payload": {
+   "dropped": 1,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Verantwortung für Backlog und Roadmap der Authorisierungs- und Abrechnungsdienste"
+    },
+    {
+     "line": 4,
+     "text": "Anforderungen mit Compliance, Risikomanagement und Betrieb abstimmen und als User Stories formulieren"
+    },
+    {
+     "line": 5,
+     "text": "Sprint-Planung, Refinement und Abnahmen gemeinsam mit zwei Scrum-Teams"
+    },
+    {
+     "line": 6,
+     "text": "Kennzahlen zur Produktnutzung auswerten und Priorisierungen begründen"
+    }
+   ],
+   "industry": "Financial Services",
+   "lines": [
+    "Job title: Product Owner (m/w/d) Kartenzahlungen",
+    "Für unser Produktteam Kartenzahlungen suchen wir einen Product Owner, der Anforderungen aus Fachbereichen, Aufsicht und Partnerbanken in ein klares Backlog überführt.",
+    "Ihre Aufgaben",
+    "Verantwortung für Backlog und Roadmap der Authorisierungs- und Abrechnungsdienste",
+    "Anforderungen mit Compliance, Risikomanagement und Betrieb abstimmen und als User Stories formulieren",
+    "Sprint-Planung, Refinement und Abnahmen gemeinsam mit zwei Scrum-Teams",
+    "Kennzahlen zur Produktnutzung auswerten und Priorisierungen begründen",
+    "Ihr Profil",
+    "Abgeschlossenes Studium, z.",
+    "B.",
+    "Wirtschaftsinformatik, oder vergleichbare Qualifikation",
+    "Mindestens drei Jahre Erfahrung als Product Owner oder Business Analyst im Zahlungsverkehr",
+    "Sicherer Umgang mit Scrum, Jira und Confluence",
+    "Deutsch mindestens B2 sowie gutes Englisch"
+   ],
+   "occupation": "Product Owner",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 11,
+     "need": "must",
+     "text": "Mindestens drei Jahre Erfahrung als Product Owner oder Business Analyst im Zahlungsverkehr"
+    },
+    {
+     "kind": "knowledge",
+     "line": 12,
+     "need": "must",
+     "text": "Sicherer Umgang mit Scrum, Jira und Confluence"
+    },
+    {
+     "kind": "language",
+     "line": 13,
+     "need": "must",
+     "text": "Deutsch mindestens B2 sowie gutes Englisch"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "b3bddeae8a901bb907c4a520911ce4f3d41546fc99625f52603accab8fdec04d",
+  "source_hash": "8b0030a08980937c8a64d5a2b7746f1da8ce79839a7fdc9205cc5ce7908c8ed7",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0104": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 1,
+     "text": "Coordinate learning programmes for our global workforce."
+    },
+    {
+     "line": 3,
+     "text": "Plan and schedule trainings and track registrations"
+    },
+    {
+     "line": 4,
+     "text": "Maintain the course catalogue and learner records in the LMS"
+    },
+    {
+     "line": 5,
+     "text": "Prepare reports on completion and budgets"
+    }
+   ],
+   "industry": "Human Resources",
+   "lines": [
+    "Job title: L&D Programme Coordinator (f/m/d)",
+    "Coordinate learning programmes for our global workforce.",
+    "What you'll do",
+    "Plan and schedule trainings and track registrations",
+    "Maintain the course catalogue and learner records in the LMS",
+    "Prepare reports on completion and budgets",
+    "What you bring",
+    "Two years of experience in training coordination or HR operations",
+    "LMS experience and strong organisational skills",
+    "Good English"
+   ],
+   "occupation": "L&D Programme Coordinator",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "Two years of experience in training coordination or HR operations"
+    },
+    {
+     "kind": "knowledge",
+     "line": 8,
+     "need": "must",
+     "text": "LMS experience and strong organisational skills"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "must",
+     "text": "Good English"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "f29a07ad643b4c2d19eead2446a2bc0f0dfbdc70a94c50c7c93bb70f6815cebf",
+  "source_hash": "be61a6ce954993c68945f7a00e6beb5ef819ac7f6c235bfd72438c8470f11c81",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0106": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 4,
+     "text": "Planung und Steuerung der Montage beim Kunden"
+    },
+    {
+     "line": 5,
+     "text": "Koordination von Montageteams und Subunternehmern"
+    },
+    {
+     "line": 6,
+     "text": "Terminverfolgung und Abnahmen"
+    }
+   ],
+   "industry": "Engineering",
+   "lines": [
+    "Job title: Projektleiter Montage (m/w/d)",
+    "Wir sind seit über 30 Jahren Spezialist für Förderanlagen, haben mehr als 10 Jahre Erfahrung mit automatisierten Lagersystemen und beschäftigen 450 Mitarbeitende.",
+    "Für unsere Montageprojekte suchen wir Verstärkung.",
+    "Ihre Aufgaben",
+    "Planung und Steuerung der Montage beim Kunden",
+    "Koordination von Montageteams und Subunternehmern",
+    "Terminverfolgung und Abnahmen",
+    "Ihr Profil",
+    "Techniker oder Ingenieur mit Erfahrung in der Montageleitung",
+    "Reisebereitschaft",
+    "Kenntnisse in MS Project"
+   ],
+   "occupation": "Project Manager",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 8,
+     "need": "must",
+     "text": "Techniker oder Ingenieur mit Erfahrung in der Montageleitung"
+    },
+    {
+     "kind": "other",
+     "line": 9,
+     "need": "must",
+     "text": "Reisebereitschaft"
+    },
+    {
+     "kind": "knowledge",
+     "line": 10,
+     "need": "must",
+     "text": "Kenntnisse in MS Project"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "066f017dd62827254c8a888d7ff19120026bdcc56b318d12e547e31cbca5a4d7",
+  "source_hash": "8e9bdc266c85052be95afb9caa01a8b104be29c6a9266a21d2632687fc39239c",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0133": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 1,
+     "text": "You will build the central process management function for three plants."
+    },
+    {
+     "line": 3,
+     "text": "Lead a team of eight process managers"
+    },
+    {
+     "line": 4,
+     "text": "Own the process landscape and the improvement programme"
+    },
+    {
+     "line": 5,
+     "text": "Report to the executive board"
+    }
+   ],
+   "industry": "Manufacturing",
+   "lines": [
+    "Job title: Head of Process Management (f/m/d)",
+    "You will build the central process management function for three plants.",
+    "What you'll do",
+    "Lead a team of eight process managers",
+    "Own the process landscape and the improvement programme",
+    "Report to the executive board",
+    "What you bring",
+    "At least ten years of experience in process management, five of them in a leadership role",
+    "Six Sigma Black Belt",
+    "Very good German and English skills"
+   ],
+   "occupation": "Process Management",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "At least ten years of experience in process management, five of them in a leadership role"
+    },
+    {
+     "kind": "certification",
+     "line": 8,
+     "need": "must",
+     "text": "Six Sigma Black Belt"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "must",
+     "text": "Very good German and English skills"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "d601bfe83c5a5c55f9e0b6cc8ca21d8db25109297361440f2fee8609c554b41f",
+  "source_hash": "13fe5c97b73965b693d7878bbd6e3c47b3086b14c8957991708e8bf9bebbe766",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0134": {
+  "payload": {
+   "dropped": 4,
+   "duties": [
+    {
+     "line": 1,
+     "text": "You take responsibility for our central warehouse with 55 employees."
+    }
+   ],
+   "industry": "Logistics",
+   "lines": [
+    "Job title: Warehouse Manager (f/m/d)",
+    "You take responsibility for our central warehouse with 55 employees.",
+    "What you'll do",
+    "Overall responsibility for goods receipt, storage, picking and dispatch",
+    "Lead the team leaders, plan staffing and budget",
+    "Develop warehouse processes and KPIs further",
+    "Work with purchasing, sales and the freight forwarder",
+    "What you bring",
+    "Several years of experience in warehouse management or as a team leader with development prospects",
+    "Knowledge of SAP and KPIs",
+    "Further training as a logistics master (Logistikmeister) or business economist (Betriebswirt) is desirable"
+   ],
+   "occupation": "Warehouse Manager",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 10,
+     "need": "nice",
+     "text": "Further training as a logistics master (Logistikmeister) or business economist (Betriebswirt) is desirable"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "6ffe4876711b10fe59b94e96b93016433cffac0257c5304287d22c0a7f3cc9e7",
+  "source_hash": "513d57329fd349e53fd13da5fd3a17a1761b66c2918b2198b6e8322d3117a23d",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0135": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Manage machine projects from order to acceptance"
+    },
+    {
+     "line": 4,
+     "text": "Coordinate design, purchasing, assembly and service"
+    }
+   ],
+   "industry": "Packaging Machinery",
+   "lines": [
+    "Job title: Project Manager Mechanical Engineering (f/m/d)",
+    "We build packaging machines and are looking for a project manager for customer projects.",
+    "What you'll do",
+    "Manage machine projects from order to acceptance",
+    "Coordinate design, purchasing, assembly and service",
+    "What you bring",
+    "Experience in project management or project coordination in mechanical engineering, in which you keep track of deadlines, costs and quality across several parallel orders, coordinate suppliers and internal departments, follow changes to bills of materials and design revisions, prepare status reports for senior management and prepare customer acceptances, ideally with SAP and MS Project",
+    "University degree or technician qualification",
+    "English skills for dealing with suppliers"
+   ],
+   "occupation": "Project Manager Mechanical Engineering",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 6,
+     "need": "must",
+     "text": "Experience in project management or project coordination in mechanical engineering, in which you keep track of deadlines, costs and quality across several parallel orders, coordinate suppliers and internal departments, follow changes to bills of materials and design revisions, prepare status reports"
+    },
+    {
+     "kind": "experience",
+     "line": 6,
+     "need": "must",
+     "text": "for senior management and prepare customer acceptances"
+    },
+    {
+     "kind": "experience",
+     "line": 6,
+     "need": "nice",
+     "text": "with SAP and MS Project"
+    },
+    {
+     "kind": "education",
+     "line": 7,
+     "need": "must",
+     "text": "University degree or technician qualification"
+    },
+    {
+     "kind": "language",
+     "line": 8,
+     "need": "must",
+     "text": "English skills for dealing with suppliers"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "fea0f3ec3dfe6bb261f2f9771d44efe74810dfb7b4315c194810f09b1240258a",
+  "source_hash": "ac865eb8d226df2fda21bfc3eb8672f748ec487394c4fa686c602b7f3ada8a4f",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0141": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Inhaltsanalysen durchführen und Lernziele entwerfen"
+    },
+    {
+     "line": 4,
+     "text": "E-Learning-Module und Assessments entwickeln"
+    },
+    {
+     "line": 5,
+     "text": "Lernendendaten auswerten und Kurse verbessern"
+    }
+   ],
+   "industry": "Education",
+   "lines": [
+    "Job title: Instructional Designer (m/w/d)",
+    "Werden Sie Teil unseres Design-Teams und entwickeln Sie Kurse für Unternehmenskunden.",
+    "Ihre Aufgaben",
+    "Inhaltsanalysen durchführen und Lernziele entwerfen",
+    "E-Learning-Module und Assessments entwickeln",
+    "Lernendendaten auswerten und Kurse verbessern",
+    "Ihr Profil",
+    "Masterabschluss in Pädagogik oder einem verwandten Fach oder mindestens 5 Jahre Erfahrung im Instructional Design",
+    "Erfahrung mit Articulate Storyline oder ähnlichen Tools",
+    "Sehr gute schriftliche Englischkenntnisse"
+   ],
+   "occupation": "Instructional Designer",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 7,
+     "need": "must",
+     "text": "Masterabschluss in Pädagogik oder einem verwandten Fach oder mindestens 5 Jahre Erfahrung im Instructional Design"
+    },
+    {
+     "kind": "experience",
+     "line": 8,
+     "need": "must",
+     "text": "Erfahrung mit Articulate Storyline oder ähnlichen Tools"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "must",
+     "text": "Sehr gute schriftliche Englischkenntnisse"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "b7806f2b423a9f38d3bc57e87ad46912e52a7bdcdb62a63405ac0c260905b21f",
+  "source_hash": "7fe09d3563caa4678bee01b7fb1fa3067070ca71f6670d6d2473d66b0234ef0e",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0144": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Onboarding-Bootcamps für neue Account Executives gestalten"
+    },
+    {
+     "line": 4,
+     "text": "Live-Workshops durchführen und Vertriebsmitarbeitende in Gesprächen coachen"
+    },
+    {
+     "line": 5,
+     "text": "Einarbeitungszeit und Verbesserung der Abschlussquote messen"
+    }
+   ],
+   "industry": "Sales Training",
+   "lines": [
+    "Job title: Sales Enablement Trainer (m/w/d)",
+    "Sie schulen unsere Vertriebsteams in Produktwissen und Discovery-Techniken.",
+    "Ihre Aufgaben",
+    "Onboarding-Bootcamps für neue Account Executives gestalten",
+    "Live-Workshops durchführen und Vertriebsmitarbeitende in Gesprächen coachen",
+    "Einarbeitungszeit und Verbesserung der Abschlussquote messen",
+    "Ihr Profil",
+    "Mindestens 3 Jahre Erfahrung in Sales Training oder Enablement",
+    "Starke Moderationskompetenz",
+    "Exzellente Englischkenntnisse"
+   ],
+   "occupation": "Sales Enablement Trainer",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "Mindestens 3 Jahre Erfahrung in Sales Training oder Enablement"
+    },
+    {
+     "kind": "knowledge",
+     "line": 8,
+     "need": "must",
+     "text": "Starke Moderationskompetenz"
+    },
+    {
+     "kind": "language",
+     "line": 9,
+     "need": "must",
+     "text": "Exzellente Englischkenntnisse"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "a4e24c59c9454b733a9f9d941144ffb557faa1df5f3b1d9c1afd3911598701c6",
+  "source_hash": "82dadeda001137e5dfe9700b1c1de59f45afa4214966f5006805161d53042454",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0145": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Talentprogramme gestalten und das Lernbudget verwalten"
+    },
+    {
+     "line": 4,
+     "text": "Calibration-Sessions und Entwicklungsworkshops moderieren"
+    },
+    {
+     "line": 5,
+     "text": "Zusammenarbeit mit den HR Business Partnern"
+    }
+   ],
+   "industry": "Human Resources",
+   "lines": [
+    "Job title: Talent Development Manager (m/w/d)",
+    "Sie treiben die Talententwicklung an unserem Hauptsitz voran.",
+    "Ihre Aufgaben",
+    "Talentprogramme gestalten und das Lernbudget verwalten",
+    "Calibration-Sessions und Entwicklungsworkshops moderieren",
+    "Zusammenarbeit mit den HR Business Partnern",
+    "Ihr Profil",
+    "Mindestens 5 Jahre Erfahrung in der Talent- oder Führungskräfteentwicklung",
+    "Umfangreiche Moderationserfahrung",
+    "Präsenz an unserem Hauptsitz ist verpflichtend",
+    "das Team arbeitet vor Ort und bietet kein Remote-Arbeiten an"
+   ],
+   "occupation": "Talent Development Manager",
+   "requirements": [
+    {
+     "kind": "experience",
+     "line": 7,
+     "need": "must",
+     "text": "Mindestens 5 Jahre Erfahrung in der Talent- oder Führungskräfteentwicklung"
+    },
+    {
+     "kind": "knowledge",
+     "line": 8,
+     "need": "must",
+     "text": "Umfangreiche Moderationserfahrung"
+    },
+    {
+     "kind": "authorization",
+     "line": 9,
+     "need": "must",
+     "text": "Präsenz an unserem Hauptsitz ist verpflichtend"
+    },
+    {
+     "kind": "authorization",
+     "line": 10,
+     "need": "must",
+     "text": "das Team arbeitet vor Ort und bietet kein Remote-Arbeiten an"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "41f4f2b12bba866b080ab0ec326337b3d5022871dc466a2613dfd24f4955871b",
+  "source_hash": "f22ede2c1a5851578ab2df55de96d665a3164ec01b981905684899fe5aaf3295",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0146": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 3,
+     "text": "Elektronische und mechanische Prototypen aufbauen"
+    },
+    {
+     "line": 4,
+     "text": "3D-gedruckte Gehäuse erstellen und Passungen testen"
+    },
+    {
+     "line": 5,
+     "text": "Testreihen durchführen und Ergebnisse mit Python-Skripten protokollieren"
+    }
+   ],
+   "industry": "Wearables",
+   "lines": [
+    "Job title: Hardware Prototyping Engineer – Wearables (m/w/d)",
+    "Bauen Sie die ersten funktionsfähigen Modelle unseres nächsten Wearables.",
+    "Ihre Aufgaben",
+    "Elektronische und mechanische Prototypen aufbauen",
+    "3D-gedruckte Gehäuse erstellen und Passungen testen",
+    "Testreihen durchführen und Ergebnisse mit Python-Skripten protokollieren",
+    "Ihr Profil",
+    "Bachelorabschluss in Mechatronik, Elektrotechnik oder Maschinenbau",
+    "1 bis 3 Jahre Erfahrung im Prototypenbau oder im Labor",
+    "Wir unterstützen Anträge auf Arbeitserlaubnis und Umzug für Kandidaten aus Nicht-EU-Ländern",
+    "Arbeitssprache ist Englisch"
+   ],
+   "occupation": "Hardware Prototyping Engineer",
+   "requirements": [
+    {
+     "kind": "education",
+     "line": 7,
+     "need": "must",
+     "text": "Bachelorabschluss in Mechatronik, Elektrotechnik oder Maschinenbau"
+    },
+    {
+     "kind": "experience",
+     "line": 8,
+     "need": "must",
+     "text": "1 bis 3 Jahre Erfahrung im Prototypenbau oder im Labor"
+    },
+    {
+     "kind": "language",
+     "line": 10,
+     "need": "must",
+     "text": "Arbeitssprache ist Englisch"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "e225ce2d5aeacd07f73d48c4a04c1e0c8f8359744f850cf55a94421ad16adb8a",
+  "source_hash": "41a91d1122fc6ba178e9d7ca647c02dceb22c2676a439988ca4579b7049ebdfc",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ },
+ "job_0148": {
+  "payload": {
+   "dropped": 0,
+   "duties": [
+    {
+     "line": 5,
+     "text": "15 Kolleginnen und Kollegen führen, Schichten planen und Aufgaben verteilen"
+    },
+    {
+     "line": 6,
+     "text": "Sicherheits- und Qualitätsstandards sicherstellen"
+    },
+    {
+     "line": 7,
+     "text": "KPIs zu Servicelevel und Fehlerquoten berichten"
+    }
+   ],
+   "industry": "Logistics",
+   "lines": [
+    "Job title: Teamleiter Lagerbetrieb (m/w/d)",
+    "Sie führen ein Schichtteam in einem Konsumgüterlager.",
+    "Teamsprache ist Deutsch",
+    "Englisch auf Niveau A2 genügt für Systemmasken.",
+    "Ihre Aufgaben",
+    "15 Kolleginnen und Kollegen führen, Schichten planen und Aufgaben verteilen",
+    "Sicherheits- und Qualitätsstandards sicherstellen",
+    "KPIs zu Servicelevel und Fehlerquoten berichten",
+    "Ihr Profil",
+    "Mindestens 3 Jahre Erfahrung im Lagerbetrieb einschließlich Teamleitung",
+    "SAP EWM oder ein ähnliches WMS",
+    "Staplerschein"
+   ],
+   "occupation": "Team Leader Warehouse",
+   "requirements": [
+    {
+     "kind": "language",
+     "line": 2,
+     "need": "nice",
+     "text": "Teamsprache ist Deutsch"
+    },
+    {
+     "kind": "language",
+     "line": 3,
+     "need": "nice",
+     "text": "Englisch auf Niveau A2 genügt für Systemmasken"
+    },
+    {
+     "kind": "experience",
+     "line": 9,
+     "need": "must",
+     "text": "Mindestens 3 Jahre Erfahrung im Lagerbetrieb einschließlich Teamleitung"
+    },
+    {
+     "kind": "knowledge",
+     "line": 10,
+     "need": "must",
+     "text": "SAP EWM oder ein ähnliches WMS"
+    },
+    {
+     "kind": "authorization",
+     "line": 11,
+     "need": "must",
+     "text": "Staplerschein"
+    }
+   ],
+   "scopes": [
+    "title",
+    "neutral",
+    "neutral",
+    "neutral",
+    "duties",
+    "duties",
+    "duties",
+    "duties",
+    "requirements",
+    "requirements",
+    "requirements",
+    "requirements"
+   ]
+  },
+  "result_hash": "40643ef8602ea408e3a5df39ca04312563e92c811ad6f49b782bd0150a79a853",
+  "source_hash": "29ca6a0b9c4b88b4f907409e977f181106ff400427fa7fdb809f62df5a80debf",
+  "version": "unsloth/Qwen3.5-4B-GGUF@e87f176479d0:Qwen3.5-4B-Q4_K_M.gguf:job-analysis-v1:parse-v2"
+ }
+}

@@ -1,0 +1,140 @@
+{
+  "id": "ld_specialist",
+  "archetype": "Learning & Development specialist (English-language profile, German B1, no on-site)",
+  "location_region": "Remote, Germany",
+  "desired_roles": [
+    "Learning and Development Specialist",
+    "Learning Experience Designer",
+    "Training Manager"
+  ],
+  "secondary_roles": [
+    "Onboarding Manager",
+    "People Development Partner",
+    "Instructional Designer"
+  ],
+  "skills": [
+    "Instructional Design",
+    "Learning Needs Analysis",
+    "Onboarding",
+    "Facilitation",
+    "LMS Administration",
+    "Articulate Storyline",
+    "Workshop Design",
+    "Training Evaluation",
+    "Coaching",
+    "Stakeholder Management",
+    "E-Learning",
+    "Adult Learning"
+  ],
+  "languages": [
+    "English",
+    "German"
+  ],
+  "language_levels": {
+    "English": "C2",
+    "German": "B1"
+  },
+  "experience_years": 9,
+  "work_styles": [
+    "remote",
+    "hybrid"
+  ],
+  "employment_types": [
+    "full_time"
+  ],
+  "summary": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees. I run needs analyses with business leaders, build blended learning in Articulate and the LMS, facilitate workshops and measure impact with simple evaluation models. I work remotely and communicate in English.",
+  "cv_career_facts": {
+    "experiences": [
+      {
+        "title": "Training Coordinator",
+        "start": "2017-10",
+        "end": "2020-03",
+        "current": false,
+        "description": "Scheduled and administered classroom trainings for a logistics company, managed the LMS catalogue and collected participant feedback."
+      },
+      {
+        "title": "Learning and Development Specialist",
+        "start": "2020-04",
+        "end": "2023-08",
+        "current": false,
+        "description": "Designed an onboarding programme for 300 new hires per year, ran training needs analyses with team leads and built e-learning modules in Articulate Storyline."
+      },
+      {
+        "title": "Senior L&D Specialist",
+        "start": "2023-09",
+        "end": "",
+        "current": true,
+        "description": "Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership."
+      }
+    ],
+    "education": [
+      {
+        "title": "B.A. Educational Science",
+        "start": "2014-10",
+        "end": "2017-07",
+        "current": false,
+        "completed": true,
+        "description": "Completed degree with focus on adult education and organisational learning."
+      }
+    ]
+  },
+  "skill_evidence": {
+    "Instructional Design": {
+      "context": "professional",
+      "note": "Designed blended learning paths from needs analysis to evaluation."
+    },
+    "Articulate Storyline": {
+      "context": "professional",
+      "note": "Built about forty e-learning modules."
+    },
+    "Facilitation": {
+      "context": "professional",
+      "note": "Facilitates workshops of 8 to 25 participants, in English."
+    },
+    "LMS Administration": {
+      "context": "professional",
+      "note": "Administered course catalogue, enrolments and reporting in two LMS."
+    },
+    "Training Evaluation": {
+      "context": "professional",
+      "note": "Applies Kirkpatrick levels 1-3 to leadership programmes."
+    }
+  },
+  "application_preferences": {
+    "willing_to_work_onsite": false,
+    "authorized_to_work": true,
+    "authorization_country": "Germany",
+    "sponsorship_required": false
+  },
+  "education": [
+    {
+      "level": "bachelor",
+      "field": "Educational Science",
+      "status": "completed",
+      "completed": true,
+      "current": false,
+      "equivalency": ""
+    }
+  ],
+  "excluded_terms": [
+    "Sales",
+    "Recruiter"
+  ],
+  "certifications": [],
+  "application_details": {
+    "experiences": [
+      {
+        "title": "Training Coordinator",
+        "description": "Scheduled and administered classroom trainings for a logistics company, managed the LMS catalogue and collected participant feedback."
+      },
+      {
+        "title": "Learning and Development Specialist",
+        "description": "Designed an onboarding programme for 300 new hires per year, ran training needs analyses with team leads and built e-learning modules in Articulate Storyline."
+      },
+      {
+        "title": "Senior L&D Specialist",
+        "description": "Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership."
+      }
+    ]
+  }
+}

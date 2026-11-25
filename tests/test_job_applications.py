@@ -1,7 +1,6 @@
 """Application tracking persists independently of vacancy and matching lifecycles."""
 import unittest
 import importlib
-import sqlite3
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -10,26 +9,36 @@ from alembic.operations import Operations
 
 from fastapi import HTTPException
 from pydantic import ValidationError
-from sqlalchemy import create_engine, func, select
+from sqlalchemy import event, func, select
 from sqlalchemy.orm import Session, sessionmaker
 
-from hiring_scraper.app import api, job_search, models, profiles
-from hiring_scraper.app.database import initialize_sqlite_schema
+from hiring_scraper.app import match_compute
+from hiring_scraper.app import api, journey, job_search, models, profiles, source_changes
+from tests.model_outputs import analyse_all
+from tests import pg
 
 
 class JobApplicationTests(unittest.TestCase):
+    def make_engine(self):
+        return pg.engine(self)
+
     def setUp(self):
-        self.engine = create_engine('sqlite://')
-        models.Base.metadata.create_all(self.engine)
+        self.engine = self.make_engine()
+        pg.create_isolated_schema(self.engine)  # no-op on the shared migrated schema
         self.session = Session(self.engine)
         self.profile = profiles.create_profile(profiles.ProfileRequest(name='Developer'), self.session)
         self.other = profiles.create_profile(profiles.ProfileRequest(name='Designer'), self.session)
         company = models.Company(source='test', source_id='employer', name='Employer')
         feed = models.JobFeed(company=company, provider='html_jobs', feed_url='https://example.test/jobs', status='parsed')
+        # A short duty line: title-only postings are unscorable and never reach Journey.
         self.jobs = [models.Job(feed=feed, external_id=str(index), title=f'Role {index}',
-                               url=f'https://example.test/jobs/{index}', is_remote=True)
+                               url=f'https://example.test/jobs/{index}', is_remote=True,
+                               description='Build team services.')
                      for index in range(8)]
         self.session.add(company)
+        self.session.flush()
+        # Ingestion declares new postings, which queues them for matching.
+        source_changes.jobs_changed(self.session, [job.id for job in self.jobs])
         self.session.commit()
 
     def tearDown(self):
@@ -49,13 +58,46 @@ class JobApplicationTests(unittest.TestCase):
 
     def test_production_journey_returns_saved_roles_before_rebuilding_matches(self):
         self.save(self.jobs[0], 'open')
-        with patch.object(api, 'IS_SQLITE', False):
-            page = api.list_applications(profile_ids=str(self.profile['id']),
-                                         statuses='all', session=self.session)
+        page = api.list_applications(profile_ids=str(self.profile['id']),
+                                     statuses='all', session=self.session)
         self.assertEqual([item['id'] for item in page['items']], [self.jobs[0].id])
         self.assertEqual(page['counts']['new'], 0)
         self.assertTrue(page['matching_pending'])
         self.assertIsNone(self.session.get(models.UserProfile, self.profile['id']).match_index_version)
+
+    def test_stale_production_journey_uses_stored_ranks_and_matches_only_the_page(self):
+        self.save(self.jobs[0], 'open')
+        self.save(self.jobs[1], 'open')
+        self.session.add_all([
+            models.ProfileJobMatch(profile_id=self.profile['id'], job_id=job.id,
+                                   match_score=score, match_tier='possible', match_uncertain=False)
+            for job, score in zip(self.jobs[:2], [99, 1])])
+        self.session.commit()
+        with patch.object(match_compute, 'compute_match',
+                          side_effect=AssertionError('Fallback cards must not show freshly computed evidence')):
+            page = api.list_applications(profile_ids=str(self.profile['id']), statuses='all',
+                                         sort='match', offset=0, limit=1, session=self.session)
+        self.assertEqual(page['items'][0]['id'], self.jobs[0].id)
+        # Pagination and display share one score: the stored rank the page was
+        # ordered by (99), never a freshly computed one. With no faithful stored
+        # explanation the card is neutral: refreshing, and no tier, source or skills.
+        card = page['items'][0]['profile_match']
+        self.assertEqual(card, {'score': 99, 'refreshing': True})
+        self.assertTrue(page['matching_pending'])
+
+    def test_production_journey_reports_dirty_work_for_a_current_profile(self):
+        job_search.ensure_profile_match_indexes(self.session,
+            [self.session.get(models.UserProfile, self.profile['id'])])
+        self.session.commit()
+        pending = api.list_applications(profile_ids=str(self.profile['id']), statuses='all', session=self.session)
+        self.assertTrue(pending['matching_pending'])
+        self.assertFalse(job_search.profile_match_index_stale(
+            self.session.get(models.UserProfile, self.profile['id'])))
+        with patch.object(job_search, 'SessionLocal', sessionmaker(bind=self.engine)):
+            self.assertTrue(job_search.refresh_dirty_job_matches_once())
+        self.session.expire_all()
+        ready = api.list_applications(profile_ids=str(self.profile['id']), statuses='all', session=self.session)
+        self.assertFalse(ready['matching_pending'])
 
     def duplicate_job(self, original, *, url=None, metadata=None, **fields):
         feed = models.JobFeed(company=original.feed.company, provider='greenhouse',
@@ -69,9 +111,8 @@ class JobApplicationTests(unittest.TestCase):
 
     def journey(self, **kwargs):
         # Exercise the production read path without a synchronous match rebuild.
-        with patch.object(api, 'IS_SQLITE', False):
-            return api.list_applications(profile_ids=str(self.profile['id']),
-                                         statuses='all', session=self.session, **kwargs)
+        return api.list_applications(profile_ids=str(self.profile['id']),
+                                     statuses='all', session=self.session, **kwargs)
 
     def test_journey_deduplicates_tracking_urls_before_counts_and_pagination(self):
         duplicate = self.duplicate_job(self.jobs[0])
@@ -99,8 +140,7 @@ class JobApplicationTests(unittest.TestCase):
         self.assertEqual(page['total'], 1)
         self.assertEqual(page['items'][0]['id'], self.jobs[0].id)
         self.assertEqual(page['items'][0]['application']['status'], 'interview')
-        with patch.object(api, 'IS_SQLITE', False):
-            new = api.list_applications(profile_ids=str(self.profile['id']), statuses='new', session=self.session)
+        new = api.list_applications(profile_ids=str(self.profile['id']), statuses='new', session=self.session)
         self.assertEqual(new['items'], [])
         self.assertEqual(new['total'], 0)
         self.assertEqual(new['counts']['new'], 0)
@@ -128,7 +168,7 @@ class JobApplicationTests(unittest.TestCase):
         self.assertEqual(len(company_cards), 1)
         self.assertEqual(company_cards[0]['id'], duplicate.id)
         self.assertEqual(company_cards[0]['application']['status'], 'interview')
-        board = api.list_jobs(49, 8, 35, None, None, None, 0, 100,
+        board = pg.list_jobs(self.engine, 49, 8, 35, None, None, None, 0, 100,
                               session=self.session, profile_id=self.profile['id'])
         board_cards = [item for item in board['items']
                        if item['id'] in {self.jobs[0].id, duplicate.id}]
@@ -148,10 +188,10 @@ class JobApplicationTests(unittest.TestCase):
         self.save(self.jobs[0], 'interview')
         detail = api.get_job(duplicate.id, self.session, profile_id=self.profile['id'])
         self.assertEqual(detail['application']['status'], 'interview')
-        browse = api.list_jobs(49, 8, 35, None, None, None, 0, 100,
+        browse = pg.list_jobs(self.engine, 49, 8, 35, None, None, None, 0, 100,
                                session=self.session, profile_id=self.profile['id'])
         self.assertEqual(browse['application_counts']['interview'], 1)
-        board = api.list_jobs(49, 8, 35, None, None, None, 0, 100,
+        board = pg.list_jobs(self.engine, 49, 8, 35, None, None, None, 0, 100,
                               session=self.session, profile_id=self.profile['id'],
                               job_status='interview')
         self.assertEqual([item['id'] for item in board['items']], [duplicate.id])
@@ -182,7 +222,7 @@ class JobApplicationTests(unittest.TestCase):
         self.session.add(by_requisition)
         self.session.commit()
 
-        page = api.list_jobs(49, 8, 35, None, None, None, 0, 100,
+        page = pg.list_jobs(self.engine, 49, 8, 35, None, None, None, 0, 100,
                              session=self.session, profile_id=self.profile['id'],
                              location_scope='remote')
 
@@ -192,7 +232,7 @@ class JobApplicationTests(unittest.TestCase):
 
     def test_index_rebuild_between_grouping_and_page_read_keeps_cards(self):
         self.save(self.jobs[0])
-        original = api.canonical_application_states
+        original = journey.canonical_application_states
 
         def rebuild_after_grouping(session, profile_ids):
             result = original(session, profile_ids)
@@ -203,28 +243,10 @@ class JobApplicationTests(unittest.TestCase):
             session.commit()
             return result
 
-        with patch.object(api, 'canonical_application_states', side_effect=rebuild_after_grouping):
+        with patch.object(journey, 'canonical_application_states', side_effect=rebuild_after_grouping):
             page = self.journey()
         self.assertEqual(page['total'], 1)
         self.assertEqual([item['id'] for item in page['items']], [self.jobs[0].id])
-
-    def test_large_journey_keeps_page_query_below_database_parameter_limit(self):
-        jobs = [models.Job(feed=self.jobs[0].feed, external_id=f'unique-{index}',
-            title=f'Unique role {index}', url=f'https://example.test/unique/{index}')
-            for index in range(300)]
-        self.session.add_all(jobs)
-        self.session.flush()
-        self.session.add_all([models.JobApplication(profile_id=self.profile['id'], job_id=job.id,
-            status='new', auto_created=True) for job in jobs])
-        self.session.commit()
-        connection = self.session.connection().connection.driver_connection
-        previous_limit = connection.setlimit(sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER, 250)
-        try:
-            for page in (self.journey(limit=1), self.overview(limit=1)):
-                self.assertEqual(page['total'], 300)
-                self.assertEqual(len(page['items']), 1)
-        finally:
-            connection.setlimit(sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER, previous_limit)
 
     def test_journey_preserves_match_posted_and_discovered_sort_order(self):
         now = models.utcnow()
@@ -235,6 +257,11 @@ class JobApplicationTests(unittest.TestCase):
             if index != 0:
                 self.session.add(models.ProfileJobMatch(profile_id=self.profile['id'], job_id=job.id,
                     match_score=index * 10, match_tier='possible', match_uncertain=False))
+        self.session.commit()
+        # These explicit ranks represent a completed index; stale ranks are
+        # covered separately by the production rebuilding regression.
+        profile = self.session.get(models.UserProfile, self.profile['id'])
+        profile.match_index_version = job_search._profile_index_version(profile)
         self.session.commit()
         for sort, expected in [('match', [2, 1, 0]), ('posted', [2, 0, 1]), ('discovered', [0, 1, 2])]:
             with self.subTest(sort=sort):
@@ -288,9 +315,8 @@ class JobApplicationTests(unittest.TestCase):
         self.save(duplicate, 'new')
         self.save(self.jobs[0], 'not_interested', self.other)
         self.save(duplicate, 'new', self.other)
-        with patch.object(api, 'IS_SQLITE', False):
-            page = api.list_applications(profile_ids=f"{self.profile['id']},{self.other['id']}",
-                                         statuses='all', session=self.session)
+        page = api.list_applications(profile_ids=f"{self.profile['id']},{self.other['id']}",
+                                     statuses='all', session=self.session)
         self.assertEqual(page['total'], 2)
         self.assertEqual({(item['profile_id'], item['application']['status']) for item in page['items']},
                          {(self.profile['id'], 'interview'), (self.other['id'], 'not_interested')})
@@ -309,7 +335,8 @@ class JobApplicationTests(unittest.TestCase):
             title='Source copy', url=self.jobs[0].url, is_remote=True) for index in range(205)]
         self.session.add_all(copies)
         self.session.commit()
-        page = api.list_applications(profile_ids=str(self.profile['id']), statuses='all', session=self.session)
+        page = pg.list_applications(self.engine, profile_ids=str(self.profile['id']), statuses='all',
+                                    session=self.session)
         self.assertEqual(page['total'], 8)
         self.assertEqual(page['counts']['new'], 8)
         self.assertEqual({item['id'] for item in page['items']},
@@ -331,19 +358,89 @@ class JobApplicationTests(unittest.TestCase):
     def test_background_rebuild_populates_journey_and_preserves_saved_stages(self):
         self.save(self.jobs[0], 'interview')
         refresh = job_search.refresh_profile_match_indexes_once
+        self.session.commit()
+        analyse_all(self.engine, drain_rematch=False)
         with patch.object(job_search, 'SessionLocal', sessionmaker(bind=self.engine)):
             self.assertTrue(refresh())
             # The other saved profile is also stale and is processed next.
             self.assertTrue(refresh())
             self.assertFalse(refresh())
+            self.assertTrue(job_search.refresh_dirty_job_matches_once())
         self.session.expire_all()
-        with patch.object(api, 'IS_SQLITE', False):
-            page = api.list_applications(profile_ids=str(self.profile['id']),
-                                         statuses='all', session=self.session)
+        page = api.list_applications(profile_ids=str(self.profile['id']),
+                                     statuses='all', session=self.session)
         self.assertFalse(page['matching_pending'])
         self.assertEqual(page['counts']['interview'], 1)
         self.assertEqual(page['counts']['new'], 7)
         self.assertEqual(page['total'], 8)
+
+    def test_busy_identity_writer_rolls_back_background_work_for_retry(self):
+        self.save(self.jobs[0], 'interview')
+        saved_job_id = self.jobs[0].id
+        self.session.close()
+        factory = sessionmaker(bind=self.engine)
+        with factory() as session:
+            revisions = dict(session.execute(select(models.MatchDirtyJob.job_id,
+                                                    models.MatchDirtyJob.revision)).all())
+            groups = session.execute(select(models.JobVacancyGroup.job_id,
+                                           models.JobVacancyGroup.vacancy_group_id)).all()
+
+        # Emulate only PostgreSQL's advisory-lock boundary; all queue,
+        # checkpoint, match and application writes use the real database.
+        busy = True
+        def advisory_result(_connection, _cursor, statement, parameters, _context, _many):
+            if 'pg_' in statement and 'advisory' in statement:
+                acquired = not (busy and '85793011, 6' in statement)
+                return f'SELECT {int(acquired)}', ()
+            return statement, parameters
+
+        event.listen(self.engine, 'before_cursor_execute', advisory_result, retval=True)
+        try:
+            with patch.object(self.engine.dialect, 'name', 'postgresql'), \
+                    patch.object(job_search, 'SessionLocal', factory):
+                for refresh in (job_search.refresh_dirty_job_matches_once,
+                                job_search.refresh_profile_match_indexes_once):
+                    with self.subTest(worker=refresh.__name__):
+                        with self.assertRaises(job_search.ProfileIndexChanged):
+                            refresh()
+                        with factory() as session:
+                            self.assertEqual(dict(session.execute(select(models.MatchDirtyJob.job_id,
+                                models.MatchDirtyJob.revision)).all()), revisions)
+                            self.assertEqual(session.scalars(select(models.ProfileJobMatch)).all(), [])
+                            self.assertEqual(session.scalars(select(models.ProfileMatchProgress)).all(), [])
+                            self.assertIsNone(session.get(models.UserProfile, self.profile['id']).match_index_version)
+                            self.assertEqual(session.execute(select(models.JobVacancyGroup.job_id,
+                                models.JobVacancyGroup.vacancy_group_id)).all(), groups)
+                busy = False
+                self.assertTrue(job_search.refresh_dirty_job_matches_once())
+                self.assertTrue(job_search.refresh_profile_match_indexes_once())
+            with factory() as session:
+                self.assertEqual(session.scalars(select(models.MatchDirtyJob)).all(), [])
+                saved = session.scalar(select(models.JobApplication).where(
+                    models.JobApplication.profile_id == self.profile['id'],
+                    models.JobApplication.job_id == saved_job_id))
+                self.assertEqual(saved.status, 'interview')
+                self.assertEqual(len(session.scalars(select(models.ProfileJobMatch)).all()), 16)
+        finally:
+            event.remove(self.engine, 'before_cursor_execute', advisory_result)
+
+    def test_repeated_identity_indexing_reads_retained_keys_in_batches(self):
+        from hiring_scraper.app.application_deduplication import index_vacancy_identities
+        ids = [job.id for job in self.jobs]
+        expected = set(ids)
+        self.assertEqual(index_vacancy_identities(self.session, ids), expected)
+        self.session.commit()
+        reads = []
+        def record_reads(_connection, _cursor, statement, *_args):
+            if statement.lstrip().upper().startswith('SELECT') and any(
+                    table in statement for table in ('job_vacancy_identities', 'job_vacancy_groups')):
+                reads.append(statement)
+        event.listen(self.engine, 'before_cursor_execute', record_reads)
+        try:
+            self.assertEqual(index_vacancy_identities(self.session, ids), expected)
+        finally:
+            event.remove(self.engine, 'before_cursor_execute', record_reads)
+        self.assertLessEqual(len(reads), 6, 'Unchanged identities should not require per-job lookups')
 
     def test_every_status_roundtrips_without_creating_duplicate_applications(self):
         for status in ['new', 'open', 'in_gots_hand', 'not_interested', 'waiting_for_reply', 'automated_application', 'interview', 'rejected', 'accepted', 'closed']:
@@ -440,7 +537,7 @@ class JobApplicationTests(unittest.TestCase):
         self.assertIsNone(before.get('application'))
         self.save(self.jobs[0], 'rejected')
         detail = api.get_job(self.jobs[0].id, self.session, profile_id=self.profile['id'])
-        board = api.list_jobs(49, 8, 35, None, None, None, 0, 100,
+        board = pg.list_jobs(self.engine, 49, 8, 35, None, None, None, 0, 100,
                               session=self.session, profile_id=self.profile['id'])
         item = next(item for item in board['items'] if item['id'] == self.jobs[0].id)
         self.assertEqual(detail['application'], item['application'])
@@ -473,21 +570,6 @@ class JobApplicationTests(unittest.TestCase):
         self.assertEqual(self.session.scalar(select(func.count()).select_from(models.JobApplication)), 0)
         self.assertIsNotNone(self.session.get(models.Job, self.jobs[0].id))
 
-    def test_sqlite_startup_adds_tracking_to_existing_database_idempotently(self):
-        engine = create_engine('sqlite://')
-        try:
-            models.Base.metadata.create_all(engine, tables=[table for table in models.Base.metadata.sorted_tables
-                                                          if table.name != 'job_applications'])
-            initialize_sqlite_schema(engine)
-            initialize_sqlite_schema(engine)
-            with Session(engine) as session:
-                endpoint = getattr(api, 'list_job_applications', None)
-                self.assertIsNotNone(endpoint, 'SQLite startup must make application tracking available')
-                profile = profiles.create_profile(profiles.ProfileRequest(name='Existing database'), session)
-                self.assertEqual(endpoint(profile['id'], session=session)['total'], 0)
-        finally:
-            engine.dispose()
-
     def test_new_tracking_of_an_inactive_job_uses_closed_stage(self):
         self.jobs[0].is_active = False
         self.session.commit()
@@ -513,6 +595,16 @@ class JobApplicationTests(unittest.TestCase):
             self.session.commit()
             self.assertEqual(self.save(job, 'new')['status'], status)
 
+
+class LegacyStageMigrationTests(unittest.TestCase):
+    """Run individual stage migrations against a private schema with legacy tables."""
+    setUp = JobApplicationTests.setUp
+    tearDown = JobApplicationTests.tearDown
+    save = JobApplicationTests.save
+
+    def make_engine(self):
+        return pg.isolated_engine(self)
+
     def legacy_application_table(self):
         for job in self.jobs:
             self.session.refresh(job)
@@ -520,11 +612,11 @@ class JobApplicationTests(unittest.TestCase):
         with self.engine.begin() as connection:
             connection.exec_driver_sql('DROP TABLE job_applications')
             connection.exec_driver_sql("""CREATE TABLE job_applications (
-                id INTEGER PRIMARY KEY, profile_id INTEGER NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+                id SERIAL PRIMARY KEY, profile_id INTEGER NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
                 job_id INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
                 status VARCHAR(24) NOT NULL, previous_status VARCHAR(24),
-                auto_created BOOLEAN NOT NULL DEFAULT 0,
-                created_at DATETIME NOT NULL, updated_at DATETIME NOT NULL,
+                auto_created BOOLEAN NOT NULL DEFAULT false,
+                created_at TIMESTAMP WITH TIME ZONE NOT NULL, updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
                 CONSTRAINT uq_job_application_profile_job UNIQUE (profile_id, job_id),
                 CONSTRAINT ck_job_application_status CHECK (status IN
                     ('new','open','not_interested','waiting_for_reply','interview','rejected','accepted'))
@@ -533,23 +625,16 @@ class JobApplicationTests(unittest.TestCase):
             connection.exec_driver_sql('CREATE INDEX ix_job_applications_job_id ON job_applications (job_id)')
         self.session = Session(self.engine)
 
-    def test_sqlite_upgrade_preserves_old_applications_and_accepts_parallel_stages(self):
-        self.legacy_application_table()
-        old = self.save(self.jobs[0], 'open')
-        initialize_sqlite_schema(self.engine)
-        initialize_sqlite_schema(self.engine)
-        self.assertEqual(self.overview()['items'][0]['application'], old)
-        self.assertEqual(self.save(self.jobs[0], 'in_gots_hand')['previous_status'], 'open')
-        self.assertEqual(self.save(self.jobs[1], 'automated_application')['status'], 'automated_application')
-
     def closed_stage_upgrade_fixture(self):
         self.legacy_application_table()
         previous_migration = importlib.import_module('hiring_scraper.app.migrations.versions.0029_parallel_application_stages')
+        self.session.commit()  # end the test's read transaction before DDL
         with self.engine.begin() as connection, patch.object(previous_migration, 'op', Operations(MigrationContext.configure(connection))):
             previous_migration.upgrade()
         for job, status in zip(self.jobs[:5], ['waiting_for_reply', 'open', 'accepted', 'rejected', 'automated_application']):
             self.save(job, status)
             self.session.get(models.Job, job.id).is_active = False
+            self.session.flush()  # the fixture's own edit, not the save under test
         self.session.commit()
 
     def assert_closed_stage_upgrade(self):
@@ -560,19 +645,14 @@ class JobApplicationTests(unittest.TestCase):
             self.jobs[2].id: ('accepted', None), self.jobs[3].id: ('rejected', None),
             self.jobs[4].id: ('rejected', 'automated_application')})
 
-    def test_sqlite_closed_stage_upgrade_backfills_existing_closed_jobs_once(self):
-        self.closed_stage_upgrade_fixture()
-        initialize_sqlite_schema(self.engine)
-        self.assert_closed_stage_upgrade()
-        initialize_sqlite_schema(self.engine)
-        self.assert_closed_stage_upgrade()
-
     def test_alembic_closed_stage_upgrade_and_downgrade_preserve_tracking(self):
         self.closed_stage_upgrade_fixture()
         migration = importlib.import_module('hiring_scraper.app.migrations.versions.0030_closed_application_stage')
+        self.session.commit()  # end the test's read transaction before DDL
         with self.engine.begin() as connection, patch.object(migration, 'op', Operations(MigrationContext.configure(connection))):
             migration.upgrade()
         self.assert_closed_stage_upgrade()
+        self.session.commit()  # end the test's read transaction before DDL
         with self.engine.begin() as connection, patch.object(migration, 'op', Operations(MigrationContext.configure(connection))):
             migration.downgrade()
         self.session.expire_all()
@@ -583,10 +663,12 @@ class JobApplicationTests(unittest.TestCase):
         self.legacy_application_table()
         self.save(self.jobs[0], 'open')
         migration = importlib.import_module('hiring_scraper.app.migrations.versions.0029_parallel_application_stages')
+        self.session.commit()  # end the test's read transaction before DDL
         with self.engine.begin() as connection, patch.object(migration, 'op', Operations(MigrationContext.configure(connection))):
             migration.upgrade()
         self.save(self.jobs[0], 'in_gots_hand')
         self.save(self.jobs[0], 'automated_application')
+        self.session.commit()  # end the test's read transaction before DDL
         with self.engine.begin() as connection, patch.object(migration, 'op', Operations(MigrationContext.configure(connection))):
             migration.downgrade()
         self.session.expire_all()

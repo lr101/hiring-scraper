@@ -34,15 +34,18 @@ const languages = ['Spanish', 'English', 'French']
 const saved = { languages, language_levels: helpers.selectedLanguageLevels(languages, levels) }
 const result = spawnSync('.venv/bin/python', ['-c', `
 import json, sys
-from hiring_scraper.matching import match_job
+from hiring_scraper.matching_v3 import match_job_v3 as match_job
 profiles = json.loads(sys.stdin.read())
 job = {'title': 'Project coordinator', 'description': 'German B2 required. Project management and coordination. ' * 12}
-print(json.dumps([match_job(job, profile)['conflicts'] for profile in profiles]))
+print(json.dumps([{'gate': match_job(job, profile)['gates']['language'],
+                   'review': match_job(job, profile)['language_review']} for profile in profiles]))
 `], { input: JSON.stringify([{ languages: Object.keys(levels), language_levels: levels }, saved]), encoding: 'utf8' })
 assert.equal(result.status, 0, result.stderr)
 const [before, after] = JSON.parse(result.stdout)
-assert.ok(!before.some(conflict => conflict.includes('German')))
-assert.ok(after.includes('Language requested: German'))
+assert.equal(before.gate.status, 'pass')
+assert.equal(after.gate.status, 'unknown')
+assert.equal(after.review, true)
+assert.match(after.gate.reason, /German/)
 console.log('Removed proficiency no longer satisfies real matcher language evidence')
 
 assert.equal(typeof helpers.boardLocationParams, 'function', 'Board requests must carry the same effective country as detail links')
@@ -62,3 +65,10 @@ assert.equal(stateParams.get('state'), 'Baden-Württemberg')
 assert.equal(stateParams.has('latitude'), false, 'State browsing must not use a circle around a placeholder point')
 assert.equal(stateParams.has('radius_km'), false)
 console.log('Whole-state board requests use state membership instead of radius')
+
+const germanyLocation = { search_scope: 'country', label: 'Germany', latitude: 0, longitude: 0, country_code: 'de' }
+assert.equal(helpers.boardLocationParams(germanyLocation, 15, 'US').toString(), 'country=DE&country_code=US')
+assert.equal(helpers.profileBoardDefaults(
+  { search_area: { latitude: 49, longitude: 8, radius_km: 15 }, matching_defaults: {} },
+  new URLSearchParams('country=DE'),
+).location, null)

@@ -29,13 +29,24 @@ export type ApplicationDetails = {
 export type LocalizedProfileContent = Pick<Profile, 'summary' | 'custom_instructions' | 'application_personalization' | 'skills' | 'desired_roles' | 'secondary_roles' | 'skill_evidence' | 'education' | 'certifications'> & {
   application_preferences?: Pick<NonNullable<ApplicationDetails['preferences']>, 'notice_period' | 'employment_type'>
 }
+export type DutyEvidence = {
+  quote: string
+  context: 'professional' | 'academic' | 'research' | 'training' | 'unspecified'
+  responsibility: 'assisted' | 'coordinated' | 'shared' | 'owned' | 'unspecified'
+  reference: string
+}
+
+export type StyleExemplar = { language: 'en' | 'de'; kind: 'cover_letter' | 'cv_summary'; text: string }
+
 export type Profile = {
+  duty_evidence?: DutyEvidence[]
   updated_at?: string
   localized_content?: Partial<Record<'en' | 'de', Partial<LocalizedProfileContent>>>
 
   application_personalization?: {
     career_evidence?: string; writing_samples?: string; cover_letter_example?: string; wording_to_avoid?: string
     career_goals?: string; work_preferences?: string
+    voice_notes?: string; style_exemplars?: StyleExemplar[]
   }
   application_details?: ApplicationDetails
   photo?: { filename: string; content_type: string; size_bytes: number; updated_at: string } | null

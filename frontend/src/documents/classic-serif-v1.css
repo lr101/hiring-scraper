@@ -1,0 +1,575 @@
+@font-face {
+  font-family: 'Liberation Serif';
+  src: url('/fonts/LiberationSerif-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Liberation Serif';
+  src: url('/fonts/LiberationSerif-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Liberation Serif';
+  src: url('/fonts/LiberationSerif-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Liberation Serif';
+  src: url('/fonts/LiberationSerif-BoldItalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: block;
+}
+
+@page {
+  size: 210mm 297mm;
+  margin: 16mm 0;
+}
+
+@page doc-a4 {
+  size: 210mm 297mm;
+  margin: 16mm 0;
+}
+
+@page doc-letter {
+  size: 8.5in 11in;
+  margin: 16mm 0;
+}
+
+.doc-print-body {
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+}
+
+.doc-page {
+  --doc-page-width: 210mm;
+  --doc-page-height: 297mm;
+  --doc-margin-x: 25.4mm;
+  --doc-margin-y: 16mm;
+
+  position: relative;
+  box-sizing: border-box;
+  width: var(--doc-page-width);
+  min-height: var(--doc-page-height);
+  padding: var(--doc-margin-y) var(--doc-margin-x);
+  background: #ffffff;
+  color: #000000;
+  font-family: 'Liberation Serif', Georgia, 'Times New Roman', serif;
+  font-size: 10pt;
+  line-height: 1.15;
+  font-synthesis: none;
+  hyphens: manual;
+  text-rendering: geometricPrecision;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  page: doc-a4;
+}
+
+.doc-nowrap {
+  white-space: nowrap;
+}
+
+.doc-page *,
+.doc-page *::before,
+.doc-page *::after {
+  box-sizing: border-box;
+}
+
+.doc-page--a4 {
+  --doc-page-width: 210mm;
+  --doc-page-height: 297mm;
+  page: doc-a4;
+}
+
+.doc-page--letter {
+  --doc-page-width: 215.9mm;
+  --doc-page-height: 279.4mm;
+  page: doc-letter;
+}
+
+.doc-page-content {
+  position: relative;
+}
+
+/* ---------- CV Header & Portrait ---------- */
+
+.doc-cv-header-wrap {
+  margin-bottom: 4pt;
+}
+
+.doc-cv-header-wrap--with-photo {
+  display: grid;
+  grid-template-columns: 24mm minmax(0, 1fr);
+  column-gap: 5mm;
+  align-items: start;
+}
+
+.doc-cv-photo {
+  width: 24mm;
+  height: 36mm;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+.doc-cv-header-main {
+  min-width: 0;
+}
+
+.doc-cv-header {
+  text-align: center;
+  margin-bottom: 6pt;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.doc-cv-name {
+  margin: 0 0 2pt 0;
+  font-size: 14pt;
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  word-spacing: 0.14em;
+  color: #000000;
+}
+
+.doc-cv-headline {
+  margin: 0 0 2pt 0;
+  font-size: 10pt;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #000000;
+}
+
+.doc-cv-contacts {
+  margin: 0;
+  font-size: 9.5pt;
+  line-height: 1.2;
+  color: #000000;
+}
+
+.doc-cv-contact-sep {
+  white-space: pre;
+}
+
+.doc-cv-contact-link {
+  color: #000000;
+  text-decoration: underline;
+  text-underline-offset: 1.5pt;
+}
+
+.doc-cv-contact-link:visited {
+  color: #0563C1;
+}
+
+/* ---------- CV Sections ---------- */
+
+.doc-cv-section {
+  margin-top: 8pt;
+}
+
+.doc-cv-header-wrap .doc-cv-section--profile {
+  margin-top: 4pt;
+}
+
+.doc-cv-section-title {
+  margin: 0 0 4pt 0;
+  padding-bottom: 1.5pt;
+  border-bottom: 0.5pt solid #000000;
+  font-size: 10pt;
+  font-weight: 700;
+  line-height: 1.15;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  word-spacing: 0.14em;
+  color: #000000;
+  display: flow-root;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.doc-cv-subsection-title {
+  margin: 0 0 3pt;
+  font-size: 10pt;
+  font-weight: 700;
+  line-height: 1.15;
+  word-spacing: 0.10em;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.doc-cv-paragraphs {
+  margin: 0;
+}
+
+.doc-cv-paragraph {
+  margin: 0 0 4pt 0;
+  text-align: left;
+  orphans: 2;
+  widows: 2;
+}
+
+.doc-cv-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* ---------- CV Entries (Experience / Education) ---------- */
+
+.doc-cv-entry {
+  margin-top: 5.5pt;
+}
+
+.doc-cv-entry:first-of-type {
+  margin-top: 0;
+}
+
+.doc-cv-entry-label {
+  margin: 0 0 1.5pt 0;
+  font-size: 8.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  word-spacing: 0.14em;
+  color: #000000;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.doc-cv-entry-header {
+  margin-bottom: 2pt;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.doc-cv-entry-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 5pt;
+}
+
+.doc-cv-entry-primary {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 9.5pt;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  word-spacing: 0.10em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.doc-cv-entry-location {
+  flex: 0 0 auto;
+  font-size: 9.5pt;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.doc-cv-entry-secondary {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.doc-cv-entry-dates {
+  flex: 0 0 auto;
+  font-size: 9.5pt;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.doc-cv-entry-intro {
+  margin: 2pt 0;
+}
+
+.doc-cv-entry-intro:has(+ .doc-cv-bullets) {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.doc-cv-entry-intro:has(+ .doc-cv-bullets) > .doc-cv-paragraph:last-child {
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+/* ---------- CV Bullets ---------- */
+
+.doc-cv-bullets {
+  list-style: none;
+  margin: 2pt 0 0 0;
+  padding: 0;
+}
+
+.doc-cv-bullet {
+  --doc-marker-indent: 12pt;
+  padding-left: 18pt;
+  text-indent: calc(-1 * var(--doc-marker-indent));
+  margin: 0 0 2pt 0;
+  text-align: left;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.doc-cv-bullet:last-child {
+  margin-bottom: 0;
+}
+
+.doc-cv-bullet::before,
+.doc-cv-column-item::before {
+  content: '\25CF';
+  /* Keep the marker and its text in the same paint order as the entry header. */
+  display: inline-block;
+  width: var(--doc-marker-indent);
+  text-indent: 0;
+  vertical-align: 0.15em;
+  font-size: 6pt;
+  line-height: 1;
+  color: #000000;
+}
+
+/* ---------- Unit Lead-In ---------- */
+
+.doc-unit-lead-in {
+  font-weight: 700;
+}
+
+/* ---------- Inline Skills & Columns ---------- */
+
+.doc-cv-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  row-gap: 1.5pt;
+  margin: 0;
+  text-align: left;
+}
+
+.doc-cv-inline-entry {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+.doc-cv-inline-sep {
+  white-space: pre;
+  color: #000000;
+  user-select: none;
+}
+
+.doc-cv-inline-sep--hidden .doc-cv-inline-sep-mark {
+  visibility: hidden;
+}
+
+.doc-cv-inline-sep--collapsed {
+  display: inline-block;
+  width: 0;
+}
+
+.doc-cv-inline-sep--collapsed .doc-cv-inline-sep-mark {
+  display: none;
+}
+
+.doc-cv-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 14pt;
+  align-items: start;
+}
+
+.doc-cv-column-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.doc-cv-column-item {
+  --doc-marker-indent: 10pt;
+  padding-left: 12pt;
+  text-indent: calc(-1 * var(--doc-marker-indent));
+  margin: 0 0 2pt 0;
+  text-align: left;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.doc-cv-column-item:last-child {
+  margin-bottom: 0;
+}
+
+.doc-cv-column-item::before {
+  font-size: 5.5pt;
+}
+
+/* ---------- Letter Layout ---------- */
+
+.doc-kind-letter {
+  line-height: 1.18;
+}
+
+.doc-letter-sender {
+  margin: 0 0 12pt 0;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.doc-letter-sender-name {
+  margin: 0;
+  font-weight: 700;
+}
+
+.doc-letter-sender-line {
+  margin: 0;
+}
+
+.doc-letter-recipient {
+  margin: 0 0 12pt 0;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.doc-letter-recipient-line {
+  margin: 0;
+}
+
+.doc-letter-date {
+  margin: 0 0 14pt 0;
+  text-align: right;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.doc-letter-subject {
+  margin: 0 0 12pt 0;
+  font-weight: 700;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.doc-letter-salutation {
+  margin: 0 0 8pt 0;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.doc-letter-paragraphs {
+  margin: 0;
+}
+
+.doc-letter-paragraph {
+  margin: 0 0 6pt 0;
+  text-align: left;
+  orphans: 2;
+  widows: 2;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.doc-letter-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+.doc-letter-signoff {
+  margin-top: 12pt;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.doc-letter-closing {
+  margin: 0 0 18pt 0;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.doc-letter-signature {
+  margin: 0;
+}
+
+/* ---------- Print Media ---------- */
+
+@media print {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  .doc-page {
+    width: var(--doc-page-width);
+    min-height: 0;
+    margin: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: var(--doc-margin-x);
+    padding-right: var(--doc-margin-x);
+    border: none;
+    box-shadow: none;
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .doc-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  /* Prefer a clean entry break unless it leaves too much white space on page one. */
+  .doc-page:not(.doc-page--fill-first) .doc-cv-entry:has(.doc-cv-bullet):not(:has(.doc-cv-bullet:nth-child(5))) {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Keep the first two bullets with the header when page one is already full, and avoid a lone trailing bullet. */
+  .doc-page:not(.doc-page--fill-first) .doc-cv-entry .doc-cv-bullet:nth-child(1):not(:last-child),
+  .doc-cv-section:not(.doc-cv-section--education) .doc-cv-entry--projects .doc-cv-bullet:nth-child(1):not(:last-child),
+  .doc-cv-entry .doc-cv-bullet:nth-last-child(2):not(:first-child) {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* Let education start with one project in the fill-first pass. */
+  .doc-page:not(.doc-page--fill-first) .doc-cv-entry--projects .doc-cv-bullets:not(:has(.doc-cv-bullet:nth-child(4))),
+  .doc-cv-section:not(.doc-cv-section--education) .doc-cv-entry--projects .doc-cv-bullets:not(:has(.doc-cv-bullet:nth-child(4))) {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Keep compact sections together so a continuation starts with its section heading. */
+  .doc-page:not(.doc-page--fill-first)
+    .doc-cv-section--education:not(:has(.doc-cv-entry ~ .doc-cv-entry ~ .doc-cv-entry)):not(:has(.doc-cv-bullet:nth-child(5))),
+  .doc-cv-section--skills,
+  .doc-cv-section--list:not(:has(.doc-cv-bullet:nth-child(6))) {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .doc-kind-cv.doc-page--compact {
+    font-size: 9.5pt;
+    line-height: 1.12;
+  }
+
+  .doc-page--compact .doc-cv-section {
+    margin-top: 6pt;
+  }
+
+  .doc-page--compact .doc-cv-entry:not(:first-of-type) {
+    margin-top: 4pt;
+  }
+}

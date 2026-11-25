@@ -7,6 +7,17 @@ from unittest.mock import patch
 from hiring_scraper.http import Client, OriginPacer, RequestBudget
 
 class HttpTests(unittest.TestCase):
+    def test_capture_can_be_disabled_without_changing_response(self):
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as folder:
+            client = Client(folder, delay=0, persist_captures=False)
+            with patch('hiring_scraper.http._resolve_public_addresses', return_value=['8.8.8.8']), patch.object(client, '_open_pinned_response', return_value=(200, {}, b'hello')):
+                metadata, body = client.get('https://example.com/jobs')
+            self.assertEqual(body, b'hello')
+            self.assertEqual(metadata['state'], 'ok')
+            self.assertEqual(list(Path(folder).iterdir()), [])
+
+
     def test_origin_pacer_shares_minimum_spacing_across_client_instances(self):
         pacer=OriginPacer()
         origin=('https','jobs.example')

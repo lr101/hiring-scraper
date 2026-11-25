@@ -1,6 +1,6 @@
 """Local fictional Radius handoff simulator, for extension integration tests and manual demos."""
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
-from urllib.parse import urlsplit,parse_qs
+from urllib.parse import urlsplit
 import argparse,json
 from pathlib import Path
 from html import escape

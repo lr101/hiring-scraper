@@ -8,7 +8,8 @@ from urllib.parse import urlsplit
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
-from hiring_scraper.app.database import IS_SQLITE, SessionLocal, engine, initialize_sqlite_schema
+from hiring_scraper.app import source_changes
+from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.models import Company, JobFeed, utcnow
 
 
@@ -46,10 +47,10 @@ def _configured_feeds() -> list[dict]:
 
 
 def _ensure_default_job_feeds(session: Session, now) -> int:
-    if session.get_bind().dialect.name == 'postgresql':
-        # Concurrent replicas must not both observe a missing maintained source.
-        session.execute(text('SELECT pg_advisory_xact_lock(85793011, 3)'))
+    # Concurrent replicas must not both observe a missing maintained source.
+    session.execute(text('SELECT pg_advisory_xact_lock(85793011, 3)'))
     created = 0
+    changed_companies: set[int] = set()
     for item in _configured_feeds():
         company = session.scalar(select(Company).where(
             Company.source == "default_job_feed", Company.source_id == item["id"]))
@@ -70,6 +71,7 @@ def _ensure_default_job_feeds(session: Session, now) -> int:
             company = Company(source="default_job_feed", source_id=item["id"], **company_fields)
             session.add(company)
             session.flush()
+            changed_companies.add(company.id)
         else:
             if company.domain_match_method == "manual":
                 company_fields.pop("domain", None)
@@ -78,25 +80,29 @@ def _ensure_default_job_feeds(session: Session, now) -> int:
             if company.career_url_manual:
                 company_fields.pop("career_url", None)
                 company_fields.pop("career_status", None)
+            if any(getattr(company, key) != value for key, value in company_fields.items()):
+                changed_companies.add(company.id)
             for key, value in company_fields.items():
                 setattr(company, key, value)
 
         feed = session.scalar(select(JobFeed).where(
             JobFeed.company_id == company.id, JobFeed.tenant == item["id"]))
         if feed is None:
-            session.add(JobFeed(
+            feed = JobFeed(
                 company_id=company.id, provider=item["provider"], tenant=item["id"],
                 board_url=item["source_page_url"], feed_url=item["feed_url"],
                 status="pending", enabled=True, job_count=0, next_scan_at=now,
-            ))
+            )
+            session.add(feed)
+            session.flush()
+            source_changes.feeds_changed(session, [feed.id])
             created += 1
+    source_changes.companies_changed(session, changed_companies)
     return created
 
 
 def ensure_default_job_feeds(session: Session | None = None) -> int:
     """Idempotently add newly configured defaults; existing pause state is retained."""
-    if session is None and IS_SQLITE:
-        initialize_sqlite_schema(engine)
     now = utcnow()
     if session is not None:
         return _ensure_default_job_feeds(session, now)

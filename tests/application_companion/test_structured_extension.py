@@ -1,13 +1,13 @@
 import json
 from urllib.parse import urlsplit
 from playwright.sync_api import expect
-from .test_extension import ExtensionHarness, EXTENSION
+from .test_extension import ExtensionHarness
 from .structured_cases import CASES
 
 BASE='https://structured.example/'
 class StructuredBrowserTests(ExtensionHarness):
     def check_record_case(self,name):
-        from experiments.autofill_corpus import cases
+        from .autofill_corpus import cases
         case=next(case for case in cases() if case.name==name)
         self.applicant=case.profile
         self.context.route(BASE+'expanded',lambda route:route.fulfill(content_type='text/html',body=case.html))
@@ -29,7 +29,7 @@ class StructuredBrowserTests(ExtensionHarness):
 
     def test_known_dates_and_checked_current_role_identify_reordered_jobs(self):
         from copy import deepcopy
-        from experiments.autofill_corpus import PROFILE,JOBS
+        from .autofill_corpus import PROFILE,JOBS
         for anchor in ['date','current']:
             with self.subTest(anchor=anchor):
                 self.applicant=deepcopy(PROFILE);self.applicant['experiences']=deepcopy(JOBS[:2])
@@ -51,7 +51,7 @@ class StructuredBrowserTests(ExtensionHarness):
 
     def test_saved_profile_formats_combined_history_through_real_extension(self):
         from copy import deepcopy
-        from experiments.autofill_corpus import PROFILE, JOBS
+        from .autofill_corpus import PROFILE, JOBS
         self.applicant = {**deepcopy(PROFILE), 'experiences': deepcopy(JOBS[:2])}
         markup = '<form><label>Email<input type=email></label><label>First name<input></label><fieldset><legend>Beruflicher Werdegang</legend><label>von - bis<input id=period></label><label>Arbeitgeber / Tätigkeiten<textarea id=duties></textarea></label></fieldset></form>'
         self.context.route(BASE+'combined-history',lambda route:route.fulfill(content_type='text/html; charset=utf-8',body=markup))
@@ -63,7 +63,7 @@ class StructuredBrowserTests(ExtensionHarness):
 
     def test_saved_profile_formats_full_history_in_unlabelled_paragraph(self):
         from copy import deepcopy
-        from experiments.autofill_corpus import PROFILE, JOBS
+        from .autofill_corpus import PROFILE, JOBS
         self.applicant = {**deepcopy(PROFILE), 'experiences': deepcopy(JOBS[:2])}
         markup = '<form><label>Email<input type=email></label><label>First name<input></label><p>Beruflicher Werdegang und Tätigkeiten (Stichpunkte):*</p><p><span><textarea id=history></textarea></span></p></form>'
         self.context.route(BASE+'text-history',lambda route:route.fulfill(content_type='text/html; charset=utf-8',body=markup))
@@ -198,16 +198,12 @@ class StructuredBrowserTests(ExtensionHarness):
                             '% radius:end'])
         return '\\documentclass{article}\n\\begin{document}\n'+'\n'.join(entries)+'\n\\end{document}'
 
-    def test_editor_preserves_facts_and_generates_id_based_bullet_request(self):
+    def test_editor_preserves_facts_from_the_marked_base_cv(self):
         self.save_example();options=self.context.new_page();options.goto(f'chrome-extension://{self.extension_id}/options.html')
         expect(options.locator('#available_from')).to_have_value('2026-12-01')
         source=self.history_source('Karlsruhe, Germany')
         options.locator('#cv_text').fill(source)
         options.locator('#sponsorship_required').select_option('false')
-        options.get_by_text('Ask ChatGPT for tailored work bullets',exact=True).click()
-        options.get_by_role('button',name='Prepare bullet-point request',exact=True).click()
-        self.assertIn('"experience_id": "job-1"',options.locator('#bullet-prompt').input_value())
-        self.assertIn('Karlsruhe, Germany',options.locator('#bullet-prompt').input_value())
         options.get_by_role('button',name='Save profile',exact=True).click()
         expect(options.locator('#status')).to_have_text('Profile saved in this browser.')
         options.reload();expect(options.locator('#cv_text')).to_have_value(source)

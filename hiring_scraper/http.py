@@ -175,9 +175,11 @@ class RequestBudget:
 class Client:
     def __init__(self, out, timeout=12, delay=1.0, max_requests=300, cache_from=None, user_agent=UA,
                  origin_pacer: OriginPacer | None = None, request_budget: RequestBudget | None = None,
-                 offline_only=False):
+                 offline_only=False, persist_captures=True):
         self.out = Path(out)
-        self.out.mkdir(parents=True, exist_ok=True)
+        self.persist_captures = persist_captures
+        if persist_captures:
+            self.out.mkdir(parents=True, exist_ok=True)
         self.timeout, self.delay, self.max_requests = timeout, delay, max_requests
         self.user_agent = user_agent
         self.origin_pacer = origin_pacer
@@ -224,8 +226,9 @@ class Client:
                 self.used.add(url)
                 self.records.append(record)
                 key = record['capture']
-                (self.out/(key+'.body')).write_bytes(body)
-                (self.out/(key+'.json')).write_text(json.dumps(record,indent=2)+'\n')
+                if self.persist_captures:
+                    (self.out/(key+'.body')).write_bytes(body)
+                    (self.out/(key+'.json')).write_text(json.dumps(record,indent=2)+'\n')
             return record, body
         if self.offline_only:
             return {'url': url, 'state': 'cache_miss'}, b''
@@ -273,8 +276,9 @@ class Client:
         record.update(elapsed_seconds=round(time.monotonic()-start,3), sha256=hashlib.sha256(body).hexdigest())
         key = hashlib.sha256(url.encode()).hexdigest()[:20]
         record['capture'] = key
-        (self.out/(key+'.body')).write_bytes(body)
-        (self.out/(key+'.json')).write_text(json.dumps(record,indent=2)+'\n')
+        if self.persist_captures:
+            (self.out/(key+'.body')).write_bytes(body)
+            (self.out/(key+'.json')).write_text(json.dumps(record,indent=2)+'\n')
         self.records.append(record)
         self.used.add(url)
         self.cache[url] = (record,body)

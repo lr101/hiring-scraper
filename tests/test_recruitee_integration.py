@@ -6,7 +6,7 @@ import unittest
 from datetime import timedelta
 from unittest.mock import patch
 
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import discovery_worker, worker
@@ -15,6 +15,7 @@ from hiring_scraper.app.discovery_jobs import create_discovery_job
 from hiring_scraper.app.models import (Base, Company, ConfiguredLocation, DiscoveryJob,
                                        DiscoveryJobCompany, DiscoveryRun, Job, JobFeed, ScanRun, utcnow)
 from hiring_scraper.http import Client
+from tests import pg
 
 
 HOME = 'https://example.org/'
@@ -47,12 +48,11 @@ class RecruiteeIntegrationTests(unittest.TestCase):
         self.cache.mkdir()
         capture(self.cache, HOME, ('<a href="' + BOARD + '/">Careers</a>').encode())
         capture(self.cache, FEED, XML, 'application/xml')
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         Base.metadata.create_all(self.engine)
         self.factory = sessionmaker(bind=self.engine, expire_on_commit=False)
         self.patches = [patch.object(discovery_worker, 'SessionLocal', self.factory),
-                        patch.object(discovery_worker, 'engine', self.engine),
-                        patch.object(worker, 'SessionLocal', self.factory), patch.object(worker, 'engine', self.engine),
+                        patch.object(worker, 'SessionLocal', self.factory),
                         patch.object(worker, '_pace_origin')]
         for item in self.patches:
             item.start()
@@ -79,6 +79,32 @@ class RecruiteeIntegrationTests(unittest.TestCase):
         self.assertIsNotNone(claim)
         with patch.object(discovery_worker, 'Client', return_value=self.client('discovery')):
             self.assertTrue(discovery_worker._process_claimed_company((*claim, None, None)))
+
+    def test_discovery_retries_match_index_conflict_without_refetching(self):
+        from hiring_scraper.app.job_search import ProfileIndexChanged
+        claim = discovery_worker._claim_due_company()
+        with patch.object(discovery_worker, 'Client'), \
+             patch.object(discovery_worker, 'discover', return_value={'status': 'ok', 'pages': []}) as discover, \
+             patch.object(discovery_worker, '_persist_discovery', side_effect=[ProfileIndexChanged('changed'), 2]) as persist, \
+             patch.object(discovery_worker.time, 'sleep'):
+            self.assertTrue(discovery_worker._process_claimed_company((*claim, None, None)))
+        self.assertEqual(discover.call_count, 1)
+        self.assertEqual(persist.call_count, 2)
+        with self.factory() as session:
+            self.assertIsNone(session.get(DiscoveryRun, claim[1]).error)
+
+    def test_discovery_defers_persistent_match_index_conflict(self):
+        from hiring_scraper.app.job_search import ProfileIndexChanged
+        claim = discovery_worker._claim_due_company()
+        with patch.object(discovery_worker, 'Client'), \
+             patch.object(discovery_worker, 'discover', return_value={'status': 'ok', 'pages': []}), \
+             patch.object(discovery_worker, '_persist_discovery', side_effect=ProfileIndexChanged('changed')), \
+             patch.object(discovery_worker.time, 'sleep'):
+            self.assertTrue(discovery_worker._process_claimed_company((*claim, None, None)))
+        with self.factory() as session:
+            company = session.get(Company, self.company_id)
+            self.assertEqual(company.discovery_attempt_count, 0)
+            self.assertGreater(company.next_discovery_at.replace(tzinfo=None), utcnow().replace(tzinfo=None))
 
     def manually_rediscover(self, expected_jobs):
         # Isolate the explicit campaign from an independently ranked homepage revisit.

@@ -1,0 +1,40 @@
+Task: write a focused, one-page cover letter tailored to this posting's core duties. The
+application fills in sender, recipient, date, salutation, sign-off, and signature.
+
+Output contract
+- `motivation` (`text` + `sources`): open with specific interest in this company and a named core
+  duty from JOB, linked to a concrete verified capability (cite its source id plus `job`). Ground
+  every statement about the employer strictly in JOB; use exact team, product, and role names.
+- `examples` (one optional slot per employer or institution in EXAMPLE SLOTS): choose 2–3 distinct
+  slots covering the posting's core duties, numbered by `priority` (1, 2, …) in reading order. For
+  each selected slot, name the posting duty in `duty`, set `anchor` to a fact from that entry, and
+  write 3–4 linked sentences (`sentences`), each citing one allowed `source` that verifies it (use
+  `job` for role or future statements, `profile:language_levels` when integrating a required
+  language level).
+- `fit` (`text` + `sources`, or `null`): use only for a distinct brief closing argument (such as a
+  required verified language level or international context from an unused entry, or a focused
+  future contribution); otherwise return `null`. Keep total body paragraphs (`motivation` +
+  selected `examples` + optional `fit`) to 3–4.
+- `closing` (`text`): one warm, specific sentence inviting a conversation about the role, with no
+  new claims. In German, close idiomatically (e.g. "Über ein persönliches Gespräch zu … freue ich
+  mich.") and omit "Vielen Dank für Ihre Zeit." In English, close naturally (e.g. "I would welcome
+  a conversation about …").
+- `subject` (`text`): "Bewerbung als <Titel>" in German or "Application for <job title>" in
+  English.
+- `contact_name`: exact named vacancy contact from JOB without titles or honorifics (full name in
+  German; first name alone is fine if that is all English gives); empty string if unnamed or
+  email-only.
+
+Writing principles
+- Aim for roughly 260–320 words total (including closing) so the letter fits cleanly on one A4
+  page.
+- Write in the applicant's own voice (using VOICE notes and exemplars for tone and rhythm only) as
+  fresh first-person active prose — do not copy CV bullets verbatim.
+- In each evidence paragraph, focus on 1–2 strong verified actions and a documented outcome
+  (quantified where supported), and end by making clear what that experience means for the target
+  role's duty. State study projects explicitly as academic context.
+- Vary sentence openings, verbs, and paragraph endings naturally; avoid repeating the same closing
+  bridge formula across paragraphs.
+- English: spell out all contractions (e.g. "I have", "do not"). German: keep formal Sie-Form
+  ("Sie"/"Ihr") throughout, and start paragraph 1 lowercase after the comma-ended salutation
+  unless the first word is a noun, proper name, or Sie/Ihr.

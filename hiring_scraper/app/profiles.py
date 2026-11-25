@@ -1,7 +1,5 @@
 """Single-workspace profile preferences and explicitly saved CV attachments."""
 import json
-import base64
-import hashlib
 import re
 from datetime import date
 from pathlib import Path
@@ -12,13 +10,22 @@ from typing import Annotated, Any, Literal
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
-from sqlalchemy import select
+from sqlalchemy import delete, select, text
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
-from hiring_scraper.app.database import get_session
-from hiring_scraper.app.models import ProfileCV, ProfilePhoto, UserProfile, utcnow
+from hiring_scraper.app import source_changes
+from hiring_scraper.app.database import dialect_insert, get_session
+from hiring_scraper.app.models import (
+    ApplicationDocument, ApplicationDocumentRender, ApplicationRenderTask,
+    ProfileCV, ProfilePhoto, UserProfile, hold_profiles, utcnow,
+)
 from hiring_scraper.app.cv_documents import MAX_BYTES, TYPES
-from hiring_scraper.app.job_search import clear_profile_match_scores
+from hiring_scraper.app.job_search import (
+    _profile_index_version,
+    clear_profile_match_scores,
+    reevaluate_profile_new_applications,
+    scoring_preferences,
+)
 from hiring_scraper.election_data import municipality_vote_result
 from hiring_scraper.matching import extract_profile_skills, normalize_skills
 
@@ -30,6 +37,14 @@ class Evidence(BaseModel):
     model_config = ConfigDict(extra='forbid')
     context: str = Field(default='', max_length=120)
     note: str = Field(default='', max_length=2000)
+
+
+class DutyEvidence(BaseModel):
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    quote: str = Field(min_length=1, max_length=1000)
+    context: Literal['professional', 'academic', 'research', 'training', 'unspecified'] = 'unspecified'
+    responsibility: Literal['assisted', 'coordinated', 'shared', 'owned', 'unspecified'] = 'unspecified'
+    reference: str = Field(default='', max_length=200)
 
 
 class Education(BaseModel):
@@ -63,9 +78,16 @@ class MatchingDefaults(BaseModel):
     low_afd_vote_share_weight: int = Field(default=0, ge=0, le=20)
 
 
-NEW_PREFERENCES = {'language_levels', 'skill_evidence', 'summary', 'custom_instructions', 'search_area',
+NEW_PREFERENCES = {'duty_evidence', 'language_levels', 'skill_evidence', 'summary', 'custom_instructions', 'search_area',
                    'secondary_roles', 'education', 'certifications', 'matching_defaults', 'application_details',
                    'application_personalization', 'localized_content'}
+
+
+class StyleExemplar(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    language: Literal['en', 'de']
+    kind: Literal['cover_letter', 'cv_summary']
+    text: str = Field(max_length=16000)
 
 
 class ApplicationPersonalization(BaseModel):
@@ -76,6 +98,16 @@ class ApplicationPersonalization(BaseModel):
     wording_to_avoid: str = Field(default='', max_length=3000)
     career_goals: str = Field(default='', max_length=5000)
     work_preferences: str = Field(default='', max_length=5000)
+    voice_notes: str = Field(default='', max_length=1500)
+    style_exemplars: list[StyleExemplar] = Field(default_factory=list, max_length=6)
+
+    @model_validator(mode='after')
+    def limit_exemplars_per_language(self):
+        if any(sum(sample.language == language for sample in self.style_exemplars) > 3
+               for language in ('en', 'de')):
+            raise ValueError('Save at most three style exemplars per language.')
+        return self
+
 
 
 class ApplicationPreferences(BaseModel):
@@ -210,6 +242,7 @@ class LocalizedProfileContent(BaseModel):
 class ProfileRequest(BaseModel):
     model_config = ConfigDict(extra='forbid', allow_inf_nan=False)
     name: str = Field(min_length=1, max_length=120)
+    duty_evidence: list[DutyEvidence] = Field(default_factory=list, max_length=20)
     localized_content: dict[Literal['en', 'de'], LocalizedProfileContent] = Field(default_factory=dict)
     application_details: ApplicationDetails = Field(default_factory=ApplicationDetails)
     application_personalization: ApplicationPersonalization = Field(default_factory=ApplicationPersonalization)
@@ -285,6 +318,7 @@ def _save(profile, request, session):
     data['skills'] = normalize_skills(data['skills'])
     previous = profile.preferences or {}
     previous_matching = profile.matching_preferences
+    previous_index_version = _profile_index_version(profile) if profile.id is not None else None
     previous_weight = profile.low_afd_vote_share_weight
     defaults = data.get('matching_defaults') or {}
     requested_weight = defaults.pop('low_afd_vote_share_weight', 0)
@@ -317,15 +351,33 @@ def _save(profile, request, session):
         data.get('application_details', {}).pop('experiences', None)
     profile.preferences = data
     profile.updated_at = utcnow()
-    preferences_changed = profile.matching_preferences != previous_matching
-    if preferences_changed:
+    current_matching = profile.matching_preferences
+    if profile.id is not None:
+        scoring_changed = _profile_index_version(profile) != previous_index_version
+        presentation_changed = (not scoring_changed) and (current_matching != previous_matching)
+    else:
+        scoring_changed = True
+        presentation_changed = False
+    if scoring_changed:
         profile.match_index_version = None
+        # Derived rows are rebuilt with the new presentation anyway.
+        profile.presentation_refresh_pending = False
     session.add(profile)
-    if profile.id is not None and preferences_changed:
+    if profile.id is not None and scoring_changed:
         # Acquire the profile row lock before clearing derived rows. Job refreshes
         # lock profiles in the same order, so no stale New rows can race past an edit.
         session.flush()
         clear_profile_match_scores(session, profile.id)
+    if profile.id is not None:
+        source_changes.profile_changed(session, profile.id, presentation_only=not scoring_changed)
+        application_inputs = {'application_details', 'application_personalization', 'localized_content',
+                              'custom_instructions', 'summary', 'skills', 'skill_evidence', 'education',
+                              'certifications', 'languages', 'language_levels', 'duty_evidence'}
+        if any(data.get(key) != previous.get(key) for key in application_inputs):
+            from hiring_scraper.app.application_documents_v2 import mark_stale
+            mark_stale(session, profile.id)
+    if profile.id is not None and presentation_changed:
+        reevaluate_profile_new_applications(session, profile)
     session.commit()
     return profile_json(profile)
 
@@ -340,15 +392,18 @@ def update_profile(profile_id: int, request: ProfileRequest, session: Session = 
     return _save(require_profile(profile_id, session), request, session)
 
 
+def _delete_legacy_drafts(profile_id):
+    from hiring_scraper.app import codex_runtime, legacy_application_drafts
+
+    legacy_application_drafts.delete_profile(codex_runtime._root(), profile_id)
+
+
 @router.delete('/{profile_id}')
 def delete_profile(profile_id: int, session: Session = Depends(get_session)):
-    from hiring_scraper.app import application_generation_jobs, codex_runtime
-    root = codex_runtime._root()
-    with application_generation_jobs.profile_lock(root, profile_id):
-        session.delete(require_profile(profile_id, session))
-        session.commit()
-        application_generation_jobs.delete_profile(root, profile_id)
-        application_generation_jobs.delete_profile(root / 'document-revisions', profile_id)
+    session.delete(require_profile(profile_id, session))
+    source_changes.profile_changed(session, profile_id)  # cascade removed its derived rows
+    _delete_legacy_drafts(profile_id)
+    session.commit()
     return {'deleted': True}
 
 
@@ -360,26 +415,30 @@ def photo_metadata(photo):
                                       'size_bytes': photo.size_bytes, 'updated_at': photo.updated_at.isoformat()}
 
 
+def _purge_cv_renders(session, profile_id):
+    """Called under the exclusive profile lock shared by photo writers."""
+    for table in (ApplicationDocumentRender, ApplicationRenderTask):
+        session.execute(delete(table).where(table.profile_id == profile_id, table.kind == 'cv'))
+
+
 def store_profile_photo(session, profile_id, filename, data):
     if not filename or len(filename) > 200 or any(char in filename for char in '/\\\r\n\x00') or Path(filename).suffix.lower() != '.png':
         raise HTTPException(422, 'Choose a PNG photo with a simple filename.')
     if len(data) > MAX_PHOTO_BYTES:
         raise HTTPException(413, 'Choose a PNG photo under 2 MiB.')
-    from hiring_scraper.app.latex_documents import photo_bytes
+    from hiring_scraper.app.profile_photo import validate_png
     try:
-        photo_bytes('data:image/png;base64,' + base64.b64encode(data).decode('ascii'))
+        validate_png(data)
     except ValueError as error:
         raise HTTPException(422, str(error)) from None
     require_profile(profile_id, session)
-    if session.get_bind().dialect.name == 'sqlite':
-        from sqlalchemy.dialects.sqlite import insert
-    else:
-        from sqlalchemy.dialects.postgresql import insert
-    # Two tabs can both upload the first photo. Let the database serialize
-    # creation/replacement instead of relying on a previously read relationship.
+    insert = dialect_insert(session)
+    # Serialize portrait changes against PDF cache reads and publication.
+    hold_profiles(session, [profile_id], exclusive=True)
     values = {'filename': filename, 'size_bytes': len(data), 'data': data, 'updated_at': utcnow()}
     session.execute(insert(ProfilePhoto).values(profile_id=profile_id, **values).on_conflict_do_update(
         index_elements=['profile_id'], set_=values))
+    _purge_cv_renders(session, profile_id)
     session.commit()
     return photo_metadata(session.get(ProfilePhoto, profile_id))
 
@@ -407,8 +466,10 @@ def download_photo(profile_id: int, session: Session = Depends(get_session)):
 
 @router.delete('/{profile_id}/photo', status_code=204)
 def delete_photo(profile_id: int, session: Session = Depends(get_session)):
-    profile = require_profile(profile_id, session)
-    profile.photo = None
+    require_profile(profile_id, session)
+    hold_profiles(session, [profile_id], exclusive=True)
+    session.execute(delete(ProfilePhoto).where(ProfilePhoto.profile_id == profile_id))
+    _purge_cv_renders(session, profile_id)
     session.commit()
     return Response(status_code=204)
 
@@ -417,6 +478,13 @@ def cv_metadata(cv):
     return None if cv is None else {'filename': cv.filename, 'content_type': cv.content_type,
                                    'size_bytes': cv.size_bytes, 'updated_at': cv.updated_at.isoformat(),
                                    'languages': {key: {'filename': value['filename']} for key, value in (cv.variants or {}).items()}}
+
+
+def _cv_career_facts(cv) -> dict:
+    """Career facts from the saved base CV (English first), as matching reads them."""
+    from hiring_scraper.app.profile_facts import cv_career_data
+    variant = (cv.variants or {}).get('en') or (cv.variants or {}).get('de')
+    return cv_career_data(variant['text'] if variant else cv.extracted_text or '')
 
 
 def store_profile_cv(session, profile_id, filename, data, language='en'):
@@ -441,8 +509,11 @@ def store_profile_cv(session, profile_id, filename, data, language='en'):
         history = parse_tex_cv(parsed['text'])
     except ValueError as error:
         raise HTTPException(422, str(error)) from None
-    profile = require_profile(profile_id, session)
+    profile = session.get(UserProfile, profile_id, with_for_update=True, populate_existing=True)
+    if profile is None:
+        raise HTTPException(404, 'Profile not found.')
     cv = profile.cv or ProfileCV(profile=profile)
+    previous_facts = _cv_career_facts(cv) if profile.cv is not None else {}
     for other_language, variant in (cv.variants or {}).items():
         if other_language != language and history_facts(history) != history_facts(parse_tex_cv(variant['text'])):
             raise HTTPException(422, 'English and German CVs must use the same history IDs, employers and dates. To change history facts, remove both base CVs and upload the updated pair.')
@@ -450,6 +521,10 @@ def store_profile_cv(session, profile_id, filename, data, language='en'):
     cv.filename, cv.content_type, cv.size_bytes = filename, TYPES[extension], len(data)
     cv.data, cv.extracted_text, cv.updated_at = data, parsed['text'], utcnow()
     session.add(cv)
+    source_changes.profile_changed(session, profile_id,
+                                   career_facts_changed=_cv_career_facts(cv) != previous_facts)
+    from hiring_scraper.app.application_documents_v2 import mark_stale
+    mark_stale(session, profile_id)
     session.commit()
     return cv_metadata(cv)
 
@@ -504,59 +579,18 @@ def download_cv(profile_id: int, session: Session = Depends(get_session), langua
 
 @router.delete('/{profile_id}/cv', status_code=204)
 def delete_cv(profile_id: int, session: Session = Depends(get_session)):
-    from hiring_scraper.app import application_generation_jobs, codex_runtime
-    root = codex_runtime._root()
-    with application_generation_jobs.profile_lock(root, profile_id):
-        profile = require_profile(profile_id, session)
-        profile.cv = None
-        session.commit()
-        application_generation_jobs.delete_profile(root, profile_id)
-        application_generation_jobs.delete_profile(root / 'document-revisions', profile_id)
+    profile = session.get(UserProfile, profile_id, with_for_update=True, populate_existing=True)
+    if profile is None:
+        raise HTTPException(404, 'Profile not found.')
+    had_facts = bool(profile.cv is not None and _cv_career_facts(profile.cv))
+    profile.cv = None
+    from hiring_scraper.app.application_preparation_queue import clear
+    source_changes.profile_changed(session, profile_id, career_facts_changed=had_facts)
+    clear(session, profile_id)
+    session.execute(text('DELETE FROM application_preparation_tasks WHERE profile_id = :profile_id'),
+                    {'profile_id': profile_id})
+    _delete_legacy_drafts(profile_id)
+    # Render tasks and cached PDFs cascade with their document versions.
+    session.execute(delete(ApplicationDocument).where(ApplicationDocument.profile_id == profile_id))
+    session.commit()
     return Response(status_code=204)
-
-
-class TemplateChange(BaseModel):
-    model_config = ConfigDict(extra='forbid')
-    id: int = Field(ge=0)
-    text: str = Field(max_length=5000)
-
-
-class CVExport(BaseModel):
-    model_config = ConfigDict(extra='forbid')
-    source_sha256: Annotated[str, StringConstraints(pattern=r'^[a-f0-9]{64}$')]
-    changes: list[TemplateChange] = Field(default_factory=list, max_length=1000)
-
-
-@router.get('/{profile_id}/cv/template')
-def cv_template(profile_id: int, session: Session = Depends(get_session)):
-    from hiring_scraper.app.cv_templates import template_paragraphs
-    cv = require_cv(profile_id, session)
-    if not cv.filename.lower().endswith('.docx'):
-        raise HTTPException(422, 'Attach a DOCX to keep and edit your original CV template.')
-    data = cv.data
-    return JSONResponse({'source_sha256': hashlib.sha256(data).hexdigest(), 'paragraphs': template_paragraphs(data)},
-                        headers={'Cache-Control': 'no-store'})
-
-
-@router.post('/{profile_id}/cv/export')
-def export_cv(profile_id: int, request: CVExport, format: Literal['docx', 'pdf'] = 'docx',
-              preview: bool = False, session: Session = Depends(get_session)):
-    from hiring_scraper.app.cv_templates import edit_template, render_pdf
-    cv = require_cv(profile_id, session)
-    if not cv.filename.lower().endswith('.docx'):
-        raise HTTPException(422, 'Attach a DOCX to keep and edit your original CV template.')
-    data = cv.data
-    if hashlib.sha256(data).hexdigest() != request.source_sha256:
-        raise HTTPException(409, 'Your saved CV changed. Reload this application before exporting.')
-    session.rollback()  # Don't keep a database connection while rendering a file.
-    try:
-        output = edit_template(data, [row.model_dump() for row in request.changes])
-        if format == 'pdf':
-            output = render_pdf(output)
-    except ValueError as error:
-        raise HTTPException(422, str(error)) from None
-    except RuntimeError as error:
-        raise HTTPException(503, str(error)) from None
-    return Response(output, media_type='application/pdf' if format == 'pdf' else TYPES['.docx'], headers={
-        'Content-Disposition': f'{"inline" if preview else "attachment"}; filename="tailored-cv.{format}"',
-        'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff'})

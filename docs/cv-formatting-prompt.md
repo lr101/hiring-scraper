@@ -4,6 +4,7 @@ Copy the prompt below into ChatGPT and attach your original `.tex` CV. Review bo
 
 ```text
 Update my attached original LaTeX CV and create two complete base files: cv-en.tex in English and cv-de.tex in German. Preserve the original document structure and layout: preamble, packages, fonts, images, coordinates, widths, spacing, page breaks, section order and bullet count. Do not replace the design with a new template. Preserve every verified fact, name, employer, qualification and date. Translate descriptions and headings idiomatically, without inventing achievements or dates. Ask me for any missing required metadata; do not guess it.
+If the CV already includes one portrait, change only its image filename to portrait.png in both files (for example, \includegraphics{portrait.png}), retaining all existing sizing and placement options. Do not add a portrait if there is none. Keep portrait.png as the source placeholder.
 If an existing profile introduction (Kurzprofil) is present, mark its prose with % radius:profile and % radius:endprofile on separate lines; leave its heading outside. For positioned introductions, use one inert RadiusProfile macro per existing line, defined in the profile block and called at the original position. Do not add a new introduction if none exists.
 Mark EVERY work and study entry using these exact non-printing comments, each on its own line:
 % radius:entry {"id":"work-1","kind":"work","company":"Exact employer","title":"Exact role","location":"Known location or empty string","start":"2021-03","end":null,"current":true}
@@ -21,19 +22,14 @@ Place all responsibility/achievement bullets (or study details) between radius:r
 
 Starter files: [English](../frontend/public/cv-templates/cv-en.tex) and [German](../frontend/public/cv-templates/cv-de.tex). Replace every placeholder and YYYY-MM with your verified facts before uploading; the untouched starter files intentionally fail date validation. Remove example entries that do not apply. Keep IDs identical between translations. A responsibilities block may be empty if there are no verified details.
 
-The base CV is never executed during extraction. Responsibility blocks support plain escaped text, `itemize`, `item`, `textbf`, `emph`, and `par`. Unsupported macros are rejected so extraction cannot silently drop content. Application tailoring preserves the selected base source except marked profile and description prose. A custom-template CV can be downloaded as `.tex` and compiled locally with its original assets; the server PDF renderer continues to accept only the restricted Radius template. The cover letter uses a separate restricted `letter` document-class template with business-letter blocks.
+Radius reads uploaded TeX as data. Responsibility blocks support escaped text and
+`itemize`, `item`, `textbf`, `emph` and `par`. Unsupported content can raise
+an import error. Review the structured base CV before preparing documents.
 
-Automatic language selection first honors an explicit English/German choice, then a request to apply in either language, then common posting-language words (English when ambiguous). Check the selected language before preparing an application; use the language override for ambiguous or bilingual postings. Missing language versions are reported rather than silently replaced.
+Use the same entry IDs, employers and dates in both translations. If those
+facts change, remove the saved pair and upload the corrected sources. Select the
+application language on the preparation page.
 
-Both translations must contain the same history IDs, employers/institutions and dates. If you change those underlying facts, remove both saved base CVs and upload the updated pair. Translate headings, role names and locations when preparing base language files. During application tailoring, all metadata and source outside responsibility/profile blocks are immutable. Existing profile introduction (Kurzprofil) prose may be personalized for the role inside `% radius:profile` / `% radius:endprofile`; job/project/study description prose may change inside its existing responsibility blocks. Both use verified evidence, unchanged commands and line slots, and fixed macro character budgets. An unmarked introduction stays locked until markers are added. Radius text macro slots also enforce the original character budget (Unicode characters), while commands, grouping and line slots remain locked. Character budgets reduce overflow risk but do not guarantee equal typographic width; inspect the compiled PDF.
-
-
-Save a PNG once under **Edit profile → CVs & writing → CV photo (optional)** and click **Save profile**. It is reused in CV PDF previews/exports and source + photo ZIPs for both languages. PNGs may be up to 2 MiB and 4096 pixels per side. In application downloads, **CV photo (optional)** lets you uncheck **Use saved profile photo** or select a different photo just for that application. Temporary replacements stay in the current tab and do not change the saved profile photo. Photo bytes are excluded from browser drafts and ChatGPT prompts. The restricted Radius renderer places it beside the original name/contact header. For a custom template, **Download source + photo ZIP** retains the exact validated source and packages the PNG under its existing portrait filename. Custom bundles currently support one `\includegraphics` portrait reference with a simple `.png` filename, such as `portrait_cropped.png`; extract the ZIP and compile locally. Raw `.tex` downloads retain their exact source without embedding photo data.
-
-To compile a downloaded custom CV, extract its source + photo ZIP into one folder and run:
-
-```sh
-lualatex -no-shell-escape application.tex
-```
-
-The original CV header and portrait position remain unchanged. Cover letters use stacked sender/contact lines, a separate recipient block, city/date, bold subject and prose paragraphs; contact details are never joined by middle dots.
+To include a portrait, save a PNG under **Edit profile → CVs & writing → CV photo
+(optional)**. The shared CV view uses it in the editor and PDF when enabled.
+See the [application preparation guide](application-preparation.md).
