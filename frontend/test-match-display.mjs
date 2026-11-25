@@ -68,7 +68,7 @@ try {
     postings: { done: 300, queued: 90, retrying: 6, failed: 4, skipped: 12500, last_hour: 30 },
     matches: { done: 120, queued: 0, retrying: 0, last_hour: 12 },
   } }))
-  assert.match(progress, /Local matching.*Working through the queue/)
+  assert.match(progress, /Matching<\/h2>.*Working through the queue/)
   assert.match(progress, /Postings read.*<b>300<\/b> of 400 open postings/)
   assert.match(progress, /role="progressbar"[^>]*aria-valuemax="400"[^>]*aria-valuenow="300"/)
   assert.match(progress, /class="is-done" style="width:75%"/)
@@ -231,6 +231,20 @@ try {
   assert.match(cv, /doc-cv-entry-secondary">Example GmbH<\/span><span class="doc-cv-entry-dates">07\/2023 – 04\/2025/)
   assert.match(cv, /doc-cv-entry-dates">05\/2025 – present/)
   console.log('CV entry header assertions passed')
+
+  // The theme helper reads the stored preference while rendering.
+  globalThis.window ??= { localStorage: { getItem: () => null, setItem() {} } }
+  const { default: SettingsPage } = await server.ssrLoadModule('/src/SettingsPage.tsx')
+  const settings = renderToStaticMarkup(React.createElement(SettingsPage))
+  const order = ['<h1>Settings</h1>', 'aria-label="Settings sections"', 'aria-label="Status"', 'id="matching-heading"',
+    'id="applications-heading"', 'id="sources-heading"', 'id="appearance-heading"']
+  const positions = order.map(marker => settings.indexOf(marker))
+  assert.ok(positions.every(position => position >= 0), `missing settings landmark: ${order[positions.indexOf(-1)]}`)
+  assert.deepEqual([...positions].sort((a, b) => a - b), positions, 'settings sections keep their order')
+  assert.match(settings, /href="#applications">Applications</)
+  assert.match(settings, /role="radiogroup" aria-labelledby="theme-heading"/)
+  assert.doesNotMatch(settings, /class="eyebrow"/)
+  console.log('Settings layout assertions passed')
 } finally {
   await server.close()
 }

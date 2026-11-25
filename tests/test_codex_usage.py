@@ -276,3 +276,16 @@ class CodexUsageTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class LongWindowReportTests(unittest.TestCase):
+    def test_weekly_window_is_reported_without_changing_the_gate(self):
+        from hiring_scraper.app.codex_usage import evaluate
+        import time
+        soon = time.time() + 3600
+        payload = {'rateLimitsByLimitId': {'codex': {
+            'primary': {'usedPercent': 10, 'windowDurationMins': 300, 'resetsAt': soon},
+            'secondary': {'usedPercent': 66, 'windowDurationMins': 10080, 'resetsAt': soon + 86400}}}}
+        usage = evaluate(payload)
+        self.assertEqual((usage['used_percent'], usage['allowed']), (10, True))
+        self.assertEqual((usage['long_used_percent'], usage['long_window_minutes']), (66, 10080))

@@ -16,6 +16,7 @@ never committed.
 from __future__ import annotations
 
 import argparse
+import os
 import csv
 import hashlib
 import json
@@ -109,11 +110,12 @@ _FIXTURE_CACHE: dict[str, tuple[dict, dict]] = {}
 
 def recorded_model_outputs(dataset: str) -> tuple[dict, dict]:
     """(analyses by job id, evidence by case id) recorded for ``dataset``."""
-    if dataset not in _FIXTURE_CACHE:
-        directory = fixture_dir(dataset)
-        _FIXTURE_CACHE[dataset] = (load_fixture(directory / "analyses.json"),
-                                   load_fixture(directory / "evidence.json"))
-    return _FIXTURE_CACHE[dataset]
+    directory = fixture_dir(dataset)
+    key = str(directory)
+    if key not in _FIXTURE_CACHE:
+        _FIXTURE_CACHE[key] = (load_fixture(directory / "analyses.json"),
+                               load_fixture(directory / "evidence.json"))
+    return _FIXTURE_CACHE[key]
 
 
 def recorded_inputs(job: dict, profile: dict, dataset: str | None = None) -> tuple[dict | None, dict | None]:
@@ -790,6 +792,8 @@ def main(argv: list[str] | None = None) -> int:
         help="Evaluation dataset: public (committed composites, default) or private (gitignored real CVs)",
     )
     parser.add_argument("--matcher", default="v3", help="Registered matcher name (default: v3)")
+    parser.add_argument("--provider", choices=("local", "luna"), default=None,
+                        help="Recorded model outputs to score (default: RADIUS_EVAL_PROVIDER or local)")
     parser.add_argument(
         "--split",
         default="all",
@@ -805,6 +809,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--include-cases", action="store_true", help="Include per-case predictions in --json output")
     args = parser.parse_args(argv)
+    if args.provider:
+        os.environ["RADIUS_EVAL_PROVIDER"] = args.provider
 
     if args.write_baseline and args.split != "all":
         parser.error("--write-baseline requires --split all so full baseline metrics are recorded.")

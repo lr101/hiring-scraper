@@ -1,8 +1,10 @@
-# Local models for job matching
+# Models for job matching
 
-Radius ranks jobs with two small local models. Nothing leaves the machine and no
-subscription quota is used. Both run on CPU in their own containers, served by
-[llama.cpp](https://github.com/ggml-org/llama.cpp).
+Radius ranks jobs with GPT-6 Luna through your ChatGPT subscription while it has room,
+and with two small local models otherwise (see [Luna first, local backup](#luna-first-local-backup)).
+The local models run on CPU in their own containers, served by
+[llama.cpp](https://github.com/ggml-org/llama.cpp); with **Local only** selected in
+Settings nothing leaves the machine and no subscription quota is used.
 
 | Container | Model | Size | Job |
 |---|---|---|---|
@@ -56,6 +58,29 @@ A job that has not been analysed yet is **pending**: it is stored with a `pendin
 flag, shows "Analysing job…" in search and never creates a Journey card. After a job
 or CV edit, the previous analysis and evidence stay in use (shown as refreshing) until
 the worker replaces them, so edits do not empty Journey.
+
+## Luna first, local backup
+
+Settings → Matching → **Matching model** chooses **Luna first** (default) or **Local
+only**. With Luna first, `job-analysis-worker` sends the same posting prompt to
+`gpt-6-luna` through the shared ChatGPT login (`radius_codex` volume), and asks Luna to
+rate each duty and requirement against the CV lines instead of the reranker. Luna runs
+only while ChatGPT is connected and the five-hour window is below
+`RADIUS_MATCH_LUNA_MAX_5H` (60%) and the longest window, usually the week, below
+`RADIUS_MATCH_LUNA_MAX_WEEKLY` (70%); the rest stays free for application documents.
+Usage is re-read every five minutes. Any Luna error, timeout or limit falls back to the
+local models for that posting or pair, so matching never stops.
+
+Results record their model (`provider: "luna"` in the analysis and evidence), and Luna
+evidence is scored with its own calibration (`LUNA_CALIBRATION_KNOTS`, fitted on the
+DEV split), so scores from both paths share the same bands. On the 71-case public set
+Luna and the local models are within noise of each other: overall pairwise AUC 0.916
+vs 0.893 and band error 0.016 vs 0.025, held-out AUC 0.711 vs 0.732; hard hides are
+identical. Per job the two can differ by about 10 points.
+
+Cost: each Luna call carries about 10k input tokens (half cached) and 150–260 output
+tokens; one posting needs one analysis call plus one evidence call per profile. 129
+calls used about 1% of a Plus plan's five-hour window and under 1% of its week.
 
 ## Throughput and priorities
 

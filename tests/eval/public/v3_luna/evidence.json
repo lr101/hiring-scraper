@@ -1,0 +1,4852 @@
+{
+ "junior_proto__job_0005": {
+  "hash": "828b0b6f646bc0efc42e774fdfd431c5321e2163674a68f9785750811f60c7d4",
+  "payload": {
+   "context": "Prototype Engineer, Smart Devices (m/f/d) (prototype engineering; smart device manufacturing)",
+   "domain": {
+    "field": "prototype engineering; smart device manufacturing",
+    "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+    "source": "cv.experiences[1]",
+    "support": 0.95
+   },
+   "items": [
+    {
+     "quote": "Student assistant, prototyping lab: Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.92
+    },
+    {
+     "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.96
+    },
+    {
+     "quote": "Mechatronics: Completed degree with a thesis on low-cost sensor housings.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.99
+    },
+    {
+     "quote": "Mechatronics engineer with two years of hands-on prototyping experience, mostly through a student job and a junior role.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.9
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Junior Prototyping Engineer",
+    "support": 0.97
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "junior_proto__job_0009": {
+  "hash": "9fe9f6460b266e9f74e63ba7014823f9ae53778177f9e2512125c0fe0800c3fc",
+  "payload": {
+   "context": "Warehouse Associate (m/f/d) (Warehouse Operations; E-commerce Fulfilment)",
+   "domain": {
+    "field": "Warehouse Operations; E-commerce Fulfilment",
+    "quote": "Student assistant, prototyping lab: Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts.",
+    "source": "cv.experiences[0]",
+    "support": 0.01
+   },
+   "items": [
+    {
+     "quote": "Student assistant, prototyping lab: Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.03
+    },
+    {
+     "quote": "Student assistant, prototyping lab: Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.03
+    },
+    {
+     "quote": "Student assistant, prototyping lab: Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.02
+    },
+    {
+     "quote": "Student assistant, prototyping lab: Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.02
+    },
+    {
+     "quote": "",
+     "ref": "r1",
+     "similarity": null,
+     "source": "",
+     "support": 0.0
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Student assistant, prototyping lab",
+    "support": 0.02
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "junior_proto__job_0012": {
+  "hash": "e4a568e50093c7ee64fb8e1186bcab89aa76f328ebbc949b16b000200912c0d0",
+  "payload": {
+   "context": "IT-Support Mitarbeiter (m/w/d) (IT support; IT services)",
+   "domain": {
+    "field": "IT support; IT services",
+    "quote": "Mechatronics engineer with two years of hands-on prototyping experience, mostly through a student job and a junior role.",
+    "source": "summary",
+    "support": 0.02
+   },
+   "items": [
+    {
+     "quote": "Student assistant, prototyping lab: Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.02
+    },
+    {
+     "quote": "Student assistant, prototyping lab: Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.02
+    },
+    {
+     "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.08
+    },
+    {
+     "quote": "Python: Test-data logging and plotting scripts",
+     "ref": "d3",
+     "similarity": null,
+     "source": "skill_evidence.Python",
+     "support": 0.02
+    },
+    {
+     "quote": "Python: Test-data logging and plotting scripts",
+     "ref": "d4",
+     "similarity": null,
+     "source": "skill_evidence.Python",
+     "support": 0.01
+    },
+    {
+     "quote": "Mechatronics",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0].title",
+     "support": 0.03
+    },
+    {
+     "quote": "Mechatronics engineer with two years of hands-on prototyping experience, mostly through a student job and a junior role.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.04
+    },
+    {
+     "quote": "Mechatronics engineer with two years of hands-on prototyping experience, mostly through a student job and a junior role.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.06
+    },
+    {
+     "quote": "Skills: Rapid Prototyping, 3D Printing, CAD, Autodesk Inventor, KiCad, Arduino",
+     "ref": "r3",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.01
+    },
+    {
+     "quote": "Skills: Rapid Prototyping, 3D Printing, CAD, Autodesk Inventor, KiCad, Arduino",
+     "ref": "r4",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.01
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Mechatronics Engineer",
+    "support": 0.02
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "junior_proto__job_0014": {
+  "hash": "e093ce8d49f5169180bcd4ae6cedb899e0d886a2aefb1b1b1493af15748dd543",
+  "payload": {
+   "context": "Technical Product Owner Schnittstellen (m/w/d) (Software product management; Insurance technology)",
+   "domain": {
+    "field": "Software product management; Insurance technology",
+    "quote": "Mechatronics engineer with two years of hands-on prototyping experience, mostly through a student job and a junior role.",
+    "source": "summary",
+    "support": 0.01
+   },
+   "items": [
+    {
+     "quote": "Mechatronics engineer with two years of hands-on prototyping experience, mostly through a student job and a junior role.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.02
+    },
+    {
+     "quote": "I build functional models with 3D printing, simple electronics and Python scripts, run test series and document results.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.02
+    },
+    {
+     "quote": "I build functional models with 3D printing, simple electronics and Python scripts, run test series and document results.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.04
+    },
+    {
+     "quote": "I build functional models with 3D printing, simple electronics and Python scripts, run test series and document results.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.01
+    },
+    {
+     "quote": "Mechatronics engineer with two years of hands-on prototyping experience, mostly through a student job and a junior role.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.05
+    },
+    {
+     "quote": "Python: Test-data logging and plotting scripts",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skill_evidence.Python",
+     "support": 0.02
+    },
+    {
+     "quote": "Python: Test-data logging and plotting scripts",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.Python",
+     "support": 0.01
+    },
+    {
+     "quote": "I build functional models with 3D printing, simple electronics and Python scripts, run test series and document results.",
+     "ref": "r3",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.01
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Innovation Engineer",
+    "support": 0.03
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "junior_proto__job_0021": {
+  "hash": "b841bae9c4a941451dfe09243233cbabc702642097c5e6db600cf5e938940438",
+  "payload": {
+   "context": "Junior Hardware Engineer (f/m/d) (Electronics hardware engineering; Not specified)",
+   "domain": {
+    "field": "Electronics hardware engineering; Not specified",
+    "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+    "source": "cv.experiences[1]",
+    "support": 0.65
+   },
+   "items": [
+    {
+     "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.77
+    },
+    {
+     "quote": "Skills: Rapid Prototyping, 3D Printing, CAD, Autodesk Inventor, KiCad, Arduino",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.35
+    },
+    {
+     "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.88
+    },
+    {
+     "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.52
+    },
+    {
+     "quote": "Mechatronics engineer with two years of hands-on prototyping experience, mostly through a student job and a junior role.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.1
+    },
+    {
+     "quote": "Skills: Rapid Prototyping, 3D Printing, CAD, Autodesk Inventor, KiCad, Arduino",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.3
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Hardware Engineer",
+    "support": 0.8
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "junior_proto__job_0035": {
+  "hash": "5a1c72bea20d5cc5521a1a220bdc05e204540c3606aedce8881be904eb13dada",
+  "payload": {
+   "context": "Prototyping Engineer (m/f/d) (Hardware prototyping engineering; Smart home devices)",
+   "domain": {
+    "field": "Hardware prototyping engineering; Smart home devices",
+    "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+    "source": "cv.experiences[1]",
+    "support": 0.98
+   },
+   "items": [
+    {
+     "quote": "Student assistant, prototyping lab: Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.86
+    },
+    {
+     "quote": "Autodesk Inventor: Designed housings and brackets for prototypes.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skill_evidence.Autodesk Inventor",
+     "support": 0.98
+    },
+    {
+     "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.98
+    },
+    {
+     "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.08
+    },
+    {
+     "quote": "bachelor Mechatronics completed",
+     "ref": "r0",
+     "similarity": null,
+     "source": "education",
+     "support": 0.99
+    },
+    {
+     "quote": "Mechatronics engineer with two years of hands-on prototyping experience, mostly through a student job and a junior role.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.98
+    },
+    {
+     "quote": "Autodesk Inventor: Designed housings and brackets for prototypes.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.Autodesk Inventor",
+     "support": 0.99
+    },
+    {
+     "quote": "Student assistant, prototyping lab: Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts.",
+     "ref": "r3",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.94
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Prototyping Engineer",
+    "support": 0.99
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "junior_proto__job_0051": {
+  "hash": "fae64e89143f7d38899510def8000d94aa3e6c8b9fab33157e858d58eca589e6",
+  "payload": {
+   "context": "Entwicklungsingenieur Prototypenbau (m/w/d) (Sensor prototyping engineering; Industrial sensor manufacturing)",
+   "domain": {
+    "field": "Sensor prototyping engineering; Industrial sensor manufacturing",
+    "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+    "source": "cv.experiences[1]",
+    "support": 0.82
+   },
+   "items": [
+    {
+     "quote": "Student assistant, prototyping lab: Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.92
+    },
+    {
+     "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.95
+    },
+    {
+     "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.93
+    },
+    {
+     "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.94
+    },
+    {
+     "quote": "Student assistant, prototyping lab: Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts.",
+     "ref": "d4",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.12
+    },
+    {
+     "quote": "Mechatronics",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0].title",
+     "support": 0.99
+    },
+    {
+     "quote": "Mechanical Engineering (part-time)",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.education[1].title",
+     "support": 0.98
+    },
+    {
+     "quote": "Mechatronics",
+     "ref": "r2",
+     "similarity": null,
+     "source": "cv.education[0].title",
+     "support": 0.35
+    },
+    {
+     "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+     "ref": "r3",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.93
+    },
+    {
+     "quote": "Autodesk Inventor: Designed housings and brackets for prototypes.",
+     "ref": "r5",
+     "similarity": null,
+     "source": "skill_evidence.Autodesk Inventor",
+     "support": 0.98
+    },
+    {
+     "quote": "Autodesk Inventor: Designed housings and brackets for prototypes.",
+     "ref": "r6",
+     "similarity": null,
+     "source": "skill_evidence.Autodesk Inventor",
+     "support": 0.05
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Junior Prototyping Engineer",
+    "support": 0.98
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "junior_proto__job_0052": {
+  "hash": "d6d3c9f12776ca6e60484a6731e7545ee5909740b7ae9e0eb29dddce9d7765e6",
+  "payload": {
+   "context": "Innovation Engineer – Rapid Prototyping (f/m/d) (Rapid Prototyping Engineering; Automation Technology)",
+   "domain": {
+    "field": "Rapid Prototyping Engineering; Automation Technology",
+    "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+    "source": "cv.experiences[1]",
+    "support": 0.86
+   },
+   "items": [
+    {
+     "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.96
+    },
+    {
+     "quote": "Student assistant, prototyping lab: Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.93
+    },
+    {
+     "quote": "Student assistant, prototyping lab",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[0].title",
+     "support": 0.08
+    },
+    {
+     "quote": "Mechatronics: Completed degree with a thesis on low-cost sensor housings.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.99
+    },
+    {
+     "quote": "Mechatronics engineer with two years of hands-on prototyping experience, mostly through a student job and a junior role.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.88
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Innovation Engineer",
+    "support": 0.91
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "junior_proto__job_0055": {
+  "hash": "de7f9bc5573795852bd3cd0d04aa80e10b54fc2b558844e06ed8413a5db3b4bb",
+  "payload": {
+   "context": "Junior Entwicklungsingenieur Mechatronik (m/w/d) (Mechatronics engineering; Engineering)",
+   "domain": {
+    "field": "Mechatronics engineering; Engineering",
+    "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+    "source": "cv.experiences[1]",
+    "support": 0.96
+   },
+   "items": [
+    {
+     "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.94
+    },
+    {
+     "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.86
+    },
+    {
+     "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.97
+    },
+    {
+     "quote": "bachelor Mechatronics completed",
+     "ref": "r0",
+     "similarity": null,
+     "source": "education",
+     "support": 0.99
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Junior Development Engineer",
+    "support": 0.91
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "junior_proto__job_0065": {
+  "hash": "389e74233e17cdf053eb1fa29c5c8643405607baca2deeed142f87588842cf5a",
+  "payload": {
+   "context": "Hardware Prototyping Engineer – Wearables (m/f/d) (Hardware Prototyping Engineering; Wearable Technology)",
+   "domain": {
+    "field": "Hardware Prototyping Engineering; Wearable Technology",
+    "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+    "source": "cv.experiences[1]",
+    "support": 0.76
+   },
+   "items": [
+    {
+     "quote": "Student assistant, prototyping lab: Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.94
+    },
+    {
+     "quote": "3D Printing: FDM and resin printing, post-processing and fit tests.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skill_evidence.3D Printing",
+     "support": 0.88
+    },
+    {
+     "quote": "Student assistant, prototyping lab: Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.96
+    },
+    {
+     "quote": "bachelor Mechatronics completed",
+     "ref": "r0",
+     "similarity": null,
+     "source": "education",
+     "support": 0.99
+    },
+    {
+     "quote": "Mechatronics engineer with two years of hands-on prototyping experience, mostly through a student job and a junior role.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.94
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Prototyping Engineer",
+    "support": 0.91
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "junior_proto__job_0146": {
+  "hash": "35f827c58ea5244b322bc8888101bb01091b85936773ae5f570a6ae9964421c9",
+  "payload": {
+   "context": "Hardware Prototyping Engineer – Wearables (m/w/d) (Hardware Prototyping Engineering; Wearable Technology)",
+   "domain": {
+    "field": "Hardware Prototyping Engineering; Wearable Technology",
+    "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+    "source": "cv.experiences[1]",
+    "support": 0.58
+   },
+   "items": [
+    {
+     "quote": "Student assistant, prototyping lab: Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.9
+    },
+    {
+     "quote": "Junior Prototyping Engineer: Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.85
+    },
+    {
+     "quote": "I build functional models with 3D printing, simple electronics and Python scripts, run test series and document results.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.85
+    },
+    {
+     "quote": "bachelor Mechatronics completed",
+     "ref": "r0",
+     "similarity": null,
+     "source": "education",
+     "support": 0.98
+    },
+    {
+     "quote": "Mechatronics engineer with two years of hands-on prototyping experience, mostly through a student job and a junior role.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.9
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Junior Prototyping Engineer",
+    "support": 0.94
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ld_specialist__job_0002": {
+  "hash": "d440bc2d7abc03064ef8cd369d2ef859835f6e32dd5b80eabf373fdf86ec8456",
+  "payload": {
+   "context": "Instructional Designer (f/m/d) (instructional design; corporate e-learning)",
+   "domain": {
+    "field": "instructional design; corporate e-learning",
+    "quote": "Instructional Design: Designed blended learning paths from needs analysis to evaluation.",
+    "source": "skill_evidence.Instructional Design",
+    "support": 0.98
+   },
+   "items": [
+    {
+     "quote": "Learning and Development Specialist: Designed an onboarding programme for 300 new hires per year, ran training needs analyses with team leads and built e-learning modules in Articulate Storyline.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.95
+    },
+    {
+     "quote": "Instructional Design: Designed blended learning paths from needs analysis to evaluation.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skill_evidence.Instructional Design",
+     "support": 0.88
+    },
+    {
+     "quote": "Articulate Storyline: Built about forty e-learning modules.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "skill_evidence.Articulate Storyline",
+     "support": 0.99
+    },
+    {
+     "quote": "Training Evaluation: Applies Kirkpatrick levels 1-3 to leadership programmes.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "skill_evidence.Training Evaluation",
+     "support": 0.5
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d4",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.88
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d5",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.72
+    },
+    {
+     "quote": "Educational Science: Completed degree with focus on adult education and organisational learning.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.5
+    },
+    {
+     "quote": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.98
+    },
+    {
+     "quote": "Articulate Storyline: Built about forty e-learning modules.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.Articulate Storyline",
+     "support": 0.99
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Instructional Designer",
+    "support": 0.99
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ld_specialist__job_0003": {
+  "hash": "47993ad6f680ddac4fa424b077155b3e6de5aee46f05c8f354bf49659f310cc9",
+  "payload": {
+   "context": "Training Manager – Leadership Programmes (f/m/d) (learning and development management; corporate leadership training)",
+   "domain": {
+    "field": "learning and development management; corporate leadership training",
+    "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+    "source": "cv.experiences[2]",
+    "support": 0.98
+   },
+   "items": [
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.62
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.45
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.32
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.96
+    },
+    {
+     "quote": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.98
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.28
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Training Manager",
+    "support": 0.94
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ld_specialist__job_0017": {
+  "hash": "7ae7d81200dfef8080ea4d162dfef63c19b901b36929cc908eca8aa98caca06a",
+  "payload": {
+   "context": "Trainer Onboarding (m/w/d) (Customer service onboarding training; Customer service)",
+   "domain": {
+    "field": "Customer service onboarding training; Customer service",
+    "quote": "Learning and Development Specialist: Designed an onboarding programme for 300 new hires per year, ran training needs analyses with team leads and built e-learning modules in Articulate Storyline.",
+    "source": "cv.experiences[1]",
+    "support": 0.12
+   },
+   "items": [
+    {
+     "quote": "Learning and Development Specialist: Designed an onboarding programme for 300 new hires per year, ran training needs analyses with team leads and built e-learning modules in Articulate Storyline.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.28
+    },
+    {
+     "quote": "Facilitation: Facilitates workshops of 8 to 25 participants, in English.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skill_evidence.Facilitation",
+     "support": 0.42
+    },
+    {
+     "quote": "Skills: Workshop Design, Training Evaluation, Coaching, Stakeholder Management, E-Learning, Adult Learning",
+     "ref": "d2",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.24
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.58
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.18
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Onboarding Manager",
+    "support": 0.62
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ld_specialist__job_0032": {
+  "hash": "8b3af730a486e55450b97d191252e461afb67ab0663701ef3c98b70d13181a0a",
+  "payload": {
+   "context": "Recruiter (f/m/d) (Technical Recruiting; Technology)",
+   "domain": {
+    "field": "Technical Recruiting; Technology",
+    "quote": "LMS Administration: Administered course catalogue, enrolments and reporting in two LMS.",
+    "source": "skill_evidence.LMS Administration",
+    "support": 0.05
+   },
+   "items": [
+    {
+     "quote": "Training Coordinator",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0].title",
+     "support": 0.02
+    },
+    {
+     "quote": "Learning and Development Specialist: Designed an onboarding programme for 300 new hires per year, ran training needs analyses with team leads and built e-learning modules in Articulate Storyline.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.12
+    },
+    {
+     "quote": "LMS Administration: Administered course catalogue, enrolments and reporting in two LMS.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "skill_evidence.LMS Administration",
+     "support": 0.04
+    },
+    {
+     "quote": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.03
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "People Development Partner",
+    "support": 0.08
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ld_specialist__job_0033": {
+  "hash": "8f32bf11e63159a1ecc2192d5765fcaecbc3a05d27b87d3873781c19fe095cb9",
+  "payload": {
+   "context": "Operations Analyst Kundenservice (m/w/d) (Customer Service Operations Analytics; Customer Service)",
+   "domain": {
+    "field": "Customer Service Operations Analytics; Customer Service",
+    "quote": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees.",
+    "source": "summary",
+    "support": 0.04
+   },
+   "items": [
+    {
+     "quote": "I run needs analyses with business leaders, build blended learning in Articulate and the LMS, facilitate workshops and measure impact with simple evaluation models.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.08
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.06
+    },
+    {
+     "quote": "Learning and Development Specialist: Designed an onboarding programme for 300 new hires per year, ran training needs analyses with team leads and built e-learning modules in Articulate Storyline.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.12
+    },
+    {
+     "quote": "Learning and Development Specialist: Designed an onboarding programme for 300 new hires per year, ran training needs analyses with team leads and built e-learning modules in Articulate Storyline.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.08
+    },
+    {
+     "quote": "B.A.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0].title",
+     "support": 0.05
+    },
+    {
+     "quote": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.04
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.03
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Learning and Development Specialist",
+    "support": 0.03
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ld_specialist__job_0039": {
+  "hash": "169bd5dd7b33c7580ce88bbcdac62b84dbcb30560618b19a569a7465fe3a1481",
+  "payload": {
+   "context": "Sales Enablement Trainer (f/m/d) (Sales Enablement Training; Not specified)",
+   "domain": {
+    "field": "Sales Enablement Training; Not specified",
+    "quote": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees.",
+    "source": "summary",
+    "support": 0.72
+   },
+   "items": [
+    {
+     "quote": "I run needs analyses with business leaders, build blended learning in Articulate and the LMS, facilitate workshops and measure impact with simple evaluation models.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.08
+    },
+    {
+     "quote": "Learning and Development Specialist: Designed an onboarding programme for 300 new hires per year, ran training needs analyses with team leads and built e-learning modules in Articulate Storyline.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.42
+    },
+    {
+     "quote": "Facilitation: Facilitates workshops of 8 to 25 participants, in English.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "skill_evidence.Facilitation",
+     "support": 0.85
+    },
+    {
+     "quote": "Skills: Workshop Design, Training Evaluation, Coaching, Stakeholder Management, E-Learning, Adult Learning",
+     "ref": "d3",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.08
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d4",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.18
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d5",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.06
+    },
+    {
+     "quote": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.15
+    },
+    {
+     "quote": "Facilitation: Facilitates workshops of 8 to 25 participants, in English.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skill_evidence.Facilitation",
+     "support": 0.85
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Training Manager",
+    "support": 0.45
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ld_specialist__job_0043": {
+  "hash": "403fd366c537f22604dd2ef32244e29a3c17b649c33bee646463570f8af37a13",
+  "payload": {
+   "context": "Talent Development Manager (f/m/d) (Talent Development Management; Corporate Human Resources)",
+   "domain": {
+    "field": "Talent Development Management; Corporate Human Resources",
+    "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+    "source": "cv.experiences[2]",
+    "support": 0.76
+   },
+   "items": [
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.84
+    },
+    {
+     "quote": "Training Coordinator",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[0].title",
+     "support": 0.02
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.08
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.77
+    },
+    {
+     "quote": "I run needs analyses with business leaders, build blended learning in Articulate and the LMS, facilitate workshops and measure impact with simple evaluation models.",
+     "ref": "d4",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.48
+    },
+    {
+     "quote": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.72
+    },
+    {
+     "quote": "Facilitation: Facilitates workshops of 8 to 25 participants, in English.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skill_evidence.Facilitation",
+     "support": 0.86
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "People Development Partner",
+    "support": 0.72
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ld_specialist__job_0066": {
+  "hash": "b947211c487466dfbbd39dd5b36e1040dbb697a1fb8b1f2f59609cccb7649593",
+  "payload": {
+   "context": "Business Trainer – German-language Workshops (f/m/d) (Corporate Training; Management Consulting)",
+   "domain": {
+    "field": "Corporate Training; Management Consulting",
+    "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+    "source": "cv.experiences[2]",
+    "support": 0.7
+   },
+   "items": [
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.35
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.3
+    },
+    {
+     "quote": "Instructional Design: Designed blended learning paths from needs analysis to evaluation.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "skill_evidence.Instructional Design",
+     "support": 0.2
+    },
+    {
+     "quote": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.75
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Training Manager",
+    "support": 0.7
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ld_specialist__job_0078": {
+  "hash": "a4a72b26bbb8820d1be55a33ead125dcc5a2d8bae54c759e8f61a6ff047bbcec",
+  "payload": {
+   "context": "Referent Personalentwicklung (m/w/d) (Human Resources and organizational development; Not specified)",
+   "domain": {
+    "field": "Human Resources and organizational development; Not specified",
+    "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+    "source": "cv.experiences[2]",
+    "support": 0.95
+   },
+   "items": [
+    {
+     "quote": "Learning and Development Specialist: Designed an onboarding programme for 300 new hires per year, ran training needs analyses with team leads and built e-learning modules in Articulate Storyline.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.94
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.91
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.56
+    },
+    {
+     "quote": "Training Coordinator: Scheduled and administered classroom trainings for a logistics company, managed the LMS catalogue and collected participant feedback.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.92
+    },
+    {
+     "quote": "Educational Science: Completed degree with focus on adult education and organisational learning.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.97
+    },
+    {
+     "quote": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.96
+    },
+    {
+     "quote": "Facilitation: Facilitates workshops of 8 to 25 participants, in English.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.Facilitation",
+     "support": 0.96
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "People Development Partner",
+    "support": 0.93
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ld_specialist__job_0094": {
+  "hash": "207a437a367674f80a103fab98da63746a636907ba6496582506a70327b2a389",
+  "payload": {
+   "context": "Customer Education Specialist (f/m/d) (Customer Education; Not specified)",
+   "domain": {
+    "field": "Customer Education; Not specified",
+    "quote": "I run needs analyses with business leaders, build blended learning in Articulate and the LMS, facilitate workshops and measure impact with simple evaluation models.",
+    "source": "summary",
+    "support": 0.57
+   },
+   "items": [
+    {
+     "quote": "I run needs analyses with business leaders, build blended learning in Articulate and the LMS, facilitate workshops and measure impact with simple evaluation models.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.73
+    },
+    {
+     "quote": "Instructional Design: Designed blended learning paths from needs analysis to evaluation.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skill_evidence.Instructional Design",
+     "support": 0.7
+    },
+    {
+     "quote": "Facilitation: Facilitates workshops of 8 to 25 participants, in English.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "skill_evidence.Facilitation",
+     "support": 0.72
+    },
+    {
+     "quote": "Training Evaluation: Applies Kirkpatrick levels 1-3 to leadership programmes.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "skill_evidence.Training Evaluation",
+     "support": 0.75
+    },
+    {
+     "quote": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.85
+    },
+    {
+     "quote": "Articulate Storyline: Built about forty e-learning modules.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skill_evidence.Articulate Storyline",
+     "support": 0.9
+    },
+    {
+     "quote": "LMS Administration: Administered course catalogue, enrolments and reporting in two LMS.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.LMS Administration",
+     "support": 0.95
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Learning Experience Designer",
+    "support": 0.68
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ld_specialist__job_0104": {
+  "hash": "b3c93a43f6d969cae86c4fdc1ca0ddb11d10d1ca5081b1d6e839618997cbfbe3",
+  "payload": {
+   "context": "L&D Programme Coordinator (f/m/d) (Learning and Development; Employer industry not specified)",
+   "domain": {
+    "field": "Learning and Development; Employer industry not specified",
+    "quote": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees.",
+    "source": "summary",
+    "support": 0.99
+   },
+   "items": [
+    {
+     "quote": "Training Coordinator: Scheduled and administered classroom trainings for a logistics company, managed the LMS catalogue and collected participant feedback.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.73
+    },
+    {
+     "quote": "Training Coordinator: Scheduled and administered classroom trainings for a logistics company, managed the LMS catalogue and collected participant feedback.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.82
+    },
+    {
+     "quote": "LMS Administration: Administered course catalogue, enrolments and reporting in two LMS.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "skill_evidence.LMS Administration",
+     "support": 0.96
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.53
+    },
+    {
+     "quote": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.06
+    },
+    {
+     "quote": "LMS Administration: Administered course catalogue, enrolments and reporting in two LMS.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.LMS Administration",
+     "support": 0.98
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Training Coordinator",
+    "support": 0.94
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ld_specialist__job_0141": {
+  "hash": "96cc97ab579b664da38f606146eeb57e0a7095e5c5ab6ba35dcfa7eb1d9a53ab",
+  "payload": {
+   "context": "Instructional Designer (m/w/d) (Instructional Design; Corporate Learning and E-Learning)",
+   "domain": {
+    "field": "Instructional Design; Corporate Learning and E-Learning",
+    "quote": "Instructional Design: Designed blended learning paths from needs analysis to evaluation.",
+    "source": "skill_evidence.Instructional Design",
+    "support": 0.96
+   },
+   "items": [
+    {
+     "quote": "Learning and Development Specialist: Designed an onboarding programme for 300 new hires per year, ran training needs analyses with team leads and built e-learning modules in Articulate Storyline.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.78
+    },
+    {
+     "quote": "Learning and Development Specialist: Designed an onboarding programme for 300 new hires per year, ran training needs analyses with team leads and built e-learning modules in Articulate Storyline.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.68
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.72
+    },
+    {
+     "quote": "Educational Science: Completed degree with focus on adult education and organisational learning.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.08
+    },
+    {
+     "quote": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.76
+    },
+    {
+     "quote": "Articulate Storyline: Built about forty e-learning modules.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.Articulate Storyline",
+     "support": 0.98
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Instructional Designer",
+    "support": 0.98
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ld_specialist__job_0144": {
+  "hash": "af9ee52a9cfc4d5588eea2885c0aeff3d635ec47de1cf88ae4cf63c7df4872bc",
+  "payload": {
+   "context": "Sales Enablement Trainer (m/w/d) (Sales Enablement Training; Unspecified)",
+   "domain": {
+    "field": "Sales Enablement Training; Unspecified",
+    "quote": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees.",
+    "source": "summary",
+    "support": 0.25
+   },
+   "items": [
+    {
+     "quote": "I run needs analyses with business leaders, build blended learning in Articulate and the LMS, facilitate workshops and measure impact with simple evaluation models.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.35
+    },
+    {
+     "quote": "Learning and Development Specialist: Designed an onboarding programme for 300 new hires per year, ran training needs analyses with team leads and built e-learning modules in Articulate Storyline.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.65
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.45
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.3
+    },
+    {
+     "quote": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.2
+    },
+    {
+     "quote": "Facilitation: Facilitates workshops of 8 to 25 participants, in English.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skill_evidence.Facilitation",
+     "support": 0.8
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Learning and Development Specialist",
+    "support": 0.55
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ld_specialist__job_0145": {
+  "hash": "3288e5f6553be6dbd4aeb324f3814d5b751c685fb0cef2fdf8a3ce7c7c3aa8da",
+  "payload": {
+   "context": "Talent Development Manager (m/w/d) (Talent development; Human resources)",
+   "domain": {
+    "field": "Talent development; Human resources",
+    "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+    "source": "cv.experiences[2]",
+    "support": 0.87
+   },
+   "items": [
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.78
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.68
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.76
+    },
+    {
+     "quote": "I run needs analyses with business leaders, build blended learning in Articulate and the LMS, facilitate workshops and measure impact with simple evaluation models.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.38
+    },
+    {
+     "quote": "L&D specialist with nine years of experience designing onboarding and leadership programmes for 200 to 2,000 employees.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.94
+    },
+    {
+     "quote": "Senior L&D Specialist: Designs the leadership development curriculum, facilitates workshops, trains internal facilitators, evaluates programmes with Kirkpatrick levels 1-3 and reports completion and impact data to HR leadership.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.84
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "People Development Partner",
+    "support": 0.73
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "logistics_lead__job_0006": {
+  "hash": "7da38b80dbf20ac2d6855bed74e03cd1a4e7e088c96dbbada62975540ba98bfd",
+  "payload": {
+   "context": "Lagerleiter (m/w/d) (Warehouse and logistics management; Employer industry not specified)",
+   "domain": {
+    "field": "Warehouse and logistics management; Employer industry not specified",
+    "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+    "source": "cv.experiences[2]",
+    "support": 0.95
+   },
+   "items": [
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.84
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.7
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.65
+    },
+    {
+     "quote": "Schichtleiter Lager: Führung einer Schicht mit 10 Mitarbeitenden, Verteilung der Aufträge, Abstimmung mit Disposition und Spedition, Einweisung neuer Kollegen.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.76
+    },
+    {
+     "quote": "Fachkraft für Lagerlogistik und Teamleiter mit 15 Jahren Berufserfahrung im Mehrschichtbetrieb.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.82
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.86
+    },
+    {
+     "quote": "Ausbildung Fachkraft für Lagerlogistik: Abgeschlossene Berufsausbildung (IHK).",
+     "ref": "r2",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.08
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Teamleiter Logistik",
+    "support": 0.76
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "logistics_lead__job_0008": {
+  "hash": "1fe44f9fd92aa969fa87828fb4d3952d2f9080f5c523823c7c77b2080822ec84",
+  "payload": {
+   "context": "Arbeitsvorbereiter / Produktionsplaner (m/w/d) (Manufacturing Production Planning; Industrial Manufacturing)",
+   "domain": {
+    "field": "Manufacturing Production Planning; Industrial Manufacturing",
+    "quote": "Lagermitarbeiter Kommissionierung: Kommissionierung, Wareneingang, Verladung und Bestandskontrolle im Handelslager.",
+    "source": "cv.experiences[0]",
+    "support": 0.02
+   },
+   "items": [
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.08
+    },
+    {
+     "quote": "Schichtplanung: Erstellt Dienstpläne im Dreischichtbetrieb.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skill_evidence.Schichtplanung",
+     "support": 0.18
+    },
+    {
+     "quote": "Schichtleiter Lager: Führung einer Schicht mit 10 Mitarbeitenden, Verteilung der Aufträge, Abstimmung mit Disposition und Spedition, Einweisung neuer Kollegen.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.14
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.12
+    },
+    {
+     "quote": "Ausbildung Fachkraft für Lagerlogistik: Abgeschlossene Berufsausbildung (IHK).",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.07
+    },
+    {
+     "quote": "Ausbildung Fachkraft für Lagerlogistik: Abgeschlossene Berufsausbildung (IHK).",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.03
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "r2",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.1
+    },
+    {
+     "quote": "SAP EWM: Tägliche Nutzung für Wareneingang, Umlagerung und Versand.",
+     "ref": "r3",
+     "similarity": null,
+     "source": "skill_evidence.SAP EWM",
+     "support": 0.07
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Disponent",
+    "support": 0.07
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "logistics_lead__job_0009": {
+  "hash": "110859b0057a2ff2a8c0eafd19050a3564546e7f1689a743bc6e8476563bb7b0",
+  "payload": {
+   "context": "Warehouse Associate (m/f/d) (Warehouse Operations; E-commerce Fulfilment)",
+   "domain": {
+    "field": "Warehouse Operations; E-commerce Fulfilment",
+    "quote": "Lagermitarbeiter Kommissionierung: Kommissionierung, Wareneingang, Verladung und Bestandskontrolle im Handelslager.",
+    "source": "cv.experiences[0]",
+    "support": 0.85
+   },
+   "items": [
+    {
+     "quote": "Lagermitarbeiter Kommissionierung: Kommissionierung, Wareneingang, Verladung und Bestandskontrolle im Handelslager.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.72
+    },
+    {
+     "quote": "Lagermitarbeiter Kommissionierung: Kommissionierung, Wareneingang, Verladung und Bestandskontrolle im Handelslager.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.65
+    },
+    {
+     "quote": "SAP EWM: Tägliche Nutzung für Wareneingang, Umlagerung und Versand.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "skill_evidence.SAP EWM",
+     "support": 0.55
+    },
+    {
+     "quote": "Arbeitssicherheit: Führt Unterweisungen durch und dokumentiert sie.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "skill_evidence.Arbeitssicherheit",
+     "support": 0.6
+    },
+    {
+     "quote": "Fachkraft für Lagerlogistik und Teamleiter mit 15 Jahren Berufserfahrung im Mehrschichtbetrieb.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.9
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Lagermitarbeiter Kommissionierung",
+    "support": 0.95
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "logistics_lead__job_0016": {
+  "hash": "bc63cf4c4246cfbde3ad09999da8e81d7ea27cd4a2d6ef1525c717e4653f6f71",
+  "payload": {
+   "context": "Fachkraft für Lagerlogistik (m/w/d) (Warehouse logistics; Unspecified)",
+   "domain": {
+    "field": "Warehouse logistics; Unspecified",
+    "quote": "Fachkraft für Lagerlogistik und Teamleiter mit 15 Jahren Berufserfahrung im Mehrschichtbetrieb.",
+    "source": "summary",
+    "support": 0.99
+   },
+   "items": [
+    {
+     "quote": "Lagermitarbeiter Kommissionierung: Kommissionierung, Wareneingang, Verladung und Bestandskontrolle im Handelslager.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.98
+    },
+    {
+     "quote": "SAP EWM: Tägliche Nutzung für Wareneingang, Umlagerung und Versand.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skill_evidence.SAP EWM",
+     "support": 0.72
+    },
+    {
+     "quote": "Lagermitarbeiter Kommissionierung: Kommissionierung, Wareneingang, Verladung und Bestandskontrolle im Handelslager.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.98
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.97
+    },
+    {
+     "quote": "Lagermitarbeiter Kommissionierung: Kommissionierung, Wareneingang, Verladung und Bestandskontrolle im Handelslager.",
+     "ref": "d4",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.95
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d5",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.93
+    },
+    {
+     "quote": "Flurförderzeugschein",
+     "ref": "d6",
+     "similarity": null,
+     "source": "certifications",
+     "support": 0.95
+    },
+    {
+     "quote": "Ausbildung Fachkraft für Lagerlogistik: Abgeschlossene Berufsausbildung (IHK).",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.99
+    },
+    {
+     "quote": "Flurförderzeugschein",
+     "ref": "r1",
+     "similarity": null,
+     "source": "certifications",
+     "support": 0.99
+    },
+    {
+     "quote": "Fachkraft für Lagerlogistik und Teamleiter mit 15 Jahren Berufserfahrung im Mehrschichtbetrieb.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.96
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Fachkraft für Lagerlogistik",
+    "support": 0.99
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "logistics_lead__job_0019": {
+  "hash": "418ef58ae5649d79d897b27e53fbf131b21064d0da9c57cc941d8845ec91acb8",
+  "payload": {
+   "context": "Schichtleiter Lager (m/w/d) Dreischicht (Warehouse shift supervision; Retail distribution logistics)",
+   "domain": {
+    "field": "Warehouse shift supervision; Retail distribution logistics",
+    "quote": "Schichtleiter Lager: Führung einer Schicht mit 10 Mitarbeitenden, Verteilung der Aufträge, Abstimmung mit Disposition und Spedition, Einweisung neuer Kollegen.",
+    "source": "cv.experiences[1]",
+    "support": 0.98
+   },
+   "items": [
+    {
+     "quote": "Schichtleiter Lager: Führung einer Schicht mit 10 Mitarbeitenden, Verteilung der Aufträge, Abstimmung mit Disposition und Spedition, Einweisung neuer Kollegen.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.99
+    },
+    {
+     "quote": "Ich führe Teams von 12 bis 25 Mitarbeitenden, plane Schichten, sichere Termintreue im Versand und halte Sicherheits- und Qualitätsvorgaben ein.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.95
+    },
+    {
+     "quote": "Schichtleiter Lager: Führung einer Schicht mit 10 Mitarbeitenden, Verteilung der Aufträge, Abstimmung mit Disposition und Spedition, Einweisung neuer Kollegen.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.99
+    },
+    {
+     "quote": "Ich führe Teams von 12 bis 25 Mitarbeitenden, plane Schichten, sichere Termintreue im Versand und halte Sicherheits- und Qualitätsvorgaben ein.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.96
+    },
+    {
+     "quote": "Schichtleiter Lager: Führung einer Schicht mit 10 Mitarbeitenden, Verteilung der Aufträge, Abstimmung mit Disposition und Spedition, Einweisung neuer Kollegen.",
+     "ref": "d4",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.9
+    },
+    {
+     "quote": "Ausbildung Fachkraft für Lagerlogistik: Abgeschlossene Berufsausbildung (IHK).",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.99
+    },
+    {
+     "quote": "Lagermitarbeiter Kommissionierung: Kommissionierung, Wareneingang, Verladung und Bestandskontrolle im Handelslager.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.96
+    },
+    {
+     "quote": "Schichtplanung: Erstellt Dienstpläne im Dreischichtbetrieb.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.Schichtplanung",
+     "support": 0.7
+    },
+    {
+     "quote": "Flurförderzeugschein",
+     "ref": "r3",
+     "similarity": null,
+     "source": "certifications",
+     "support": 0.99
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Schichtleiter Lager",
+    "support": 0.99
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "logistics_lead__job_0049": {
+  "hash": "ca9539314a6b4161c8ce15bfb9279ed1488aee0fdd4818033e8bf238ae611884",
+  "payload": {
+   "context": "Warehouse Team Leader (f/m/d) (warehouse team leadership; consumer goods warehousing)",
+   "domain": {
+    "field": "warehouse team leadership; consumer goods warehousing",
+    "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+    "source": "cv.experiences[2]",
+    "support": 0.78
+   },
+   "items": [
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.98
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.98
+    },
+    {
+     "quote": "Schichtleiter Lager: Führung einer Schicht mit 10 Mitarbeitenden, Verteilung der Aufträge, Abstimmung mit Disposition und Spedition, Einweisung neuer Kollegen.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.96
+    },
+    {
+     "quote": "Ich führe Teams von 12 bis 25 Mitarbeitenden, plane Schichten, sichere Termintreue im Versand und halte Sicherheits- und Qualitätsvorgaben ein.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.98
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d4",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.98
+    },
+    {
+     "quote": "Fachkraft für Lagerlogistik und Teamleiter mit 15 Jahren Berufserfahrung im Mehrschichtbetrieb.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.99
+    },
+    {
+     "quote": "Mitarbeiterführung: Seit neun Jahren Führung von Teams mit bis zu 22 Personen.",
+     "ref": "r3",
+     "similarity": null,
+     "source": "skill_evidence.Mitarbeiterführung",
+     "support": 0.99
+    },
+    {
+     "quote": "SAP EWM: Tägliche Nutzung für Wareneingang, Umlagerung und Versand.",
+     "ref": "r4",
+     "similarity": null,
+     "source": "skill_evidence.SAP EWM",
+     "support": 0.99
+    },
+    {
+     "quote": "Flurförderzeugschein",
+     "ref": "r5",
+     "similarity": null,
+     "source": "certifications",
+     "support": 0.99
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Teamleiter Logistik",
+    "support": 0.98
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "logistics_lead__job_0064": {
+  "hash": "9fa087bdf09f17eb2c8f835cc7c05b1c820067656a7e56d05d23ac645d04fc7e",
+  "payload": {
+   "context": "Praktikum Logistikmanagement (m/w/d) (Logistics Management; Unspecified)",
+   "domain": {
+    "field": "Logistics Management; Unspecified",
+    "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+    "source": "cv.experiences[2]",
+    "support": 0.96
+   },
+   "items": [
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.93
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.42
+    },
+    {
+     "quote": "",
+     "ref": "d2",
+     "similarity": null,
+     "source": "",
+     "support": 0.03
+    },
+    {
+     "quote": "",
+     "ref": "r0",
+     "similarity": null,
+     "source": "",
+     "support": 0.02
+    },
+    {
+     "quote": "",
+     "ref": "r1",
+     "similarity": null,
+     "source": "",
+     "support": 0.04
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Teamleiter Logistik",
+    "support": 0.18
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "logistics_lead__job_0069": {
+  "hash": "ac83641ace503e436cbae284ea0d8f920585ecef9542253831ee40419c9b063a",
+  "payload": {
+   "context": "Teamleiter Logistik (m/w/d) (Logistics team leadership; Distribution and logistics)",
+   "domain": {
+    "field": "Logistics team leadership; Distribution and logistics",
+    "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+    "source": "cv.experiences[2]",
+    "support": 0.99
+   },
+   "items": [
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.99
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.98
+    },
+    {
+     "quote": "Skills: SAP EWM, Arbeitssicherheit, Inventur, Flurförderzeuge, Kennzahlen, Personaleinsatzplanung",
+     "ref": "d2",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.83
+    },
+    {
+     "quote": "Ich führe Teams von 12 bis 25 Mitarbeitenden, plane Schichten, sichere Termintreue im Versand und halte Sicherheits- und Qualitätsvorgaben ein.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.98
+    },
+    {
+     "quote": "Arbeitssicherheit: Führt Unterweisungen durch und dokumentiert sie.",
+     "ref": "d4",
+     "similarity": null,
+     "source": "skill_evidence.Arbeitssicherheit",
+     "support": 0.99
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d5",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.99
+    },
+    {
+     "quote": "Ausbildung Fachkraft für Lagerlogistik: Abgeschlossene Berufsausbildung (IHK).",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.99
+    },
+    {
+     "quote": "Ausbildung Fachkraft für Lagerlogistik: Abgeschlossene Berufsausbildung (IHK).",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.99
+    },
+    {
+     "quote": "Fachkraft für Lagerlogistik und Teamleiter mit 15 Jahren Berufserfahrung im Mehrschichtbetrieb.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.99
+    },
+    {
+     "quote": "Mitarbeiterführung: Seit neun Jahren Führung von Teams mit bis zu 22 Personen.",
+     "ref": "r3",
+     "similarity": null,
+     "source": "skill_evidence.Mitarbeiterführung",
+     "support": 0.99
+    },
+    {
+     "quote": "Flurförderzeugschein",
+     "ref": "r4",
+     "similarity": null,
+     "source": "certifications",
+     "support": 0.99
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Teamleiter Logistik",
+    "support": 0.99
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "logistics_lead__job_0071": {
+  "hash": "c1cd98bcc37a7872b8136c39aefb3ddc84e9eb5836ac2122bf5ce57f0e9815d5",
+  "payload": {
+   "context": "Buchhalter (m/w/d) Kreditoren (Accounts payable accounting; Unspecified)",
+   "domain": {
+    "field": "Accounts payable accounting; Unspecified",
+    "quote": "Lagermitarbeiter Kommissionierung: Kommissionierung, Wareneingang, Verladung und Bestandskontrolle im Handelslager.",
+    "source": "cv.experiences[0]",
+    "support": 0.02
+   },
+   "items": [
+    {
+     "quote": "Lagermitarbeiter Kommissionierung: Kommissionierung, Wareneingang, Verladung und Bestandskontrolle im Handelslager.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.05
+    },
+    {
+     "quote": "Lagermitarbeiter Kommissionierung: Kommissionierung, Wareneingang, Verladung und Bestandskontrolle im Handelslager.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.02
+    },
+    {
+     "quote": "Lagermitarbeiter Kommissionierung: Kommissionierung, Wareneingang, Verladung und Bestandskontrolle im Handelslager.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.02
+    },
+    {
+     "quote": "Lagermitarbeiter Kommissionierung: Kommissionierung, Wareneingang, Verladung und Bestandskontrolle im Handelslager.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.02
+    },
+    {
+     "quote": "Ausbildung Fachkraft für Lagerlogistik: Abgeschlossene Berufsausbildung (IHK).",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.02
+    },
+    {
+     "quote": "SAP EWM: Tägliche Nutzung für Wareneingang, Umlagerung und Versand.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skill_evidence.SAP EWM",
+     "support": 0.05
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "r2",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.15
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Lagerleiter",
+    "support": 0.02
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "logistics_lead__job_0086": {
+  "hash": "f993691f0d409ba5e9f92557bcd77e43e281569132f90fe78b1abcab9bde8af7",
+  "payload": {
+   "context": "Pflegefachkraft (m/w/d) Seniorenzentrum (Geriatric nursing; Senior care)",
+   "domain": {
+    "field": "Geriatric nursing; Senior care",
+    "quote": "Ausbildung Fachkraft für Lagerlogistik: Abgeschlossene Berufsausbildung (IHK).",
+    "source": "cv.education[0]",
+    "support": 0.0
+   },
+   "items": [
+    {
+     "quote": "Lagermitarbeiter Kommissionierung: Kommissionierung, Wareneingang, Verladung und Bestandskontrolle im Handelslager.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.02
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.03
+    },
+    {
+     "quote": "Schichtleiter Lager: Führung einer Schicht mit 10 Mitarbeitenden, Verteilung der Aufträge, Abstimmung mit Disposition und Spedition, Einweisung neuer Kollegen.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.35
+    },
+    {
+     "quote": "Schichtleiter Lager: Führung einer Schicht mit 10 Mitarbeitenden, Verteilung der Aufträge, Abstimmung mit Disposition und Spedition, Einweisung neuer Kollegen.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.03
+    },
+    {
+     "quote": "Ausbildung Fachkraft für Lagerlogistik: Abgeschlossene Berufsausbildung (IHK).",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.01
+    },
+    {
+     "quote": "Fachkraft für Lagerlogistik und Teamleiter mit 15 Jahren Berufserfahrung im Mehrschichtbetrieb.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.65
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Fachkraft für Lagerlogistik",
+    "support": 0.02
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "logistics_lead__job_0106": {
+  "hash": "59e001eb6837fd001b689d102bfac60589997ec1e75ad59ba7d8f0f5bdc118bd",
+  "payload": {
+   "context": "Projektleiter Montage (m/w/d) (Project management in industrial installation; Material handling systems)",
+   "domain": {
+    "field": "Project management in industrial installation; Material handling systems",
+    "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+    "source": "cv.experiences[2]",
+    "support": 0.2
+   },
+   "items": [
+    {
+     "quote": "Ich führe Teams von 12 bis 25 Mitarbeitenden, plane Schichten, sichere Termintreue im Versand und halte Sicherheits- und Qualitätsvorgaben ein.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.08
+    },
+    {
+     "quote": "Schichtleiter Lager: Führung einer Schicht mit 10 Mitarbeitenden, Verteilung der Aufträge, Abstimmung mit Disposition und Spedition, Einweisung neuer Kollegen.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.16
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.12
+    },
+    {
+     "quote": "Ausbildung Fachkraft für Lagerlogistik: Abgeschlossene Berufsausbildung (IHK).",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.02
+    },
+    {
+     "quote": "Schichtleiter Lager: Führung einer Schicht mit 10 Mitarbeitenden, Verteilung der Aufträge, Abstimmung mit Disposition und Spedition, Einweisung neuer Kollegen.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.12
+    },
+    {
+     "quote": "Fachkraft für Lagerlogistik und Teamleiter mit 15 Jahren Berufserfahrung im Mehrschichtbetrieb.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.0
+    },
+    {
+     "quote": "Skills: Mitarbeiterführung, Schichtplanung, Kommissionierung, Wareneingang, Versand, Lagerverwaltung",
+     "ref": "r3",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.0
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Teamleiter Logistik",
+    "support": 0.22
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "logistics_lead__job_0134": {
+  "hash": "ab66387b6e26d185ca24e7f48818551e20a2923eee368d77d665d4abf6870fbb",
+  "payload": {
+   "context": "Warehouse Manager (f/m/d) (Warehouse management; Unspecified)",
+   "domain": {
+    "field": "Warehouse management; Unspecified",
+    "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+    "source": "cv.experiences[2]",
+    "support": 0.91
+   },
+   "items": [
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.82
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.74
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.62
+    },
+    {
+     "quote": "Schichtleiter Lager: Führung einer Schicht mit 10 Mitarbeitenden, Verteilung der Aufträge, Abstimmung mit Disposition und Spedition, Einweisung neuer Kollegen.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.82
+    },
+    {
+     "quote": "Fachkraft für Lagerlogistik und Teamleiter mit 15 Jahren Berufserfahrung im Mehrschichtbetrieb.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.88
+    },
+    {
+     "quote": "SAP EWM: Tägliche Nutzung für Wareneingang, Umlagerung und Versand.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skill_evidence.SAP EWM",
+     "support": 0.87
+    },
+    {
+     "quote": "Ausbildung Fachkraft für Lagerlogistik: Abgeschlossene Berufsausbildung (IHK).",
+     "ref": "r2",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.04
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Lagerleiter",
+    "support": 0.78
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "logistics_lead__job_0148": {
+  "hash": "211e787f2200cf2e694314e519b7ae10b8e54c6b1f985a92228c8f55b6cbc663",
+  "payload": {
+   "context": "Teamleiter Lagerbetrieb (m/w/d) (warehouse operations management; consumer goods warehousing)",
+   "domain": {
+    "field": "warehouse operations management; consumer goods warehousing",
+    "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+    "source": "cv.experiences[2]",
+    "support": 0.95
+   },
+   "items": [
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.98
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.98
+    },
+    {
+     "quote": "Schichtleiter Lager: Führung einer Schicht mit 10 Mitarbeitenden, Verteilung der Aufträge, Abstimmung mit Disposition und Spedition, Einweisung neuer Kollegen.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.96
+    },
+    {
+     "quote": "Ich führe Teams von 12 bis 25 Mitarbeitenden, plane Schichten, sichere Termintreue im Versand und halte Sicherheits- und Qualitätsvorgaben ein.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.94
+    },
+    {
+     "quote": "Teamleiter Logistik: Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdate",
+     "ref": "d4",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.88
+    },
+    {
+     "quote": "Mitarbeiterführung: Seit neun Jahren Führung von Teams mit bis zu 22 Personen.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.Mitarbeiterführung",
+     "support": 0.99
+    },
+    {
+     "quote": "SAP EWM: Tägliche Nutzung für Wareneingang, Umlagerung und Versand.",
+     "ref": "r3",
+     "similarity": null,
+     "source": "skill_evidence.SAP EWM",
+     "support": 0.99
+    },
+    {
+     "quote": "Flurförderzeugschein",
+     "ref": "r4",
+     "similarity": null,
+     "source": "certifications",
+     "support": 0.98
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Teamleiter Logistik",
+    "support": 0.99
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ops_analyst__job_0001": {
+  "hash": "009cccee47e04db996e036db4a4bd272f704d4001f2c7e0463ac93ceb42f50a7",
+  "payload": {
+   "context": "Leiter Prozessmanagement (m/w/d) (Manufacturing Process Management; Manufacturing)",
+   "domain": {
+    "field": "Manufacturing Process Management; Manufacturing",
+    "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+    "source": "cv.experiences[1]",
+    "support": 0.08
+   },
+   "items": [
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.12
+    },
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.08
+    },
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.18
+    },
+    {
+     "quote": "Skills: Excel, KPI-Reporting, Root-Cause-Analyse, Workshopmoderation, SAP, Prozessdokumentation",
+     "ref": "d3",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.02
+    },
+    {
+     "quote": "Wirtschaftsinformatiker mit sechs Jahren Erfahrung in Prozessanalyse und operativer Steuerung.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.12
+    },
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.06
+    },
+    {
+     "quote": "Six Sigma: Green-Belt-Schulung mit Projektarbeit.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.Six Sigma",
+     "support": 0.04
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Process Improvement Manager",
+    "support": 0.2
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ops_analyst__job_0004": {
+  "hash": "1dcfc61a4e328893a17d372a4c3924406df8d51d8ca9eb9232dfedb3c2f6a298",
+  "payload": {
+   "context": "Senior Product Manager – Open Banking APIs (Banking API Product Management; Financial Technology and Banking)",
+   "domain": {
+    "field": "Banking API Product Management; Financial Technology and Banking",
+    "quote": "Junior Prozessanalyst Versicherung: Prozessaufnahme in der Schadenbearbeitung, Modellierung in BPMN, Auswertung von Durchlaufzeiten in Excel und SQL.",
+    "source": "cv.experiences[0]",
+    "support": 0.01
+   },
+   "items": [
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.08
+    },
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.18
+    },
+    {
+     "quote": "Ich erhebe Ist-Prozesse, finde mit Datenanalysen die Engpässe, moderiere Verbesserungsworkshops und baue Kennzahlen-Dashboards in Power BI.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.28
+    },
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.15
+    },
+    {
+     "quote": "Power BI: Baut und pflegt Dashboards für Versand- und Retourenkennzahlen.",
+     "ref": "d4",
+     "similarity": null,
+     "source": "skill_evidence.Power BI",
+     "support": 0.08
+    },
+    {
+     "quote": "Wirtschaftsinformatiker mit sechs Jahren Erfahrung in Prozessanalyse und operativer Steuerung.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.05
+    },
+    {
+     "quote": "SQL: Abfragen für Prozessanalysen, keine Datenbankentwicklung.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skill_evidence.SQL",
+     "support": 0.02
+    },
+    {
+     "quote": "Ich erhebe Ist-Prozesse, finde mit Datenanalysen die Engpässe, moderiere Verbesserungsworkshops und baue Kennzahlen-Dashboards in Power BI.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.4
+    },
+    {
+     "quote": "SQL: Abfragen für Prozessanalysen, keine Datenbankentwicklung.",
+     "ref": "r3",
+     "similarity": null,
+     "source": "skill_evidence.SQL",
+     "support": 0.65
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Process Improvement Manager",
+    "support": 0.05
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ops_analyst__job_0011": {
+  "hash": "22f01ae7411124c2c672e4432e809f6a7567b93f0c62f64b85159dfacbabda32",
+  "payload": {
+   "context": "Softwareentwickler (m/w/d) Fertigungs-IT (Manufacturing IT software development; Manufacturing)",
+   "domain": {
+    "field": "Manufacturing IT software development; Manufacturing",
+    "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+    "source": "cv.experiences[1]",
+    "support": 0.04
+   },
+   "items": [
+    {
+     "quote": "SQL: Abfragen für Prozessanalysen, keine Datenbankentwicklung.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "skill_evidence.SQL",
+     "support": 0.03
+    },
+    {
+     "quote": "Skills: Excel, KPI-Reporting, Root-Cause-Analyse, Workshopmoderation, SAP, Prozessdokumentation",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.12
+    },
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.08
+    },
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.04
+    },
+    {
+     "quote": "BPMN: Modelliert und dokumentiert Prozesse mit Fachbereichen.",
+     "ref": "d4",
+     "similarity": null,
+     "source": "skill_evidence.BPMN",
+     "support": 0.1
+    },
+    {
+     "quote": "Wirtschaftsinformatik: Studium abgeschlossen, Schwerpunkt Prozessmanagement.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.55
+    },
+    {
+     "quote": "SQL: Abfragen für Prozessanalysen, keine Datenbankentwicklung.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skill_evidence.SQL",
+     "support": 0.02
+    },
+    {
+     "quote": "BPMN: Modelliert und dokumentiert Prozesse mit Fachbereichen.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.BPMN",
+     "support": 0.06
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Business Analyst",
+    "support": 0.08
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ops_analyst__job_0012": {
+  "hash": "720b5512a727ff14cf01fef24558272a616dd59f0d74c1e4a9aa7fb27ffad703",
+  "payload": {
+   "context": "IT-Support Mitarbeiter (m/w/d) (IT support; IT services)",
+   "domain": {
+    "field": "IT support; IT services",
+    "quote": "Wirtschaftsinformatiker mit sechs Jahren Erfahrung in Prozessanalyse und operativer Steuerung.",
+    "source": "summary",
+    "support": 0.02
+   },
+   "items": [
+    {
+     "quote": "Wirtschaftsinformatiker mit sechs Jahren Erfahrung in Prozessanalyse und operativer Steuerung.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.02
+    },
+    {
+     "quote": "Wirtschaftsinformatiker mit sechs Jahren Erfahrung in Prozessanalyse und operativer Steuerung.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.02
+    },
+    {
+     "quote": "BPMN: Modelliert und dokumentiert Prozesse mit Fachbereichen.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "skill_evidence.BPMN",
+     "support": 0.45
+    },
+    {
+     "quote": "Junior Prozessanalyst Versicherung: Prozessaufnahme in der Schadenbearbeitung, Modellierung in BPMN, Auswertung von Durchlaufzeiten in Excel und SQL.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.85
+    },
+    {
+     "quote": "SQL: Abfragen für Prozessanalysen, keine Datenbankentwicklung.",
+     "ref": "d4",
+     "similarity": null,
+     "source": "skill_evidence.SQL",
+     "support": 0.35
+    },
+    {
+     "quote": "Wirtschaftsinformatik: Studium abgeschlossen, Schwerpunkt Prozessmanagement.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.75
+    },
+    {
+     "quote": "Wirtschaftsinformatik: Studium abgeschlossen, Schwerpunkt Prozessmanagement.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.65
+    },
+    {
+     "quote": "Wirtschaftsinformatiker mit sechs Jahren Erfahrung in Prozessanalyse und operativer Steuerung.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.25
+    },
+    {
+     "quote": "Skills: Excel, KPI-Reporting, Root-Cause-Analyse, Workshopmoderation, SAP, Prozessdokumentation",
+     "ref": "r3",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.02
+    },
+    {
+     "quote": "Skills: Excel, KPI-Reporting, Root-Cause-Analyse, Workshopmoderation, SAP, Prozessdokumentation",
+     "ref": "r4",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.02
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Operations Analyst",
+    "support": 0.08
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ops_analyst__job_0015": {
+  "hash": "80887e1b2ef0a5cd9b388ee21b2471c154e08a7487fcb22d2366bd2b801dd4e1",
+  "payload": {
+   "context": "Lean Manager – Warehouse Operations (f/m/d) (Lean warehouse operations management; Warehouse logistics)",
+   "domain": {
+    "field": "Lean warehouse operations management; Warehouse logistics",
+    "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+    "source": "cv.experiences[1]",
+    "support": 0.69
+   },
+   "items": [
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.76
+    },
+    {
+     "quote": "Junior Prozessanalyst Versicherung: Prozessaufnahme in der Schadenbearbeitung, Modellierung in BPMN, Auswertung von Durchlaufzeiten in Excel und SQL.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.73
+    },
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.91
+    },
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.62
+    },
+    {
+     "quote": "Wirtschaftsinformatiker mit sechs Jahren Erfahrung in Prozessanalyse und operativer Steuerung.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.67
+    },
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.77
+    },
+    {
+     "quote": "Junior Prozessanalyst Versicherung: Prozessaufnahme in der Schadenbearbeitung, Modellierung in BPMN, Auswertung von Durchlaufzeiten in Excel und SQL.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.88
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Process Improvement Manager",
+    "support": 0.74
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ops_analyst__job_0026": {
+  "hash": "e8f100e8267d0ef63b913c95f2fbab1c0ec78f6e41c17a7fc1f31b8a29632e61",
+  "payload": {
+   "context": "HR-Sachbearbeiter (m/w/d) (Human Resources Administration)",
+   "domain": {
+    "field": "Human Resources Administration",
+    "quote": "Junior Prozessanalyst Versicherung: Prozessaufnahme in der Schadenbearbeitung, Modellierung in BPMN, Auswertung von Durchlaufzeiten in Excel und SQL.",
+    "source": "cv.experiences[0]",
+    "support": 0.05
+   },
+   "items": [
+    {
+     "quote": "Skills: Excel, KPI-Reporting, Root-Cause-Analyse, Workshopmoderation, SAP, Prozessdokumentation",
+     "ref": "d0",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.1
+    },
+    {
+     "quote": "Skills: Excel, KPI-Reporting, Root-Cause-Analyse, Workshopmoderation, SAP, Prozessdokumentation",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.1
+    },
+    {
+     "quote": "Skills: Excel, KPI-Reporting, Root-Cause-Analyse, Workshopmoderation, SAP, Prozessdokumentation",
+     "ref": "d2",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.1
+    },
+    {
+     "quote": "B.Sc.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0].title",
+     "support": 0.1
+    },
+    {
+     "quote": "Skills: Excel, KPI-Reporting, Root-Cause-Analyse, Workshopmoderation, SAP, Prozessdokumentation",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.1
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Business Analyst",
+    "support": 0.08
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ops_analyst__job_0033": {
+  "hash": "a900836dc9089d749d64fbcd6d44d4cf93835215c665416c75d7ff6fb73c89c5",
+  "payload": {
+   "context": "Operations Analyst Kundenservice (m/w/d) (Customer Service Operations Analytics; Customer Service)",
+   "domain": {
+    "field": "Customer Service Operations Analytics; Customer Service",
+    "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+    "source": "cv.experiences[1]",
+    "support": 0.78
+   },
+   "items": [
+    {
+     "quote": "Junior Prozessanalyst Versicherung: Prozessaufnahme in der Schadenbearbeitung, Modellierung in BPMN, Auswertung von Durchlaufzeiten in Excel und SQL.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.58
+    },
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.98
+    },
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.94
+    },
+    {
+     "quote": "Wirtschaftsinformatiker mit sechs Jahren Erfahrung in Prozessanalyse und operativer Steuerung.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.05
+    },
+    {
+     "quote": "Wirtschaftsinformatik: Studium abgeschlossen, Schwerpunkt Prozessmanagement.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.99
+    },
+    {
+     "quote": "Wirtschaftsinformatiker mit sechs Jahren Erfahrung in Prozessanalyse und operativer Steuerung.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.05
+    },
+    {
+     "quote": "Skills: Prozessmodellierung, BPMN, Lean, Six Sigma, Power BI, SQL",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.72
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Operations Analyst",
+    "support": 0.96
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ops_analyst__job_0071": {
+  "hash": "e379f29e82f92c6d855ecfae3ac11d99cad7c50f5a9f5ca40372fc9ecd225c57",
+  "payload": {
+   "context": "Buchhalter (m/w/d) Kreditoren (Accounts payable accounting; Unspecified)",
+   "domain": {
+    "field": "Accounts payable accounting; Unspecified",
+    "quote": "Junior Prozessanalyst Versicherung: Prozessaufnahme in der Schadenbearbeitung, Modellierung in BPMN, Auswertung von Durchlaufzeiten in Excel und SQL.",
+    "source": "cv.experiences[0]",
+    "support": 0.08
+   },
+   "items": [
+    {
+     "quote": "Junior Prozessanalyst Versicherung: Prozessaufnahme in der Schadenbearbeitung, Modellierung in BPMN, Auswertung von Durchlaufzeiten in Excel und SQL.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.08
+    },
+    {
+     "quote": "Junior Prozessanalyst Versicherung: Prozessaufnahme in der Schadenbearbeitung, Modellierung in BPMN, Auswertung von Durchlaufzeiten in Excel und SQL.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.04
+    },
+    {
+     "quote": "Skills: Excel, KPI-Reporting, Root-Cause-Analyse, Workshopmoderation, SAP, Prozessdokumentation",
+     "ref": "d2",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.08
+    },
+    {
+     "quote": "Junior Prozessanalyst Versicherung: Prozessaufnahme in der Schadenbearbeitung, Modellierung in BPMN, Auswertung von Durchlaufzeiten in Excel und SQL.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.06
+    },
+    {
+     "quote": "B.Sc.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0].title",
+     "support": 0.02
+    },
+    {
+     "quote": "Skills: Excel, KPI-Reporting, Root-Cause-Analyse, Workshopmoderation, SAP, Prozessdokumentation",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.18
+    },
+    {
+     "quote": "Junior Prozessanalyst Versicherung: Prozessaufnahme in der Schadenbearbeitung, Modellierung in BPMN, Auswertung von Durchlaufzeiten in Excel und SQL.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.12
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Controller Operations",
+    "support": 0.12
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ops_analyst__job_0086": {
+  "hash": "06de59acab0c675f2b6e98fa71e71546bb134954ffa5d58ac498f8218533cd83",
+  "payload": {
+   "context": "Pflegefachkraft (m/w/d) Seniorenzentrum (Geriatric nursing; Senior care)",
+   "domain": {
+    "field": "Geriatric nursing; Senior care",
+    "quote": "Junior Prozessanalyst Versicherung",
+    "source": "cv.experiences[0].title",
+    "support": 0.0
+   },
+   "items": [
+    {
+     "quote": "",
+     "ref": "d0",
+     "similarity": null,
+     "source": "",
+     "support": 0.0
+    },
+    {
+     "quote": "",
+     "ref": "d1",
+     "similarity": null,
+     "source": "",
+     "support": 0.0
+    },
+    {
+     "quote": "",
+     "ref": "d2",
+     "similarity": null,
+     "source": "",
+     "support": 0.0
+    },
+    {
+     "quote": "",
+     "ref": "d3",
+     "similarity": null,
+     "source": "",
+     "support": 0.0
+    },
+    {
+     "quote": "",
+     "ref": "r0",
+     "similarity": null,
+     "source": "",
+     "support": 0.0
+    },
+    {
+     "quote": "",
+     "ref": "r2",
+     "similarity": null,
+     "source": "",
+     "support": 0.0
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Prozessanalyst",
+    "support": 0.0
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ops_analyst__job_0088": {
+  "hash": "03c602c624ce5d144df6b955bc26206b072a0d3dd9a952e891450f429f6f6f75",
+  "payload": {
+   "context": "Process Excellence Analyst (f/m/d) (Process Excellence Analysis; Operations)",
+   "domain": {
+    "field": "Process Excellence Analysis; Operations",
+    "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+    "source": "cv.experiences[1]",
+    "support": 0.96
+   },
+   "items": [
+    {
+     "quote": "Junior Prozessanalyst Versicherung: Prozessaufnahme in der Schadenbearbeitung, Modellierung in BPMN, Auswertung von Durchlaufzeiten in Excel und SQL.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.98
+    },
+    {
+     "quote": "Ich erhebe Ist-Prozesse, finde mit Datenanalysen die Engpässe, moderiere Verbesserungsworkshops und baue Kennzahlen-Dashboards in Power BI.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.72
+    },
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.98
+    },
+    {
+     "quote": "Wirtschaftsinformatiker mit sechs Jahren Erfahrung in Prozessanalyse und operativer Steuerung.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.96
+    },
+    {
+     "quote": "Six Sigma: Green-Belt-Schulung mit Projektarbeit.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skill_evidence.Six Sigma",
+     "support": 0.98
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Process Improvement Manager",
+    "support": 0.9
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "ops_analyst__job_0133": {
+  "hash": "4ad75ae300c92159d74f029a302afee96adb156ebdb4b111931789d1bc266bca",
+  "payload": {
+   "context": "Head of Process Management (f/m/d) (process management; manufacturing)",
+   "domain": {
+    "field": "process management; manufacturing",
+    "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+    "source": "cv.experiences[1]",
+    "support": 0.07
+   },
+   "items": [
+    {
+     "quote": "Wirtschaftsinformatiker mit sechs Jahren Erfahrung in Prozessanalyse und operativer Steuerung.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.08
+    },
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.05
+    },
+    {
+     "quote": "Process Improvement Analyst E-Commerce: Analyse der Retouren- und Versandprozesse, Aufbau eines Kennzahlen-Dashboards in Power BI, Leitung von Lean-Workshops mit Lagerleitung und Kundenservice, Begleitung der Umsetzung von zwölf Verbesserun",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.4
+    },
+    {
+     "quote": "Wirtschaftsinformatiker mit sechs Jahren Erfahrung in Prozessanalyse und operativer Steuerung.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.03
+    },
+    {
+     "quote": "Wirtschaftsinformatiker mit sechs Jahren Erfahrung in Prozessanalyse und operativer Steuerung.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.04
+    },
+    {
+     "quote": "Six Sigma: Green-Belt-Schulung mit Projektarbeit.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skill_evidence.Six Sigma",
+     "support": 0.05
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Prozessmanager",
+    "support": 0.62
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "pc_manufacturing__job_0008": {
+  "hash": "1c046e9d21acd0afc69723dc6b7c7a22e79d88ee5b33c87771e9a44e3cadfb16",
+  "payload": {
+   "context": "Arbeitsvorbereiter / Produktionsplaner (m/w/d) (Manufacturing Production Planning; Industrial Manufacturing)",
+   "domain": {
+    "field": "Manufacturing Production Planning; Industrial Manufacturing",
+    "quote": "Lean Production: Mitarbeit an Linienplanung und Shopfloor-Management.",
+    "source": "skill_evidence.Lean Production",
+    "support": 0.78
+   },
+   "items": [
+    {
+     "quote": "SAP PP: Stücklisten- und Arbeitsplanpflege, Fertigungsaufträge anlegen und verfolgen.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "skill_evidence.SAP PP",
+     "support": 0.86
+    },
+    {
+     "quote": "Projektkoordinatorin Sondermaschinenbau: Terminverfolgung für Einzelaufträge, Abstimmung zwischen Konstruktion, Einkauf und Montage, Pflege der Projektpläne in MS Project, Teilnahme an Kundenabnahmen.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.68
+    },
+    {
+     "quote": "Ich steuere Aufträge von der Konstruktionsfreigabe bis zur Abnahme beim Kunden, halte Termine und Budgets nach und stimme Konstruktion, Einkauf, Montage und Qualität ab.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.89
+    },
+    {
+     "quote": "Lean Production: Mitarbeit an Linienplanung und Shopfloor-Management.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "skill_evidence.Lean Production",
+     "support": 0.36
+    },
+    {
+     "quote": "",
+     "ref": "r0",
+     "similarity": null,
+     "source": "",
+     "support": 0.03
+    },
+    {
+     "quote": "bachelor Wirtschaftsingenieurwesen completed",
+     "ref": "r1",
+     "similarity": null,
+     "source": "education",
+     "support": 0.96
+    },
+    {
+     "quote": "SAP PP: Stücklisten- und Arbeitsplanpflege, Fertigungsaufträge anlegen und verfolgen.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.SAP PP",
+     "support": 0.75
+    },
+    {
+     "quote": "SAP PP: Stücklisten- und Arbeitsplanpflege, Fertigungsaufträge anlegen und verfolgen.",
+     "ref": "r3",
+     "similarity": null,
+     "source": "skill_evidence.SAP PP",
+     "support": 0.86
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Produktionsplaner",
+    "support": 0.84
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "pc_manufacturing__job_0010": {
+  "hash": "b95889bfabf18a5467ec9abb961570ebaccc66fee86768c8191043f95a97ebba",
+  "payload": {
+   "context": "Projektmanager Maschinenbau (m/w/d) (Mechanical engineering project management; Packaging machinery manufacturing)",
+   "domain": {
+    "field": "Mechanical engineering project management; Packaging machinery manufacturing",
+    "quote": "Wirtschaftsingenieurin mit zwölf Jahren Erfahrung in der Projektkoordination im Sondermaschinenbau.",
+    "source": "summary",
+    "support": 0.68
+   },
+   "items": [
+    {
+     "quote": "Ich steuere Aufträge von der Konstruktionsfreigabe bis zur Abnahme beim Kunden, halte Termine und Budgets nach und stimme Konstruktion, Einkauf, Montage und Qualität ab.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.9
+    },
+    {
+     "quote": "Projektkoordinatorin Sondermaschinenbau: Terminverfolgung für Einzelaufträge, Abstimmung zwischen Konstruktion, Einkauf und Montage, Pflege der Projektpläne in MS Project, Teilnahme an Kundenabnahmen.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.9
+    },
+    {
+     "quote": "Wirtschaftsingenieurin mit zwölf Jahren Erfahrung in der Projektkoordination im Sondermaschinenbau.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.95
+    },
+    {
+     "quote": "Ich steuere Aufträge von der Konstruktionsfreigabe bis zur Abnahme beim Kunden, halte Termine und Budgets nach und stimme Konstruktion, Einkauf, Montage und Qualität ab.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.78
+    },
+    {
+     "quote": "Lieferantenmanagement: Terminverfolgung und Eskalation bei Zulieferern.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.Lieferantenmanagement",
+     "support": 0.72
+    },
+    {
+     "quote": "Euro, Lieferantensteuerung, Änderungsmanagement mit Stücklistenpflege in SAP, wöchentliche Statusberichte an die Werksleitung.",
+     "ref": "r3",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.98
+    },
+    {
+     "quote": "Euro, Lieferantensteuerung, Änderungsmanagement mit Stücklistenpflege in SAP, wöchentliche Statusberichte an die Werksleitung.",
+     "ref": "r4",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.96
+    },
+    {
+     "quote": "Projektkoordinatorin Sondermaschinenbau: Terminverfolgung für Einzelaufträge, Abstimmung zwischen Konstruktion, Einkauf und Montage, Pflege der Projektpläne in MS Project, Teilnahme an Kundenabnahmen.",
+     "ref": "r5",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.82
+    },
+    {
+     "quote": "Skills: Projektkoordination, Terminplanung, MS Project, SAP PP, Lieferantenmanagement, Fertigungsplanung",
+     "ref": "r6",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.8
+    },
+    {
+     "quote": "Wirtschaftsingenieurwesen: Studium abgeschlossen mit Schwerpunkt Produktionsmanagement.",
+     "ref": "r7",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.98
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Technischer Projektmanager",
+    "support": 0.85
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "pc_manufacturing__job_0011": {
+  "hash": "3be26f0fd01d0f0233ad4f846dfb52fd52c009b6366c3308f467417101cec264",
+  "payload": {
+   "context": "Softwareentwickler (m/w/d) Fertigungs-IT (Manufacturing IT software development; Manufacturing)",
+   "domain": {
+    "field": "Manufacturing IT software development; Manufacturing",
+    "quote": "SAP PP: Stücklisten- und Arbeitsplanpflege, Fertigungsaufträge anlegen und verfolgen.",
+    "source": "skill_evidence.SAP PP",
+    "support": 0.2
+   },
+   "items": [
+    {
+     "quote": "Projektkoordinatorin Sondermaschinenbau",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0].title",
+     "support": 0.02
+    },
+    {
+     "quote": "SAP PP: Stücklisten- und Arbeitsplanpflege, Fertigungsaufträge anlegen und verfolgen.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skill_evidence.SAP PP",
+     "support": 0.3
+    },
+    {
+     "quote": "Projektkoordination: Zwölf Jahre Koordination von Maschinenbauprojekten mit 5 bis 25 Beteiligten.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "skill_evidence.Projektkoordination",
+     "support": 0.08
+    },
+    {
+     "quote": "MS Project: Tägliche Pflege von Terminplänen und Meilensteinen.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "skill_evidence.MS Project",
+     "support": 0.9
+    },
+    {
+     "quote": "Euro, Lieferantensteuerung, Änderungsmanagement mit Stücklistenpflege in SAP, wöchentliche Statusberichte an die Werksleitung.",
+     "ref": "d4",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.06
+    },
+    {
+     "quote": "Wirtschaftsingenieurwesen: Studium abgeschlossen mit Schwerpunkt Produktionsmanagement.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.02
+    },
+    {
+     "quote": "Projektkoordinatorin Sondermaschinenbau",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.experiences[0].title",
+     "support": 0.01
+    },
+    {
+     "quote": "SAP PP: Stücklisten- und Arbeitsplanpflege, Fertigungsaufträge anlegen und verfolgen.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.SAP PP",
+     "support": 0.25
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Arbeitsvorbereiter",
+    "support": 0.08
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "pc_manufacturing__job_0020": {
+  "hash": "2e34652c1f5c930722d8503967d2a4ddecb61da8935710a90637aa727b56a24d",
+  "payload": {
+   "context": "Supplier Quality Engineer (f/m/d) (Supplier Quality Engineering; Manufacturing)",
+   "domain": {
+    "field": "Supplier Quality Engineering; Manufacturing",
+    "quote": "Euro, Lieferantensteuerung, Änderungsmanagement mit Stücklistenpflege in SAP, wöchentliche Statusberichte an die Werksleitung.",
+    "source": "cv.experiences[1]",
+    "support": 0.68
+   },
+   "items": [
+    {
+     "quote": "Lieferantenmanagement: Terminverfolgung und Eskalation bei Zulieferern.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "skill_evidence.Lieferantenmanagement",
+     "support": 0.35
+    },
+    {
+     "quote": "Skills: Änderungsmanagement, Stücklisten, Kostenverfolgung, Lean Production, Qualitätsmanagement, Excel",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.08
+    },
+    {
+     "quote": "Skills: Änderungsmanagement, Stücklisten, Kostenverfolgung, Lean Production, Qualitätsmanagement, Excel",
+     "ref": "d2",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.03
+    },
+    {
+     "quote": "Euro, Lieferantensteuerung, Änderungsmanagement mit Stücklistenpflege in SAP, wöchentliche Statusberichte an die Werksleitung.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.12
+    },
+    {
+     "quote": "Wirtschaftsingenieurwesen: Studium abgeschlossen mit Schwerpunkt Produktionsmanagement.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.98
+    },
+    {
+     "quote": "Projektleiterin Produktionsanlauf: Leitung von Anlaufprojekten für neue Fertigungslinien: Budgetverantwortung bis 1,5 Mio.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.06
+    },
+    {
+     "quote": "Skills: Änderungsmanagement, Stücklisten, Kostenverfolgung, Lean Production, Qualitätsmanagement, Excel",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.02
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Projektleiterin Produktionsanlauf",
+    "support": 0.18
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "pc_manufacturing__job_0024": {
+  "hash": "d54a5839bdd7f0a4a747db938cb79f8de8dec4564a0099ef593c4ec60b0e6bba",
+  "payload": {
+   "context": "Technical Project Manager – Packaging Machinery (f/m/d) (Technical project management, packaging machinery; Packaging machinery manufacturing)",
+   "domain": {
+    "field": "Technical project management, packaging machinery; Packaging machinery manufacturing",
+    "quote": "Wirtschaftsingenieurin mit zwölf Jahren Erfahrung in der Projektkoordination im Sondermaschinenbau.",
+    "source": "summary",
+    "support": 0.65
+   },
+   "items": [
+    {
+     "quote": "Ich steuere Aufträge von der Konstruktionsfreigabe bis zur Abnahme beim Kunden, halte Termine und Budgets nach und stimme Konstruktion, Einkauf, Montage und Qualität ab.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.75
+    },
+    {
+     "quote": "Projektleiterin Produktionsanlauf: Leitung von Anlaufprojekten für neue Fertigungslinien: Budgetverantwortung bis 1,5 Mio.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.67
+    },
+    {
+     "quote": "Projektkoordinatorin Sondermaschinenbau: Terminverfolgung für Einzelaufträge, Abstimmung zwischen Konstruktion, Einkauf und Montage, Pflege der Projektpläne in MS Project, Teilnahme an Kundenabnahmen.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.9
+    },
+    {
+     "quote": "Euro, Lieferantensteuerung, Änderungsmanagement mit Stücklistenpflege in SAP, wöchentliche Statusberichte an die Werksleitung.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.35
+    },
+    {
+     "quote": "Wirtschaftsingenieurin mit zwölf Jahren Erfahrung in der Projektkoordination im Sondermaschinenbau.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.75
+    },
+    {
+     "quote": "Wirtschaftsingenieurwesen: Studium abgeschlossen mit Schwerpunkt Produktionsmanagement.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.95
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Technischer Projektmanager",
+    "support": 0.94
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "pc_manufacturing__job_0031": {
+  "hash": "9d6ab4039e68196807e18ff1678096e5a8686dc0ce31be438f1dce7edf486f5a",
+  "payload": {
+   "context": "Projektkoordinator Fertigung (m/w/d) (Manufacturing project coordination; Manufacturing)",
+   "domain": {
+    "field": "Manufacturing project coordination; Manufacturing",
+    "quote": "Projektleiterin Produktionsanlauf: Leitung von Anlaufprojekten für neue Fertigungslinien: Budgetverantwortung bis 1,5 Mio.",
+    "source": "cv.experiences[1]",
+    "support": 0.94
+   },
+   "items": [
+    {
+     "quote": "Projektleiterin Produktionsanlauf: Leitung von Anlaufprojekten für neue Fertigungslinien: Budgetverantwortung bis 1,5 Mio.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.8
+    },
+    {
+     "quote": "MS Project: Tägliche Pflege von Terminplänen und Meilensteinen.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skill_evidence.MS Project",
+     "support": 0.82
+    },
+    {
+     "quote": "Lieferantenmanagement: Terminverfolgung und Eskalation bei Zulieferern.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "skill_evidence.Lieferantenmanagement",
+     "support": 0.48
+    },
+    {
+     "quote": "Wirtschaftsingenieurwesen: Studium abgeschlossen mit Schwerpunkt Produktionsmanagement.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.98
+    },
+    {
+     "quote": "Wirtschaftsingenieurin mit zwölf Jahren Erfahrung in der Projektkoordination im Sondermaschinenbau.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.99
+    },
+    {
+     "quote": "SAP PP: Stücklisten- und Arbeitsplanpflege, Fertigungsaufträge anlegen und verfolgen.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.SAP PP",
+     "support": 0.99
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Projektkoordinatorin Sondermaschinenbau",
+    "support": 0.78
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "pc_manufacturing__job_0036": {
+  "hash": "69e16126daa8f0eb3ef70a190519036b1799605e5d99a2eea094a9937d7c3a94",
+  "payload": {
+   "context": "Head of Project Management Office – Heavy Machinery (f/m/d) (Project management leadership; Heavy machinery manufacturing)",
+   "domain": {
+    "field": "Project management leadership; Heavy machinery manufacturing",
+    "quote": "Wirtschaftsingenieurin mit zwölf Jahren Erfahrung in der Projektkoordination im Sondermaschinenbau.",
+    "source": "summary",
+    "support": 0.55
+   },
+   "items": [
+    {
+     "quote": "Projektleiterin Produktionsanlauf: Leitung von Anlaufprojekten für neue Fertigungslinien: Budgetverantwortung bis 1,5 Mio.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.05
+    },
+    {
+     "quote": "Projektkoordination: Zwölf Jahre Koordination von Maschinenbauprojekten mit 5 bis 25 Beteiligten.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skill_evidence.Projektkoordination",
+     "support": 0.05
+    },
+    {
+     "quote": "Euro, Lieferantensteuerung, Änderungsmanagement mit Stücklistenpflege in SAP, wöchentliche Statusberichte an die Werksleitung.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.85
+    },
+    {
+     "quote": "Wirtschaftsingenieurin mit zwölf Jahren Erfahrung in der Projektkoordination im Sondermaschinenbau.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.02
+    },
+    {
+     "quote": "Projektleiterin Produktionsanlauf: Leitung von Anlaufprojekten für neue Fertigungslinien: Budgetverantwortung bis 1,5 Mio.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.08
+    },
+    {
+     "quote": "Projektkoordination: Zwölf Jahre Koordination von Maschinenbauprojekten mit 5 bis 25 Beteiligten.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.Projektkoordination",
+     "support": 0.08
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Projektleiter Produktion",
+    "support": 0.3
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "pc_manufacturing__job_0045": {
+  "hash": "d5c8bf3f29398a925eb7464e0c735d64dbe3e64a3fefd2109d032d44591cff42",
+  "payload": {
+   "context": "Prozessoptimierer Fertigung (m/w/d) (Manufacturing process improvement; Manufacturing)",
+   "domain": {
+    "field": "Manufacturing process improvement; Manufacturing",
+    "quote": "Lean Production: Mitarbeit an Linienplanung und Shopfloor-Management.",
+    "source": "skill_evidence.Lean Production",
+    "support": 0.63
+   },
+   "items": [
+    {
+     "quote": "Lean Production: Mitarbeit an Linienplanung und Shopfloor-Management.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "skill_evidence.Lean Production",
+     "support": 0.52
+    },
+    {
+     "quote": "Lean Production: Mitarbeit an Linienplanung und Shopfloor-Management.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skill_evidence.Lean Production",
+     "support": 0.22
+    },
+    {
+     "quote": "Skills: Änderungsmanagement, Stücklisten, Kostenverfolgung, Lean Production, Qualitätsmanagement, Excel",
+     "ref": "d2",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.1
+    },
+    {
+     "quote": "Wirtschaftsingenieurwesen: Studium abgeschlossen mit Schwerpunkt Produktionsmanagement.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.99
+    },
+    {
+     "quote": "Wirtschaftsingenieurin mit zwölf Jahren Erfahrung in der Projektkoordination im Sondermaschinenbau.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.18
+    },
+    {
+     "quote": "Lean Production: Mitarbeit an Linienplanung und Shopfloor-Management.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.Lean Production",
+     "support": 0.58
+    },
+    {
+     "quote": "Skills: Änderungsmanagement, Stücklisten, Kostenverfolgung, Lean Production, Qualitätsmanagement, Excel",
+     "ref": "r3",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.42
+    },
+    {
+     "quote": "Skills: Änderungsmanagement, Stücklisten, Kostenverfolgung, Lean Production, Qualitätsmanagement, Excel",
+     "ref": "r4",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.05
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Projektleiter Produktion",
+    "support": 0.39
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "pc_manufacturing__job_0050": {
+  "hash": "ca6e9e7dafe2c885aae1e3b2853224208d1de21c76fb64a4287bf1f89d1b02ff",
+  "payload": {
+   "context": "Projektleiter Produktionsanlauf (m/w/d) (Production launch project management; Manufacturing)",
+   "domain": {
+    "field": "Production launch project management; Manufacturing",
+    "quote": "Projektleiterin Produktionsanlauf: Leitung von Anlaufprojekten für neue Fertigungslinien: Budgetverantwortung bis 1,5 Mio.",
+    "source": "cv.experiences[1]",
+    "support": 0.99
+   },
+   "items": [
+    {
+     "quote": "Projektleiterin Produktionsanlauf: Leitung von Anlaufprojekten für neue Fertigungslinien: Budgetverantwortung bis 1,5 Mio.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.95
+    },
+    {
+     "quote": "Euro, Lieferantensteuerung, Änderungsmanagement mit Stücklistenpflege in SAP, wöchentliche Statusberichte an die Werksleitung.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.88
+    },
+    {
+     "quote": "Euro, Lieferantensteuerung, Änderungsmanagement mit Stücklistenpflege in SAP, wöchentliche Statusberichte an die Werksleitung.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.82
+    },
+    {
+     "quote": "Euro, Lieferantensteuerung, Änderungsmanagement mit Stücklistenpflege in SAP, wöchentliche Statusberichte an die Werksleitung.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.94
+    },
+    {
+     "quote": "Wirtschaftsingenieurwesen: Studium abgeschlossen mit Schwerpunkt Produktionsmanagement.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.98
+    },
+    {
+     "quote": "Projektleiterin Produktionsanlauf: Leitung von Anlaufprojekten für neue Fertigungslinien: Budgetverantwortung bis 1,5 Mio.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.82
+    },
+    {
+     "quote": "Skills: Änderungsmanagement, Stücklisten, Kostenverfolgung, Lean Production, Qualitätsmanagement, Excel",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.78
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Projektleiterin Produktionsanlauf",
+    "support": 0.99
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "pc_manufacturing__job_0100": {
+  "hash": "4f44d5709464fe2693f89685791f468e39fe18b87e648bd3d7e98c3a89598139",
+  "payload": {
+   "context": "Product Owner (m/w/d) Kartenzahlungen (Digital Payments Product Management; Banking and Financial Services)",
+   "domain": {
+    "field": "Digital Payments Product Management; Banking and Financial Services",
+    "quote": "Wirtschaftsingenieurin mit zwölf Jahren Erfahrung in der Projektkoordination im Sondermaschinenbau.",
+    "source": "summary",
+    "support": 0.01
+   },
+   "items": [
+    {
+     "quote": "Projektkoordinatorin Sondermaschinenbau: Terminverfolgung für Einzelaufträge, Abstimmung zwischen Konstruktion, Einkauf und Montage, Pflege der Projektpläne in MS Project, Teilnahme an Kundenabnahmen.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.12
+    },
+    {
+     "quote": "Ich steuere Aufträge von der Konstruktionsfreigabe bis zur Abnahme beim Kunden, halte Termine und Budgets nach und stimme Konstruktion, Einkauf, Montage und Qualität ab.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.18
+    },
+    {
+     "quote": "Projektkoordinatorin Sondermaschinenbau: Terminverfolgung für Einzelaufträge, Abstimmung zwischen Konstruktion, Einkauf und Montage, Pflege der Projektpläne in MS Project, Teilnahme an Kundenabnahmen.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.12
+    },
+    {
+     "quote": "Projektkoordination: Zwölf Jahre Koordination von Maschinenbauprojekten mit 5 bis 25 Beteiligten.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "skill_evidence.Projektkoordination",
+     "support": 0.08
+    },
+    {
+     "quote": "Wirtschaftsingenieurin mit zwölf Jahren Erfahrung in der Projektkoordination im Sondermaschinenbau.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.03
+    },
+    {
+     "quote": "Skills: Projektkoordination, Terminplanung, MS Project, SAP PP, Lieferantenmanagement, Fertigungsplanung",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.02
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Technischer Projektmanager",
+    "support": 0.08
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "pc_manufacturing__job_0135": {
+  "hash": "65c492b5f69697fc21f82569cefae77dc4c890be7371f86993240aa78b308f9d",
+  "payload": {
+   "context": "Project Manager Mechanical Engineering (f/m/d) (Mechanical Engineering Project Management; Packaging Machinery)",
+   "domain": {
+    "field": "Mechanical Engineering Project Management; Packaging Machinery",
+    "quote": "Wirtschaftsingenieurin mit zwölf Jahren Erfahrung in der Projektkoordination im Sondermaschinenbau.",
+    "source": "summary",
+    "support": 0.91
+   },
+   "items": [
+    {
+     "quote": "Ich steuere Aufträge von der Konstruktionsfreigabe bis zur Abnahme beim Kunden, halte Termine und Budgets nach und stimme Konstruktion, Einkauf, Montage und Qualität ab.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.93
+    },
+    {
+     "quote": "Ich steuere Aufträge von der Konstruktionsfreigabe bis zur Abnahme beim Kunden, halte Termine und Budgets nach und stimme Konstruktion, Einkauf, Montage und Qualität ab.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.97
+    },
+    {
+     "quote": "Wirtschaftsingenieurin mit zwölf Jahren Erfahrung in der Projektkoordination im Sondermaschinenbau.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.96
+    },
+    {
+     "quote": "Ich steuere Aufträge von der Konstruktionsfreigabe bis zur Abnahme beim Kunden, halte Termine und Budgets nach und stimme Konstruktion, Einkauf, Montage und Qualität ab.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.89
+    },
+    {
+     "quote": "Lieferantenmanagement: Terminverfolgung und Eskalation bei Zulieferern.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.Lieferantenmanagement",
+     "support": 0.91
+    },
+    {
+     "quote": "Euro, Lieferantensteuerung, Änderungsmanagement mit Stücklistenpflege in SAP, wöchentliche Statusberichte an die Werksleitung.",
+     "ref": "r3",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.95
+    },
+    {
+     "quote": "Euro, Lieferantensteuerung, Änderungsmanagement mit Stücklistenpflege in SAP, wöchentliche Statusberichte an die Werksleitung.",
+     "ref": "r4",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.94
+    },
+    {
+     "quote": "Projektkoordinatorin Sondermaschinenbau: Terminverfolgung für Einzelaufträge, Abstimmung zwischen Konstruktion, Einkauf und Montage, Pflege der Projektpläne in MS Project, Teilnahme an Kundenabnahmen.",
+     "ref": "r5",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.88
+    },
+    {
+     "quote": "SAP PP: Stücklisten- und Arbeitsplanpflege, Fertigungsaufträge anlegen und verfolgen.",
+     "ref": "r6",
+     "similarity": null,
+     "source": "skill_evidence.SAP PP",
+     "support": 0.94
+    },
+    {
+     "quote": "MS Project: Tägliche Pflege von Terminplänen und Meilensteinen.",
+     "ref": "r7",
+     "similarity": null,
+     "source": "skill_evidence.MS Project",
+     "support": 0.96
+    },
+    {
+     "quote": "Wirtschaftsingenieurwesen: Studium abgeschlossen mit Schwerpunkt Produktionsmanagement.",
+     "ref": "r8",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.98
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Projektkoordinatorin Sondermaschinenbau",
+    "support": 0.95
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "po_fintech__job_0004": {
+  "hash": "9844b6afb6c8e1503dd29970d17d1c95816ccd5920fb3de8eb1d90b87736fec1",
+  "payload": {
+   "context": "Senior Product Manager – Open Banking APIs (Banking API Product Management; Financial Technology and Banking)",
+   "domain": {
+    "field": "Banking API Product Management; Financial Technology and Banking",
+    "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+    "source": "cv.experiences[2]",
+    "support": 0.96
+   },
+   "items": [
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.94
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.91
+    },
+    {
+     "quote": "I translate regulatory and customer needs into prioritised backlogs, work daily with engineering teams of 6-9 people and own the quarterly roadmap for a card and account-information product.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.72
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.92
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d4",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.56
+    },
+    {
+     "quote": "Product Owner with nine years in payments and open banking.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.9
+    },
+    {
+     "quote": "Skills: API Design",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.18
+    },
+    {
+     "quote": "Product Owner, card issuing: Owned the backlog for a card issuing platform, prioritised features with risk and compliance, wrote user stories and acceptance criteria, ran sprint reviews and coordinated releases across three squads.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.66
+    },
+    {
+     "quote": "Comfortable with SQL for my own analyses.",
+     "ref": "r3",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.94
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Senior Product Owner, open banking",
+    "support": 0.92
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "po_fintech__job_0013": {
+  "hash": "4532edf7a9ec3cfaac23e74a3e0dcfa0ad584d28c4246755ae765cf6f9693cd7",
+  "payload": {
+   "context": "Product Owner Treasury Platform (f/m/d) (Treasury Product Management; Financial Technology)",
+   "domain": {
+    "field": "Treasury Product Management; Financial Technology",
+    "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+    "source": "cv.experiences[2]",
+    "support": 0.76
+   },
+   "items": [
+    {
+     "quote": "Product Owner, card issuing: Owned the backlog for a card issuing platform, prioritised features with risk and compliance, wrote user stories and acceptance criteria, ran sprint reviews and coordinated releases across three squads.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.78
+    },
+    {
+     "quote": "Product Ownership: Owned two product backlogs end to end, including prioritisation, refinement and acceptance.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skill_evidence.Product Ownership",
+     "support": 0.68
+    },
+    {
+     "quote": "Product Owner with nine years in payments and open banking.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.94
+    },
+    {
+     "quote": "Product Ownership: Owned two product backlogs end to end, including prioritisation, refinement and acceptance.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skill_evidence.Product Ownership",
+     "support": 0.96
+    },
+    {
+     "quote": "Product Owner, card issuing: Owned the backlog for a card issuing platform, prioritised features with risk and compliance, wrote user stories and acceptance criteria, ran sprint reviews and coordinated releases across three squads.",
+     "ref": "r2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.98
+    },
+    {
+     "quote": "Product Owner, card issuing: Owned the backlog for a card issuing platform, prioritised features with risk and compliance, wrote user stories and acceptance criteria, ran sprint reviews and coordinated releases across three squads.",
+     "ref": "r3",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.69
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "r4",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.84
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "r5",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.89
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Product Owner",
+    "support": 0.99
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "po_fintech__job_0028": {
+  "hash": "3bc91e30ae8cd8536d7f59222d8ed9046c5c22c09015e9322962d58b8752d79b",
+  "payload": {
+   "context": "Product Owner Banking-App (m/w/d) (Product ownership for banking apps; Banking and financial services)",
+   "domain": {
+    "field": "Product ownership for banking apps; Banking and financial services",
+    "quote": "Payments: Card issuing, settlement and open-banking APIs over nine years.",
+    "source": "skill_evidence.Payments",
+    "support": 0.95
+   },
+   "items": [
+    {
+     "quote": "Product Owner, card issuing: Owned the backlog for a card issuing platform, prioritised features with risk and compliance, wrote user stories and acceptance criteria, ran sprint reviews and coordinated releases across three squads.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.84
+    },
+    {
+     "quote": "Product Owner, card issuing: Owned the backlog for a card issuing platform, prioritised features with risk and compliance, wrote user stories and acceptance criteria, ran sprint reviews and coordinated releases across three squads.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.91
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.77
+    },
+    {
+     "quote": "Product Owner with nine years in payments and open banking.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.84
+    },
+    {
+     "quote": "Product Owner, card issuing: Owned the backlog for a card issuing platform, prioritised features with risk and compliance, wrote user stories and acceptance criteria, ran sprint reviews and coordinated releases across three squads.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.8
+    },
+    {
+     "quote": "Skills: Product Ownership, Backlog Management, Roadmapping, User Stories, Scrum, Jira",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.72
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Product Owner",
+    "support": 0.98
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "po_fintech__job_0032": {
+  "hash": "5e2501a84d4fd16489dcbca0751af7552af22ef20ab1203eaa5c69f68e90dfb4",
+  "payload": {
+   "context": "Recruiter (f/m/d) (Technical Recruiting; Technology)",
+   "domain": {
+    "field": "Technical Recruiting; Technology",
+    "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+    "source": "cv.experiences[2]",
+    "support": 0.35
+   },
+   "items": [
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.08
+    },
+    {
+     "quote": "Roadmapping: Built and communicated quarterly roadmaps to management and partner banks.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skill_evidence.Roadmapping",
+     "support": 0.08
+    },
+    {
+     "quote": "Skills: Product Ownership, Backlog Management, Roadmapping, User Stories, Scrum, Jira",
+     "ref": "d2",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.02
+    },
+    {
+     "quote": "Product Owner with nine years in payments and open banking.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.02
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Product Manager",
+    "support": 0.04
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "po_fintech__job_0033": {
+  "hash": "1cbc9e6e57d696b43b07e846f799e786b457a26af9dc490332a1e93aa54d6460",
+  "payload": {
+   "context": "Operations Analyst Kundenservice (m/w/d) (Customer Service Operations Analytics; Customer Service)",
+   "domain": {
+    "field": "Customer Service Operations Analytics; Customer Service",
+    "quote": "Business Analyst, payments: Wrote functional specifications for card-transaction processing, mapped settlement flows with operations and ran acceptance tests with the engineering team.",
+    "source": "cv.experiences[0]",
+    "support": 0.12
+   },
+   "items": [
+    {
+     "quote": "Business Analyst, payments: Wrote functional specifications for card-transaction processing, mapped settlement flows with operations and ran acceptance tests with the engineering team.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.12
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.08
+    },
+    {
+     "quote": "Business Analyst, payments: Wrote functional specifications for card-transaction processing, mapped settlement flows with operations and ran acceptance tests with the engineering team.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[0]",
+     "support": 0.12
+    },
+    {
+     "quote": "I translate regulatory and customer needs into prioritised backlogs, work daily with engineering teams of 6-9 people and own the quarterly roadmap for a card and account-information product.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.06
+    },
+    {
+     "quote": "Business Information Systems: Completed degree in business information systems with focus on databases and process modelling.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.96
+    },
+    {
+     "quote": "Product Owner with nine years in payments and open banking.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.12
+    },
+    {
+     "quote": "SQL: Queries transaction data for product analyses",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skill_evidence.SQL",
+     "support": 0.28
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Business Analyst",
+    "support": 0.24
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "po_fintech__job_0039": {
+  "hash": "249a86c78eb6ac52c292b4cbce9702a6cd6ea1a14284d77776b78f2886b2531d",
+  "payload": {
+   "context": "Sales Enablement Trainer (f/m/d) (Sales Enablement Training; Not specified)",
+   "domain": {
+    "field": "Sales Enablement Training; Not specified",
+    "quote": "Product Owner with nine years in payments and open banking.",
+    "source": "summary",
+    "support": 0.02
+   },
+   "items": [
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.08
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.05
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.05
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.03
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d4",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.08
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d5",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.08
+    },
+    {
+     "quote": "Product Owner with nine years in payments and open banking.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.05
+    },
+    {
+     "quote": "Product Owner, card issuing: Owned the backlog for a card issuing platform, prioritised features with risk and compliance, wrote user stories and acceptance criteria, ran sprint reviews and coordinated releases across three squads.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.05
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Product Manager",
+    "support": 0.03
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "po_fintech__job_0046": {
+  "hash": "274a7b8e90527871a55b51d000ecb3bd761fe757a90d102427bc1086d676eb1b",
+  "payload": {
+   "context": "Product Manager Sales Enablement Plattform (m/w/d) (B2B SaaS product management; Sales enablement software)",
+   "domain": {
+    "field": "B2B SaaS product management; Sales enablement software",
+    "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+    "source": "cv.experiences[2]",
+    "support": 0.22
+   },
+   "items": [
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.92
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.68
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.84
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.82
+    },
+    {
+     "quote": "Product Owner, card issuing: Owned the backlog for a card issuing platform, prioritised features with risk and compliance, wrote user stories and acceptance criteria, ran sprint reviews and coordinated releases across three squads.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.81
+    },
+    {
+     "quote": "Skills: Product Ownership, Backlog Management, Roadmapping, User Stories, Scrum, Jira",
+     "ref": "r2",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.77
+    },
+    {
+     "quote": "SQL: Queries transaction data for product analyses",
+     "ref": "r3",
+     "similarity": null,
+     "source": "skill_evidence.SQL",
+     "support": 0.9
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Product Manager",
+    "support": 0.88
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "po_fintech__job_0076": {
+  "hash": "04efa9226bbf80368871e80352fee2f412826dc4d43bfa6bbfeb5bd76dae638d",
+  "payload": {
+   "context": "Fachverkäufer Baumarkt (m/w/d) (retail sales; home improvement retail)",
+   "domain": {
+    "field": "retail sales; home improvement retail",
+    "quote": "Payments: Card issuing, settlement and open-banking APIs over nine years.",
+    "source": "skill_evidence.Payments",
+    "support": 0.01
+   },
+   "items": [
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.04
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.03
+    },
+    {
+     "quote": "Product Owner, card issuing",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1].title",
+     "support": 0.01
+    },
+    {
+     "quote": "Product Owner, card issuing",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[1].title",
+     "support": 0.01
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "r0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.06
+    },
+    {
+     "quote": "Business Information Systems: Completed degree in business information systems with focus on databases and process modelling.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.education[0]",
+     "support": 0.01
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Product Manager",
+    "support": 0.02
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "po_fintech__job_0097": {
+  "hash": "b9493b8e5e4182b1dec6929346d29e66d3d81d3a6cb00b9970ad47b0faa09ea3",
+  "payload": {
+   "context": "Produktmanager Open Banking (m/w/d) (Open banking product management; Banking technology and financial services)",
+   "domain": {
+    "field": "Open banking product management; Banking technology and financial services",
+    "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+    "source": "cv.experiences[2]",
+    "support": 0.99
+   },
+   "items": [
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.98
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.96
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.97
+    },
+    {
+     "quote": "Product Owner with nine years in payments and open banking.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.98
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.7
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Product Manager",
+    "support": 0.92
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "po_fintech__job_0100": {
+  "hash": "2bff8e5b685317ef1c242b0f396664f09c3d3f2a46846286c404b8f12134bad7",
+  "payload": {
+   "context": "Product Owner (m/w/d) Kartenzahlungen (Digital Payments Product Management; Banking and Financial Services)",
+   "domain": {
+    "field": "Digital Payments Product Management; Banking and Financial Services",
+    "quote": "Product Owner, card issuing: Owned the backlog for a card issuing platform, prioritised features with risk and compliance, wrote user stories and acceptance criteria, ran sprint reviews and coordinated releases across three squads.",
+    "source": "cv.experiences[1]",
+    "support": 0.95
+   },
+   "items": [
+    {
+     "quote": "Product Owner, card issuing: Owned the backlog for a card issuing platform, prioritised features with risk and compliance, wrote user stories and acceptance criteria, ran sprint reviews and coordinated releases across three squads.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.9
+    },
+    {
+     "quote": "Product Owner, card issuing: Owned the backlog for a card issuing platform, prioritised features with risk and compliance, wrote user stories and acceptance criteria, ran sprint reviews and coordinated releases across three squads.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.9
+    },
+    {
+     "quote": "Product Owner, card issuing: Owned the backlog for a card issuing platform, prioritised features with risk and compliance, wrote user stories and acceptance criteria, ran sprint reviews and coordinated releases across three squads.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.75
+    },
+    {
+     "quote": "Senior Product Owner, open banking: Owns roadmap and backlog for an account-information API product, runs discovery interviews with partner banks, defines KPIs, decides release scope with the engineering lead and reports adoption metrics to",
+     "ref": "d3",
+     "similarity": null,
+     "source": "cv.experiences[2]",
+     "support": 0.85
+    },
+    {
+     "quote": "Product Owner with nine years in payments and open banking.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.85
+    },
+    {
+     "quote": "Skills: Product Ownership, Backlog Management, Roadmapping, User Stories, Scrum, Jira",
+     "ref": "r1",
+     "similarity": null,
+     "source": "skills",
+     "support": 0.8
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Product Owner, card issuing",
+    "support": 0.95
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ },
+ "po_fintech__job_0144": {
+  "hash": "7e7bad33a6308691aa400ddff795532f4ad92bfa6b72d7d0cfa804be349edaf4",
+  "payload": {
+   "context": "Sales Enablement Trainer (m/w/d) (Sales Enablement Training; Unspecified)",
+   "domain": {
+    "field": "Sales Enablement Training; Unspecified",
+    "quote": "Product Owner with nine years in payments and open banking.",
+    "source": "summary",
+    "support": 0.03
+   },
+   "items": [
+    {
+     "quote": "Payments: Card issuing, settlement and open-banking APIs over nine years.",
+     "ref": "d0",
+     "similarity": null,
+     "source": "skill_evidence.Payments",
+     "support": 0.08
+    },
+    {
+     "quote": "KYC: Specified onboarding and identity-verification flows together with compliance.",
+     "ref": "d1",
+     "similarity": null,
+     "source": "skill_evidence.KYC",
+     "support": 0.03
+    },
+    {
+     "quote": "Product Owner, card issuing: Owned the backlog for a card issuing platform, prioritised features with risk and compliance, wrote user stories and acceptance criteria, ran sprint reviews and coordinated releases across three squads.",
+     "ref": "d2",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.07
+    },
+    {
+     "quote": "A/B Testing: Designed and evaluated onboarding experiments with the analytics team.",
+     "ref": "d3",
+     "similarity": null,
+     "source": "skill_evidence.A/B Testing",
+     "support": 0.04
+    },
+    {
+     "quote": "Product Owner with nine years in payments and open banking.",
+     "ref": "r0",
+     "similarity": null,
+     "source": "summary",
+     "support": 0.02
+    },
+    {
+     "quote": "Product Owner, card issuing: Owned the backlog for a card issuing platform, prioritised features with risk and compliance, wrote user stories and acceptance criteria, ran sprint reviews and coordinated releases across three squads.",
+     "ref": "r1",
+     "similarity": null,
+     "source": "cv.experiences[1]",
+     "support": 0.12
+    }
+   ],
+   "provider": "luna",
+   "role": {
+    "role": "Product Manager",
+    "support": 0.06
+   }
+  },
+  "version": "evidence-v3|ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f05:qwen3-reranker-0.6b-q8_0.gguf|intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+ }
+}

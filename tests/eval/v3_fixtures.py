@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -33,9 +34,14 @@ from hiring_scraper.matching_v3.evidence import (
 EVAL_DIR = Path(__file__).resolve().parent
 
 
+def eval_provider() -> str:
+    """Which recorded model outputs to use: the local models (default) or GPT-6 Luna."""
+    return 'luna' if os.getenv('RADIUS_EVAL_PROVIDER', 'local').strip().lower() == 'luna' else 'local'
+
+
 def fixture_dir(dataset: str) -> Path:
     if dataset == 'public':
-        return EVAL_DIR / 'public' / 'v3'
+        return EVAL_DIR / 'public' / ('v3_luna' if eval_provider() == 'luna' else 'v3')
     from tests.eval import cv as private_dataset
     return private_dataset.CV_EVAL_DIR / "v3"
 

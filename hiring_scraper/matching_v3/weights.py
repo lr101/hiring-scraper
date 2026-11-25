@@ -60,6 +60,14 @@ CALIBRATION_KNOTS: tuple[tuple[float, float], ...] = (
     (100.0, 100.0),
 )
 CALIBRATION_TAIL_SLOPE = 0.5
+# Evidence rated by GPT-6 Luna (ChatGPT subscription) has a different support distribution
+# than the local reranker; same weights, own monotone calibration fitted on the DEV split of
+# the public evaluation set (``tests.eval.fit_v3 --provider luna --keep-weights``).
+LUNA_CALIBRATION_KNOTS: tuple[tuple[float, float], ...] = (
+    (-8.0, 0.0), (-2.0, 4.0), (0.0, 10.0), (1.0, 14.0), (2.0, 17.0), (3.0, 20.0), (5.0, 23.0), (7.5, 27.0),
+    (14.62, 27.56), (17.1, 29.57), (39.58, 60.97), (53.97, 68.17), (55.74, 69.62), (59.09, 76.62),
+    (63.8, 86.45), (70.16, 90.97), (78.64, 96.51), (100.0, 100.0),
+)
 
 TIER_RECOMMENDED_MIN = 65
 TIER_POSSIBLE_MIN = 30
