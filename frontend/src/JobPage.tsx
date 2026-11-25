@@ -37,13 +37,14 @@ function formatDate(value: string | null | undefined) {
   return Number.isNaN(date.getTime()) ? value : dateFormat.format(date)
 }
 
+/** "2 days ago" for recent postings (full date on hover), otherwise the date. */
 function postedLabel(value: string | null) {
-  if (!value) return ''
+  if (!value) return null
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
   const days = Math.floor((Date.now() - date.getTime()) / 86_400_000)
-  const relative = days <= 0 ? 'today' : days === 1 ? 'yesterday' : days < 31 ? `${days} days ago` : ''
-  return relative ? `${relative} · ${dateFormat.format(date)}` : dateFormat.format(date)
+  const relative = days <= 0 ? 'Today' : days === 1 ? 'Yesterday' : days < 31 ? `${days} days ago` : ''
+  return <time dateTime={value} title={dateFormat.format(date)}>{relative || dateFormat.format(date)}</time>
 }
 
 function sentenceCase(value: string | null | undefined) {
@@ -95,6 +96,12 @@ function verdict(match: ProfileMatch) {
   return { tone: 'possible', label: 'Possible match' }
 }
 
+/** Fit-summary links point at collapsed sections; open the target before jumping to it. */
+function openSection(event: React.MouseEvent<HTMLAnchorElement>) {
+  const target = document.getElementById(event.currentTarget.hash.slice(1))
+  if (target instanceof HTMLDetailsElement) target.open = true
+}
+
 const COUNT_LABELS: Record<string, string> = { duties: 'Duties', must: 'Must-haves', nice: 'Nice-to-haves' }
 
 function FitSummary({ match, profileId }: { match?: ProfileMatch; profileId: number | null }) {
@@ -133,7 +140,10 @@ function FitSummary({ match, profileId }: { match?: ProfileMatch; profileId: num
       </li>)}
     </ul>}
     <FitConcerns items={concerns(match)} />
-    <a className="job-fit-link" href="#job-score-details">How this score was built</a>
+    <p className="job-fit-links">
+      {counts.length > 0 && <a className="job-fit-link" href="#job-fit-checklists" onClick={openSection}>Each requirement</a>}
+      <a className="job-fit-link" href="#job-score-details" onClick={openSection}>How this score was built</a>
+    </p>
   </aside>
 }
 
@@ -180,10 +190,10 @@ function KeyFacts({ job }: { job: Job }) {
     <Fact label="Employment">{employment}</Fact>
     <Fact label="Experience">{experience}</Fact>
     <Fact label="Languages">{languages}</Fact>
-    <Fact label="Remote from">{job.remote_country_codes?.length ? job.remote_country_codes.join(', ') : ''}</Fact>
-    <Fact label="Team">{job.department?.trim()}</Fact>
     <Fact label="Posted">{postedLabel(job.date_posted)}</Fact>
     <Fact label="Apply by">{deadline}</Fact>
+    <Fact label="Remote from">{job.remote_country_codes?.length ? job.remote_country_codes.join(', ') : ''}</Fact>
+    <Fact label="Team">{job.department?.trim()}</Fact>
     <Fact label="Employer">{employerType}</Fact>
     <Fact label="Local vote">{votes}</Fact>
   </dl>
@@ -242,11 +252,12 @@ export default function JobPage({ job, profileId, onApplicationSaved }: {
     <KeyFacts job={job} />
     <div className="job-page-body">
       <div className="job-page-main">
-        {showChecklists ? <section className="job-page-section" aria-labelledby="job-fit-checklists">
-          <h2 id="job-fit-checklists">Requirements against your CV</h2>
+        {job.description ? <JobDescription blocks={job.description_blocks} text={job.description} />
+          : !showChecklists && <JobPostingAnalysis state={job.analysis_state} analysis={job.analysis} refreshing={job.analysis_refreshing} />}
+        {showChecklists && <details className="job-score-details" id="job-fit-checklists">
+          <summary>Each requirement against your CV</summary>
           <FitChecklists match={match!} />
-        </section> : <JobPostingAnalysis state={job.analysis_state} analysis={job.analysis} refreshing={job.analysis_refreshing} />}
-        {job.description && <JobDescription blocks={job.description_blocks} text={job.description} />}
+        </details>}
         {match && !match.pending && <details className="job-score-details" id="job-score-details">
           <summary>How this score was built</summary>
           <JobEvidence enrichment={job.enrichment} match={match} embedded />
