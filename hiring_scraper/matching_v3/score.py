@@ -30,6 +30,93 @@ _LIGHT_EMP_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 )
 _FULL_TIME = {'full-time', 'fulltime', 'permanent', 'vollzeit'}
 
+# Career level stated in a posting title (or its seniority field), highest first. An
+# optional marker such as "(Senior)" or "(Junior)" leaves the level unstated.
+_OPTIONAL_LEVEL_RE = re.compile(r'\(\s*(?:senior|sr\.?|junior|jr\.?)\s*\)', re.I)
+_TITLE_LEVELS: tuple[tuple[int, str, re.Pattern[str]], ...] = (
+    (6, 'VP / C-level', re.compile(
+        r'\b(?:vp|svp|evp|vice\s+president|chief\s+\w+\s+officer|c[eotfp]o|geschäftsführer\w*|managing\s+director)\b',
+        re.I)),
+    (5, 'head / director', re.compile(
+        r'\b(?:head\s+of|director|direktor\w*|leiter(?:in)?|abteilungsleit\w*|bereichsleit\w*)\b', re.I)),
+    (4, 'lead / staff', re.compile(
+        r'\b(?:lead|(?<!technical\s)staff|principal|expert|teamleit\w*|team\s*lead\w*)\b', re.I)),
+    (3, 'senior', re.compile(r'\b(?:senior|sr\.)(?!\w)', re.I)),
+    (1, 'junior', re.compile(
+        r'\b(?:junior|jr\.|entry[- ]level|berufseinsteiger\w*|trainee|graduate)(?!\w)', re.I)),
+    (0, 'student / intern', re.compile(
+        r'\b(?:intern|internship|praktikum|praktikant\w*|werkstudent\w*|working\s+student|studentisch\w*'
+        r'|ausbildung|azubi|apprentice\w*)\b', re.I)),
+)
+_PROFILE_LEVELS = {'student': 0, 'junior': 1, 'senior': 3, 'lead': 4}
+
+
+def title_level(job: dict) -> tuple[int, str, str] | None:
+    """(level, label, quote) of the most accessible career level the title states, or None."""
+    for field in ('title', 'seniority'):
+        text = _OPTIONAL_LEVEL_RE.sub(' ', str(job.get(field) or ''))
+        found = [(level, label, match.group(0)) for level, label, pattern in _TITLE_LEVELS
+                 if (match := pattern.search(text))]
+        if found:
+            return min(found)
+    return None
+
+
+def seniority_penalty(job: dict, profile: dict) -> dict[str, Any] | None:
+    """Bounded raw-point deduction for a title level outside the profile's chosen levels."""
+    wanted = [_PROFILE_LEVELS[level] for level in profile.get('seniority_levels') or [] if level in _PROFILE_LEVELS]
+    stated = title_level(job)
+    if not wanted or stated is None:
+        return None
+    level, label, quote = stated
+    low, high = min(wanted), max(wanted)
+    if level > high:
+        amount = sum(W.SENIORITY_STEP_UP[step] for step in range(high, level))
+    elif level < low:
+        amount = W.SENIORITY_STEP_DOWN * (low - level)
+    else:
+        return None
+    if amount <= 0:
+        return None
+    return {'signal': 'penalty:seniority', 'amount': amount,
+            'detail': f'Career level ({label}) differs from your preferred {", ".join(profile["seniority_levels"])}',
+            'job_quote': quote, 'profile_source': 'profile.seniority_levels',
+            'profile_quote': ', '.join(profile['seniority_levels'])}
+
+
+def _casefolded(values) -> set[str]:
+    return {' '.join(str(value).split()).casefold() for value in values or [] if str(value).strip()}
+
+
+_WORD_RE = re.compile(r'\w+')
+
+
+def _names_role(title: str, role: str) -> bool:
+    """Whether a past title is a variant of a target role: every role word starts a title word
+    ("Product Owner, card issuing" for "Product Owner", "Projektleiterin Produktionsanlauf"
+    for "Projektleiter Produktion")."""
+    title_words = _WORD_RE.findall(title)
+    role_words = _WORD_RE.findall(role)
+    return bool(role_words) and all(any(word.startswith(part) for word in title_words) for part in role_words)
+
+
+def role_source(role: str, profile: dict) -> str:
+    """Where the matched role comes from: desired, secondary, past, or past_excluded."""
+    key = ' '.join(str(role or '').split()).casefold()
+    localized = [content for content in (profile.get('localized_content') or {}).values() if isinstance(content, dict)]
+    for name, field in (('desired', 'desired_roles'), ('secondary', 'secondary_roles')):
+        targets = _casefolded([*(profile.get(field) or []), *(r for c in localized for r in c.get(field) or [])])
+        if key in targets or any(_names_role(key, target) for target in targets):
+            return name
+    excluded = [term for term in _casefolded(profile.get('excluded_terms')) if term]
+    if any(re.search(rf'(?<!\w){re.escape(term)}(?!\w)', key) for term in excluded):
+        return 'past_excluded'
+    return 'past'
+
+
+_ROLE_SOURCE_FIELDS = {'desired': 'profile.desired_roles', 'secondary': 'profile.secondary_roles',
+                       'past': 'cv.experience', 'past_excluded': 'cv.experience'}
+
 
 def lightweight_enrichment(job: dict) -> dict[str, Any]:
     """Work style and employment type when no stored enrichment is passed."""
@@ -168,6 +255,10 @@ def _penalties(job: dict, profile: dict, enriched: dict, gate_result: dict,
         penalties.append({'signal': 'penalty:formal_prerequisite', 'amount': amount, 'detail': detail,
                           'job_quote': formal_gaps[0]['text'][:240], 'profile_source': 'profile.education',
                           'profile_quote': ''})
+    seniority = seniority_penalty(job, profile)
+    if seniority is not None:
+        soft_conflicts.append(seniority['detail'])
+        penalties.append(seniority)
     lang_visa_flags = [flag for flag in gate_result['flags'] if flag.get('gate') in {'language', 'eligibility'}]
     if lang_visa_flags:
         cap = min(5.0, W.SOFT_PENALTIES['language_visa_flag_max'])
@@ -306,7 +397,10 @@ def match_job_v3(
     if not parts['duties'] and not any(not row['gated'] for row in parts['requirements']):
         return _unscorable_result(job, profile, enriched, gate_result, analysis)
     evidence_refs = {row.get('ref') for row in evidence.get('items') or [] if isinstance(row, dict)}
-    values = parts['values']
+    values = dict(parts['values'])
+    role_from = role_source(parts['role'].get('role', ''), profile) if parts['role'] else None
+    if role_from is not None and values['role'] is not None:
+        values['role'] *= W.ROLE_SOURCE_FACTORS[role_from]
     raw, contributions = raw_score(values, weights)
     context = ' · '.join(part for part in (analysis.get('occupation'), analysis.get('industry')) if part)
     formal_gaps = [row for row in parts['requirements']
@@ -330,7 +424,9 @@ def match_job_v3(
                  f'/{len(must_rows)} supported; weakest shown)' if values['must'] is not None else '', weakest_must),
         'nice': (f'Preferred requirements {values["nice"]:.2f} ({len(nice_rows)} listed)'
                  if values['nice'] is not None else '', best_nice),
-        'role': (f'Role fit {values["role"]:.2f}' if values['role'] is not None else '', None),
+        'role': ((f'Role fit {values["role"]:.2f}' + ('' if role_from in (None, 'desired') else
+                  f' (via {"secondary role" if role_from == "secondary" else "past job title"})'))
+                 if values['role'] is not None else '', None),
         'domain': (f'Occupational field fit {values["domain"]:.2f}' + (f' ({context})' if context else '')
                    if values['domain'] is not None else '', None),
     }
@@ -352,7 +448,7 @@ def match_job_v3(
             entry.update(job_quote=row['text'][:240], profile_source=row['evidence_source'],
                          profile_quote=row['evidence_quote'][:240] if row['support'] >= W.PARTIAL_SUPPORT else '')
         elif name == 'role' and parts['role']:
-            entry.update(job_quote=str(job.get('title') or '')[:180], profile_source='profile.desired_roles',
+            entry.update(job_quote=str(job.get('title') or '')[:180], profile_source=_ROLE_SOURCE_FIELDS[role_from],
                          profile_quote=parts['role'].get('role', ''))
         elif name == 'domain' and parts['domain']:
             entry.update(job_quote=parts['domain'].get('field', context)[:180],
