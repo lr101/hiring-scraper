@@ -147,8 +147,18 @@ def source_hash(lines: list[str]) -> str:
     return hashlib.sha256(json.dumps(lines, ensure_ascii=False).encode('utf-8')).hexdigest()
 
 
+def prompt_lines(lines: list[str], scopes: list[str] | None) -> list[str]:
+    """Lines the model reads: lines under excluded (benefit, company, application) headings are
+    blanked, since the parser drops their items anyway; the rest keep their line numbers.
+    Results are unchanged, so ``PROMPT_VERSION`` stays: only prompt tokens (CPU time) are saved."""
+    if not scopes:
+        return list(lines)
+    return [line if index == 0 or index >= len(scopes) or scopes[index] not in EXCLUDED_SCOPES else ''
+            for index, line in enumerate(lines)]
+
+
 def prompt_messages(lines: list[str]) -> list[dict[str, str]]:
-    numbered = '\n'.join(f'[{index}] {line}' for index, line in enumerate(lines))
+    numbered = '\n'.join(f'[{index}] {line}' for index, line in enumerate(lines) if line)
     return [{'role': 'system', 'content': SYSTEM_PROMPT}, {'role': 'user', 'content': numbered}]
 
 

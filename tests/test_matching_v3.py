@@ -8,7 +8,7 @@ from hiring_scraper.matching_v3.evidence import (
     CANDIDATES_PER_ITEM, MAX_SCORED_ITEMS, compute_evidence, is_soft_requirement, rerank_query, scored_items,
     units_source,
 )
-from hiring_scraper.matching_v3.score import components, support
+from hiring_scraper.matching_v3.score import components, seniority_penalty, support, title_level
 
 PROFILE = {
     'desired_roles': ['Customer Success Manager'],
@@ -142,6 +142,79 @@ class ScoringTests(unittest.TestCase):
         self.assertTrue(result['pending'])
         self.assertFalse(result['eligible'])
         self.assertTrue(any(row['status'] == 'fail' for row in result['prerequisite_conditions']))
+
+
+class RoleSourceAndSeniorityTests(unittest.TestCase):
+    PROFILE = {**PROFILE, 'desired_roles': ['Product Manager'], 'secondary_roles': ['User Researcher'],
+               'excluded_terms': ['Head of', 'Sales'], 'seniority_levels': ['junior'],
+               'localized_content': {'de': {'desired_roles': ['Produktmanager']}}}
+
+    def role_points(self, role):
+        result = match_job_v3(JOB, self.PROFILE, analysis=ANALYSIS,
+                              evidence={**evidence(0.6, 0.3, 0.9, 0.4), 'role': {'support': 0.9, 'role': role}})
+        entry = next(entry for entry in result['explanation'] if entry['signal'] == 'role')
+        return entry['contribution'], entry['profile_source'], result['score']
+
+    def test_desired_roles_count_more_than_past_titles_which_still_count(self):
+        desired, source, desired_score = self.role_points('product manager')
+        localized, _, _ = self.role_points('Produktmanager')
+        secondary, secondary_source, _ = self.role_points('User Researcher')
+        past, past_source, past_score = self.role_points('Project & Delivery Manager')
+        excluded, _, _ = self.role_points('Head of International Affairs')
+        self.assertEqual((source, secondary_source, past_source),
+                         ('profile.desired_roles', 'profile.secondary_roles', 'cv.experience'))
+        self.assertEqual(desired, localized)
+        self.assertGreater(desired, secondary)
+        self.assertGreater(secondary, past)
+        self.assertGreater(past, excluded)
+        self.assertGreater(excluded, 0)
+        self.assertGreater(desired_score, past_score)
+
+    def test_title_level_reads_explicit_levels_and_ignores_optional_markers(self):
+        cases = {
+            'Junior Produktmanager (m/w/d)': 'junior',
+            '(Junior) Product Manager (m/w/d)': None,
+            'Product Manager (Senior)': None,
+            'Sr. AI Engineer (Full Stack)': 'senior',
+            'Expert Product Operations Manager': 'lead / staff',
+            'Member of Technical Staff - Safety Research': None,
+            'Team Lead Operations Automation & AI': 'lead / staff',
+            'Director, Delivery': 'head / director',
+            'Leiter Einkauf (m/w/d)': 'head / director',
+            'Projektleiter Breitbandausbau (w/m/d)': None,
+            'VP, Mozilla Studio': 'VP / C-level',
+            'Studentische Hilfskraft Future City': 'student / intern',
+            'Internal Audit Specialist': None,
+            'Leadership & organization': None,
+        }
+        for title, expected in cases.items():
+            found = title_level({'title': title})
+            self.assertEqual(found[1] if found else None, expected, title)
+
+    def test_seniority_penalty_is_mild_for_senior_and_grows_for_leadership(self):
+        def amount(title):
+            penalty = seniority_penalty({'title': title}, self.PROFILE)
+            return penalty['amount'] if penalty else 0.0
+        self.assertEqual(amount('Junior Product Manager'), 0.0)
+        self.assertEqual(amount('Product Manager'), 0.0)
+        senior, lead, director, vp = (amount(title) for title in (
+            'Senior Product Manager', 'Lead Product Manager', 'Director of Product', 'VP Product'))
+        self.assertTrue(0 < senior < lead < director < vp)
+        self.assertLessEqual(senior, 3.0)
+        self.assertGreater(amount('Werkstudent Produktmanagement'), 0.0)
+        self.assertIsNone(seniority_penalty({'title': 'Director of Product'}, {**self.PROFILE, 'seniority_levels': []}))
+        self.assertIsNone(seniority_penalty({'title': 'Senior Product Manager'},
+                                            {**self.PROFILE, 'seniority_levels': ['junior', 'senior']}))
+
+    def test_seniority_penalty_is_cited_in_the_ledger(self):
+        job = {**JOB, 'title': 'Director Technischer Sachbearbeiter'}
+        base = match_job_v3(JOB, self.PROFILE, analysis=ANALYSIS, evidence=evidence(0.6, 0.3, 0.5, 0.4))
+        result = match_job_v3(job, self.PROFILE, analysis=ANALYSIS, evidence=evidence(0.6, 0.3, 0.5, 0.4))
+        entry = next(entry for entry in result['explanation'] if entry['signal'] == 'penalty:seniority')
+        self.assertEqual(entry['job_quote'], 'Director')
+        self.assertLess(entry['contribution'], 0)
+        self.assertLess(result['score'], base['score'])
+        self.assertIn('Career level', ' '.join(result['soft_conflicts']))
 
 
 class EvidenceComputationTests(unittest.TestCase):

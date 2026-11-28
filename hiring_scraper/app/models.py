@@ -363,6 +363,15 @@ class UserProfile(Base):
         }
         preferences = {key: value for key, value in (self.preferences or {}).items()
                        if key in matching_fields}
+        # Roles from the German (and English) profile tab name the same targets in the other
+        # language: job titles are matched against both. Other translated text stays out.
+        localized_roles = {
+            language: roles for language, content in ((self.preferences or {}).get('localized_content') or {}).items()
+            if isinstance(content, dict) and (roles := {
+                field: content[field] for field in ('desired_roles', 'secondary_roles') if content.get(field)})
+        }
+        if localized_roles:
+            preferences['localized_content'] = localized_roles
         from hiring_scraper.app.tex_cv import cv_language_fallback, cv_career_fallback
         cv_facts = cv_career_fallback(self.cv)
         if cv_facts:
@@ -573,6 +582,8 @@ class JobAnalysisQueue(Base):
     retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     priority: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
     similarity: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # Plain E5 similarity before the title boost; orders the reserved exploration slots.
+    raw_similarity: Mapped[float | None] = mapped_column(Float, nullable=True)
     profile_set_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
 

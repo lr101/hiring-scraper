@@ -33,12 +33,18 @@ from sqlalchemy.orm import lazyload, selectinload
 
 from hiring_scraper.app import laptop_gpu, source_changes
 from hiring_scraper.app.analysis_gate import (
+    RULED_OUT_SIMILARITY,
+    analysis_rule_out,
     current_profile_set_hash,
+    explore_every,
     fresh_job_clause,
     min_similarity,
     potentially_german_workplace_clause,
+    prerank_order,
+    prerank_score,
     profile_embedding_hash,
     profile_embedding_text,
+    title_roles,
     user_intent_job_exists,
 )
 from hiring_scraper.app.board_scope import geographic_scope
@@ -52,7 +58,7 @@ from hiring_scraper.app.models import (
     ProfileEvidenceUnits, SemanticSearchDocument, UserProfile, utcnow,
 )
 from hiring_scraper.job_analysis import (
-    VERSION as ANALYSIS_VERSION, analysis_payload, job_line_entries, job_lines, result_hash, source_hash,
+    VERSION as ANALYSIS_VERSION, analysis_payload, job_line_entries, job_lines, prompt_lines, result_hash, source_hash,
 )
 from hiring_scraper.matching_v3.evidence import (
     UNITS_VERSION,
@@ -69,6 +75,7 @@ POLL_SECONDS = max(1.0, float(os.getenv('JOB_ANALYSIS_POLL_SECONDS', '5')))
 EVIDENCE_PAIRS_PER_CYCLE = max(1, int(os.getenv('JOB_ANALYSIS_EVIDENCE_PAIRS', '6')))
 PRERANK_BATCH_SIZE = max(50, int(os.getenv('JOB_ANALYSIS_PRERANK_BATCH', '500')))
 CANDIDATE_WINDOW = 400
+_SCORED_PICKS = 0  # scored LLM slots handed out by this process (exploration rotation)
 MAX_RETRY_HOURS = 24
 _DEFAULT_AREA = (49.0068705, 8.4034195, 15.0)
 _COUNTRY_LABELS = {'de', 'germany', 'deutschland'}
@@ -177,8 +184,9 @@ def _in_scope(job, areas) -> bool:
 
 
 def next_jobs_to_analyse(session, profiles, limit: int = 1) -> list[Job]:
-    """Next queued jobs for the LLM: priority/user-intent first, then gated fresh jobs
-    ordered by descending embedding similarity (preferring real local areas when set)."""
+    """Next queued jobs for the LLM: priority/user-intent first, then gated fresh jobs best
+    pre-rank score first (preferring real local areas when set). Every Nth scored slot is
+    ordered by plain E5 similarity, so fits whose title names no target role still get read."""
     now = utcnow()
     ready = or_(JobAnalysisQueue.retry_at.is_(None), JobAnalysisQueue.retry_at <= now)
     order_priority = (JobAnalysisQueue.similarity.desc().nulls_last(), Job.id.desc())
@@ -222,8 +230,8 @@ def next_jobs_to_analyse(session, profiles, limit: int = 1) -> list[Job]:
             select(Job).join(JobAnalysisQueue, JobAnalysisQueue.job_id == Job.id)
             .where(ready, fresh_job_clause(), potentially_german_workplace_clause())
             .options(selectinload(Job.locations))
-            .order_by(Job.id.desc())
         )
+        orders = {False: (Job.id.desc(),)}
     else:
         scored_base = (
             select(Job).join(JobAnalysisQueue, JobAnalysisQueue.job_id == Job.id)
@@ -236,23 +244,42 @@ def next_jobs_to_analyse(session, profiles, limit: int = 1) -> list[Job]:
                 potentially_german_workplace_clause(),
             )
             .options(selectinload(Job.locations))
-            .order_by(JobAnalysisQueue.similarity.desc(), Job.id.desc())
         )
+        orders = {False: (prerank_order(), Job.id.desc()), True: (prerank_order(explore=True), Job.id.desc())}
     areas = _areas(profiles)
-    if areas:
-        for job in session.scalars(scored_base.where(_nearby_condition(areas)).limit(CANDIDATE_WINDOW)):
-            if job.id not in seen and _in_scope(job, areas):
+
+    def take(explore: bool, count: int) -> None:
+        if count <= 0:
+            return
+        wanted = len(found) + count
+        ordered = scored_base.order_by(*orders[explore])
+        if areas:
+            for job in session.scalars(ordered.where(_nearby_condition(areas)).limit(CANDIDATE_WINDOW)):
+                if job.id not in seen and _in_scope(job, areas):
+                    found.append(job)
+                    seen.add(job.id)
+                    if len(found) >= wanted:
+                        return
+        for job in session.scalars(ordered.limit(count + len(seen))):
+            if job.id not in seen:
                 found.append(job)
                 seen.add(job.id)
-                if len(found) >= limit:
-                    return found[:limit]
-    for job in session.scalars(scored_base.limit(limit + len(seen))):
-        if job.id not in seen:
-            found.append(job)
-            seen.add(job.id)
-            if len(found) >= limit:
-                break
+                if len(found) >= wanted:
+                    return
+
+    slots = [_next_slot_explores() if True in orders else False for _ in range(limit - len(found))]
+    take(False, slots.count(False))
+    take(True, slots.count(True))
+    take(False, limit - len(found))  # an exploration slot with nothing new to explore
     return found[:limit]
+
+
+def _next_slot_explores() -> bool:
+    """Whether the next scored LLM slot is an exploration slot (every Nth, see ``explore_every``)."""
+    global _SCORED_PICKS
+    every = explore_every()
+    _SCORED_PICKS += 1
+    return every > 0 and _SCORED_PICKS % every == 0
 
 
 def _requeue_evidence(statement):
@@ -419,7 +446,9 @@ def refresh_profile_units_once(*, embed_fn=embed) -> bool:
 
 
 def refresh_prerank_scores_once(*, batch_size: int = PRERANK_BATCH_SIZE) -> int:
-    """Compute max profile cosine similarity for a bounded batch of queued postings.
+    """Pre-rank a bounded batch of queued postings: best profile E5 cosine similarity plus a
+    boost when the title names a target role (``prerank_score``). Postings that cheap rules
+    hide for every profile are ruled out instead (``analysis_rule_out``).
 
     Postings without a job embedding yet stay unscored until ``semantic_search_worker``
     indexes them; they neither block scored rows nor get dropped.
@@ -428,40 +457,63 @@ def refresh_prerank_scores_once(*, batch_size: int = PRERANK_BATCH_SIZE) -> int:
         profile_hash = current_profile_set_hash(session)
         if profile_hash is None:
             return 0
-        result = session.execute(
+        rows = session.execute(
             text("""
-                WITH to_score AS (
-                    SELECT q.job_id,
-                           (
-                               SELECT MAX(COALESCE(
-                                   NULLIF(1.0 - (jd.embedding <=> pd.embedding), 'NaN'::double precision),
-                                   0.0
-                               ))
-                                 FROM semantic_search_documents AS pd
-                                WHERE pd.entity_type = 'profile'
-                                  AND pd.model_revision = :model
-                           ) AS max_sim
-                      FROM job_analysis_queue AS q
-                      JOIN semantic_search_documents AS jd
-                        ON jd.entity_type = 'job'
-                       AND jd.entity_id = q.job_id
-                       AND jd.model_revision = :model
-                     WHERE q.profile_set_hash IS NULL
-                        OR q.profile_set_hash < :profile_hash
-                        OR q.profile_set_hash > :profile_hash
-                     LIMIT :batch_size
-                )
-                UPDATE job_analysis_queue AS q
-                   SET similarity = to_score.max_sim,
-                       profile_set_hash = :profile_hash
-                  FROM to_score
-                 WHERE q.job_id = to_score.job_id
-                   AND to_score.max_sim IS NOT NULL
+                SELECT q.job_id, q.queued_at,
+                       (
+                           SELECT MAX(COALESCE(
+                               NULLIF(1.0 - (jd.embedding <=> pd.embedding), 'NaN'::double precision),
+                               0.0
+                           ))
+                             FROM semantic_search_documents AS pd
+                            WHERE pd.entity_type = 'profile'
+                              AND pd.model_revision = :model
+                       ) AS max_sim
+                  FROM job_analysis_queue AS q
+                  JOIN semantic_search_documents AS jd
+                    ON jd.entity_type = 'job'
+                   AND jd.entity_id = q.job_id
+                   AND jd.model_revision = :model
+                 WHERE q.profile_set_hash IS NULL
+                    OR q.profile_set_hash < :profile_hash
+                    OR q.profile_set_hash > :profile_hash
+                 LIMIT :batch_size
             """),
             {'model': EMBEDDING_MODEL_KEY, 'profile_hash': profile_hash, 'batch_size': batch_size},
-        )
+        ).all()
+        rows = [row for row in rows if row.max_sim is not None]
+        if not rows:
+            return 0
+        scores = _prerank_scores(session, {row.job_id: row.max_sim for row in rows})
+        # A posting re-queued meanwhile (new ``queued_at``) keeps its reset score for the next batch.
+        for row in rows:
+            session.execute(
+                update(JobAnalysisQueue)
+                .where(JobAnalysisQueue.job_id == row.job_id, JobAnalysisQueue.queued_at == row.queued_at)
+                .values(similarity=scores[row.job_id], raw_similarity=row.max_sim, profile_set_hash=profile_hash))
         session.commit()
-        return int(result.rowcount or 0)
+        return len(rows)
+
+
+def _prerank_scores(session, similarities: dict[int, float]) -> dict[int, float]:
+    """Pre-rank score per posting; ``RULED_OUT_SIMILARITY`` for postings above the threshold
+    that cheap rules hide for every profile, so they never consume LLM time."""
+    profiles = _profiles(session)
+    roles = [title_roles(profile.matching_preferences) for profile in profiles]
+    jobs = session.scalars(select(Job).where(Job.id.in_(list(similarities)))
+                           .options(selectinload(Job.locations))).all()
+    threshold = min_similarity()
+    scores = dict(similarities)
+    reasons: dict[str, int] = {}
+    for job in jobs:
+        score = prerank_score(similarities[job.id], job.title or '', roles)
+        if score >= threshold and (reason := analysis_rule_out(job, profiles)):
+            score = RULED_OUT_SIMILARITY
+            reasons[reason] = reasons.get(reason, 0) + 1
+        scores[job.id] = score
+    if reasons:
+        LOG.info('Ruled out %d queued postings before LLM analysis: %s', sum(reasons.values()), reasons)
+    return scores
 
 
 # --- stage 2: job analysis ---------------------------------------------------------
@@ -478,7 +530,7 @@ def _analyse_fitting(lines: list[str], scopes: list[str], analyse) -> dict:
     keep = len(lines) - 1
     while True:
         try:
-            output = analyse(lines[:keep + 1]) if keep > 0 else ''
+            output = analyse(prompt_lines(lines, scopes)[:keep + 1]) if keep > 0 else ''
         except ModelRequestRejected:
             if keep <= MIN_TRIMMED_LINES:
                 raise
@@ -487,6 +539,27 @@ def _analyse_fitting(lines: list[str], scopes: list[str], analyse) -> dict:
             continue
         # Line numbers stay valid: only the tail was cut, and the full lines are stored.
         return analysis_payload(lines, output, scopes)
+
+
+def _reusable_payload(session, job, lines: list[str], scopes: list[str], digest: str) -> dict | None:
+    """A current analysis of identical posting text, so the LLM never reads the same posting
+    twice: the same text on another board, or the same description under another title (one
+    posting per city). The title line never yields items, so only the stored lines change."""
+    same_text = (select(JobAnalysis.job_id, JobAnalysis.payload)
+                 .where(JobAnalysis.source_hash == digest, JobAnalysis.job_id != job.id))
+    same_description = (select(JobAnalysis.job_id, JobAnalysis.payload)
+                        .join(Job, Job.id == JobAnalysis.job_id)
+                        .where(Job.feed_id == job.feed_id, Job.id != job.id,
+                               Job.description == job.description))
+    for statement in (same_text, same_description):
+        for source_id, stored in session.execute(statement.where(
+                JobAnalysis.version == ANALYSIS_VERSION, JobAnalysis.status == 'ok').limit(5)):
+            if isinstance(stored, dict) and stored.get('lines', [None])[1:] == lines[1:] and len(lines) > 1:
+                payload = {**stored, 'lines': lines, 'scopes': scopes, 'reused_from': source_id}
+                payload['duties'] = [item for item in stored.get('duties') or [] if item.get('line', 0) > 0]
+                payload['requirements'] = [item for item in stored.get('requirements') or [] if item.get('line', 0) > 0]
+                return payload
+    return None
 
 
 def _luna_selected(injected: bool) -> bool:
@@ -500,7 +573,7 @@ def _analyse(lines: list[str], scopes: list[str], analyse) -> dict:
     An unreachable model raises ``OSError`` so the job stays queued."""
     if _luna_selected(analyse is not analyse_lines):
         from hiring_scraper.app import remote_matching
-        payload = analysis_payload(lines, remote_matching.analyse_lines(lines), scopes)
+        payload = analysis_payload(lines, remote_matching.analyse_lines(prompt_lines(lines, scopes)), scopes)
         payload['provider'] = 'luna'
         return payload
     return _analyse_fitting(lines, scopes, analyse)
@@ -564,11 +637,12 @@ def analyse_job(job_id: int, *, analyse=analyse_lines) -> int:
         queued_at = session.scalar(select(JobAnalysisQueue.queued_at).where(JobAnalysisQueue.job_id == job_id))
         previous = session.get(JobAnalysis, job_id)
         attempts = previous.attempts if previous is not None and previous.version == ANALYSIS_VERSION else 0
-    lines, scopes = [line for line, _ in entries], [scope for _, scope in entries]
-    digest = source_hash(lines)
+        lines, scopes = [line for line, _ in entries], [scope for _, scope in entries]
+        digest = source_hash(lines)
+        reused = _reusable_payload(session, job, lines, scopes, digest)
     started = time.monotonic()
     try:
-        payload = _analyse(lines, scopes, analyse)
+        payload = reused if reused is not None else _analyse(lines, scopes, analyse)
         error = None
     except OSError:
         raise  # Model container down: the caller pauses this stage, the job stays queued.
@@ -615,7 +689,9 @@ def analyse_job(job_id: int, *, analyse=analyse_lines) -> int:
         row.analysed_at = utcnow()
         source_changes.analysis_changed(session, [job_id])
         session.commit()
-    if payload is not None:
+    if reused is not None:
+        LOG.info('Reused the analysis of job %d for identical job %d', reused['reused_from'], job_id)
+    elif payload is not None:
         LOG.info('Analysed job %d in %.0fs: %d duties, %d requirements', job_id, time.monotonic() - started,
                  len(payload['duties']), len(payload['requirements']))
     else:

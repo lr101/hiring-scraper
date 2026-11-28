@@ -333,7 +333,7 @@ def _save_vectors(rows: list[tuple[str, int]], token: str | None,
             session.execute(
                 update(JobAnalysisQueue)
                 .where(JobAnalysisQueue.job_id.in_(live_jobs), JobAnalysisQueue.profile_set_hash.is_not(None))
-                .values(similarity=None, profile_set_hash=None)
+                .values(similarity=None, raw_similarity=None, profile_set_hash=None)
             )
         if token:
             for entity_type, entity_id in rows:

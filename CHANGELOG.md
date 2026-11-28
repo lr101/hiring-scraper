@@ -10,6 +10,11 @@ no historical releases have been reconstructed.
 
 ## [Unreleased]
 
+### Changed
+
+- Local LLM capacity goes to the postings most likely to matter, since the queue holds far more postings than the model can read in their 14-day window. Pre-ranking adds up to `0.06` when a title names a target role (desired roles in full; secondary roles, past titles and partial matches less), matching German and English role words both ways and using roles from both profile tabs. Fresher postings win near-ties (`0.003` per day since first seen), and every fourth pick (`RADIUS_ANALYSIS_EXPLORE_EVERY`) takes the best plain similarity so fits with an unusual title are still read. Pre-ranking also rules out postings the LLM cannot help with: no description, every workplace clearly outside `RADIUS_ANALYSIS_COUNTRY` (default `DE`; this also uses the location parser's country and coordinate evidence, on top of the clearly-foreign skip), or hidden for every profile by the eligibility gates. A posting whose text matches one already analysed (also the same description under another title in the same feed) reuses that analysis, and benefit, company and application lines are no longer sent to the model. Settings shows how many lower-ranked postings will likely age out unread at the current pace. Migration `0048` adds `job_analysis_queue.raw_similarity`.
+- Match scores: the role part counts fully for desired roles, 85 % for secondary roles, 70 % for past job titles and 40 % for past titles with an excluded term; a title level above or below your chosen seniority lowers the score a little (more for leadership roles); and weak matches spread over 0–30 instead of crowding at 27–33. The matcher version is now `v3-evidence-4`, so every profile is rescored once from the stored analyses (no model calls).
+
 ### Fixed
 
 - Automatic job analysis skips postings with clearly foreign-only workplaces, saving LLM capacity for jobs that could be based in Germany. Priority analysis still runs when you open or save a posting.

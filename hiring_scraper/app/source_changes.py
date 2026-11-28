@@ -138,6 +138,7 @@ def _mark_stale_analyses(session: Session, jobs: list[Job]) -> None:
                 'queued_at': statement.excluded.queued_at,
                 'priority': or_(JobAnalysisQueue.priority, statement.excluded.priority),
                 'similarity': None,
+                'raw_similarity': None,
                 'profile_set_hash': None,
             },
         ))
