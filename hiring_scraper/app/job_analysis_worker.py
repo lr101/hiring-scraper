@@ -39,6 +39,7 @@ from hiring_scraper.app.analysis_gate import (
     explore_every,
     fresh_job_clause,
     min_similarity,
+    potentially_german_workplace_clause,
     prerank_order,
     prerank_score,
     profile_embedding_hash,
@@ -227,7 +228,7 @@ def next_jobs_to_analyse(session, profiles, limit: int = 1) -> list[Job]:
             return found
         scored_base = (
             select(Job).join(JobAnalysisQueue, JobAnalysisQueue.job_id == Job.id)
-            .where(ready, fresh_job_clause())
+            .where(ready, fresh_job_clause(), potentially_german_workplace_clause())
             .options(selectinload(Job.locations))
         )
         orders = {False: (Job.id.desc(),)}
@@ -240,6 +241,7 @@ def next_jobs_to_analyse(session, profiles, limit: int = 1) -> list[Job]:
                 JobAnalysisQueue.similarity >= threshold,
                 ready,
                 fresh_job_clause(),
+                potentially_german_workplace_clause(),
             )
             .options(selectinload(Job.locations))
         )

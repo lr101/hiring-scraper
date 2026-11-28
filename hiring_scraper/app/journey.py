@@ -223,11 +223,13 @@ def _analysis_backlog(session, profile_ids) -> int:
 
 def analysis_progress(session, profile_ids) -> dict[str, Any]:
     """Local model progress over active postings: gated postings read by the LLM,
-    postings skipped by age, similarity or rule-out, queued postings the current pace will
-    not reach before they age out, and profile matches scored by the reranker."""
+    postings skipped by the automatic gates (age, workplace, similarity or rule-out), queued
+    postings the current pace will not reach before they age out, and profile matches scored
+    by the reranker."""
     from sqlalchemy import exists
     from hiring_scraper.app.analysis_gate import (
-        fresh_job_clause, max_age_days, min_similarity, queue_row_eligible_clause,
+        fresh_job_clause, max_age_days, min_similarity, potentially_german_workplace_clause,
+        queue_row_eligible_clause,
     )
     from hiring_scraper.app.match_documents import USABLE_ANALYSIS_STATUSES
     from hiring_scraper.app.models import JobAnalysis, MatchEvidence, MatchEvidenceQueue
@@ -253,6 +255,7 @@ def analysis_progress(session, profile_ids) -> dict[str, Any]:
         ~gated_in,
         ~has_analysis,
         fresh_job_clause(max_days=max_days),
+        potentially_german_workplace_clause(),
         JobAnalysisQueue.similarity.is_(None),
     )
     waiting = session.execute(

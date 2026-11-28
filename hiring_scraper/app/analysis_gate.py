@@ -1,4 +1,4 @@
-"""Freshness, embedding pre-rank, and user-intent gate for local LLM job analysis.
+"""Freshness, workplace, embedding pre-rank, and user-intent gates for job analysis.
 
 Every enqueue path, startup reconciliation, worker selection, and progress counter
 uses these helpers so gated-out postings neither consume LLM time nor inflate
@@ -15,8 +15,9 @@ from datetime import timedelta
 from sqlalchemy import Integer, and_, cast, exists, func, literal_column, not_, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
+from hiring_scraper.app.job_location_scope import germany_bounds
 from hiring_scraper.app.models import (
-    Job, JobAnalysis, JobAnalysisQueue, JobApplication, SemanticSearchDocument, UserProfile, utcnow,
+    Job, JobAnalysis, JobAnalysisQueue, JobApplication, JobLocation, SemanticSearchDocument, UserProfile, utcnow,
 )
 from hiring_scraper.job_analysis import VERSION as ANALYSIS_VERSION
 from hiring_scraper.matching_v3.profile_text import profile_roles, profile_sources
@@ -30,6 +31,15 @@ DEFAULT_MAX_AGE_DAYS = 14
 # descending similarity order keeps the ~800/day LLM budget on the best candidates.
 DEFAULT_MIN_SIMILARITY = 0.80
 ISO_DATE_PREFIX_PG = r'^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+# Free-text evidence is limited to a named country or a single city, country pair.
+# Two-letter tokens in unstructured text could be state or region abbreviations.
+_FOREIGN_COUNTRY = (
+    r"^([[:alpha:][:blank:].’'-]+,[[:blank:]]*)?"
+    r'(australia|austria|belgium|brazil|canada|china|costa rica|denmark|finland|france|'
+    r'india|ireland|israel|italy|japan|mexico|netherlands|new zealand|norway|philippines|'
+    r'poland|portugal|spain|sweden|switzerland|taiwan|united kingdom|united states|usa)$'
+)
+_AMBIGUOUS_LOCATION = r'[/;|&+\n]|\m(and|or|und|oder|remote|anywhere|worldwide|germany|deutschland|de)\M'
 # Pre-rank score stored for a posting that cheap rules rule out (see ``analysis_rule_out``):
 # below any configurable threshold, so it is skipped exactly like a low-similarity posting.
 RULED_OUT_SIMILARITY = -2.0
@@ -249,6 +259,46 @@ def user_intent_job_exists(job_id_col=Job.id):
     ))
 
 
+def potentially_german_workplace_clause():
+    """Keep jobs unless every stated workplace provides positive foreign evidence."""
+    location_text = func.btrim(func.coalesce(Job.location_text, ''))
+    label = func.btrim(JobLocation.label)
+    code = func.upper(func.btrim(func.coalesce(JobLocation.country_code, '')))
+    evidence = [code.op('~')(r'^[A-Z]{2}$') & code.not_in(('DE', 'EU', 'XX', 'ZZ'))]
+    if bounds := germany_bounds():
+        west, south, east, north = bounds
+        evidence.append(and_(
+            code == '',
+            JobLocation.precision == 'source_coordinates',
+            JobLocation.latitude.between(-90, 90),
+            JobLocation.longitude.between(-180, 180),
+            or_(JobLocation.latitude != 0, JobLocation.longitude != 0),
+            not_(and_(JobLocation.latitude.between(south, north),
+                      JobLocation.longitude.between(west, east))),
+        ))
+    evidence.append(and_(code != 'DE', label.op('~*')(_FOREIGN_COUNTRY)))
+    locations = select(1).where(JobLocation.job_id == Job.id).correlate(Job)
+    foreign_locations = and_(
+        locations.exists(),
+        ~locations.where(or_(label.op('~*')(_AMBIGUOUS_LOCATION),
+                             func.coalesce(JobLocation.precision == 'company_address', False),
+                             ~func.coalesce(or_(*evidence), False))).exists(),
+    )
+    raw_foreign = and_(location_text.op('!~*')(_AMBIGUOUS_LOCATION),
+                       location_text.op('~*')(_FOREIGN_COUNTRY))
+    foreign_only = or_(
+        and_(raw_foreign, ~locations.exists()),
+        # A separate raw location can advertise an additional workplace.
+        and_(foreign_locations, or_(
+            location_text == '',
+            raw_foreign,
+            locations.where(func.lower(label) == func.lower(location_text)).exists(),
+        )),
+    )
+    return or_(Job.is_remote.is_(True), Job.work_arrangement.is_not_distinct_from('remote'),
+               ~foreign_only)
+
+
 def queue_row_eligible_clause(
     *,
     max_days: int | None = None,
@@ -261,6 +311,7 @@ def queue_row_eligible_clause(
     override = or_(JobAnalysisQueue.priority.is_(True), user_intent_job_exists(JobAnalysisQueue.job_id))
     scored = [
         fresh_job_clause(max_days=max_days),
+        potentially_german_workplace_clause(),
         JobAnalysisQueue.similarity.is_not(None),
         JobAnalysisQueue.similarity >= threshold,
     ]
@@ -272,7 +323,7 @@ def queue_row_eligible_clause(
 
 
 def enqueue_priority_analysis(session, job_id: int) -> None:
-    """Queue a job with priority override so it bypasses age and similarity gates."""
+    """Queue a job with priority override so it bypasses the automatic gates."""
     statement = pg_insert(JobAnalysisQueue).values(
         job_id=job_id,
         queued_at=utcnow(),
