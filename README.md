@@ -139,17 +139,40 @@ covering all of Germany, automatic analysis applies a two-stage gate:
   the posting's `intfloat/multilingual-e5-small` embedding and each profile's
   embedding. `0.80` matches the lower relevance band of `multilingual-e5-small`
   (whose cosine similarities sit roughly in `0.75–0.93`, with unrelated postings
-  typically below `0.80`). Postings below the threshold are skipped, while
-  eligible postings run in descending similarity order (still preferring in-area
-  roles when a profile has a local radius). Postings waiting for their first
-  embedding wait without blocking the queue.
+  typically below `0.80`). A title that names a target role adds up to `0.06`
+  (desired role in full; secondary roles, past titles and partial matches less),
+  because whole-posting similarity alone ranks unrelated postings close to real
+  fits. Postings below the threshold are skipped, while eligible postings run
+  best-first, losing `0.003` per day since first seen so fresher postings, which
+  stay open longer, win near-ties (still preferring in-area roles when a profile
+  has a local radius). Roles from both profile tabs count, and common German and
+  English role words match each other ("Produktmanager" names "Product Manager").
+  Every fourth pick (`RADIUS_ANALYSIS_EXPLORE_EVERY`, default `4`, `0` disables)
+  ignores the title boost and takes the best plain similarity, so fits whose title
+  names no target role are still read. Postings waiting for their first embedding
+  wait without blocking the queue.
+- **Cheap rule-out**: a posting above the threshold is still skipped when the
+  model would have nothing to change: it has no description, every stated
+  workplace is outside `RADIUS_ANALYSIS_COUNTRY` (default `DE`; empty disables;
+  only a named foreign country, a foreign country code or coordinates count, never
+  an unrecognised town), or the eligibility gates (excluded title terms, explicit
+  language, location or work-permit conflicts) hide it for every profile. These
+  count as skipped and are checked again after a profile edit or job change.
+- **No repeated reads**: a posting whose text matches one already analysed (the
+  same text elsewhere, or the same description under another title in the same
+  feed, such as one posting per city) reuses that analysis. Lines under benefit,
+  company or application headings are left out of the prompt, since their items
+  are dropped anyway.
+- **Reach**: when the queue is longer than the last day's pace can cover in the
+  age window, Settings shows how many lower-ranked postings will likely age out
+  unread, and the time left covers only the postings the queue will reach.
 - **User-intent override**: postings you save, move to any non-automatic Journey
   stage, or open on the job page are queued with priority and analysed regardless
-  of age or similarity.
+  of age, similarity or the rule-out.
 
 **Settings** shows **Local matching progress** for gated postings, profile
 matches, last-hour throughput, ETA, and a muted count of postings skipped due to
-age or low similarity. After a job or CV edit, the previous result stays visible
+age, low similarity or the rule-out. After a job or CV edit, the previous result stays visible
 (marked as updating) until the new analysis replaces it, and gate changes
 (profile edits, new profiles, or threshold updates) re-score eligible postings
 automatically. Results are stored per profile/job in `profile_job_matches`; the

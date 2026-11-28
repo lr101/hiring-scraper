@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 
-export type ProgressCounts = { done: number; queued: number; retrying: number; failed?: number; skipped?: number; last_hour: number }
+export type ProgressCounts = {
+  done: number; queued: number; retrying: number; failed?: number; skipped?: number; last_hour: number
+  last_day?: number; out_of_reach?: number
+}
 export type AnalysisProgressData = { postings: ProgressCounts; matches: ProgressCounts; checked_at: string }
 
 const count = new Intl.NumberFormat('en')
@@ -16,9 +19,10 @@ function waiting(row: ProgressCounts) {
   return row.queued + row.retrying
 }
 
-/** Rough time left at the last hour's pace, or null when there is no pace yet. */
+/** Rough time left at the last hour's pace for the postings the queue will reach, or null
+ *  when there is no pace yet. Lower-ranked postings beyond reach age out instead. */
 export function remainingLabel(row: ProgressCounts): string | null {
-  const left = waiting(row)
+  const left = waiting(row) - (row.out_of_reach ?? 0)
   if (!left) return null
   if (!row.last_hour) return 'starting…'
   const minutes = Math.ceil((left / row.last_hour) * 60)
@@ -55,8 +59,11 @@ function ProgressRow({ label, row, unit }: { label: string; row: ProgressCounts;
       {row.last_hour > 0 && <span>{count.format(row.last_hour)} in the last hour</span>}
       {remaining && <span>{remaining}</span>}
     </p>
+    {(row.out_of_reach ?? 0) > 0 && <p className="analysis-progress-skipped">
+      Best matches first: at {count.format(row.last_day ?? 0)} a day, the lowest-ranked {count.format(row.out_of_reach ?? 0)} will likely age out unread
+    </p>}
     {skipped > 0 && <p className="analysis-progress-skipped">
-      {count.format(skipped)} skipped (older or low similarity)
+      {count.format(skipped)} skipped (older, low similarity or ruled out)
     </p>}
   </div>
 }

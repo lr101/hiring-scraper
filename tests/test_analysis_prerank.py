@@ -56,6 +56,7 @@ class AnalysisPrerankTests(unittest.TestCase):
 
         self.patches = [
             patch.object(worker, 'SessionLocal', self.factory),
+            patch.object(worker, '_SCORED_PICKS', 0),  # exploration rotation starts fresh per test
             patch.object(semantic_search_worker, 'SessionLocal', self.factory),
         ]
         for item in self.patches:
@@ -83,21 +84,25 @@ class AnalysisPrerankTests(unittest.TestCase):
         enqueue: bool = True,
         location: tuple[str, float, float] | None = None,
         is_active: bool = True,
+        locations: list[tuple[str, str | None, float, float]] = (),
+        **fields,
     ) -> int:
         with self.factory.begin() as session:
             job = models.Job(
                 feed_id=self.feed_id,
                 external_id=ext_id,
-                title=f'Role {ext_id}',
                 url=f'https://example.test/{ext_id}',
-                description='Build Python services.\nExperience with PostgreSQL.',
                 date_posted=date_posted,
                 first_seen_at=first_seen_at or utcnow(),
                 is_active=is_active,
+                **{'title': f'Role {ext_id}', 'description': 'Build Python services.\nExperience with PostgreSQL.',
+                   **fields},
             )
             if location is not None:
                 label, lat, lon = location
                 job.locations.append(models.JobLocation(label=label, latitude=lat, longitude=lon, country_code='DE'))
+            job.locations.extend(models.JobLocation(label=label, latitude=lat, longitude=lon, country_code=code)
+                                 for label, code, lat, lon in locations)
             session.add(job)
             session.flush()
             if vector is not None:
@@ -167,6 +172,61 @@ class AnalysisPrerankTests(unittest.TestCase):
         self.assertEqual(worker.refresh_prerank_scores_once(), 1)
         self.assertEqual(worker.analyse_next_job(analyse=lambda _lines: LLM_OUTPUT), unembedded_id)
         self.assertIsNone(worker.analyse_next_job(analyse=lambda _lines: LLM_OUTPUT))
+
+    def test_title_naming_a_target_role_and_freshness_lift_the_queue_order(self):
+        plain_id = self._add_job('plain', vector=_unit_vec(0.86))
+        named_id = self._add_job('named', vector=_unit_vec(0.83), title='Senior Backend Engineer (m/w/d)')
+        partial_id = self._add_job('partial', vector=_unit_vec(0.85), title='Backend Developer')
+        older_id = self._add_job('older', vector=_unit_vec(0.87), first_seen_at=utcnow() - timedelta(days=6))
+
+        self.assertEqual(worker.refresh_prerank_scores_once(), 4)
+        with self.factory() as session:
+            stored = session.get(models.JobAnalysisQueue, named_id).similarity
+        self.assertAlmostEqual(stored, 0.89, places=3)  # 0.83 + the full title boost
+        analysed = []
+        while (job_id := worker.analyse_next_job(analyse=lambda _lines: LLM_OUTPUT)) is not None:
+            analysed.append(job_id)
+        # Full title match first; one of two role words lifts less; six days cost the older posting its lead.
+        self.assertEqual(analysed, [named_id, partial_id, plain_id, older_id])
+
+    def test_every_fourth_slot_reads_the_best_plain_similarity_despite_title_boosts(self):
+        named = [self._add_job(f'named-{index}', vector=_unit_vec(0.82 + index / 100), title='Backend Engineer')
+                 for index in range(4)]
+        hidden_fit_id = self._add_job('hidden-fit', vector=_unit_vec(0.87), title='Platform Specialist')
+        self.assertEqual(worker.refresh_prerank_scores_once(), 5)
+        with self.factory() as session:
+            raw = session.get(models.JobAnalysisQueue, hidden_fit_id).raw_similarity
+        self.assertAlmostEqual(raw, 0.87, places=3)
+
+        analysed = [worker.analyse_next_job(analyse=lambda _lines: LLM_OUTPUT) for _ in range(4)]
+        # Boosted titles (0.88-0.91) outrank the untitled fit (0.87), but the fourth slot
+        # goes to the best plain similarity.
+        self.assertEqual(analysed, [named[3], named[2], named[1], hidden_fit_id])
+        with patch.dict(os.environ, {'RADIUS_ANALYSIS_EXPLORE_EVERY': '0'}):
+            self.assertEqual(worker.analyse_next_job(analyse=lambda _lines: LLM_OUTPUT), named[0])
+
+    def test_identical_posting_text_is_analysed_once(self):
+        first_id = self._add_job('first', vector=_unit_vec(0.95))
+        copy_id = self._add_job('copy', vector=_unit_vec(0.94), title='Role first')
+        other_city_id = self._add_job('other-city', vector=_unit_vec(0.93), title='Role first (Hamburg)')
+        different_id = self._add_job('different', vector=_unit_vec(0.92), description='Plan Python services.\nExperience with MySQL.')
+        self.assertEqual(worker.refresh_prerank_scores_once(), 4)
+
+        calls = []
+        while worker.analyse_next_job(analyse=lambda lines: calls.append(lines) or LLM_OUTPUT) is not None:
+            pass
+        self.assertEqual(len(calls), 2)  # first and different; both copies reuse the first analysis
+        with self.factory() as session:
+            analyses = {row.job_id: row for row in session.scalars(select(models.JobAnalysis))}
+            evidence = {row.job_id for row in session.scalars(select(models.MatchEvidenceQueue))}
+        self.assertEqual({job_id: row.status for job_id, row in analyses.items()},
+                         dict.fromkeys((first_id, copy_id, other_city_id, different_id), 'ok'))
+        reused = analyses[other_city_id].payload
+        self.assertEqual(reused['lines'][0], 'Job title: Role first (Hamburg)')
+        self.assertEqual(reused['duties'], analyses[first_id].payload['duties'])
+        self.assertEqual(reused['reused_from'], first_id)
+        self.assertNotEqual(analyses[other_city_id].result_hash, analyses[first_id].result_hash)
+        self.assertLessEqual({copy_id, other_city_id}, evidence)
 
     def test_local_area_preference_still_applies_for_real_area_only(self):
         with self.factory.begin() as session:
@@ -316,6 +376,49 @@ class AnalysisPrerankTests(unittest.TestCase):
 
         self.assertEqual(worker.refresh_prerank_scores_once(), 1)
         self.assertEqual(worker.analyse_next_job(analyse=lambda _lines: LLM_OUTPUT), job_id)
+
+    def test_cheap_rules_keep_hidden_postings_from_the_llm(self):
+        with self.factory.begin() as session:
+            profile = session.get(models.UserProfile, self.profile_id)
+            profile.preferences = {**profile.preferences, 'excluded_terms': ['Werkstudent']}
+            profile.source_version += 1
+        kept_id = self._add_job('kept', vector=_unit_vec(0.95))
+        # A small German town the gazetteer may not know is never treated as abroad.
+        german_town_id = self._add_job('german-town', vector=_unit_vec(0.94), location_text='Pfinztal')
+        foreign_id = self._add_job('foreign', vector=_unit_vec(0.93), location_text='Cebu',
+                                   locations=[('Cebu', 'PH', 10.3, 123.9)])
+        empty_id = self._add_job('empty', vector=_unit_vec(0.92), description='')
+        excluded_id = self._add_job('excluded', vector=_unit_vec(0.91), title='Werkstudent Backend Engineer')
+        saved_foreign_id = self._add_job('saved-foreign', vector=_unit_vec(0.90), location_text='Kraków, Poland')
+        with self.factory.begin() as session:
+            session.get(models.JobAnalysisQueue, saved_foreign_id).priority = True  # saved or opened by the user
+
+        self.assertEqual(worker.refresh_prerank_scores_once(), 6)
+        with self.factory() as session:
+            similarity = dict(session.execute(select(models.JobAnalysisQueue.job_id,
+                                                     models.JobAnalysisQueue.similarity)).all())
+            progress = journey.analysis_progress(session, [self.profile_id])
+        for job_id in (foreign_id, empty_id, excluded_id, saved_foreign_id):
+            self.assertEqual(similarity[job_id], -2.0)
+        self.assertGreater(similarity[german_town_id], 0.9)
+        self.assertEqual(progress['postings']['skipped'], 3)
+
+        analysed = []
+        while (job_id := worker.analyse_next_job(analyse=lambda _lines: LLM_OUTPUT)) is not None:
+            analysed.append(job_id)
+        # User intent still overrides every rule; ruled-out rows stay queued for a later re-check.
+        self.assertEqual(analysed, [saved_foreign_id, kept_id, german_town_id])
+        with self.factory() as session:
+            self.assertIsNotNone(session.get(models.JobAnalysisQueue, excluded_id))
+
+        # A profile edit changes the profile set hash, so ruled-out postings are checked again.
+        with self.factory.begin() as session:
+            profile = session.get(models.UserProfile, self.profile_id)
+            profile.preferences = {**profile.preferences, 'excluded_terms': []}
+            profile.source_version += 1
+        self.assertEqual(worker.refresh_prerank_scores_once(), 3)
+        self.assertEqual(worker.analyse_next_job(analyse=lambda _lines: LLM_OUTPUT), excluded_id)
+        self.assertIsNone(worker.analyse_next_job(analyse=lambda _lines: LLM_OUTPUT))
 
     def test_deleting_profile_purges_its_semantic_document_via_trigger(self):
         with self.factory.begin() as session:

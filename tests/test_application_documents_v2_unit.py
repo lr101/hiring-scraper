@@ -384,7 +384,9 @@ class MigrationAndEvalGuardTests(unittest.TestCase):
         cfg = Config()
         cfg.set_main_option('script_location', 'hiring_scraper/app/migrations')
         script = ScriptDirectory.from_config(cfg)
-        self.assertEqual(script.get_heads(), ['0047_analysis_prerank'])
+        self.assertEqual(script.get_heads(), ['0048_analysis_raw_similarity'])
+        self.assertEqual(script.get_revision('0048_analysis_raw_similarity').down_revision,
+                         '0047_analysis_prerank')
         self.assertEqual(script.get_revision('0047_analysis_prerank').down_revision,
                          '0046_job_location_scope')
         self.assertEqual(script.get_revision('0046_job_location_scope').down_revision,

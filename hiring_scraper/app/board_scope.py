@@ -423,6 +423,36 @@ def _remote_scope(job):
     return set(), False
 
 
+def workplace_outside_country(job, country) -> bool:
+    """True only when the posting states where the work happens and none of it is in
+    ``country``: every listed workplace is abroad, or a remote posting is restricted to
+    other countries. Missing or generic locations are never evidence of being abroad.
+    Same rules as ``geographic_scope`` for a country search."""
+    country = country_code(country)
+    if not country:
+        return False
+    if fully_remote(job):
+        countries, unresolved_restriction = _remote_scope(job)
+        return bool(unresolved_restriction or countries and country not in countries)
+    meaningful = [entry for entry in _work_location_text_evidence(job) if not _location_text_is_unspecified(entry[0])]
+    if not meaningful:
+        return False
+    for value, location_country, latitude, longitude in meaningful:
+        text_countries = location_text_countries(value)
+        if country in text_countries or location_country == country:
+            return False
+        if country == 'DE' and (location_text_states(value) or _location_state(location_country, latitude, longitude)):
+            return False
+        # An unrecognised place name (a small German town missing from the gazetteer) is
+        # not evidence of being abroad; only a named foreign country, a foreign country
+        # code or coordinates are.
+        abroad = (bool(text_countries) or bool(location_country)
+                  or (country == 'DE' and latitude is not None and longitude is not None))
+        if not abroad:
+            return False
+    return True
+
+
 def remote_countries(job):
     return _remote_scope(job)[0]
 

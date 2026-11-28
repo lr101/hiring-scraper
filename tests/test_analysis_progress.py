@@ -70,7 +70,8 @@ class AnalysisProgressTests(unittest.TestCase):
 
         progress = journey.analysis_progress(self.session, [self.profile.id])
         self.assertEqual(progress['postings'],
-                         {'done': 2, 'queued': 2, 'retrying': 1, 'failed': 1, 'skipped': 0, 'last_hour': 2})
+                         {'done': 2, 'queued': 2, 'retrying': 1, 'failed': 1, 'skipped': 0, 'last_hour': 2,
+                          'last_day': 3, 'out_of_reach': 0})
         # old is re-queued, so only read counts as done; the other profile's pairs are excluded.
         self.assertEqual(progress['matches'], {'done': 1, 'queued': 2, 'retrying': 1, 'last_hour': 2})
 
@@ -91,7 +92,8 @@ class AnalysisProgressTests(unittest.TestCase):
         progress = journey.analysis_progress(self.session, [self.profile.id])
         # eligible + old_but_priority are queued; low_sim + too_old are skipped; awaiting is neither.
         self.assertEqual(progress['postings'],
-                         {'done': 0, 'queued': 2, 'retrying': 0, 'failed': 0, 'skipped': 2, 'last_hour': 0})
+                         {'done': 0, 'queued': 2, 'retrying': 0, 'failed': 0, 'skipped': 2, 'last_hour': 0,
+                          'last_day': 0, 'out_of_reach': 0})
 
     def test_endpoint_validates_profiles(self):
         from fastapi import HTTPException

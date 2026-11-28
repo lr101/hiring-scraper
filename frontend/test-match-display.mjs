@@ -74,12 +74,20 @@ try {
   assert.match(progress, /class="is-done" style="width:75%"/)
   assert.match(progress, /90 queued · 6 retrying later · 4 failed/)
   assert.match(progress, /about 3 h left/)
-  assert.match(progress, /class="analysis-progress-skipped">12,500 skipped \(older or low similarity\)<\/p>/)
+  assert.match(progress, /class="analysis-progress-skipped">12,500 skipped \(older, low similarity or ruled out\)<\/p>/)
   assert.doesNotMatch(progress, /is-skipped/)
   assert.match(progress, /Matches scored.*<b>120<\/b> of 120 profile matches/)
   assert.equal(remainingLabel({ done: 0, queued: 5, retrying: 0, last_hour: 0 }), 'starting…')
   assert.equal(remainingLabel({ done: 5, queued: 10, retrying: 0, last_hour: 60 }), 'about 10 min left')
   assert.equal(remainingLabel({ done: 5, queued: 0, retrying: 0, skipped: 9999, last_hour: 60 }), null)
+  // A queue larger than the freshness window at the current pace: the time left covers only
+  // the postings it will reach, and the rest is shown as likely ageing out.
+  assert.equal(remainingLabel({ done: 5, queued: 100_000, retrying: 0, last_hour: 60, last_day: 1400, out_of_reach: 80_400 }),
+    'about 14 days left')
+  const backlog = renderToStaticMarkup(React.createElement(AnalysisProgressView, { data: {
+    checked_at: '', postings: { done: 5, queued: 100000, retrying: 0, last_hour: 60, last_day: 1400, out_of_reach: 80400 },
+    matches: { done: 0, queued: 0, retrying: 0, last_hour: 0 } } }))
+  assert.match(backlog, /Best matches first: at 1,400 a day, the lowest-ranked 80,400 will likely age out unread/)
   const idle = renderToStaticMarkup(React.createElement(AnalysisProgressView, { data: {
     checked_at: '', postings: { done: 3, queued: 0, retrying: 0, failed: 0, skipped: 0, last_hour: 0 },
     matches: { done: 3, queued: 0, retrying: 0, last_hour: 0 } } }))

@@ -223,7 +223,8 @@ def _analysis_backlog(session, profile_ids) -> int:
 
 def analysis_progress(session, profile_ids) -> dict[str, Any]:
     """Local model progress over active postings: gated postings read by the LLM,
-    postings skipped by age or similarity, and profile matches scored by the reranker."""
+    postings skipped by age, similarity or rule-out, queued postings the current pace will
+    not reach before they age out, and profile matches scored by the reranker."""
     from sqlalchemy import exists
     from hiring_scraper.app.analysis_gate import (
         fresh_job_clause, max_age_days, min_similarity, queue_row_eligible_clause,
@@ -243,6 +244,8 @@ def analysis_progress(session, profile_ids) -> dict[str, Any]:
         select(func.count().filter(JobAnalysis.status.in_(USABLE_ANALYSIS_STATUSES), ~in_gated_queue),
                func.count().filter(JobAnalysis.status == 'failed', ~in_gated_queue),
                func.count().filter(JobAnalysis.analysed_at >= hour_ago,
+                                   JobAnalysis.status.in_(USABLE_ANALYSIS_STATUSES)),
+               func.count().filter(JobAnalysis.analysed_at >= now - timedelta(days=1),
                                    JobAnalysis.status.in_(USABLE_ANALYSIS_STATUSES)))
         .select_from(JobAnalysis).join(Job, Job.id == JobAnalysis.job_id).where(active)).one()
     has_analysis = exists().where(JobAnalysis.job_id == JobAnalysisQueue.job_id)
@@ -260,6 +263,7 @@ def analysis_progress(session, profile_ids) -> dict[str, Any]:
         )
         .select_from(JobAnalysisQueue).join(Job, Job.id == JobAnalysisQueue.job_id).where(active)).one()
     done_count, failed_count, last_hour_count = int(analysed[0]), int(analysed[1]), int(analysed[2])
+    last_day_count = int(analysed[3])
     queued_count, retrying_count, awaiting_count = int(waiting[0]), int(waiting[1]), int(waiting[2])
     skipped_count = max(0, total_active - done_count - failed_count - queued_count - retrying_count - awaiting_count)
     postings = {
@@ -269,6 +273,10 @@ def analysis_progress(session, profile_ids) -> dict[str, Any]:
         'failed': failed_count,
         'skipped': skipped_count,
         'last_hour': last_hour_count,
+        'last_day': last_day_count,
+        # The queue is read best-first; at the last day's pace only about this many more
+        # postings fit in the freshness window, so the lower-ranked rest likely ages out unread.
+        'out_of_reach': max(0, queued_count - last_day_count * max_days) if last_day_count else 0,
     }
 
     ids = list(profile_ids)

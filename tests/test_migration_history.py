@@ -223,8 +223,8 @@ class HistoricalUpgradeTests(unittest.TestCase):
                 for file in (migrations / 'versions').glob('*.py'):
                     # The previous image shipped none of 0044 (application documents v2),
                     # 0045 (local job analysis), 0046 (precomputed job location scopes),
-                    # or 0047 (analysis pre-ranking gate).
-                    if not file.name.startswith(('0044_', '0045_', '0046_', '0047_')):
+                    # 0047 (analysis pre-ranking gate) or 0048 (plain pre-rank similarity).
+                    if not file.name.startswith(('0044_', '0045_', '0046_', '0047_', '0048_')):
                         (Path(folder) / file.name).symlink_to(file)
                 old_config.set_main_option('version_locations', folder)
                 command.upgrade(old_config, 'head')
@@ -499,7 +499,7 @@ class HistoricalUpgradeTests(unittest.TestCase):
                     )).all())
                     self.assertTrue(all(indexes.get(name) for name in expected_indexes))
 
-            command.upgrade(self.config, 'head')
+            command.upgrade(self.config, '0047_analysis_prerank')
             assert_upgraded()
 
             command.downgrade(self.config, '0046_job_location_scope')
@@ -515,9 +515,30 @@ class HistoricalUpgradeTests(unittest.TestCase):
                 )).all())
                 self.assertTrue(expected_indexes.isdisjoint(indexes))
 
-            command.upgrade(self.config, 'head')
+            command.upgrade(self.config, '0047_analysis_prerank')
             assert_upgraded()
 
+
+    def test_0048_raw_similarity_up_down_up(self):
+        with patch.dict(os.environ, {'DATABASE_URL': self.target}):
+            command.upgrade(self.config, '0047_analysis_prerank')
+            engine = create_engine(self.target)
+            self.addCleanup(engine.dispose)
+
+            def columns():
+                with engine.connect() as connection:
+                    return set(connection.scalars(text(
+                        "SELECT column_name FROM information_schema.columns "
+                        "WHERE table_schema = 'public' AND table_name = 'job_analysis_queue'"
+                    )).all())
+
+            command.upgrade(self.config, '0048_analysis_raw_similarity')
+            self.assertIn('raw_similarity', columns())
+            command.downgrade(self.config, '0047_analysis_prerank')
+            self.assertNotIn('raw_similarity', columns())
+            self.assertIn('similarity', columns())
+            command.upgrade(self.config, 'head')
+            self.assertIn('raw_similarity', columns())
 
 if __name__ == '__main__':
     unittest.main()
